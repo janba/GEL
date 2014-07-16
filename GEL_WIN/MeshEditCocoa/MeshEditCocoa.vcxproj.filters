@@ -1,0 +1,25 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{f826c60e-77da-422c-880d-4895ea8034c9}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\demo\MeshEditCocoa\AppDelegate.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\demo\MeshEditCocoa\BasicOpenGLView.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\src\demo\MeshEditCocoa\BasicOpenGLView.mm" />
+    <None Include="..\..\src\demo\MeshEditCocoa\bunny.icns" />
+    <None Include="..\..\src\demo\MeshEditCocoa\main.m" />
+    <None Include="..\..\src\demo\MeshEditCocoa\MainMenu.xib" />
+    <None Include="..\..\src\demo\MeshEditCocoa\MeshEdit-Info.plist" />
+    <None Include="..\..\src\demo\MeshEditCocoa\MeshEdit-Prefix.pch" />
+    <None Include="..\..\src\demo\MeshEditCocoa\AppDelegate.m" />
+  </ItemGroup>
+</Project>

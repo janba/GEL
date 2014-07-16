@@ -1,0 +1,250 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		0D6D578A19424A5700726FDE /* objviewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D578819424A5700726FDE /* objviewer.cpp */; };
+		0D6D578C19424A5F00726FDE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D6D578B19424A5F00726FDE /* GEL.framework */; };
+		0D6D578E19424A6400726FDE /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D6D578D19424A6400726FDE /* OpenGL.framework */; };
+		0D6D579019424A6900726FDE /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D6D578F19424A6900726FDE /* GLUT.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		0D6D577319424A3A00726FDE /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		0D6D577519424A3A00726FDE /* OBJViewer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = OBJViewer; sourceTree = BUILT_PRODUCTS_DIR; };
+		0D6D578819424A5700726FDE /* objviewer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = objviewer.cpp; path = ../../../demo/OBJViewer/objviewer.cpp; sourceTree = "<group>"; };
+		0D6D578B19424A5F00726FDE /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
+		0D6D578D19424A6400726FDE /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		0D6D578F19424A6900726FDE /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		0D6D577219424A3A00726FDE /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0D6D579019424A6900726FDE /* GLUT.framework in Frameworks */,
+				0D6D578E19424A6400726FDE /* OpenGL.framework in Frameworks */,
+				0D6D578C19424A5F00726FDE /* GEL.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		0D6D576C19424A3A00726FDE = {
+			isa = PBXGroup;
+			children = (
+				0D6D578F19424A6900726FDE /* GLUT.framework */,
+				0D6D578D19424A6400726FDE /* OpenGL.framework */,
+				0D6D578B19424A5F00726FDE /* GEL.framework */,
+				0D6D577719424A3A00726FDE /* OBJViewer */,
+				0D6D577619424A3A00726FDE /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		0D6D577619424A3A00726FDE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0D6D577519424A3A00726FDE /* OBJViewer */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0D6D577719424A3A00726FDE /* OBJViewer */ = {
+			isa = PBXGroup;
+			children = (
+				0D6D578819424A5700726FDE /* objviewer.cpp */,
+			);
+			path = OBJViewer;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		0D6D577419424A3A00726FDE /* OBJViewer */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 0D6D577E19424A3A00726FDE /* Build configuration list for PBXNativeTarget "OBJViewer" */;
+			buildPhases = (
+				0D6D577119424A3A00726FDE /* Sources */,
+				0D6D577219424A3A00726FDE /* Frameworks */,
+				0D6D577319424A3A00726FDE /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = OBJViewer;
+			productName = OBJViewer;
+			productReference = 0D6D577519424A3A00726FDE /* OBJViewer */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		0D6D576D19424A3A00726FDE /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0510;
+				ORGANIZATIONNAME = "J. Andreas Bærentzen";
+			};
+			buildConfigurationList = 0D6D577019424A3A00726FDE /* Build configuration list for PBXProject "OBJViewer" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 0D6D576C19424A3A00726FDE;
+			productRefGroup = 0D6D577619424A3A00726FDE /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				0D6D577419424A3A00726FDE /* OBJViewer */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0D6D577119424A3A00726FDE /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				0D6D578A19424A5700726FDE /* objviewer.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		0D6D577C19424A3A00726FDE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		0D6D577D19424A3A00726FDE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		0D6D577F19424A3A00726FDE /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		0D6D578019424A3A00726FDE /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+				);
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		0D6D577019424A3A00726FDE /* Build configuration list for PBXProject "OBJViewer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0D6D577C19424A3A00726FDE /* Debug */,
+				0D6D577D19424A3A00726FDE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		0D6D577E19424A3A00726FDE /* Build configuration list for PBXNativeTarget "OBJViewer" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				0D6D577F19424A3A00726FDE /* Debug */,
+				0D6D578019424A3A00726FDE /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 0D6D576D19424A3A00726FDE /* Project object */;
+}

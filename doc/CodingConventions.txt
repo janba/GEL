@@ -1,0 +1,126 @@
+Andreas Bærentzen, 
+December 2001
+
+----------------------------------------------------------------------
+CODING CONVENTIONS
+----------------------------------------------------------------------
+
+Coding conventions are very important if the source code is to remain
+legible and tidy. Very strict conventions, however, will require too
+much work of the programmer, and (if the programmer is myself) he will 
+start to ignore some of the conventions in order to do things more
+quickly, and then the card house topples.
+
+Nothing that imposes too much work should be made a coding
+convention. For instance, a standard comment before each function
+definition sounds like a good idea, but even with a template, it is
+cumbersome to add and maintain these chunks of text, so I choose to
+omit them. However, Doxygen comments are added whereever I get around to it.
+
+The philosophy behind the conventions below is that they should simply 
+be standard ways of doing what a programmer does anyway and that they
+should add only very little extra work.
+
+USE OF CASE AND SPECIAL CHARACTERS
+------------------------------
+
+* Abbreviations are used only where the names would otherwise be
+ludicrously long.
+
+* Names of constants are all uppercase letters. Underscores are used to
+combine words, e.g. `MAX_LEVEL'
+
+* Names of classes and other new types are in lower case but
+inter-capitalized, e.g. `class MyClass'
+
+* The names of functions are lower case. Words are combined with
+underscores, e.g. `int get_max()'
+
+FUNCTION NAMING
+------------------------------
+
+* Words used
+
+The words `get' and `set' are used in the names of functions that
+assigns or retrieves the value of some state variable in a class.
+
+E.g.
+
+get_level
+set_level
+
+The words `find', `remove', `insert' are used in the names of
+functions that access a database.
+
+E.g.
+
+find_node
+remove_node
+insert_node
+
+The word `create' is used in the name of a function that creates and
+returns a member of a class, e.g.
+
+create_inquirer
+
+The word `inquirer' is used in the names of functions that access
+data structures. E.g.
+
+OctreeInquirer
+
+COMMENTING
+------------------------------
+
+* Comments are used where appropriate. DOC++ comments are used 
+for all class members in .h files. There are no comments used
+purely for aestethical or ``typographical'' reasons.
+...
+
+At some point I may add a standard file header. Could contain CVS
+information perhaps.
+
+FUNCTION ARGUMENTS
+------------------------------
+
+* Constructor arguments. If a class X contains a variable y that is
+initialized in the contructor of X, then the argument to the
+constructor should be _y, that is
+
+X::X(_y): y(_y) {}
+
+* Usually a function takes arguments that are constant and ``call by
+reference'' arguments that may be modified. The constant arguments
+should come first, then the modifiable. E.g.
+
+        foo(const MyClass&, int, float&);
+
+has two constant arguments followed by a float which is passed by
+reference.
+
+FILE (NAMING) CONVENTIONS
+------------------------------
+
+* All classes that are not auxiliary (i.e. used only by one particular
+other class) have a header file of their own. 
+
+* The name of the header file is that of the class + `.h'
+
+* All non-auxiliary classes with one or more functions that are not
+inline have a definition file of their own.
+
+* The name of the definition file is that of the class + `.cpp'
+
+* The #define <macro> in the include guard uses the name of the
+  namespace followed by the name of the file - capitalized and with dot
+  replaced by underscore.	This string is also preceeded and followed by
+	two underscores. For instance,
+
+#ifndef __CGLA__ARITHVECFLOAT_H__
+#define __CGLA__ARITHVECFLOAT_H__
+
+... code ....
+
+#endif
+
+  Not all code adheres to this convention yet.
+

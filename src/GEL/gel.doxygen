@@ -1,0 +1,150 @@
+/** \mainpage GEL: GEometric and Linear algebra tools.
+
+GEL is a framwork for computer graphics and 3D vision.
+
+There are a good many tools for computational geometry processing: A
+voxel grid and a simple triangle mesh data structure. There is also 
+a halfedge based polygonal mesh data structure called HMesh. There is a very
+useful data structure known as a k-D tree and many other things. 
+
+Also found are two packages for linear algebra: CGLA is strictly for small
+vectors and matrices. LinAlg is a Lapack wrapper for slightly larger 
+problems. At this point, it is fairly simple but includes a number of functions
+for solving linear systems, factorizing matrices and finding eigensolutions
+for symmetric matrices.
+
+GLGraphics contains facilities for drawing entities from other parts of GEL 
+via OpenGL and also some tools for viewing in interactive programs and
+SOIL a small open source library for image loading by Jonathan Dummer.
+
+Finally there are some utilities in Util: Getting command line argumens,
+hash table classes, a 2D grid class, a resource manager and other 
+miscellany.
+*/
+
+/** \namespace CGLA
+\brief Computer Graphics Linear Algebra.
+
+CGLA is a set of numerical C++ vector and matrix classes and class
+templates designed with computer graphics in mind. CGLA stands for
+``Computer Graphics Linear Algebra''.
+
+Let us get right down to the obvious question: Why create another
+linear algebra package?
+Well, CGLA evolved from a few matrix and vector classes because I
+didn't have anything better. Also, I created CGLA to experiment with
+some template programming techniques. This led to the most important
+feature of CGLA, namely the fact that all vector types are derived
+from the same template. 
+
+This makes it easy to ensure identical semantics: Since all vectors
+have inherited, say, the * operator from a common ancestor, it works
+the same for all of them.
+
+It is important to note that CGLA was designed for Computer Graphics 
+(not numerical computations) and this had a number of
+implications. Since, in computer graphics we mainly need small vectors
+of dimension 2,3, or 4 CGLA was designed for vectors of low
+dimensionality. Moreover, the amount of memory allocated for a vector
+is decided by its type at compile time. CGLA does not use dynamic
+memory. CGLA also does not use virtual functions, and most functions
+are inline. These features all help making CGLA relatively fast. 
+
+Of course, other libraries of vector templates for computer graphics
+exist, but to my knowledge none where the fundamental templates are
+parametrized w.r.t. dimension as well as type. In other words, we have
+a template (ArithVec) that gets both type
+(e.g. float) and dimension 
+(e.g. 3) as arguments. the intended use of this template is as
+ancestor of concrete types such as Vec3f - a 3D floating
+point type. 
+
+The use of just one template as basis is very important, I believe,
+since it makes it extremely simple to add new types of
+vectors. Another very generic template is ArithMat which is a
+template for matrix classes. (and not necessarily NxN matrices). 
+
+From a users perspective CGLA contains a number of vector and matrix
+classes, a quaternion and some utility classes. In summary, the most
+important features are
+
+- A number of 2, 3 and 4 d vector classes.
+- A number of Matrix classes.
+- A Quaternion class.
+- Some test programs.
+- Works well with OpenGL.
+
+
+There is a document on CGLA in the GEL documentation. The introduction
+above was taken from that text.
+*/
+
+/** \namespace GLGraphics
+	\brief The namespace for things related to (real time) rendering
+	
+This namespace is for functionality that requires OpenGL. For instance a 
+virtual trackball class and a more complex view controller. There are functions
+for drawing meshes and other geometric entities from other parts of OpenGL.
+There is also SOIL, the image loading library for OpenGL, by Jonathan Dummer.
+*/
+
+/** \namespace Geometry
+		\brief A namespace for utilities related to geometry.
+
+		This namespace contains a wide range of stuff: Spatial datastructures
+		voxel grids and related classes as well as a simple triangle mesh class.
+*/
+
+/** \namespace HMesh
+		\brief The HMesh namespace contains the Manifold class which is a halfedge
+		based mesh.
+
+		Apart from manifold there are also face and vertex circulators in this 
+		namespace. More advanced things are relegated to the HMeshUtil namespace.
+
+		Some applications are also found here. For instance an isosurface 
+		polygonizer and Garland Heckbert simplification has been implemented
+	  on top of HMesh.
+*/
+
+/*!
+	\namespace LinAlg
+	\brief The Linear Algebra Implementation/Module/Package. 
+
+  This is the linear algebra package deal with vector and matrix types plus 
+  the basic operation on them. The Vector and Matrix Types are templated such 
+  that the precision of a given 'system' can be changen. Though the precision 
+  or type in mind is the double. Special types for 2 and 3 vectors 
+  (CVec2 and CVec3) are included for improved performance. The more advanced 
+  linear algebra functions are supplied by lincage to the LaPack package.
+
+  \test The functionality in this pacage has if nothing else is mentioned 
+  been tested by making small functions utilizing the functions. The 
+  reason being that the functions here are rather esay to validate due to 
+  their functional simplicity.
+
+	A list of improvements in mind is:
+	- Lapack interface
+	- Vector and Matrix product and so on, with interface to _BLAS_
+	- iterator thing
+	- Memory leak check ? inline ?
+	- Element functor
+	- Identity matrixs
+	- Compile and utilize the newer versions of the Lapack routines.
+	- Have a nameing convention section in the documentaion
+	- Integrate the design into the documentation
+	- Have a get data in the matrix and vector instead of &A[0].
+	- Have 3x3, 3x4 4x1 and 4x4 specialities.
+	- Look at casting e.g. vec2i=vec2l.
+	- Error handling in From/To matrix
+	- Has error handling in Lapack been made ?
+
+	\author Henrik Aanæs
+	\version Aug 2001
+*/
+
+/** \namespace Util
+		\brief This namespace is for general utilities that do not fit elsewhere.
+
+*/
+

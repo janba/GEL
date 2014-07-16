@@ -1,0 +1,310 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="12.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithMatFloat.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithQuat.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithSqMat2x2Float.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithSqMat3x3Float.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithSqMat4x4Float.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithSqMatFloat.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec2Float.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec3Float.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec3Int.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec4Float.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec4Int.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVecFloat.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVecInt.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\BitMask.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\CGLA.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\eigensolution.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\ExceptionStandard.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat2x2d.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat2x2f.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat2x3d.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat2x3f.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat3x3d.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat3x3f.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat4x4d.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat4x4f.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Quatd.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Quaternion.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Quatf.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\statistics.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\TableTrigonometry.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\UnitVector.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec2d.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec2f.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec2i.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec2ui.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3d.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3f.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3Hf.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3i.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3uc.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3usi.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec4d.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec4f.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec4i.h" />
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec4uc.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\AABox.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\AncestorGrid.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\BBox.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\BoundingINode.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\BoundingLNode.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\BoundingNode.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\BoundingTree.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\BSPTree.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\build_bbtree.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\Cell.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\GradientFilter.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\GridAlgorithm.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\HGrid.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\Implicit.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\IndexedFaceSet.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\KDTree.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\load.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\load_raw.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\Material.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\Neighbours.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\obj_load.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\OBox.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\ply_load.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\Polygonizer.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\QEM.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\Ray.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\RGrid.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\rply.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\save_raw.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\tessellate.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\ThreeDDDA.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\Triangle.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\TrilinFilter.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\TriMesh.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\verification.h" />
+    <ClInclude Include="..\..\src\GEL\Geometry\XForm.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\Console.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\draw.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\glsl_shader.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\GLViewController.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\IDBufferWireFrameRenderer.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\image_DXT.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\image_helper.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\ManifoldRenderer.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\MeshEditor.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\QuatTrackBall.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\ShadowBuffer.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\SimpleTrackBall.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\SinglePassWireframeRenderer.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\SOIL.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\stbi_DDS_aug.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\stbi_DDS_aug_c.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\stb_image.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\stb_image_write.h" />
+    <ClInclude Include="..\..\src\GEL\GLGraphics\VisObj.h" />
+    <ClInclude Include="..\..\src\GEL\GL\glew.h" />
+    <ClInclude Include="..\..\src\GEL\GL\glxew.h" />
+    <ClInclude Include="..\..\src\GEL\GL\wglew.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\AttributeVector.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\cleanup.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\ConnectivityKernel.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\curvature.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\dual.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\flatten.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\harmonics.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\ItemID.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\ItemVector.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\Iterators.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\load.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\Manifold.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\mesh_optimization.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\obj_load.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\obj_save.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\off_load.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\off_save.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\ply_load.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\polygonize.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\quadric_simplify.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\refine_edges.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\smooth.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\subdivision.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\triangulate.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\Walker.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\x3d_load.h" />
+    <ClInclude Include="..\..\src\GEL\HMesh\x3d_save.h" />
+    <ClInclude Include="..\..\src\GEL\LinAlg\LapackFunc.h" />
+    <ClInclude Include="..\..\src\GEL\LinAlg\LinAlgIO.h" />
+    <ClInclude Include="..\..\src\GEL\LinAlg\Matrix.h" />
+    <ClInclude Include="..\..\src\GEL\LinAlg\Vector.h" />
+    <ClInclude Include="..\..\src\GEL\Util\ArgExtracter.h" />
+    <ClInclude Include="..\..\src\GEL\Util\Grid2D.h" />
+    <ClInclude Include="..\..\src\GEL\Util\HashKey.h" />
+    <ClInclude Include="..\..\src\GEL\Util\HashTable.h" />
+    <ClInclude Include="..\..\src\GEL\Util\Parse.h" />
+    <ClInclude Include="..\..\src\GEL\Util\ResourceManager.h" />
+    <ClInclude Include="..\..\src\GEL\Util\string_utils.h" />
+    <ClInclude Include="..\..\src\GEL\Util\Timer.h" />
+    <ClInclude Include="..\..\src\GEL\Util\XmlParser.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\GEL\CGLA\ArithSqMat3x3Float.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\ArithSqMat4x4Float.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\ArithVec2Float.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\ArithVec3Float.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\eigensolution.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\gel_rand.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\Mat3x3d.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\Mat3x3f.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\Mat4x4d.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\Mat4x4f.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\statistics.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\TableTrigonometry.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\Vec2i.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\Vec3f.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\Vec3i.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\AABox.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\BBox.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\BoundingINode.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\BoundingLNode.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\BoundingNode.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\BoundingTree.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\BSPTree.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\build_bbtree.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\geo_load.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\geo_obj_load.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\GradientFilter.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\Implicit.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\load_raw.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\Neighbours.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\OBox.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\Polygonizer.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\QEM.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\rply.c" />
+    <ClCompile Include="..\..\src\GEL\Geometry\rply_load.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\tessellate.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\ThreeDDDA.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\Triangle.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\TrilinFilter.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\TriMesh.cpp" />
+    <ClCompile Include="..\..\src\GEL\Geometry\verification.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\Console.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\draw.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\glsl_shader.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\GLViewController.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\IDBufferWireFrameRenderer.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\image_DXT.c" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\image_helper.c" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\ManifoldRenderer.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\MeshEditor.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\QuatTrackBall.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\ShadowBuffer.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\SimpleTrackBall.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\SinglePassWireframeRenderer.cpp" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\SOIL.c" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\stb_image.c" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\stb_image_write.c" />
+    <ClCompile Include="..\..\src\GEL\GLGraphics\VisObj.cpp" />
+    <ClCompile Include="..\..\src\GEL\GL\glew.c" />
+    <ClCompile Include="..\..\src\GEL\HMesh\cleanup.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\ConnectivityKernel.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\curvature.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\dual.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\flatten.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\harmonics.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\load.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\Manifold.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\mesh_optimization.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\obj_load.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\obj_save.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\off_load.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\off_save.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\ply_load.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\polygonize.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\quadric_simplify.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\refine_edges.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\smooth.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\subdivision.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\triangulate.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\x3d_load.cpp" />
+    <ClCompile Include="..\..\src\GEL\HMesh\x3d_save.cpp" />
+    <ClCompile Include="..\..\src\GEL\LinAlg\LapackFunc.cpp" />
+    <ClCompile Include="..\..\src\GEL\LinAlg\LinAlgIO.cpp" />
+    <ClCompile Include="..\..\src\GEL\Util\HashKey.cpp" />
+    <ClCompile Include="..\..\src\GEL\Util\Parse.cpp" />
+    <ClCompile Include="..\..\src\GEL\Util\string_utils.cpp" />
+    <ClCompile Include="..\..\src\GEL\Util\XmlParser.cpp" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{88D190C6-D417-47B9-8882-6460A53CD50E}</ProjectGuid>
+    <RootNamespace>GEL</RootNamespace>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>true</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <UseDebugLibraries>false</UseDebugLibraries>
+    <PlatformToolset>v120</PlatformToolset>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <TargetExt>.lib</TargetExt>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>Disabled</Optimization>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionPath)\..\..\src\GEL</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;WIN32;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+    </Link>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <SDLCheck>true</SDLCheck>
+      <AdditionalIncludeDirectories>$(SolutionPath)\..\..\src\GEL</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>_MBCS;WIN32;_SCL_SECURE_NO_WARNINGS;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+      <ImageHasSafeExceptionHandlers>false</ImageHasSafeExceptionHandlers>
+    </Link>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

@@ -1,0 +1,762 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="CGLA">
+      <UniqueIdentifier>{de4f1554-014c-4eed-845c-b8f3dae47e58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Geometry">
+      <UniqueIdentifier>{34b90c75-5c01-45aa-aa8a-3c5ff572a78d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GL">
+      <UniqueIdentifier>{dea78c77-098c-49ea-90bf-c215f9acbc76}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GLGraphics">
+      <UniqueIdentifier>{643933c5-c1e9-4ccc-9394-7b251ebbead8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HMesh">
+      <UniqueIdentifier>{f33a116c-3ecd-4f34-9c2b-afffee0a01b0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LinAlg">
+      <UniqueIdentifier>{a88efba3-3828-4803-8795-a954644e081f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util">
+      <UniqueIdentifier>{85c5cfa4-7416-4465-88bc-c85e56501ddd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CGLA\Source Files">
+      <UniqueIdentifier>{0c81e667-d981-411c-87ca-414c2553e1d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CGLA\Header Files">
+      <UniqueIdentifier>{cf73972f-bffa-4f82-857d-1e49089af90b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Geometry\Header Files">
+      <UniqueIdentifier>{942fa398-2c5a-4d45-b59c-f5e8c4280a46}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Geometry\Source Files">
+      <UniqueIdentifier>{b732da25-3f87-4bee-b237-700c21c0c373}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GL\Header Files">
+      <UniqueIdentifier>{1ee3e68b-403a-486c-acee-d747bf9596c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GL\Source Files">
+      <UniqueIdentifier>{dd2b98da-603b-4e59-94d1-8672a4765f00}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GLGraphics\Header Files">
+      <UniqueIdentifier>{e91e09ec-45db-438e-9f7a-d215ad36472f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GLGraphics\Source Files">
+      <UniqueIdentifier>{270a8385-890d-4e67-aa43-b1769477b5ea}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HMesh\Header Files">
+      <UniqueIdentifier>{f04a2f06-d3bf-449d-9d90-fcac9f84842b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="HMesh\Source Files">
+      <UniqueIdentifier>{535564c6-5e0e-4123-ac44-dd3a13e5e406}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LinAlg\Header Files">
+      <UniqueIdentifier>{e1842137-1050-43bf-b68f-c0d6ca08ab0e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="LinAlg\Source Files">
+      <UniqueIdentifier>{e9773b9d-3c96-4581-a992-88988c0ac30c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util\Header Files">
+      <UniqueIdentifier>{be2c918d-9391-40a6-871c-1a0fb0b1796d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Util\Source Files">
+      <UniqueIdentifier>{0db160e1-8a77-4f52-9da1-e074cf8195c7}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\src\GEL\CGLA\TableTrigonometry.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\UnitVector.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec2d.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec2f.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec2i.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec2ui.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3d.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3f.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3Hf.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3i.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3uc.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec3usi.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec4d.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec4f.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec4i.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Vec4uc.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithMatFloat.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithQuat.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithSqMat2x2Float.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithSqMat3x3Float.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithSqMat4x4Float.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithSqMatFloat.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec2Float.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec3Float.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec3Int.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec4Float.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVec4Int.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVecFloat.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ArithVecInt.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\BitMask.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\CGLA.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\eigensolution.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\ExceptionStandard.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat2x2d.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat2x2f.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat2x3d.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat2x3f.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat3x3d.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat3x3f.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat4x4d.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Mat4x4f.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Quatd.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Quaternion.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\Quatf.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\CGLA\statistics.h">
+      <Filter>CGLA\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\XForm.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\AABox.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\AncestorGrid.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\BBox.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\BoundingINode.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\BoundingLNode.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\BoundingNode.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\BoundingTree.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\BSPTree.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\build_bbtree.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\Cell.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\GradientFilter.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\GridAlgorithm.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\HGrid.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\Implicit.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\IndexedFaceSet.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\KDTree.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\load.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\load_raw.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\Material.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\Neighbours.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\obj_load.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\OBox.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\ply_load.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\Polygonizer.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\QEM.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\Ray.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\RGrid.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\rply.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\save_raw.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\tessellate.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\ThreeDDDA.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\Triangle.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\TrilinFilter.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\TriMesh.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Geometry\verification.h">
+      <Filter>Geometry\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GL\glew.h">
+      <Filter>GL\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GL\glxew.h">
+      <Filter>GL\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GL\wglew.h">
+      <Filter>GL\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\IDBufferWireFrameRenderer.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\image_DXT.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\image_helper.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\ManifoldRenderer.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\MeshEditor.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\QuatTrackBall.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\ShadowBuffer.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\SimpleTrackBall.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\SinglePassWireframeRenderer.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\SOIL.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\stb_image.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\stb_image_write.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\stbi_DDS_aug.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\stbi_DDS_aug_c.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\VisObj.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\Console.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\draw.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\glsl_shader.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\GLGraphics\GLViewController.h">
+      <Filter>GLGraphics\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\x3d_save.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\AttributeVector.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\cleanup.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\ConnectivityKernel.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\curvature.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\dual.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\flatten.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\harmonics.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\ItemID.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\ItemVector.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\Iterators.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\load.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\Manifold.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\mesh_optimization.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\obj_load.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\obj_save.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\off_load.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\off_save.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\ply_load.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\polygonize.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\quadric_simplify.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\refine_edges.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\smooth.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\subdivision.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\triangulate.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\Walker.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\HMesh\x3d_load.h">
+      <Filter>HMesh\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\LinAlg\Matrix.h">
+      <Filter>LinAlg\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\LinAlg\Vector.h">
+      <Filter>LinAlg\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\LinAlg\LapackFunc.h">
+      <Filter>LinAlg\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\LinAlg\LinAlgIO.h">
+      <Filter>LinAlg\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Util\HashKey.h">
+      <Filter>Util\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Util\HashTable.h">
+      <Filter>Util\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Util\Parse.h">
+      <Filter>Util\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Util\ResourceManager.h">
+      <Filter>Util\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Util\string_utils.h">
+      <Filter>Util\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Util\Timer.h">
+      <Filter>Util\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Util\XmlParser.h">
+      <Filter>Util\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Util\ArgExtracter.h">
+      <Filter>Util\Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\src\GEL\Util\Grid2D.h">
+      <Filter>Util\Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\..\src\GEL\CGLA\ArithSqMat3x3Float.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\ArithSqMat4x4Float.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\ArithVec2Float.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\ArithVec3Float.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\eigensolution.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\gel_rand.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\Mat3x3d.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\Mat3x3f.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\Mat4x4d.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\Mat4x4f.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\statistics.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\TableTrigonometry.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\Vec2i.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\Vec3f.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\Vec3i.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\verification.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\rply.c">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\AABox.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\BBox.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\BoundingINode.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\BoundingLNode.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\BoundingNode.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\BoundingTree.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\BSPTree.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\build_bbtree.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\geo_load.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\geo_obj_load.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\GradientFilter.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\Implicit.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\load_raw.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\Neighbours.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\OBox.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\Polygonizer.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\QEM.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\rply_load.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\tessellate.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\ThreeDDDA.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\Triangle.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\TrilinFilter.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Geometry\TriMesh.cpp">
+      <Filter>Geometry\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GL\glew.c">
+      <Filter>GL\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\MeshEditor.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\QuatTrackBall.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\ShadowBuffer.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\SimpleTrackBall.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\SinglePassWireframeRenderer.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\VisObj.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\image_DXT.c">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\image_helper.c">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\SOIL.c">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\stb_image.c">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\stb_image_write.c">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\Console.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\draw.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\glsl_shader.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\GLViewController.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\IDBufferWireFrameRenderer.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\GLGraphics\ManifoldRenderer.cpp">
+      <Filter>GLGraphics\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\triangulate.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\x3d_load.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\x3d_save.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\cleanup.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\ConnectivityKernel.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\curvature.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\dual.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\flatten.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\harmonics.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\load.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\Manifold.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\mesh_optimization.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\obj_load.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\obj_save.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\off_load.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\off_save.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\ply_load.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\polygonize.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\quadric_simplify.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\refine_edges.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\smooth.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\HMesh\subdivision.cpp">
+      <Filter>HMesh\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\LinAlg\LapackFunc.cpp">
+      <Filter>LinAlg\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\LinAlg\LinAlgIO.cpp">
+      <Filter>LinAlg\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Util\HashKey.cpp">
+      <Filter>Util\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Util\Parse.cpp">
+      <Filter>Util\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Util\string_utils.cpp">
+      <Filter>Util\Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\src\GEL\Util\XmlParser.cpp">
+      <Filter>Util\Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>
