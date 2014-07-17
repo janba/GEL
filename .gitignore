@@ -1,17 +1,23 @@
 ## Ignore Visual Studio temporary files
 
 # User-specific files
-GEL_WIN/*.suo
-GEL_WIN/*.user
-GEL_WIN/*.sln.docstates
+*.suo
+*.user
+*.sln.docstates
+*.tlog
+*.log
+*.idb
+*.pdb
+*.vc120.*
+*.sdf
+*.opensdf
 
-GEL_WIN/*.obj
-GEL_WIN/*.tlog
-GEL_WIN/*.exe
+# obj files not in data.
+/GEL_WIN/*/*/*.obj
+
 
 # .lib
-GEL_WIN/Debug/*.lib
-GEL_WIN/Release/*.lib
+GEL_WIN/Debug/*
+GEL_WIN/Release/*
 !GEL_WIN/Debug/clapackDB.lib
 !GEL_WIN/Release/clapack.lib
-
