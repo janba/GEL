@@ -1,0 +1,14 @@
+## Ignore Visual Studio temporary files
+
+# User-specific files
+GEL_WIN/*.suo
+GEL_WIN/*.user
+GEL_WIN/*.sln.docstates
+
+
+# .lib
+GEL_WIN/Debug/*.lib
+GEL_WIN/Release/*.lib
+!GEL_WIN/Debug/clapackDB.lib
+!GEL_WIN/Release/clapack.lib
+
