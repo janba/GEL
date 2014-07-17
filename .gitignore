@@ -5,6 +5,9 @@ GEL_WIN/*.suo
 GEL_WIN/*.user
 GEL_WIN/*.sln.docstates
 
+GEL_WIN/*.obj
+GEL_WIN/*.tlog
+GEL_WIN/*.exe
 
 # .lib
 GEL_WIN/Debug/*.lib
