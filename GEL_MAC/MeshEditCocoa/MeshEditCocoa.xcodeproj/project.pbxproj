@@ -7,20 +7,26 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0D52EBBD197D19ED002C7150 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EBB9197D19ED002C7150 /* AppDelegate.m */; };
+		0D52EBBE197D19ED002C7150 /* BasicOpenGLView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EBBB197D19ED002C7150 /* BasicOpenGLView.mm */; };
+		0D52EBBF197D19ED002C7150 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EBBC197D19ED002C7150 /* main.m */; };
+		0D52EBC2197D1CA2002C7150 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D52EBC0197D1B77002C7150 /* GEL.framework */; };
 		0DF694B51940EDF6008F1E8C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF694B41940EDF6008F1E8C /* Cocoa.framework */; };
 		0DF694BF1940EDF6008F1E8C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0DF694BD1940EDF6008F1E8C /* InfoPlist.strings */; };
 		0DF694C51940EDF6008F1E8C /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 0DF694C31940EDF6008F1E8C /* Credits.rtf */; };
-		0DF694C81940EDF6008F1E8C /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0DF694C71940EDF6008F1E8C /* AppDelegate.m */; };
 		0DF694CB1940EDF6008F1E8C /* MainMenu.xib in Resources */ = {isa = PBXBuildFile; fileRef = 0DF694C91940EDF6008F1E8C /* MainMenu.xib */; };
 		0DF694CD1940EDF6008F1E8C /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 0DF694CC1940EDF6008F1E8C /* Images.xcassets */; };
-		0DF694F41940EE8C008F1E8C /* BasicOpenGLView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0DF694F21940EE8C008F1E8C /* BasicOpenGLView.mm */; };
-		0DF694F51940EE8C008F1E8C /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0DF694F31940EE8C008F1E8C /* main.m */; };
-		0DF694F71940F841008F1E8C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF694F61940F841008F1E8C /* GEL.framework */; };
 		0DF694F91940F84C008F1E8C /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF694F81940F84C008F1E8C /* Accelerate.framework */; };
 		0DF694FB1940F85A008F1E8C /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF694FA1940F85A008F1E8C /* OpenGL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0D52EBB8197D19ED002C7150 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = ../../../src/demo/MeshEditCocoa/AppDelegate.h; sourceTree = "<group>"; };
+		0D52EBB9197D19ED002C7150 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = ../../../src/demo/MeshEditCocoa/AppDelegate.m; sourceTree = "<group>"; };
+		0D52EBBA197D19ED002C7150 /* BasicOpenGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BasicOpenGLView.h; path = ../../../src/demo/MeshEditCocoa/BasicOpenGLView.h; sourceTree = "<group>"; };
+		0D52EBBB197D19ED002C7150 /* BasicOpenGLView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = BasicOpenGLView.mm; path = ../../../src/demo/MeshEditCocoa/BasicOpenGLView.mm; sourceTree = "<group>"; };
+		0D52EBBC197D19ED002C7150 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ../../../src/demo/MeshEditCocoa/main.m; sourceTree = "<group>"; };
+		0D52EBC0197D1B77002C7150 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
 		0DF694B11940EDF6008F1E8C /* MeshEditCocoa.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeshEditCocoa.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DF694B41940EDF6008F1E8C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		0DF694B71940EDF6008F1E8C /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -30,15 +36,9 @@
 		0DF694BE1940EDF6008F1E8C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		0DF694C21940EDF6008F1E8C /* MeshEditCocoa-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "MeshEditCocoa-Prefix.pch"; sourceTree = "<group>"; };
 		0DF694C41940EDF6008F1E8C /* en */ = {isa = PBXFileReference; lastKnownFileType = text.rtf; name = en; path = en.lproj/Credits.rtf; sourceTree = "<group>"; };
-		0DF694C61940EDF6008F1E8C /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
-		0DF694C71940EDF6008F1E8C /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		0DF694CA1940EDF6008F1E8C /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = "<group>"; };
 		0DF694CC1940EDF6008F1E8C /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		0DF694D31940EDF6008F1E8C /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
-		0DF694F11940EE8C008F1E8C /* BasicOpenGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BasicOpenGLView.h; path = ../../../demo/MeshEditCocoa/BasicOpenGLView.h; sourceTree = "<group>"; };
-		0DF694F21940EE8C008F1E8C /* BasicOpenGLView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = BasicOpenGLView.mm; path = ../../../demo/MeshEditCocoa/BasicOpenGLView.mm; sourceTree = "<group>"; };
-		0DF694F31940EE8C008F1E8C /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ../../../demo/MeshEditCocoa/main.m; sourceTree = "<group>"; };
-		0DF694F61940F841008F1E8C /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
 		0DF694F81940F84C008F1E8C /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 		0DF694FA1940F85A008F1E8C /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
@@ -48,8 +48,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0D52EBC2197D1CA2002C7150 /* GEL.framework in Frameworks */,
 				0DF694F91940F84C008F1E8C /* Accelerate.framework in Frameworks */,
-				0DF694F71940F841008F1E8C /* GEL.framework in Frameworks */,
 				0DF694FB1940F85A008F1E8C /* OpenGL.framework in Frameworks */,
 				0DF694B51940EDF6008F1E8C /* Cocoa.framework in Frameworks */,
 			);
@@ -78,9 +78,9 @@
 		0DF694B31940EDF6008F1E8C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0D52EBC0197D1B77002C7150 /* GEL.framework */,
 				0DF694FA1940F85A008F1E8C /* OpenGL.framework */,
 				0DF694F81940F84C008F1E8C /* Accelerate.framework */,
-				0DF694F61940F841008F1E8C /* GEL.framework */,
 				0DF694B41940EDF6008F1E8C /* Cocoa.framework */,
 				0DF694D31940EDF6008F1E8C /* XCTest.framework */,
 				0DF694B61940EDF6008F1E8C /* Other Frameworks */,
@@ -101,11 +101,11 @@
 		0DF694BA1940EDF6008F1E8C /* MeshEditCocoa */ = {
 			isa = PBXGroup;
 			children = (
-				0DF694F11940EE8C008F1E8C /* BasicOpenGLView.h */,
-				0DF694F21940EE8C008F1E8C /* BasicOpenGLView.mm */,
-				0DF694F31940EE8C008F1E8C /* main.m */,
-				0DF694C61940EDF6008F1E8C /* AppDelegate.h */,
-				0DF694C71940EDF6008F1E8C /* AppDelegate.m */,
+				0D52EBB8197D19ED002C7150 /* AppDelegate.h */,
+				0D52EBB9197D19ED002C7150 /* AppDelegate.m */,
+				0D52EBBA197D19ED002C7150 /* BasicOpenGLView.h */,
+				0D52EBBB197D19ED002C7150 /* BasicOpenGLView.mm */,
+				0D52EBBC197D19ED002C7150 /* main.m */,
 				0DF694C91940EDF6008F1E8C /* MainMenu.xib */,
 				0DF694CC1940EDF6008F1E8C /* Images.xcassets */,
 				0DF694BB1940EDF6008F1E8C /* Supporting Files */,
@@ -190,9 +190,9 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DF694F41940EE8C008F1E8C /* BasicOpenGLView.mm in Sources */,
-				0DF694F51940EE8C008F1E8C /* main.m in Sources */,
-				0DF694C81940EDF6008F1E8C /* AppDelegate.m in Sources */,
+				0D52EBBE197D19ED002C7150 /* BasicOpenGLView.mm in Sources */,
+				0D52EBBF197D19ED002C7150 /* main.m in Sources */,
+				0D52EBBD197D19ED002C7150 /* AppDelegate.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -304,6 +304,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MeshEditCocoa/MeshEditCocoa-Prefix.pch";
@@ -321,6 +322,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MeshEditCocoa/MeshEditCocoa-Prefix.pch";
@@ -349,6 +351,7 @@
 				0DF694E41940EDF6008F1E8C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
