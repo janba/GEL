@@ -133,7 +133,7 @@ namespace HMesh
         
     }
     
-    void remove_needles(Manifold& m, float thresh)
+    void remove_needles(Manifold& m, float thresh, bool averagePositions)
     {
         bool did_work = false;
         
@@ -158,7 +158,7 @@ namespace HMesh
                     if(dist < thresh && precond_collapse_edge(m, h)){
                         //                        if(vertex_error(m, *v, Vec3d(m.pos(n))) < vertex_error(m, n, Vec3d(m.pos(*v))))
                         //                            m.pos(*v) = m.pos(n);
-                        m.collapse_edge(h);
+                        m.collapse_edge(h, averagePositions);
                         did_work = true;
                         break;
                     }
