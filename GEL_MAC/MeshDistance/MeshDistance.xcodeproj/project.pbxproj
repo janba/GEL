@@ -7,8 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0D6D57AD1942545300726FDE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D6D57AC1942545300726FDE /* GEL.framework */; };
-		0D6D57AF1942547900726FDE /* meshdist.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D57AE1942547900726FDE /* meshdist.cpp */; };
+		0D4B84C119899F1A00DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D4B84C019899F1A00DD2483 /* GEL.framework */; };
+		0DD4566A1989A81E0031C970 /* meshdist.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD456691989A81E0031C970 /* meshdist.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -24,9 +24,9 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0D4B84C019899F1A00DD2483 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
 		0D6D579A1942544000726FDE /* MeshDistance */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MeshDistance; sourceTree = BUILT_PRODUCTS_DIR; };
-		0D6D57AC1942545300726FDE /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
-		0D6D57AE1942547900726FDE /* meshdist.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = meshdist.cpp; path = ../../../demo/MeshDistance/meshdist.cpp; sourceTree = "<group>"; };
+		0DD456691989A81E0031C970 /* meshdist.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = meshdist.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -34,7 +34,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0D6D57AD1942545300726FDE /* GEL.framework in Frameworks */,
+				0D4B84C119899F1A00DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -44,8 +44,8 @@
 		0D6D57911942544000726FDE = {
 			isa = PBXGroup;
 			children = (
-				0D6D57AC1942545300726FDE /* GEL.framework */,
-				0D6D579C1942544000726FDE /* MeshDistance */,
+				0DD456681989A81E0031C970 /* MeshDistance */,
+				0D4B84C019899F1A00DD2483 /* GEL.framework */,
 				0D6D579B1942544000726FDE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -58,12 +58,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		0D6D579C1942544000726FDE /* MeshDistance */ = {
+		0DD456681989A81E0031C970 /* MeshDistance */ = {
 			isa = PBXGroup;
 			children = (
-				0D6D57AE1942547900726FDE /* meshdist.cpp */,
+				0DD456691989A81E0031C970 /* meshdist.cpp */,
 			);
-			path = MeshDistance;
+			name = MeshDistance;
+			path = ../../src/demo/MeshDistance;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -117,7 +118,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0D6D57AF1942547900726FDE /* meshdist.cpp in Sources */,
+				0DD4566A1989A81E0031C970 /* meshdist.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -200,6 +201,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -211,6 +213,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -235,6 +238,7 @@
 				0D6D57A51942544000726FDE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0D6D578A19424A5700726FDE /* objviewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D578819424A5700726FDE /* objviewer.cpp */; };
-		0D6D578C19424A5F00726FDE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D6D578B19424A5F00726FDE /* GEL.framework */; };
+		0D4B84BB19899EA400DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D4B84BA19899EA400DD2483 /* GEL.framework */; };
 		0D6D578E19424A6400726FDE /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D6D578D19424A6400726FDE /* OpenGL.framework */; };
 		0D6D579019424A6900726FDE /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D6D578F19424A6900726FDE /* GLUT.framework */; };
+		0DD456391989A7190031C970 /* objviewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD456381989A7190031C970 /* objviewer.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,11 +26,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0D4B84BA19899EA400DD2483 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
 		0D6D577519424A3A00726FDE /* OBJViewer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = OBJViewer; sourceTree = BUILT_PRODUCTS_DIR; };
-		0D6D578819424A5700726FDE /* objviewer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = objviewer.cpp; path = ../../../demo/OBJViewer/objviewer.cpp; sourceTree = "<group>"; };
-		0D6D578B19424A5F00726FDE /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
 		0D6D578D19424A6400726FDE /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0D6D578F19424A6900726FDE /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		0DD456381989A7190031C970 /* objviewer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = objviewer.cpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -40,7 +40,7 @@
 			files = (
 				0D6D579019424A6900726FDE /* GLUT.framework in Frameworks */,
 				0D6D578E19424A6400726FDE /* OpenGL.framework in Frameworks */,
-				0D6D578C19424A5F00726FDE /* GEL.framework in Frameworks */,
+				0D4B84BB19899EA400DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -50,10 +50,10 @@
 		0D6D576C19424A3A00726FDE = {
 			isa = PBXGroup;
 			children = (
+				0DD456371989A7190031C970 /* OBJViewer */,
+				0D4B84BA19899EA400DD2483 /* GEL.framework */,
 				0D6D578F19424A6900726FDE /* GLUT.framework */,
 				0D6D578D19424A6400726FDE /* OpenGL.framework */,
-				0D6D578B19424A5F00726FDE /* GEL.framework */,
-				0D6D577719424A3A00726FDE /* OBJViewer */,
 				0D6D577619424A3A00726FDE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -66,12 +66,13 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		0D6D577719424A3A00726FDE /* OBJViewer */ = {
+		0DD456371989A7190031C970 /* OBJViewer */ = {
 			isa = PBXGroup;
 			children = (
-				0D6D578819424A5700726FDE /* objviewer.cpp */,
+				0DD456381989A7190031C970 /* objviewer.cpp */,
 			);
-			path = OBJViewer;
+			name = OBJViewer;
+			path = ../../src/demo/OBJViewer;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -125,7 +126,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0D6D578A19424A5700726FDE /* objviewer.cpp in Sources */,
+				0DD456391989A7190031C970 /* objviewer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -208,6 +209,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -219,6 +221,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -243,6 +246,7 @@
 				0D6D578019424A3A00726FDE /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

@@ -4,7 +4,7 @@
 #include <cmath>
 
 #include <GEL/GLGraphics/GLViewController.h>
-#include <GL/glew.h>
+#include <GEL/GL/glew.h>
 #ifdef __APPLE__
 #include <GLUT/GLUT.h>
 #else

@@ -7,30 +7,30 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0D6D57ED1942564700726FDE /* covariance_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D57CD1942561A00726FDE /* covariance_test.cpp */; };
-		0D6D580B1942569000726FDE /* mat_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D57CF1942561A00726FDE /* mat_test.cpp */; };
-		0DD08897194774EE00E4EC4C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08896194774EE00E4EC4C /* GEL.framework */; };
-		0DD088981947766400E4EC4C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08896194774EE00E4EC4C /* GEL.framework */; };
-		0DD088A6194776D200E4EC4C /* ogl_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D57D11942561A00726FDE /* ogl_test.cpp */; };
-		0DD089601947785900E4EC4C /* vec_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D57DF1942561A00726FDE /* vec_test.cpp */; };
-		0DD089611947786400E4EC4C /* simple_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D57D31942561A00726FDE /* simple_test.cpp */; };
-		0DD089621947786700E4EC4C /* kdtree-test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D57D51942561A00726FDE /* kdtree-test.cpp */; };
-		0DD089631947786A00E4EC4C /* console_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D57D71942561A00726FDE /* console_test.cpp */; };
-		0DD089641947786E00E4EC4C /* eigensolvertest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D57D91942561A00726FDE /* eigensolvertest.cpp */; };
-		0DD089651947787200E4EC4C /* leastsq-test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D57DB1942561A00726FDE /* leastsq-test.cpp */; };
-		0DD089661947787600E4EC4C /* resman-test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6D57DD1942561A00726FDE /* resman-test.cpp */; };
-		0DD08967194778CE00E4EC4C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08896194774EE00E4EC4C /* GEL.framework */; };
-		0DD08968194778D200E4EC4C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08896194774EE00E4EC4C /* GEL.framework */; };
-		0DD08969194778D600E4EC4C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08896194774EE00E4EC4C /* GEL.framework */; };
-		0DD0896A194778DA00E4EC4C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08896194774EE00E4EC4C /* GEL.framework */; };
-		0DD0896B194778DE00E4EC4C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08896194774EE00E4EC4C /* GEL.framework */; };
-		0DD0896C194778E200E4EC4C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08896194774EE00E4EC4C /* GEL.framework */; };
-		0DD0896D194778E700E4EC4C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08896194774EE00E4EC4C /* GEL.framework */; };
+		0D4B8455198998A400DD2483 /* mat_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B8454198998A400DD2483 /* mat_test.cpp */; };
+		0D4B8457198998B800DD2483 /* ogl_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B8456198998B800DD2483 /* ogl_test.cpp */; };
+		0D4B84601989992B00DD2483 /* leastsq-test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B845E1989992B00DD2483 /* leastsq-test.cpp */; };
+		0D4B84681989997700DD2483 /* resman-test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B84611989993B00DD2483 /* resman-test.cpp */; };
+		0D4B84691989998600DD2483 /* eigensolvertest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B84651989996800DD2483 /* eigensolvertest.cpp */; };
+		0D4B846A1989999200DD2483 /* console_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B845C198998F800DD2483 /* console_test.cpp */; };
+		0D4B846B1989999A00DD2483 /* kdtree-test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B845A198998E300DD2483 /* kdtree-test.cpp */; };
+		0D4B846C1989999F00DD2483 /* simple_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B8458198998CD00DD2483 /* simple_test.cpp */; };
+		0D4B846D19899A6300DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAE76B219855FBE006354FD /* GEL.framework */; };
+		0D4B846E19899A6B00DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAE76B219855FBE006354FD /* GEL.framework */; };
+		0D4B846F19899A7000DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAE76B219855FBE006354FD /* GEL.framework */; };
+		0D4B847019899A7700DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAE76B219855FBE006354FD /* GEL.framework */; };
+		0D4B847119899A7D00DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAE76B219855FBE006354FD /* GEL.framework */; };
+		0D4B847219899A8200DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAE76B219855FBE006354FD /* GEL.framework */; };
+		0D4B847319899A8600DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAE76B219855FBE006354FD /* GEL.framework */; };
+		0D4B847419899A8B00DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAE76B219855FBE006354FD /* GEL.framework */; };
+		0D4B847519899A8F00DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAE76B219855FBE006354FD /* GEL.framework */; };
+		0DAE76B319855FBE006354FD /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DAE76B219855FBE006354FD /* GEL.framework */; };
+		0DAE76B519855FDA006354FD /* vec_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DAE76B419855FDA006354FD /* vec_test.cpp */; };
+		0DAE76B719855FEA006354FD /* covariance_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DAE76B619855FEA006354FD /* covariance_test.cpp */; };
 		0DD0896F194778ED00E4EC4C /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD0896E194778ED00E4EC4C /* OpenGL.framework */; };
 		0DD08971194778F300E4EC4C /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08970194778F300E4EC4C /* GLUT.framework */; };
 		0DD08972194778FB00E4EC4C /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD0896E194778ED00E4EC4C /* OpenGL.framework */; };
 		0DD089731947790100E4EC4C /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08970194778F300E4EC4C /* GLUT.framework */; };
-		0DD0897419477DB900E4EC4C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08896194774EE00E4EC4C /* GEL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -127,19 +127,19 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		0D6D57CD1942561A00726FDE /* covariance_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = covariance_test.cpp; sourceTree = "<group>"; };
-		0D6D57CF1942561A00726FDE /* mat_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = mat_test.cpp; sourceTree = "<group>"; };
-		0D6D57D11942561A00726FDE /* ogl_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = ogl_test.cpp; sourceTree = "<group>"; };
-		0D6D57D31942561A00726FDE /* simple_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = simple_test.cpp; sourceTree = "<group>"; };
-		0D6D57D51942561A00726FDE /* kdtree-test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "kdtree-test.cpp"; sourceTree = "<group>"; };
-		0D6D57D71942561A00726FDE /* console_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = console_test.cpp; sourceTree = "<group>"; };
-		0D6D57D91942561A00726FDE /* eigensolvertest.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = eigensolvertest.cpp; sourceTree = "<group>"; };
-		0D6D57DB1942561A00726FDE /* leastsq-test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "leastsq-test.cpp"; sourceTree = "<group>"; };
-		0D6D57DD1942561A00726FDE /* resman-test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = "resman-test.cpp"; sourceTree = "<group>"; };
-		0D6D57DF1942561A00726FDE /* vec_test.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = vec_test.cpp; sourceTree = "<group>"; };
+		0D4B8454198998A400DD2483 /* mat_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = mat_test.cpp; path = "../../src/test/CGLA-mat/mat_test.cpp"; sourceTree = "<group>"; };
+		0D4B8456198998B800DD2483 /* ogl_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ogl_test.cpp; path = "../../src/test/CGLA-ogl/ogl_test.cpp"; sourceTree = "<group>"; };
+		0D4B8458198998CD00DD2483 /* simple_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = simple_test.cpp; path = "../../src/test/CGLA-simple/simple_test.cpp"; sourceTree = "<group>"; };
+		0D4B845A198998E300DD2483 /* kdtree-test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "kdtree-test.cpp"; path = "../../src/test/Geometry-kdtree/kdtree-test.cpp"; sourceTree = "<group>"; };
+		0D4B845C198998F800DD2483 /* console_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = console_test.cpp; path = "../../src/test/GLGraphics-console/console_test.cpp"; sourceTree = "<group>"; };
+		0D4B845E1989992B00DD2483 /* leastsq-test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "leastsq-test.cpp"; path = "../../src/test/LinAlg-leastsq/leastsq-test.cpp"; sourceTree = "<group>"; };
+		0D4B84611989993B00DD2483 /* resman-test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "resman-test.cpp"; path = "../../src/test/Util-resman/resman-test.cpp"; sourceTree = "<group>"; };
+		0D4B84651989996800DD2483 /* eigensolvertest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = eigensolvertest.cpp; path = "../../src/test/LinAlg-eigensolver/eigensolvertest.cpp"; sourceTree = "<group>"; };
 		0D6D57E41942563F00726FDE /* CGLA-covariance */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-covariance"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D6D58021942568B00726FDE /* CGLA-mat */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-mat"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0DD08896194774EE00E4EC4C /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
+		0DAE76B219855FBE006354FD /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
+		0DAE76B419855FDA006354FD /* vec_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = vec_test.cpp; path = "../../src/test/CGLA-vec/vec_test.cpp"; sourceTree = "<group>"; };
+		0DAE76B619855FEA006354FD /* covariance_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = covariance_test.cpp; path = "../../src/test/CGLA-covariance/covariance_test.cpp"; sourceTree = "<group>"; };
 		0DD0889D194776B800E4EC4C /* CGLA-ogl */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-ogl"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DD089091947777E00E4EC4C /* CGLA-simple */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-simple"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DD089161947779100E4EC4C /* Geometry-kdtree */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Geometry-kdtree"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -157,7 +157,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD08897194774EE00E4EC4C /* GEL.framework in Frameworks */,
+				0D4B846D19899A6300DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -165,7 +165,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD088981947766400E4EC4C /* GEL.framework in Frameworks */,
+				0D4B846E19899A6B00DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,7 +175,7 @@
 			files = (
 				0DD08971194778F300E4EC4C /* GLUT.framework in Frameworks */,
 				0DD0896F194778ED00E4EC4C /* OpenGL.framework in Frameworks */,
-				0DD0896D194778E700E4EC4C /* GEL.framework in Frameworks */,
+				0D4B846F19899A7000DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -183,7 +183,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD0896C194778E200E4EC4C /* GEL.framework in Frameworks */,
+				0D4B847019899A7700DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -191,7 +191,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD0896B194778DE00E4EC4C /* GEL.framework in Frameworks */,
+				0D4B847119899A7D00DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -201,7 +201,7 @@
 			files = (
 				0DD089731947790100E4EC4C /* GLUT.framework in Frameworks */,
 				0DD08972194778FB00E4EC4C /* OpenGL.framework in Frameworks */,
-				0DD0896A194778DA00E4EC4C /* GEL.framework in Frameworks */,
+				0D4B847219899A8200DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -209,7 +209,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD08969194778D600E4EC4C /* GEL.framework in Frameworks */,
+				0D4B847319899A8600DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,7 +217,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD08968194778D200E4EC4C /* GEL.framework in Frameworks */,
+				0D4B847419899A8B00DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -225,7 +225,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD08967194778CE00E4EC4C /* GEL.framework in Frameworks */,
+				0D4B847519899A8F00DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -233,19 +233,27 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD0897419477DB900E4EC4C /* GEL.framework in Frameworks */,
+				0DAE76B319855FBE006354FD /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0D4B84641989994200DD2483 /* LinAlg-eigensolver */ = {
+			isa = PBXGroup;
+			children = (
+				0D4B84651989996800DD2483 /* eigensolvertest.cpp */,
+			);
+			name = "LinAlg-eigensolver";
+			sourceTree = "<group>";
+		};
 		0D6D57B1194255D900726FDE = {
 			isa = PBXGroup;
 			children = (
+				0DAE76B219855FBE006354FD /* GEL.framework */,
 				0DD08970194778F300E4EC4C /* GLUT.framework */,
 				0DD0896E194778ED00E4EC4C /* OpenGL.framework */,
-				0DD08896194774EE00E4EC4C /* GEL.framework */,
 				0D6D57DE1942561A00726FDE /* CGLA-vec */,
 				0D6D57CC1942561A00726FDE /* CGLA-covariance */,
 				0D6D57CE1942561A00726FDE /* CGLA-mat */,
@@ -253,7 +261,7 @@
 				0D6D57D21942561A00726FDE /* CGLA-simple */,
 				0D6D57D41942561A00726FDE /* Geometry-kdtree */,
 				0D6D57D61942561A00726FDE /* GLGraphics-console */,
-				0D6D57D81942561A00726FDE /* LinAlg-eigensolver */,
+				0D4B84641989994200DD2483 /* LinAlg-eigensolver */,
 				0D6D57DA1942561A00726FDE /* LinAlg-leastsq */,
 				0D6D57DC1942561A00726FDE /* Util-resman */,
 				0D6D57BB194255D900726FDE /* Products */,
@@ -280,7 +288,7 @@
 		0D6D57CC1942561A00726FDE /* CGLA-covariance */ = {
 			isa = PBXGroup;
 			children = (
-				0D6D57CD1942561A00726FDE /* covariance_test.cpp */,
+				0DAE76B619855FEA006354FD /* covariance_test.cpp */,
 			);
 			name = "CGLA-covariance";
 			path = "../../test/CGLA-covariance";
@@ -289,7 +297,7 @@
 		0D6D57CE1942561A00726FDE /* CGLA-mat */ = {
 			isa = PBXGroup;
 			children = (
-				0D6D57CF1942561A00726FDE /* mat_test.cpp */,
+				0D4B8454198998A400DD2483 /* mat_test.cpp */,
 			);
 			name = "CGLA-mat";
 			path = "../../test/CGLA-mat";
@@ -298,7 +306,7 @@
 		0D6D57D01942561A00726FDE /* CGLA-ogl */ = {
 			isa = PBXGroup;
 			children = (
-				0D6D57D11942561A00726FDE /* ogl_test.cpp */,
+				0D4B8456198998B800DD2483 /* ogl_test.cpp */,
 			);
 			name = "CGLA-ogl";
 			path = "../../test/CGLA-ogl";
@@ -307,7 +315,7 @@
 		0D6D57D21942561A00726FDE /* CGLA-simple */ = {
 			isa = PBXGroup;
 			children = (
-				0D6D57D31942561A00726FDE /* simple_test.cpp */,
+				0D4B8458198998CD00DD2483 /* simple_test.cpp */,
 			);
 			name = "CGLA-simple";
 			path = "../../test/CGLA-simple";
@@ -316,7 +324,7 @@
 		0D6D57D41942561A00726FDE /* Geometry-kdtree */ = {
 			isa = PBXGroup;
 			children = (
-				0D6D57D51942561A00726FDE /* kdtree-test.cpp */,
+				0D4B845A198998E300DD2483 /* kdtree-test.cpp */,
 			);
 			name = "Geometry-kdtree";
 			path = "../../test/Geometry-kdtree";
@@ -325,25 +333,16 @@
 		0D6D57D61942561A00726FDE /* GLGraphics-console */ = {
 			isa = PBXGroup;
 			children = (
-				0D6D57D71942561A00726FDE /* console_test.cpp */,
+				0D4B845C198998F800DD2483 /* console_test.cpp */,
 			);
 			name = "GLGraphics-console";
 			path = "../../test/GLGraphics-console";
 			sourceTree = "<group>";
 		};
-		0D6D57D81942561A00726FDE /* LinAlg-eigensolver */ = {
-			isa = PBXGroup;
-			children = (
-				0D6D57D91942561A00726FDE /* eigensolvertest.cpp */,
-			);
-			name = "LinAlg-eigensolver";
-			path = "../../test/LinAlg-eigensolver";
-			sourceTree = "<group>";
-		};
 		0D6D57DA1942561A00726FDE /* LinAlg-leastsq */ = {
 			isa = PBXGroup;
 			children = (
-				0D6D57DB1942561A00726FDE /* leastsq-test.cpp */,
+				0D4B845E1989992B00DD2483 /* leastsq-test.cpp */,
 			);
 			name = "LinAlg-leastsq";
 			path = "../../test/LinAlg-leastsq";
@@ -352,7 +351,7 @@
 		0D6D57DC1942561A00726FDE /* Util-resman */ = {
 			isa = PBXGroup;
 			children = (
-				0D6D57DD1942561A00726FDE /* resman-test.cpp */,
+				0D4B84611989993B00DD2483 /* resman-test.cpp */,
 			);
 			name = "Util-resman";
 			path = "../../test/Util-resman";
@@ -361,7 +360,7 @@
 		0D6D57DE1942561A00726FDE /* CGLA-vec */ = {
 			isa = PBXGroup;
 			children = (
-				0D6D57DF1942561A00726FDE /* vec_test.cpp */,
+				0DAE76B419855FDA006354FD /* vec_test.cpp */,
 			);
 			name = "CGLA-vec";
 			path = "../../test/CGLA-vec";
@@ -580,7 +579,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0D6D57ED1942564700726FDE /* covariance_test.cpp in Sources */,
+				0DAE76B719855FEA006354FD /* covariance_test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -588,7 +587,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0D6D580B1942569000726FDE /* mat_test.cpp in Sources */,
+				0D4B8455198998A400DD2483 /* mat_test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -596,7 +595,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD088A6194776D200E4EC4C /* ogl_test.cpp in Sources */,
+				0D4B8457198998B800DD2483 /* ogl_test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -604,7 +603,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD089611947786400E4EC4C /* simple_test.cpp in Sources */,
+				0D4B846C1989999F00DD2483 /* simple_test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -612,7 +611,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD089621947786700E4EC4C /* kdtree-test.cpp in Sources */,
+				0D4B846B1989999A00DD2483 /* kdtree-test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -620,7 +619,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD089631947786A00E4EC4C /* console_test.cpp in Sources */,
+				0D4B846A1989999200DD2483 /* console_test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -628,7 +627,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD089641947786E00E4EC4C /* eigensolvertest.cpp in Sources */,
+				0D4B84691989998600DD2483 /* eigensolvertest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -636,7 +635,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD089651947787200E4EC4C /* leastsq-test.cpp in Sources */,
+				0D4B84601989992B00DD2483 /* leastsq-test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -644,7 +643,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD089661947787600E4EC4C /* resman-test.cpp in Sources */,
+				0D4B84681989997700DD2483 /* resman-test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -652,7 +651,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DD089601947785900E4EC4C /* vec_test.cpp in Sources */,
+				0DAE76B519855FDA006354FD /* vec_test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -735,6 +734,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -750,6 +750,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -761,6 +762,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -776,6 +778,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -787,6 +790,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -802,6 +806,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -813,6 +818,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -828,6 +834,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -839,6 +846,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -854,6 +862,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -865,6 +874,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -880,6 +890,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -891,6 +902,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -906,6 +918,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -917,6 +930,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -932,6 +946,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -943,6 +958,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -958,6 +974,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -969,6 +986,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -984,6 +1002,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -1026,6 +1045,7 @@
 				0DD088A5194776B800E4EC4C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		0DD0890F1947777E00E4EC4C /* Build configuration list for PBXNativeTarget "CGLA-simple" */ = {
 			isa = XCConfigurationList;
@@ -1034,6 +1054,7 @@
 				0DD089111947777E00E4EC4C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		0DD0891C1947779100E4EC4C /* Build configuration list for PBXNativeTarget "Geometry-kdtree" */ = {
 			isa = XCConfigurationList;
@@ -1042,6 +1063,7 @@
 				0DD0891E1947779100E4EC4C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		0DD08929194777A200E4EC4C /* Build configuration list for PBXNativeTarget "GLGraphics-console" */ = {
 			isa = XCConfigurationList;
@@ -1050,6 +1072,7 @@
 				0DD0892B194777A200E4EC4C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		0DD08936194777B200E4EC4C /* Build configuration list for PBXNativeTarget "LinAlg-eigensolver" */ = {
 			isa = XCConfigurationList;
@@ -1058,6 +1081,7 @@
 				0DD08938194777B200E4EC4C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		0DD08943194777CB00E4EC4C /* Build configuration list for PBXNativeTarget "LinAlg-leastsq" */ = {
 			isa = XCConfigurationList;
@@ -1066,6 +1090,7 @@
 				0DD08945194777CB00E4EC4C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		0DD08950194777D900E4EC4C /* Build configuration list for PBXNativeTarget "Util-resman" */ = {
 			isa = XCConfigurationList;
@@ -1074,6 +1099,7 @@
 				0DD08952194777D900E4EC4C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		0DD0895D1947782E00E4EC4C /* Build configuration list for PBXNativeTarget "CGLA-vec" */ = {
 			isa = XCConfigurationList;
@@ -1082,6 +1108,7 @@
 				0DD0895F1947782E00E4EC4C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

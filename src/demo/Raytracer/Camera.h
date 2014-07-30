@@ -1,7 +1,7 @@
 #ifndef CAMERA_H
 #define CAMERA_H
 
-#include <GL/glew.h>
+#include <GEL/GL/glew.h>
 
 #include "GEL/CGLA/Vec2f.h"
 #include "GEL/CGLA/Vec3f.h"

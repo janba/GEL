@@ -7,11 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0DF6951919410D39008F1E8C /* raytrace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DF6951819410D39008F1E8C /* raytrace.cpp */; };
+		0D4B847F19899C6400DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D4B847E19899C6400DD2483 /* GEL.framework */; };
+		0DD456411989A7BB0031C970 /* raytrace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD456401989A7BB0031C970 /* raytrace.cpp */; };
 		0DF6951B19410D49008F1E8C /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF6951A19410D49008F1E8C /* OpenGL.framework */; };
 		0DF6951D19410D51008F1E8C /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF6951C19410D51008F1E8C /* GLUT.framework */; };
 		0DF6951F19410D55008F1E8C /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF6951E19410D55008F1E8C /* Accelerate.framework */; };
-		0DF6952119410D58008F1E8C /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF6952019410D58008F1E8C /* GEL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -27,13 +27,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0D4B847E19899C6400DD2483 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
+		0DD4563F1989A7BB0031C970 /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Camera.h; sourceTree = "<group>"; };
+		0DD456401989A7BB0031C970 /* raytrace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = raytrace.cpp; sourceTree = "<group>"; };
 		0DF6950519410D1C008F1E8C /* RayTracer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = RayTracer; sourceTree = BUILT_PRODUCTS_DIR; };
-		0DF6951719410D39008F1E8C /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Camera.h; path = ../../../demo/Raytracer/Camera.h; sourceTree = "<group>"; };
-		0DF6951819410D39008F1E8C /* raytrace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = raytrace.cpp; path = ../../../demo/Raytracer/raytrace.cpp; sourceTree = "<group>"; };
 		0DF6951A19410D49008F1E8C /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DF6951C19410D51008F1E8C /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		0DF6951E19410D55008F1E8C /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
-		0DF6952019410D58008F1E8C /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,9 +41,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0D4B847F19899C6400DD2483 /* GEL.framework in Frameworks */,
 				0DF6951F19410D55008F1E8C /* Accelerate.framework in Frameworks */,
 				0DF6951D19410D51008F1E8C /* GLUT.framework in Frameworks */,
-				0DF6952119410D58008F1E8C /* GEL.framework in Frameworks */,
 				0DF6951B19410D49008F1E8C /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -51,14 +51,24 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		0DD4563E1989A7BB0031C970 /* Raytracer */ = {
+			isa = PBXGroup;
+			children = (
+				0DD4563F1989A7BB0031C970 /* Camera.h */,
+				0DD456401989A7BB0031C970 /* raytrace.cpp */,
+			);
+			name = Raytracer;
+			path = ../../src/demo/Raytracer;
+			sourceTree = "<group>";
+		};
 		0DF694FC19410D1C008F1E8C = {
 			isa = PBXGroup;
 			children = (
-				0DF6952019410D58008F1E8C /* GEL.framework */,
+				0DD4563E1989A7BB0031C970 /* Raytracer */,
+				0D4B847E19899C6400DD2483 /* GEL.framework */,
 				0DF6951E19410D55008F1E8C /* Accelerate.framework */,
 				0DF6951C19410D51008F1E8C /* GLUT.framework */,
 				0DF6951A19410D49008F1E8C /* OpenGL.framework */,
-				0DF6950719410D1C008F1E8C /* RayTracer */,
 				0DF6950619410D1C008F1E8C /* Products */,
 			);
 			sourceTree = "<group>";
@@ -69,15 +79,6 @@
 				0DF6950519410D1C008F1E8C /* RayTracer */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		0DF6950719410D1C008F1E8C /* RayTracer */ = {
-			isa = PBXGroup;
-			children = (
-				0DF6951719410D39008F1E8C /* Camera.h */,
-				0DF6951819410D39008F1E8C /* raytrace.cpp */,
-			);
-			path = RayTracer;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -131,7 +132,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DF6951919410D39008F1E8C /* raytrace.cpp in Sources */,
+				0DD456411989A7BB0031C970 /* raytrace.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -214,6 +215,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -225,6 +227,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -249,6 +252,7 @@
 				0DF6951019410D1C008F1E8C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

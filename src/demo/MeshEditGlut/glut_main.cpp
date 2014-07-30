@@ -25,7 +25,7 @@
 #include <algorithm>
 #include <queue>
 
-#include <GL/glew.h>
+#include <GEL/GL/glew.h>
 #ifdef __APPLE__
 #include <GLUT/glut.h>
 #else

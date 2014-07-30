@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0DA84985193D06790067DA3B /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DA84984193D06790067DA3B /* GEL.framework */; };
+		0D4B847719899BCD00DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D4B847619899BCD00DD2483 /* GEL.framework */; };
 		0DA84987193D067F0067DA3B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DA84986193D067F0067DA3B /* OpenGL.framework */; };
 		0DA84989193D06850067DA3B /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DA84988193D06850067DA3B /* GLUT.framework */; };
-		0DA8498C193D06A10067DA3B /* glut_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DA8498A193D06A10067DA3B /* glut_main.cpp */; };
+		0DD4563D1989A7630031C970 /* glut_main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD4563B1989A7630031C970 /* glut_main.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -26,12 +26,12 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0D4B847619899BCD00DD2483 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
 		0DA84972193D06590067DA3B /* MeshEditGLUT */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = MeshEditGLUT; sourceTree = BUILT_PRODUCTS_DIR; };
-		0DA84984193D06790067DA3B /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
 		0DA84986193D067F0067DA3B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DA84988193D06850067DA3B /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
-		0DA8498A193D06A10067DA3B /* glut_main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = glut_main.cpp; path = ../../../demo/MeshEditGlut/glut_main.cpp; sourceTree = "<group>"; };
-		0DA8498B193D06A10067DA3B /* glut_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = glut_main.h; path = ../../../demo/MeshEditGlut/glut_main.h; sourceTree = "<group>"; };
+		0DD4563B1989A7630031C970 /* glut_main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = glut_main.cpp; sourceTree = "<group>"; };
+		0DD4563C1989A7630031C970 /* glut_main.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = glut_main.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -41,7 +41,7 @@
 			files = (
 				0DA84989193D06850067DA3B /* GLUT.framework in Frameworks */,
 				0DA84987193D067F0067DA3B /* OpenGL.framework in Frameworks */,
-				0DA84985193D06790067DA3B /* GEL.framework in Frameworks */,
+				0D4B847719899BCD00DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -51,10 +51,10 @@
 		0DA84969193D06590067DA3B = {
 			isa = PBXGroup;
 			children = (
+				0DD4563A1989A7630031C970 /* MeshEditGlut */,
+				0D4B847619899BCD00DD2483 /* GEL.framework */,
 				0DA84988193D06850067DA3B /* GLUT.framework */,
 				0DA84986193D067F0067DA3B /* OpenGL.framework */,
-				0DA84984193D06790067DA3B /* GEL.framework */,
-				0DA84974193D06590067DA3B /* MeshEditGLUT */,
 				0DA84973193D06590067DA3B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -67,13 +67,14 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		0DA84974193D06590067DA3B /* MeshEditGLUT */ = {
+		0DD4563A1989A7630031C970 /* MeshEditGlut */ = {
 			isa = PBXGroup;
 			children = (
-				0DA8498A193D06A10067DA3B /* glut_main.cpp */,
-				0DA8498B193D06A10067DA3B /* glut_main.h */,
+				0DD4563B1989A7630031C970 /* glut_main.cpp */,
+				0DD4563C1989A7630031C970 /* glut_main.h */,
 			);
-			path = MeshEditGLUT;
+			name = MeshEditGlut;
+			path = ../../src/demo/MeshEditGlut;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -127,7 +128,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DA8498C193D06A10067DA3B /* glut_main.cpp in Sources */,
+				0DD4563D1989A7630031C970 /* glut_main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -210,6 +211,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -221,6 +223,7 @@
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
 				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -245,6 +248,7 @@
 				0DA8497D193D06590067DA3B /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};
