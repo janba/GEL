@@ -478,61 +478,79 @@ namespace HMesh
 		}
 	};
 	
-	struct PQElem
+	struct HalfEdgeCounter {
+        int touched;
+        bool isRemovedFromQueue;
+    };
+
+    struct PQElement
+    {
+        double pri;
+        HalfEdgeID h;
+        int time;
+
+        //PQElement() {}
+        PQElement(double _pri, HalfEdgeID _h, int _time):
+                pri(_pri), h(_h), time(_time) {}
+    };
+
+    bool operator<(const PQElement & e0, const PQElement & e1)
+    {
+        return e0.pri > e1.pri;
+    }
+
+    void add_to_queue(const Manifold& m, HalfEdgeAttributeVector<HalfEdgeCounter>& counter, priority_queue<PQElement>& Q, HalfEdgeID h, const EnergyFun& efun, VertexAttributeVector<int> & flipCounter, int time)
+    {
+        if(boundary(m, h))
+            return;
+
+        Walker w = m.walker(h);
+
+        // only consider one of the halfedges
+        if (w.vertex() < w.opp().vertex()){
+            h = w.opp().halfedge();
+        }
+        // if half edge already tested for queue in the current frame then skip
+        if (counter[h].touched == time){
+            return;
+        }
+        counter[h].isRemovedFromQueue = false;
+
+        if(!precond_flip_edge(m, h))
+            return;
+
+        double energy = efun.delta_energy(m, h);
+        counter[h].touched = time;
+
+        const int avgValence = 6;
+        if((energy < 0) && (flipCounter[w.vertex()] < avgValence)){
+            Q.push(PQElement(energy, h, time));
+        }
+    }
+
+
+
+	void add_one_ring_to_queue(const Manifold& m, HalfEdgeAttributeVector<HalfEdgeCounter>& touched, priority_queue<PQElement>& Q, VertexID v, const EnergyFun& efun, VertexAttributeVector<int> & flipCounter, int time)
 	{
-		double pri;
-		HalfEdgeID h;
-		int time;
-		
-		//PQElem() {}
-		PQElem(double _pri, HalfEdgeID _h, int _time): 
-		pri(_pri), h(_h), time(_time) {}
-	};
-	
-	bool operator<(const PQElem& e0, const PQElem& e1)
-	{
-		return e0.pri > e1.pri;
-	}
-	
-	
-	void add_to_queue(const Manifold& m, HalfEdgeAttributeVector<int>& touched, priority_queue<PQElem>& Q, HalfEdgeID h, const EnergyFun& efun)
-	{
-		if(boundary(m, h))
-			return;
-		
-		Walker w = m.walker(h);
-		HalfEdgeID ho = w.opp().halfedge();
-		
-		double energy = efun.delta_energy(m, h);
-		int t = touched[h] + 1;
-		touched[h] = t;
-		touched[ho] = t;
-		if((energy<0) && (t < 10000)){
-			Q.push(PQElem(energy, h, t));
-		}
-		
-	}
-	
-	void add_one_ring_to_queue(const Manifold& m, HalfEdgeAttributeVector<int>& touched, priority_queue<PQElem>& Q, VertexID v, const EnergyFun& efun)
-	{
-		
-		for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()){
-			add_to_queue(m, touched, Q, w.halfedge(), efun);
-		}
+        for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()){
+            add_to_queue(m, touched, Q, w.halfedge(), efun, flipCounter, time);
+        }
 	}
 	
 	
 	void priority_queue_optimization(Manifold& m, const EnergyFun& efun)
 	{
-		HalfEdgeAttributeVector<int> touched(m.allocated_halfedges(), 0);
-		priority_queue<PQElem> Q;
+        HalfEdgeAttributeVector<HalfEdgeCounter> counter(m.allocated_halfedges(), HalfEdgeCounter{0, false});
+        VertexAttributeVector<int> flipCounter(m.allocated_vertices(), 0);
+        priority_queue<PQElement> Q;
 		
 		cout << "Building priority queue"<< endl;
-		
-		for(HalfEdgeIDIterator h = m.halfedges_begin(); h != m.halfedges_end(); ++h){
-			if(!touched[*h])
-				add_to_queue(m, touched, Q, *h, efun);
-		}
+        int time=1;
+        for(HalfEdgeIDIterator h = m.halfedges_begin(); h != m.halfedges_end(); ++h){
+            if(!counter[*h].touched) {
+                add_to_queue(m, counter, Q, *h, efun, flipCounter, time);
+            }
+        }
 		
 		cout << "Emptying priority queue of size: " << Q.size() << " ";
 		while(!Q.empty())
@@ -541,24 +559,35 @@ namespace HMesh
 				cout << ".";
 			if(Q.size() % 10000 == 0)
 				cout << Q.size();
-			
-			PQElem elem = Q.top();
-			Q.pop();
-			
-			if(touched[elem.h] != elem.time)
-				continue;
-			if(!precond_flip_edge(m, elem.h))
-				continue;
-			
-			m.flip_edge(elem.h);
-			
-			Walker w = m.walker(elem.h);
-			add_one_ring_to_queue(m, touched, Q, w.vertex(), efun);
-			add_one_ring_to_queue(m, touched, Q, w.next().vertex(), efun);
-			add_one_ring_to_queue(m, touched, Q, w.opp().vertex(), efun);
-			add_one_ring_to_queue(m, touched, Q, w.opp().next().vertex(), efun);
-			
-		}
+
+            PQElement elem = Q.top();
+            Q.pop();
+
+            Walker w = m.walker(elem.h);
+
+            if(counter[elem.h].isRemovedFromQueue) // if item already has been processed continue
+                continue;
+
+            counter[elem.h].isRemovedFromQueue = true;
+
+            if(counter[elem.h].touched != elem.time) {
+                if (efun.delta_energy(m, elem.h) >= 0) {
+                    continue;
+                }
+            }
+            if(!precond_flip_edge(m, elem.h))
+                continue;
+
+            flipCounter[w.vertex()]++;
+
+            m.flip_edge(elem.h);
+
+            add_one_ring_to_queue(m, counter, Q, w.vertex(), efun, flipCounter, time);
+            add_one_ring_to_queue(m, counter, Q, w.next().vertex(), efun, flipCounter, time);
+            add_one_ring_to_queue(m, counter, Q, w.opp().vertex(), efun, flipCounter, time);
+            add_one_ring_to_queue(m, counter, Q, w.opp().next().vertex(), efun, flipCounter, time);
+
+        }
 		cout << endl;
 	}
 	
