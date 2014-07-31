@@ -289,23 +289,27 @@ namespace HMesh
 	
 	double CurvatureEnergy::abs_mean_curv(const Vec3d& v, const vector<Vec3d>& ring) const
 	{
-		const size_t N = ring.size();
-		
-		double H = 0;
-		for(size_t i = 0; i < N; ++i){
-			Vec3d vnim1 = ring[(i+N-1)%N] - v;
-			Vec3d vni   = ring[i] - v;
-			Vec3d vnip1 = ring[(i+1)%N] - v;
-			
-			Vec3d Nm = normalize(cross(vni, vnim1));
-			Vec3d Np = normalize(cross(vnip1, vni));
-			
-			double beta = acos(max(-1.0, min(1.0, dot(Nm, Np))));
-			H += vni.length() * beta;
-		}
-		H /= 4;
-		
-		return H;
+        const size_t N = ring.size();
+
+        double H = 0;
+
+        Vec3d vnim1 = ring[N-1] - v;
+        Vec3d vni   = ring[0] - v;
+        Vec3d vnip1 = ring[1] - v;
+        Vec3d Nm;
+        Vec3d Np = normalize(cross(vni, vnim1));;
+        for(size_t i = 0; i < N; ++i){
+            Nm = Np;
+            Np = normalize(cross(vnip1, vni));
+
+            double beta = acos(max(-1.0, min(1.0, dot(Nm, Np))));
+            H += vni.length() * beta;
+
+            vni = vnip1;
+            vnip1 = ring[(i+2)%N] - v;
+        }
+
+        return H/4;
 	}
 	
 	double CurvatureEnergy::delta_energy(const Manifold& m, HalfEdgeID h) const
