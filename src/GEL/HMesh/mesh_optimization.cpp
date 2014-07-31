@@ -314,74 +314,72 @@ namespace HMesh
 	
 	double CurvatureEnergy::delta_energy(const Manifold& m, HalfEdgeID h) const
 	{
-		Walker w = m.walker(h);
-		
-		VertexID va = w.vertex();
-		VertexID vb = w.opp().vertex();
-		VertexID vc = w.next().vertex();
-		VertexID vd = w.opp().next().vertex();
-        
-        
-		
-		Vec3d va_pos(m.pos(va));
-		Vec3d vb_pos(m.pos(vb));
-		Vec3d vc_pos(m.pos(vc));
-		Vec3d vd_pos(m.pos(vd));
-		
-		vector<Vec3d> va_ring_bef;
-		vector<Vec3d> va_ring_aft;
-		vector<Vec3d> vb_ring_bef;
-		vector<Vec3d> vb_ring_aft;
-		vector<Vec3d> vc_ring_bef;
-		vector<Vec3d> vc_ring_aft;
-		vector<Vec3d> vd_ring_bef;
-		vector<Vec3d> vd_ring_aft;
-		
-		for(Walker wv = m.walker(va); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
-			VertexID v = wv.vertex();
-			Vec3d pos(m.pos(v));
-			
-			va_ring_bef.push_back(pos);
-			if(v != vb)
-				va_ring_aft.push_back(pos);
-		}
-		for(Walker wv = m.walker(vb); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
-			VertexID v = wv.vertex();
-			Vec3d pos(m.pos(v));
-			
-			vb_ring_bef.push_back(pos);
-			if(v != va)
-				vb_ring_aft.push_back(pos);
-		}
-		for(Walker wv = m.walker(vc); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
-			VertexID v = wv.vertex();
-			Vec3d pos(m.pos(v));
-			
-			vc_ring_bef.push_back(pos);
-			vc_ring_aft.push_back(pos);
-			if(v == va)
-				vc_ring_aft.push_back(vd_pos);
-		}
-		for(Walker wv = m.walker(vd); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
-			VertexID v = wv.vertex();
-			Vec3d pos(m.pos(v));
-			
-			vd_ring_bef.push_back(pos);
-			vd_ring_aft.push_back(pos);
-			if(v == vb)
-				vd_ring_aft.push_back(vc_pos);
-		}
-		double before =
-		abs_mean_curv(va_pos, va_ring_bef) +
-		abs_mean_curv(vb_pos, vb_ring_bef) +
-		abs_mean_curv(vc_pos, vc_ring_bef) +
-		abs_mean_curv(vd_pos, vd_ring_bef);
-		
-		double after =
-		abs_mean_curv(va_pos, va_ring_aft) +
-		abs_mean_curv(vb_pos, vb_ring_aft) +
-		abs_mean_curv(vc_pos, vc_ring_aft) +
-		abs_mean_curv(vd_pos, vd_ring_aft);
+        Walker w = m.walker(h);
+
+        VertexID va = w.vertex();
+        VertexID vb = w.opp().vertex();
+        VertexID vc = w.next().vertex();
+        VertexID vd = w.opp().next().vertex();
+
+        Vec3d va_pos(m.pos(va));
+        Vec3d vb_pos(m.pos(vb));
+        Vec3d vc_pos(m.pos(vc));
+        Vec3d vd_pos(m.pos(vd));
+
+        for(Walker wv = m.walker(va); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
+            VertexID v = wv.vertex();
+            Vec3d pos(m.pos(v));
+
+            va_ring_bef.push_back(pos);
+            if(v != vb)
+                va_ring_aft.push_back(pos);
+        }
+        for(Walker wv = m.walker(vb); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
+            VertexID v = wv.vertex();
+            Vec3d pos(m.pos(v));
+
+            vb_ring_bef.push_back(pos);
+            if(v != va)
+                vb_ring_aft.push_back(pos);
+        }
+        for(Walker wv = m.walker(vc); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
+            VertexID v = wv.vertex();
+            Vec3d pos(m.pos(v));
+
+            vc_ring_bef.push_back(pos);
+            vc_ring_aft.push_back(pos);
+            if(v == va)
+                vc_ring_aft.push_back(vd_pos);
+        }
+        for(Walker wv = m.walker(vd); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
+            VertexID v = wv.vertex();
+            Vec3d pos(m.pos(v));
+
+            vd_ring_bef.push_back(pos);
+            vd_ring_aft.push_back(pos);
+            if(v == vb)
+                vd_ring_aft.push_back(vc_pos);
+        }
+        double before =
+                abs_mean_curv(va_pos, va_ring_bef) +
+                        abs_mean_curv(vb_pos, vb_ring_bef) +
+                        abs_mean_curv(vc_pos, vc_ring_bef) +
+                        abs_mean_curv(vd_pos, vd_ring_bef);
+
+        double after =
+                abs_mean_curv(va_pos, va_ring_aft) +
+                        abs_mean_curv(vb_pos, vb_ring_aft) +
+                        abs_mean_curv(vc_pos, vc_ring_aft) +
+                        abs_mean_curv(vd_pos, vd_ring_aft);
+
+        va_ring_bef.clear();
+        va_ring_aft.clear();
+        vb_ring_bef.clear();
+        vb_ring_aft.clear();
+        vc_ring_bef.clear();
+        vc_ring_aft.clear();
+        vd_ring_bef.clear();
+        vd_ring_aft.clear();
 		
 		return after-before;
 	}
