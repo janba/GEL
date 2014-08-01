@@ -289,95 +289,97 @@ namespace HMesh
 	
 	double CurvatureEnergy::abs_mean_curv(const Vec3d& v, const vector<Vec3d>& ring) const
 	{
-		const size_t N = ring.size();
-		
-		double H = 0;
-		for(size_t i = 0; i < N; ++i){
-			Vec3d vnim1 = ring[(i+N-1)%N] - v;
-			Vec3d vni   = ring[i] - v;
-			Vec3d vnip1 = ring[(i+1)%N] - v;
-			
-			Vec3d Nm = normalize(cross(vni, vnim1));
-			Vec3d Np = normalize(cross(vnip1, vni));
-			
-			double beta = acos(max(-1.0, min(1.0, dot(Nm, Np))));
-			H += vni.length() * beta;
-		}
-		H /= 4;
-		
-		return H;
+        const size_t N = ring.size();
+
+        double H = 0;
+
+        Vec3d vnim1 = ring[N-1] - v;
+        Vec3d vni   = ring[0] - v;
+        Vec3d vnip1 = ring[1] - v;
+        Vec3d Nm;
+        Vec3d Np = normalize(cross(vni, vnim1));;
+        for(size_t i = 0; i < N; ++i){
+            Nm = Np;
+            Np = normalize(cross(vnip1, vni));
+
+            double beta = acos(max(-1.0, min(1.0, dot(Nm, Np))));
+            H += vni.length() * beta;
+
+            vni = vnip1;
+            vnip1 = ring[(i+2)%N] - v;
+        }
+
+        return H/4;
 	}
 	
 	double CurvatureEnergy::delta_energy(const Manifold& m, HalfEdgeID h) const
 	{
-		Walker w = m.walker(h);
-		
-		VertexID va = w.vertex();
-		VertexID vb = w.opp().vertex();
-		VertexID vc = w.next().vertex();
-		VertexID vd = w.opp().next().vertex();
-        
-        
-		
-		Vec3d va_pos(m.pos(va));
-		Vec3d vb_pos(m.pos(vb));
-		Vec3d vc_pos(m.pos(vc));
-		Vec3d vd_pos(m.pos(vd));
-		
-		vector<Vec3d> va_ring_bef;
-		vector<Vec3d> va_ring_aft;
-		vector<Vec3d> vb_ring_bef;
-		vector<Vec3d> vb_ring_aft;
-		vector<Vec3d> vc_ring_bef;
-		vector<Vec3d> vc_ring_aft;
-		vector<Vec3d> vd_ring_bef;
-		vector<Vec3d> vd_ring_aft;
-		
-		for(Walker wv = m.walker(va); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
-			VertexID v = wv.vertex();
-			Vec3d pos(m.pos(v));
-			
-			va_ring_bef.push_back(pos);
-			if(v != vb)
-				va_ring_aft.push_back(pos);
-		}
-		for(Walker wv = m.walker(vb); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
-			VertexID v = wv.vertex();
-			Vec3d pos(m.pos(v));
-			
-			vb_ring_bef.push_back(pos);
-			if(v != va)
-				vb_ring_aft.push_back(pos);
-		}
-		for(Walker wv = m.walker(vc); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
-			VertexID v = wv.vertex();
-			Vec3d pos(m.pos(v));
-			
-			vc_ring_bef.push_back(pos);
-			vc_ring_aft.push_back(pos);
-			if(v == va)
-				vc_ring_aft.push_back(vd_pos);
-		}
-		for(Walker wv = m.walker(vd); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
-			VertexID v = wv.vertex();
-			Vec3d pos(m.pos(v));
-			
-			vd_ring_bef.push_back(pos);
-			vd_ring_aft.push_back(pos);
-			if(v == vb)
-				vd_ring_aft.push_back(vc_pos);
-		}
-		double before =
-		abs_mean_curv(va_pos, va_ring_bef) +
-		abs_mean_curv(vb_pos, vb_ring_bef) +
-		abs_mean_curv(vc_pos, vc_ring_bef) +
-		abs_mean_curv(vd_pos, vd_ring_bef);
-		
-		double after =
-		abs_mean_curv(va_pos, va_ring_aft) +
-		abs_mean_curv(vb_pos, vb_ring_aft) +
-		abs_mean_curv(vc_pos, vc_ring_aft) +
-		abs_mean_curv(vd_pos, vd_ring_aft);
+        Walker w = m.walker(h);
+
+        VertexID va = w.vertex();
+        VertexID vb = w.opp().vertex();
+        VertexID vc = w.next().vertex();
+        VertexID vd = w.opp().next().vertex();
+
+        Vec3d va_pos(m.pos(va));
+        Vec3d vb_pos(m.pos(vb));
+        Vec3d vc_pos(m.pos(vc));
+        Vec3d vd_pos(m.pos(vd));
+
+        for(Walker wv = m.walker(va); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
+            VertexID v = wv.vertex();
+            Vec3d pos(m.pos(v));
+
+            va_ring_bef.push_back(pos);
+            if(v != vb)
+                va_ring_aft.push_back(pos);
+        }
+        for(Walker wv = m.walker(vb); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
+            VertexID v = wv.vertex();
+            Vec3d pos(m.pos(v));
+
+            vb_ring_bef.push_back(pos);
+            if(v != va)
+                vb_ring_aft.push_back(pos);
+        }
+        for(Walker wv = m.walker(vc); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
+            VertexID v = wv.vertex();
+            Vec3d pos(m.pos(v));
+
+            vc_ring_bef.push_back(pos);
+            vc_ring_aft.push_back(pos);
+            if(v == va)
+                vc_ring_aft.push_back(vd_pos);
+        }
+        for(Walker wv = m.walker(vd); !wv.full_circle(); wv = wv.circulate_vertex_cw()){
+            VertexID v = wv.vertex();
+            Vec3d pos(m.pos(v));
+
+            vd_ring_bef.push_back(pos);
+            vd_ring_aft.push_back(pos);
+            if(v == vb)
+                vd_ring_aft.push_back(vc_pos);
+        }
+        double before =
+                abs_mean_curv(va_pos, va_ring_bef) +
+                        abs_mean_curv(vb_pos, vb_ring_bef) +
+                        abs_mean_curv(vc_pos, vc_ring_bef) +
+                        abs_mean_curv(vd_pos, vd_ring_bef);
+
+        double after =
+                abs_mean_curv(va_pos, va_ring_aft) +
+                        abs_mean_curv(vb_pos, vb_ring_aft) +
+                        abs_mean_curv(vc_pos, vc_ring_aft) +
+                        abs_mean_curv(vd_pos, vd_ring_aft);
+
+        va_ring_bef.clear();
+        va_ring_aft.clear();
+        vb_ring_bef.clear();
+        vb_ring_aft.clear();
+        vc_ring_bef.clear();
+        vc_ring_aft.clear();
+        vd_ring_bef.clear();
+        vd_ring_aft.clear();
 		
 		return after-before;
 	}
@@ -476,61 +478,79 @@ namespace HMesh
 		}
 	};
 	
-	struct PQElem
+	struct HalfEdgeCounter {
+        int touched;
+        bool isRemovedFromQueue;
+    };
+
+    struct PQElement
+    {
+        double pri;
+        HalfEdgeID h;
+        int time;
+
+        //PQElement() {}
+        PQElement(double _pri, HalfEdgeID _h, int _time):
+                pri(_pri), h(_h), time(_time) {}
+    };
+
+    bool operator<(const PQElement & e0, const PQElement & e1)
+    {
+        return e0.pri > e1.pri;
+    }
+
+    void add_to_queue(const Manifold& m, HalfEdgeAttributeVector<HalfEdgeCounter>& counter, priority_queue<PQElement>& Q, HalfEdgeID h, const EnergyFun& efun, VertexAttributeVector<int> & flipCounter, int time)
+    {
+        if(boundary(m, h))
+            return;
+
+        Walker w = m.walker(h);
+
+        // only consider one of the halfedges
+        if (w.vertex() < w.opp().vertex()){
+            h = w.opp().halfedge();
+        }
+        // if half edge already tested for queue in the current frame then skip
+        if (counter[h].touched == time){
+            return;
+        }
+        counter[h].isRemovedFromQueue = false;
+
+        if(!precond_flip_edge(m, h))
+            return;
+
+        double energy = efun.delta_energy(m, h);
+        counter[h].touched = time;
+
+        const int avgValence = 6;
+        if((energy < 0) && (flipCounter[w.vertex()] < avgValence)){
+            Q.push(PQElement(energy, h, time));
+        }
+    }
+
+
+
+	void add_one_ring_to_queue(const Manifold& m, HalfEdgeAttributeVector<HalfEdgeCounter>& touched, priority_queue<PQElement>& Q, VertexID v, const EnergyFun& efun, VertexAttributeVector<int> & flipCounter, int time)
 	{
-		double pri;
-		HalfEdgeID h;
-		int time;
-		
-		//PQElem() {}
-		PQElem(double _pri, HalfEdgeID _h, int _time): 
-		pri(_pri), h(_h), time(_time) {}
-	};
-	
-	bool operator<(const PQElem& e0, const PQElem& e1)
-	{
-		return e0.pri > e1.pri;
-	}
-	
-	
-	void add_to_queue(const Manifold& m, HalfEdgeAttributeVector<int>& touched, priority_queue<PQElem>& Q, HalfEdgeID h, const EnergyFun& efun)
-	{
-		if(boundary(m, h))
-			return;
-		
-		Walker w = m.walker(h);
-		HalfEdgeID ho = w.opp().halfedge();
-		
-		double energy = efun.delta_energy(m, h);
-		int t = touched[h] + 1;
-		touched[h] = t;
-		touched[ho] = t;
-		if((energy<0) && (t < 10000)){
-			Q.push(PQElem(energy, h, t));
-		}
-		
-	}
-	
-	void add_one_ring_to_queue(const Manifold& m, HalfEdgeAttributeVector<int>& touched, priority_queue<PQElem>& Q, VertexID v, const EnergyFun& efun)
-	{
-		
-		for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()){
-			add_to_queue(m, touched, Q, w.halfedge(), efun);
-		}
+        for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()){
+            add_to_queue(m, touched, Q, w.halfedge(), efun, flipCounter, time);
+        }
 	}
 	
 	
 	void priority_queue_optimization(Manifold& m, const EnergyFun& efun)
 	{
-		HalfEdgeAttributeVector<int> touched(m.allocated_halfedges(), 0);
-		priority_queue<PQElem> Q;
+        HalfEdgeAttributeVector<HalfEdgeCounter> counter(m.allocated_halfedges(), HalfEdgeCounter{0, false});
+        VertexAttributeVector<int> flipCounter(m.allocated_vertices(), 0);
+        priority_queue<PQElement> Q;
 		
 		cout << "Building priority queue"<< endl;
-		
-		for(HalfEdgeIDIterator h = m.halfedges_begin(); h != m.halfedges_end(); ++h){
-			if(!touched[*h])
-				add_to_queue(m, touched, Q, *h, efun);
-		}
+        int time=1;
+        for(HalfEdgeIDIterator h = m.halfedges_begin(); h != m.halfedges_end(); ++h){
+            if(!counter[*h].touched) {
+                add_to_queue(m, counter, Q, *h, efun, flipCounter, time);
+            }
+        }
 		
 		cout << "Emptying priority queue of size: " << Q.size() << " ";
 		while(!Q.empty())
@@ -539,24 +559,35 @@ namespace HMesh
 				cout << ".";
 			if(Q.size() % 10000 == 0)
 				cout << Q.size();
-			
-			PQElem elem = Q.top();
-			Q.pop();
-			
-			if(touched[elem.h] != elem.time)
-				continue;
-			if(!precond_flip_edge(m, elem.h))
-				continue;
-			
-			m.flip_edge(elem.h);
-			
-			Walker w = m.walker(elem.h);
-			add_one_ring_to_queue(m, touched, Q, w.vertex(), efun);
-			add_one_ring_to_queue(m, touched, Q, w.next().vertex(), efun);
-			add_one_ring_to_queue(m, touched, Q, w.opp().vertex(), efun);
-			add_one_ring_to_queue(m, touched, Q, w.opp().next().vertex(), efun);
-			
-		}
+
+            PQElement elem = Q.top();
+            Q.pop();
+
+            Walker w = m.walker(elem.h);
+
+            if(counter[elem.h].isRemovedFromQueue) // if item already has been processed continue
+                continue;
+
+            counter[elem.h].isRemovedFromQueue = true;
+
+            if(counter[elem.h].touched != elem.time) {
+                if (efun.delta_energy(m, elem.h) >= 0) {
+                    continue;
+                }
+            }
+            if(!precond_flip_edge(m, elem.h))
+                continue;
+
+            flipCounter[w.vertex()]++;
+
+            m.flip_edge(elem.h);
+
+            add_one_ring_to_queue(m, counter, Q, w.vertex(), efun, flipCounter, time);
+            add_one_ring_to_queue(m, counter, Q, w.next().vertex(), efun, flipCounter, time);
+            add_one_ring_to_queue(m, counter, Q, w.opp().vertex(), efun, flipCounter, time);
+            add_one_ring_to_queue(m, counter, Q, w.opp().next().vertex(), efun, flipCounter, time);
+
+        }
 		cout << endl;
 	}
 	

@@ -97,6 +97,15 @@ namespace HMesh
 	
 	class CurvatureEnergy: public EnergyFun
 	{
+        mutable std::vector<CGLA::Vec3d> va_ring_bef;
+        mutable std::vector<CGLA::Vec3d> va_ring_aft;
+        mutable std::vector<CGLA::Vec3d> vb_ring_bef;
+        mutable std::vector<CGLA::Vec3d> vb_ring_aft;
+        mutable std::vector<CGLA::Vec3d> vc_ring_bef;
+        mutable std::vector<CGLA::Vec3d> vc_ring_aft;
+        mutable std::vector<CGLA::Vec3d> vd_ring_bef;
+        mutable std::vector<CGLA::Vec3d> vd_ring_aft;
+
 		double abs_mean_curv(const CGLA::Vec3d& v, const std::vector<CGLA::Vec3d>& ring) const;
 	public:
 		double delta_energy(const HMesh::Manifold& m, HMesh::HalfEdgeID h) const;
