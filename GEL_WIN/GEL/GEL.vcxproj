@@ -171,6 +171,7 @@
     <ClCompile Include="..\..\src\GEL\CGLA\TableTrigonometry.cpp" />
     <ClCompile Include="..\..\src\GEL\CGLA\Vec2i.cpp" />
     <ClCompile Include="..\..\src\GEL\CGLA\Vec3f.cpp" />
+    <ClCompile Include="..\..\src\GEL\CGLA\Vec3Hf.cpp" />
     <ClCompile Include="..\..\src\GEL\CGLA\Vec3i.cpp" />
     <ClCompile Include="..\..\src\GEL\Geometry\AABox.cpp" />
     <ClCompile Include="..\..\src\GEL\Geometry\BBox.cpp" />

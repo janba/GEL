@@ -758,5 +758,8 @@
     <ClCompile Include="..\..\src\GEL\Util\XmlParser.cpp">
       <Filter>Util\Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\src\GEL\CGLA\Vec3Hf.cpp">
+      <Filter>CGLA\Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

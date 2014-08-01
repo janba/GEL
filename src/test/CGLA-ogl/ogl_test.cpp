@@ -92,16 +92,16 @@ static void display( void )
   //----------------------------------------
   // 4. project and dehomogenize points
   
-  paxes[0] = m * axes[0];
-  paxes[1] = m * axes[1];
-  paxes[2] = m * axes[2];
+  paxes[0] = (Vec3Hf&)(m * (Vec4f&)axes[0]);
+  paxes[1] = (Vec3Hf&)(m * (Vec4f&)axes[1]);
+  paxes[2] = (Vec3Hf&)(m * (Vec4f&)axes[2]);
   paxes[0].de_homogenize();
   paxes[1].de_homogenize();
   paxes[2].de_homogenize();
 
   for (int i=0;i<9;i++) 
     {
-      pp[i] = m * p[i];
+	  pp[i] = (Vec3Hf&)(m * (Vec4f&)p[i]);
       pp[i].de_homogenize();
     }
 
