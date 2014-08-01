@@ -243,121 +243,6 @@
 		0DA848C6193D02590067DA3B /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DA848C5193D02590067DA3B /* Accelerate.framework */; };
 /* End PBXBuildFile section */
 
-/* Begin PBXContainerItemProxy section */
-		0D6D573E194248CC00726FDE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D5738194248CB00726FDE /* PathTracer.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0D6D572C194248CB00726FDE;
-			remoteInfo = PathTracer;
-		};
-		0D6D578519424A3B00726FDE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D578119424A3A00726FDE /* OBJViewer.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0D6D577519424A3A00726FDE;
-			remoteInfo = OBJViewer;
-		};
-		0D6D57AA1942544100726FDE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D57A61942544000726FDE /* MeshDistance.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0D6D579A1942544000726FDE;
-			remoteInfo = MeshDistance;
-		};
-		0D6D57F91942565E00726FDE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0D6D57E41942563F00726FDE;
-			remoteInfo = "CGLA-covariance";
-		};
-		0D6D5817194256A500726FDE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0D6D58021942568B00726FDE;
-			remoteInfo = "CGLA-mat";
-		};
-		0DA84982193D065A0067DA3B /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0DA8497E193D06590067DA3B /* MeshEditGLUT.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0DA84972193D06590067DA3B;
-			remoteInfo = MeshEditGLUT;
-		};
-		0DD088B2194776E400E4EC4C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0DD0889D194776B800E4EC4C;
-			remoteInfo = "CGLA-ogl";
-		};
-		0DD214D7197C792800EA2FFF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0DD089571947782E00E4EC4C;
-			remoteInfo = "CGLA-vec";
-		};
-		0DD214D9197C792800EA2FFF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0DD089091947777E00E4EC4C;
-			remoteInfo = "CGLA-simple";
-		};
-		0DD214DB197C792800EA2FFF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0DD089161947779100E4EC4C;
-			remoteInfo = "Geometry-kdtree";
-		};
-		0DD214DD197C792800EA2FFF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0DD08923194777A200E4EC4C;
-			remoteInfo = "GLGraphics-console";
-		};
-		0DD214DF197C792800EA2FFF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0DD08930194777B100E4EC4C;
-			remoteInfo = "LinAlg-eigensolver";
-		};
-		0DD214E1197C792800EA2FFF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0DD0893D194777CB00E4EC4C;
-			remoteInfo = "LinAlg-leastsq";
-		};
-		0DD214E3197C792800EA2FFF /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0DD0894A194777D900E4EC4C;
-			remoteInfo = "Util-resman";
-		};
-		0DF694ED1940EDF7008F1E8C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0DF694E81940EDF6008F1E8C /* MeshEditCocoa.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0DF694B11940EDF6008F1E8C;
-			remoteInfo = MeshEditCocoa;
-		};
-		0DF6951519410D1D008F1E8C /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0DF6951119410D1C008F1E8C /* RayTracer.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 0DF6950519410D1C008F1E8C;
-			remoteInfo = RayTracer;
-		};
-/* End PBXContainerItemProxy section */
-
 /* Begin PBXCopyFilesBuildPhase section */
 		0DA848D1193D04760067DA3B /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
@@ -799,10 +684,6 @@
 		0D52EB58197D18C1002C7150 /* Timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Timer.h; sourceTree = "<group>"; };
 		0D52EB59197D18C1002C7150 /* XmlParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XmlParser.cpp; sourceTree = "<group>"; };
 		0D52EB5A197D18C1002C7150 /* XmlParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XmlParser.h; sourceTree = "<group>"; };
-		0D6D5738194248CB00726FDE /* PathTracer.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = PathTracer.xcodeproj; path = PathTracer/PathTracer.xcodeproj; sourceTree = "<group>"; };
-		0D6D578119424A3A00726FDE /* OBJViewer.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = OBJViewer.xcodeproj; path = OBJViewer/OBJViewer.xcodeproj; sourceTree = "<group>"; };
-		0D6D57A61942544000726FDE /* MeshDistance.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MeshDistance.xcodeproj; path = MeshDistance/MeshDistance.xcodeproj; sourceTree = "<group>"; };
-		0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL_test.xcodeproj; path = GEL_test/GEL_test.xcodeproj; sourceTree = "<group>"; };
 		0D859993193D01B6009DB071 /* GEL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GEL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D859996193D01B6009DB071 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		0D859999193D01B6009DB071 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -814,9 +695,6 @@
 		0D8599AB193D01B6009DB071 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		0DA848C3193D02520067DA3B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DA848C5193D02590067DA3B /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
-		0DA8497E193D06590067DA3B /* MeshEditGLUT.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MeshEditGLUT.xcodeproj; path = MeshEditGLUT/MeshEditGLUT.xcodeproj; sourceTree = "<group>"; };
-		0DF694E81940EDF6008F1E8C /* MeshEditCocoa.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = MeshEditCocoa.xcodeproj; path = MeshEditCocoa/MeshEditCocoa.xcodeproj; sourceTree = "<group>"; };
-		0DF6951119410D1C008F1E8C /* RayTracer.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = RayTracer.xcodeproj; path = RayTracer/RayTracer.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1175,61 +1053,10 @@
 			name = header;
 			sourceTree = "<group>";
 		};
-		0D6D5739194248CB00726FDE /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				0D6D573F194248CC00726FDE /* PathTracer */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		0D6D578219424A3A00726FDE /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				0D6D578619424A3B00726FDE /* OBJViewer */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		0D6D57A71942544000726FDE /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				0D6D57AB1942544100726FDE /* MeshDistance */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		0D6D57B0194255B600726FDE /* test */ = {
-			isa = PBXGroup;
-			children = (
-				0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */,
-			);
-			name = test;
-			sourceTree = "<group>";
-		};
-		0D6D57C7194255D900726FDE /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				0DD214D8197C792800EA2FFF /* CGLA-vec */,
-				0D6D57FA1942565E00726FDE /* CGLA-covariance */,
-				0D6D5818194256A500726FDE /* CGLA-mat */,
-				0DD088B3194776E400E4EC4C /* CGLA-ogl */,
-				0DD214DA197C792800EA2FFF /* CGLA-simple */,
-				0DD214DC197C792800EA2FFF /* Geometry-kdtree */,
-				0DD214DE197C792800EA2FFF /* GLGraphics-console */,
-				0DD214E0197C792800EA2FFF /* LinAlg-eigensolver */,
-				0DD214E2197C792800EA2FFF /* LinAlg-leastsq */,
-				0DD214E4197C792800EA2FFF /* Util-resman */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		0D859989193D01B6009DB071 = {
 			isa = PBXGroup;
 			children = (
 				0D85999C193D01B6009DB071 /* GEL */,
-				0DA84968193D06250067DA3B /* demo */,
-				0D6D57B0194255B600726FDE /* test */,
 				0D859995193D01B6009DB071 /* Frameworks */,
 				0D859994193D01B6009DB071 /* Products */,
 			);
@@ -1290,43 +1117,6 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		0DA84968193D06250067DA3B /* demo */ = {
-			isa = PBXGroup;
-			children = (
-				0DA8497E193D06590067DA3B /* MeshEditGLUT.xcodeproj */,
-				0DF694E81940EDF6008F1E8C /* MeshEditCocoa.xcodeproj */,
-				0DF6951119410D1C008F1E8C /* RayTracer.xcodeproj */,
-				0D6D5738194248CB00726FDE /* PathTracer.xcodeproj */,
-				0D6D578119424A3A00726FDE /* OBJViewer.xcodeproj */,
-				0D6D57A61942544000726FDE /* MeshDistance.xcodeproj */,
-			);
-			name = demo;
-			sourceTree = "<group>";
-		};
-		0DA8497F193D06590067DA3B /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				0DA84983193D065A0067DA3B /* MeshEditGLUT */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		0DF694E91940EDF6008F1E8C /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				0DF694EE1940EDF7008F1E8C /* MeshEditCocoa.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		0DF6951219410D1C008F1E8C /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				0DF6951619410D1D008F1E8C /* RayTracer */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -1374,157 +1164,12 @@
 			mainGroup = 0D859989193D01B6009DB071;
 			productRefGroup = 0D859994193D01B6009DB071 /* Products */;
 			projectDirPath = "";
-			projectReferences = (
-				{
-					ProductGroup = 0D6D57C7194255D900726FDE /* Products */;
-					ProjectRef = 0D6D57C6194255D900726FDE /* GEL_test.xcodeproj */;
-				},
-				{
-					ProductGroup = 0D6D57A71942544000726FDE /* Products */;
-					ProjectRef = 0D6D57A61942544000726FDE /* MeshDistance.xcodeproj */;
-				},
-				{
-					ProductGroup = 0DF694E91940EDF6008F1E8C /* Products */;
-					ProjectRef = 0DF694E81940EDF6008F1E8C /* MeshEditCocoa.xcodeproj */;
-				},
-				{
-					ProductGroup = 0DA8497F193D06590067DA3B /* Products */;
-					ProjectRef = 0DA8497E193D06590067DA3B /* MeshEditGLUT.xcodeproj */;
-				},
-				{
-					ProductGroup = 0D6D578219424A3A00726FDE /* Products */;
-					ProjectRef = 0D6D578119424A3A00726FDE /* OBJViewer.xcodeproj */;
-				},
-				{
-					ProductGroup = 0D6D5739194248CB00726FDE /* Products */;
-					ProjectRef = 0D6D5738194248CB00726FDE /* PathTracer.xcodeproj */;
-				},
-				{
-					ProductGroup = 0DF6951219410D1C008F1E8C /* Products */;
-					ProjectRef = 0DF6951119410D1C008F1E8C /* RayTracer.xcodeproj */;
-				},
-			);
 			projectRoot = "";
 			targets = (
 				0D859992193D01B6009DB071 /* GEL */,
 			);
 		};
 /* End PBXProject section */
-
-/* Begin PBXReferenceProxy section */
-		0D6D573F194248CC00726FDE /* PathTracer */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = PathTracer;
-			remoteRef = 0D6D573E194248CC00726FDE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0D6D578619424A3B00726FDE /* OBJViewer */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = OBJViewer;
-			remoteRef = 0D6D578519424A3B00726FDE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0D6D57AB1942544100726FDE /* MeshDistance */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = MeshDistance;
-			remoteRef = 0D6D57AA1942544100726FDE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0D6D57FA1942565E00726FDE /* CGLA-covariance */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = "CGLA-covariance";
-			remoteRef = 0D6D57F91942565E00726FDE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0D6D5818194256A500726FDE /* CGLA-mat */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = "CGLA-mat";
-			remoteRef = 0D6D5817194256A500726FDE /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0DA84983193D065A0067DA3B /* MeshEditGLUT */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = MeshEditGLUT;
-			remoteRef = 0DA84982193D065A0067DA3B /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0DD088B3194776E400E4EC4C /* CGLA-ogl */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = "CGLA-ogl";
-			remoteRef = 0DD088B2194776E400E4EC4C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0DD214D8197C792800EA2FFF /* CGLA-vec */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = "CGLA-vec";
-			remoteRef = 0DD214D7197C792800EA2FFF /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0DD214DA197C792800EA2FFF /* CGLA-simple */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = "CGLA-simple";
-			remoteRef = 0DD214D9197C792800EA2FFF /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0DD214DC197C792800EA2FFF /* Geometry-kdtree */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = "Geometry-kdtree";
-			remoteRef = 0DD214DB197C792800EA2FFF /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0DD214DE197C792800EA2FFF /* GLGraphics-console */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = "GLGraphics-console";
-			remoteRef = 0DD214DD197C792800EA2FFF /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0DD214E0197C792800EA2FFF /* LinAlg-eigensolver */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = "LinAlg-eigensolver";
-			remoteRef = 0DD214DF197C792800EA2FFF /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0DD214E2197C792800EA2FFF /* LinAlg-leastsq */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = "LinAlg-leastsq";
-			remoteRef = 0DD214E1197C792800EA2FFF /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0DD214E4197C792800EA2FFF /* Util-resman */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = "Util-resman";
-			remoteRef = 0DD214E3197C792800EA2FFF /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0DF694EE1940EDF7008F1E8C /* MeshEditCocoa.app */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.application;
-			path = MeshEditCocoa.app;
-			remoteRef = 0DF694ED1940EDF7008F1E8C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		0DF6951619410D1D008F1E8C /* RayTracer */ = {
-			isa = PBXReferenceProxy;
-			fileType = "compiled.mach-o.executable";
-			path = RayTracer;
-			remoteRef = 0DF6951519410D1D008F1E8C /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-/* End PBXReferenceProxy section */
 
 /* Begin PBXResourcesBuildPhase section */
 		0D859991193D01B6009DB071 /* Resources */ = {

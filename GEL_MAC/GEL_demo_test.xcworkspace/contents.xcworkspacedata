@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Workspace
+   version = "1.0">
+   <FileRef
+      location = "container:GEL.xcodeproj">
+   </FileRef>
+   <Group
+      location = "group:"
+      name = "test">
+      <FileRef
+         location = "group:GEL_test/GEL_test.xcodeproj">
+      </FileRef>
+   </Group>
+   <Group
+      location = "group:"
+      name = "demo">
+      <FileRef
+         location = "group:MeshEditGLUT/MeshEditGLUT.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:MeshEditCocoa/MeshEditCocoa.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:RayTracer/RayTracer.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:PathTracer/PathTracer.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:OBJViewer/OBJViewer.xcodeproj">
+      </FileRef>
+      <FileRef
+         location = "group:MeshDistance/MeshDistance.xcodeproj">
+      </FileRef>
+   </Group>
+</Workspace>

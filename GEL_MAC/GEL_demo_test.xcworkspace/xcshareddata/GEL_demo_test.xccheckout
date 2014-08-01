@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>IDESourceControlProjectFavoriteDictionaryKey</key>
+	<false/>
+	<key>IDESourceControlProjectIdentifier</key>
+	<string>A500CBCC-4AA1-42B3-802A-921D2E80313E</string>
+	<key>IDESourceControlProjectName</key>
+	<string>GEL_demo_test</string>
+	<key>IDESourceControlProjectOriginsDictionary</key>
+	<dict>
+		<key>1DB03C0B-D952-4176-BFE5-9E72642463FB</key>
+		<string>https://github.com/janba/GEL.git</string>
+	</dict>
+	<key>IDESourceControlProjectPath</key>
+	<string>GEL_MAC/GEL_demo_test.xcworkspace</string>
+	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
+	<dict>
+		<key>1DB03C0B-D952-4176-BFE5-9E72642463FB</key>
+		<string>../..</string>
+	</dict>
+	<key>IDESourceControlProjectURL</key>
+	<string>https://github.com/janba/GEL.git</string>
+	<key>IDESourceControlProjectVersion</key>
+	<integer>110</integer>
+	<key>IDESourceControlProjectWCCIdentifier</key>
+	<string>1DB03C0B-D952-4176-BFE5-9E72642463FB</string>
+	<key>IDESourceControlProjectWCConfigurations</key>
+	<array>
+		<dict>
+			<key>IDESourceControlRepositoryExtensionIdentifierKey</key>
+			<string>public.vcs.git</string>
+			<key>IDESourceControlWCCIdentifierKey</key>
+			<string>1DB03C0B-D952-4176-BFE5-9E72642463FB</string>
+			<key>IDESourceControlWCCName</key>
+			<string>GEL</string>
+		</dict>
+	</array>
+</dict>
+</plist>

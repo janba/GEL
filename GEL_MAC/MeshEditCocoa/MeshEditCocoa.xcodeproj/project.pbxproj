@@ -7,10 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0D333E0A198BB36200B93484 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D333E09198BB36200B93484 /* GEL.framework */; };
 		0D52EBBD197D19ED002C7150 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EBB9197D19ED002C7150 /* AppDelegate.m */; };
 		0D52EBBE197D19ED002C7150 /* BasicOpenGLView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EBBB197D19ED002C7150 /* BasicOpenGLView.mm */; };
 		0D52EBBF197D19ED002C7150 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EBBC197D19ED002C7150 /* main.m */; };
-		0D52EBC2197D1CA2002C7150 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D52EBC0197D1B77002C7150 /* GEL.framework */; };
 		0DF694B51940EDF6008F1E8C /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF694B41940EDF6008F1E8C /* Cocoa.framework */; };
 		0DF694BF1940EDF6008F1E8C /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0DF694BD1940EDF6008F1E8C /* InfoPlist.strings */; };
 		0DF694C51940EDF6008F1E8C /* Credits.rtf in Resources */ = {isa = PBXBuildFile; fileRef = 0DF694C31940EDF6008F1E8C /* Credits.rtf */; };
@@ -21,12 +21,16 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0D333E07198BB1AD00B93484 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = ../build/Debug/GEL.framework; sourceTree = "<group>"; };
+		0D333E09198BB36200B93484 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL_demo_test-ezxpkjlweyvkijeztdclqgyglrjd/Build/Products/Release/GEL.framework"; sourceTree = "<group>"; };
 		0D52EBB8197D19ED002C7150 /* AppDelegate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = AppDelegate.h; path = ../../../src/demo/MeshEditCocoa/AppDelegate.h; sourceTree = "<group>"; };
 		0D52EBB9197D19ED002C7150 /* AppDelegate.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = AppDelegate.m; path = ../../../src/demo/MeshEditCocoa/AppDelegate.m; sourceTree = "<group>"; };
 		0D52EBBA197D19ED002C7150 /* BasicOpenGLView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = BasicOpenGLView.h; path = ../../../src/demo/MeshEditCocoa/BasicOpenGLView.h; sourceTree = "<group>"; };
 		0D52EBBB197D19ED002C7150 /* BasicOpenGLView.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; name = BasicOpenGLView.mm; path = ../../../src/demo/MeshEditCocoa/BasicOpenGLView.mm; sourceTree = "<group>"; };
 		0D52EBBC197D19ED002C7150 /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = main.m; path = ../../../src/demo/MeshEditCocoa/main.m; sourceTree = "<group>"; };
 		0D52EBC0197D1B77002C7150 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
+		0D945D1E198B850C00B78450 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Release/GEL.framework"; sourceTree = "<group>"; };
+		0DE924C8198BAFCC00F8A63D /* GEL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; name = GEL.framework; path = "/Users/jab/Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Release/GEL.framework"; sourceTree = "<absolute>"; };
 		0DF694B11940EDF6008F1E8C /* MeshEditCocoa.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeshEditCocoa.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DF694B41940EDF6008F1E8C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		0DF694B71940EDF6008F1E8C /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -48,10 +52,10 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0D52EBC2197D1CA2002C7150 /* GEL.framework in Frameworks */,
 				0DF694F91940F84C008F1E8C /* Accelerate.framework in Frameworks */,
 				0DF694FB1940F85A008F1E8C /* OpenGL.framework in Frameworks */,
 				0DF694B51940EDF6008F1E8C /* Cocoa.framework in Frameworks */,
+				0D333E0A198BB36200B93484 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -61,6 +65,7 @@
 		0DF694A81940EDF6008F1E8C = {
 			isa = PBXGroup;
 			children = (
+				0DE924C8198BAFCC00F8A63D /* GEL.framework */,
 				0DF694BA1940EDF6008F1E8C /* MeshEditCocoa */,
 				0DF694B31940EDF6008F1E8C /* Frameworks */,
 				0DF694B21940EDF6008F1E8C /* Products */,
@@ -78,6 +83,9 @@
 		0DF694B31940EDF6008F1E8C /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				0D333E09198BB36200B93484 /* GEL.framework */,
+				0D333E07198BB1AD00B93484 /* GEL.framework */,
+				0D945D1E198B850C00B78450 /* GEL.framework */,
 				0D52EBC0197D1B77002C7150 /* GEL.framework */,
 				0DF694FA1940F85A008F1E8C /* OpenGL.framework */,
 				0DF694F81940F84C008F1E8C /* Accelerate.framework */,
@@ -305,6 +313,9 @@
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Release",
+					/Users/jab/GEL/GEL_MAC/build/Debug,
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL_demo_test-ezxpkjlweyvkijeztdclqgyglrjd/Build/Products/Release",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MeshEditCocoa/MeshEditCocoa-Prefix.pch";
@@ -323,6 +334,9 @@
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Release",
+					/Users/jab/GEL/GEL_MAC/build/Debug,
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL_demo_test-ezxpkjlweyvkijeztdclqgyglrjd/Build/Products/Release",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "MeshEditCocoa/MeshEditCocoa-Prefix.pch";
