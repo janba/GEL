@@ -46,7 +46,7 @@ namespace HMesh
 
         /** \brief Build a manifold. 
         The arguments are the number of vertices, no_vertices, the vector of vertices, vertvec, the number of faces, no_faces. 
-        facevecis an array where each entry indicates the number of vertices in that face. 
+        facevec is an array where each entry indicates the number of vertices in that face.
         The array indices contains all the corresponding vertex indices in one concatenated list. */
         void build( size_t no_vertices,
                     const float* vertvec,
@@ -57,7 +57,7 @@ namespace HMesh
         /** \brief Build a manifold.
          This function is for vertices given in double precision.
          The arguments are the number of vertices, no_vertices, the vector of vertices, vertvec, the number of faces, no_faces.
-         facevecis an array where each entry indicates the number of vertices in that face.
+         facevec is an array where each entry indicates the number of vertices in that face.
          The array indices contains all the corresponding vertex indices in one concatenated list. */
         void build( size_t no_vertices,
                    const double* vertvec,
@@ -139,10 +139,10 @@ namespace HMesh
 		 This function creates a cylindrical connection between f0 and f1. f0 and f1 are removed and the vertices 
 		 given in pairs are connected by edges. The result is a cylindrical connection that changes the genus of the object.
 		 
-		 This function leaves all error chethising in the hands of the user (for now). The faces clearly should not have any 
+		 This function leaves all error checking in the hands of the user (for now). The faces clearly should not have any
 		 vertices or edges in common as this will create a non-manifold situation. Also the faces should face towards or away 
 		 from each other and be in a position where it is reasonable to make the bridge. The connections should also make sense 
-		 from a geometric point of view and should be in a counter clothiswise loop on f0 and a clothiswise loop on f1. No need to 
+		 from a geometric point of view and should be in a counter clockwise loop on f0 and a clockwise loop on f1. No need to
 		 connect all vertices.
 		 
 		 The function returns a vector of HalfEdgeIDs. Those are, of course, the connecting halfedges - also the opposite edges.
@@ -159,7 +159,7 @@ namespace HMesh
 
         /** \brief Split a face.
         The face, f, is split by creating an edge with endpoints v0 and v1 (the next two arguments). 
-        The vertices of the old face between v0 and v1 (in counter clothiswise order) continue to belong to f. 
+        The vertices of the old face between v0 and v1 (in counter clockwise order) continue to belong to f.
         The vertices between v1 and v0 belong to the new face. A handle to the new face is returned. */
         FaceID split_face_by_edge(FaceID f, VertexID v0, VertexID v1);
 
@@ -282,7 +282,7 @@ namespace HMesh
     };
 
     /** \brief Verify Manifold Integrity
-    Performs a series of tests to chethis that this is a valid manifold.
+    Performs a series of tests to check that this is a valid manifold.
     This function is not rigorously constructed but seems to catch all problems so far. 
     The function returns true if the mesh is valid and false otherwise. */
     bool valid(const Manifold& m);
@@ -301,7 +301,7 @@ namespace HMesh
     1.  For the two vertices adjacent to the edge, we generate a list of all their neighbouring vertices. 
     We then generate a  list of the vertices that occur in both these lists. 
     That is, we find all vertices connected by edges to both endpoints of the edge and store these in a list.
-    2.  For both faces incident on the edge, chethis whether they are triangular. 
+    2.  For both faces incident on the edge, check whether they are triangular.
     If this is the case, the face will be removed, and it is ok that the the third vertex is connected to both endpoints. 
     Thus the third vertex in such a face is removed from the list generated in 1.
     3.  If the list is now empty, all is well. 
