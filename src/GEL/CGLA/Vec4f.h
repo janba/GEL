@@ -48,11 +48,7 @@ namespace CGLA {
 		explicit Vec4f(const Vec3f& v,float _d): 
 			ArithVec4Float<float,Vec4f>(v[0],v[1],v[2],_d) {}
 
-		operator Vec3f() const
-		{
-			float k = 1.0f/(*this)[3];
-			return Vec3f((*this)[0]*k,(*this)[1]*k,(*this)[2]*k);
-		}
+
 	};
 }
 #endif

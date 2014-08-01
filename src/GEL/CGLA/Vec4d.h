@@ -47,12 +47,6 @@ namespace CGLA {
 		/// Construct a homogenous vector from a non-homogenous.
 		explicit Vec4d(const Vec3d& v,double _d): 
 			ArithVec4Float<double,Vec4d>(v[0],v[1],v[2],_d) {}
-
-		operator Vec3d() const
-		{
-			double k = 1.0/(*this)[3];
-			return Vec3d((*this)[0]*k,(*this)[1]*k,(*this)[2]*k);
-		}
 	};
 }
 #endif

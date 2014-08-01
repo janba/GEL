@@ -86,8 +86,8 @@ namespace CGLA
     const VecT project_3D_point(const ArithVec3Float<T,VecT>& v_in) const
     {
       VT v_out = (*this) * VT(v_in[0],v_in[1],v_in[2],1);
-      v_out.de_homogenize();
-      return VecT(v_out[0],v_out[1],v_out[2]);
+      ScalarType de_homogenize = 1.0f/v_in[3];
+      return VecT(v_out[0]*de_homogenize,v_out[1]*de_homogenize,v_out[2]*de_homogenize);
     }
 
   };
