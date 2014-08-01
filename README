@@ -1,4 +1,4 @@
-INTRUDUCTION
+INTRODUCTION
 ---
 
 GEL is a small library with a good support for 2,3,4 D vectors, simple linear system solving (via Lapack), Mesh representation of surfaces, and the volume representation. There are also several other things some of which pertain to simple user interfaces. For instance, GEL contains a console library.
