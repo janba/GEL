@@ -10,7 +10,6 @@
 #include <GEL/CGLA/Vec3i.h>
 #include <GEL/CGLA/Vec3f.h> 
 #include <GEL/CGLA/Vec3d.h> 
-#include <GEL/CGLA/Vec3Hf.h> // next
 #include <GEL/CGLA/Vec3uc.h>
 #include <GEL/CGLA/Vec3usi.h>
 #include <GEL/CGLA/Vec4f.h>

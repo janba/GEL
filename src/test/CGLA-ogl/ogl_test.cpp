@@ -8,7 +8,6 @@
 #include <GEL/CGLA/Vec2i.h>
 #include <GEL/CGLA/Vec3i.h>
 #include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Vec3Hf.h>
 
 #ifdef __APPLE__
 #include <GLUT/glut.h>
@@ -66,7 +65,7 @@ static void display( void )
   // Create viewing matrix. We use the basis change method.
   // Notice how the direction of z is flipped. That is because
   // we look down the -z direction
-  Mat4x4f mview(Vec3Hf(u,0), Vec3Hf(v,0), Vec3Hf(-n,0), Vec3Hf());
+  Mat4x4f mview(Vec4f(u,0), Vec4f(v,0), Vec4f(-n,0), Vec4f(0,0,0,1));
 
   //Create translation matrix. 
   Mat4x4f mtrans = translation_Mat4x4f(centre-eye);
@@ -82,12 +81,12 @@ static void display( void )
   //----------------------------------------
   // 3. Create points 
 
-  Vec3Hf axes[3]={Vec3Hf(2,0,0),Vec3Hf(0,2,0),Vec3Hf(0,0,2)};
-  Vec3Hf paxes[3];
-  Vec3Hf p[9] ={Vec3Hf(0,0,0), Vec3Hf(1,0,0), Vec3Hf(0,1,0),  
-		Vec3Hf(1,1,0), Vec3Hf(0,0,1), Vec3Hf(1,0,1),  
-		Vec3Hf(0,1,1), Vec3Hf(1,1,1)};
-  Vec3Hf pp[9];
+	Vec4f axes[3] = { Vec4f(2, 0, 0,1), Vec4f(0, 2, 0, 1), Vec4f(0, 0, 2, 1) };
+  Vec4f paxes[3];
+  Vec4f p[9] = { Vec4f(0, 0, 0, 1), Vec4f(1, 0, 0,1), Vec4f(0, 1, 0, 1),
+		Vec4f(1,1,0,1), Vec4f(0,0,1,1), Vec4f(1,0,1,1),  
+		Vec4f(0,1,1,1), Vec4f(1,1,1,1)};
+  Vec4f pp[9];
 
   //----------------------------------------
   // 4. project and dehomogenize points
@@ -101,7 +100,7 @@ static void display( void )
 
   for (int i=0;i<9;i++) 
     {
-      pp[i] = m * p[i];
+	  pp[i] = m * p[i];
       pp[i].de_homogenize();
     }
 

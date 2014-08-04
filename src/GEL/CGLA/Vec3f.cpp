@@ -8,7 +8,7 @@
 
 #include "Vec3f.h"
 #include "Vec3d.h"
-#include "Vec3Hf.h"
+#include "Vec4f.h"
 
 using namespace std;
 

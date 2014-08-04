@@ -131,7 +131,6 @@
 		0D52EBE6197D1DAB002C7150 /* Vec2ui.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EA9F197D18C1002C7150 /* Vec2ui.h */; };
 		0D52EBE7197D1DAB002C7150 /* Vec3d.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAA0197D18C1002C7150 /* Vec3d.h */; };
 		0D52EBE8197D1DAB002C7150 /* Vec3f.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAA2197D18C1002C7150 /* Vec3f.h */; };
-		0D52EBE9197D1DAB002C7150 /* Vec3Hf.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAA3197D18C1002C7150 /* Vec3Hf.h */; };
 		0D52EBEA197D1DAB002C7150 /* Vec3i.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAA5197D18C1002C7150 /* Vec3i.h */; };
 		0D52EBEB197D1DAB002C7150 /* Vec3uc.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAA6197D18C1002C7150 /* Vec3uc.h */; };
 		0D52EBEC197D1DAB002C7150 /* Vec3usi.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAA7197D18C1002C7150 /* Vec3usi.h */; };
@@ -287,7 +286,6 @@
 				0D52EBE6197D1DAB002C7150 /* Vec2ui.h in CopyFiles */,
 				0D52EBE7197D1DAB002C7150 /* Vec3d.h in CopyFiles */,
 				0D52EBE8197D1DAB002C7150 /* Vec3f.h in CopyFiles */,
-				0D52EBE9197D1DAB002C7150 /* Vec3Hf.h in CopyFiles */,
 				0D52EBEA197D1DAB002C7150 /* Vec3i.h in CopyFiles */,
 				0D52EBEB197D1DAB002C7150 /* Vec3uc.h in CopyFiles */,
 				0D52EBEC197D1DAB002C7150 /* Vec3usi.h in CopyFiles */,
@@ -506,7 +504,6 @@
 		0D52EAA0197D18C1002C7150 /* Vec3d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vec3d.h; sourceTree = "<group>"; };
 		0D52EAA1197D18C1002C7150 /* Vec3f.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Vec3f.cpp; sourceTree = "<group>"; };
 		0D52EAA2197D18C1002C7150 /* Vec3f.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vec3f.h; sourceTree = "<group>"; };
-		0D52EAA3197D18C1002C7150 /* Vec3Hf.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vec3Hf.h; sourceTree = "<group>"; };
 		0D52EAA4197D18C1002C7150 /* Vec3i.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Vec3i.cpp; sourceTree = "<group>"; };
 		0D52EAA5197D18C1002C7150 /* Vec3i.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vec3i.h; sourceTree = "<group>"; };
 		0D52EAA6197D18C1002C7150 /* Vec3uc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vec3uc.h; sourceTree = "<group>"; };
@@ -901,7 +898,6 @@
 				0D52EA9F197D18C1002C7150 /* Vec2ui.h */,
 				0D52EAA0197D18C1002C7150 /* Vec3d.h */,
 				0D52EAA2197D18C1002C7150 /* Vec3f.h */,
-				0D52EAA3197D18C1002C7150 /* Vec3Hf.h */,
 				0D52EAA5197D18C1002C7150 /* Vec3i.h */,
 				0D52EAA6197D18C1002C7150 /* Vec3uc.h */,
 				0D52EAA7197D18C1002C7150 /* Vec3usi.h */,

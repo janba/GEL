@@ -12,7 +12,6 @@
 #include <GEL/CGLA/Vec2i.h>
 #include <GEL/CGLA/Vec3i.h>
 #include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Vec3Hf.h>
 
 #include <GEL/LinAlg/LapackFunc.h>
 
