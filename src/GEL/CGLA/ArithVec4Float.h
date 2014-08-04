@@ -33,6 +33,15 @@ namespace CGLA {
 		ArithVec4Float(T a, T b, T c, T d): 
 			ArithVecFloat<T,V,4>(a,b,c,d) {}
 
+        /// Divide all coordinates by the fourth coordinate
+        void de_homogenize()
+        {
+            float k = 1.0/(*this)[3];
+            (*this)[0] = (*this)[0]*k;
+            (*this)[1] = (*this)[1]*k;
+            (*this)[2] = (*this)[2]*k;
+            (*this)[3] = 1.0;
+        }
 	};
 }
 #endif
