@@ -4,13 +4,9 @@
    <FileRef
       location = "container:GEL.xcodeproj">
    </FileRef>
-   <Group
-      location = "group:"
-      name = "test">
-      <FileRef
-         location = "group:GEL_test/GEL_test.xcodeproj">
-      </FileRef>
-   </Group>
+   <FileRef
+      location = "group:GEL_test/GEL_test.xcodeproj">
+   </FileRef>
    <Group
       location = "group:"
       name = "demo">

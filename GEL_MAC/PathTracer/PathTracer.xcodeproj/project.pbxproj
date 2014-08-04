@@ -7,9 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0D4B849419899DC300DD2483 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D4B849319899DC300DD2483 /* GEL.framework */; };
 		0D6D5769194249B400726FDE /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D6D5768194249B400726FDE /* OpenGL.framework */; };
 		0D6D576B194249BA00726FDE /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D6D576A194249BA00726FDE /* GLUT.framework */; };
+		0D9823DD198BB683004E3CC9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D9823DA198BB672004E3CC9 /* GEL.framework */; };
 		0DD4565C1989A7E50031C970 /* camera.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD456431989A7E50031C970 /* camera.cpp */; };
 		0DD4565D1989A7E50031C970 /* glass.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD456461989A7E50031C970 /* glass.cpp */; };
 		0DD4565E1989A7E50031C970 /* luminaire.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD456481989A7E50031C970 /* luminaire.cpp */; };
@@ -23,6 +23,23 @@
 		0DD456661989A7E50031C970 /* plastic.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD456581989A7E50031C970 /* plastic.cpp */; };
 		0DD456671989A7E50031C970 /* scene.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD4565A1989A7E50031C970 /* scene.cpp */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		0D9823D9198BB672004E3CC9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0D9823D5198BB671004E3CC9 /* GEL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0D859993193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+		0D9823DB198BB67B004E3CC9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 0D9823D5198BB671004E3CC9 /* GEL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D859992193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		0D6D572A194248CB00726FDE /* CopyFiles */ = {
@@ -41,6 +58,7 @@
 		0D6D572C194248CB00726FDE /* PathTracer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = PathTracer; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D6D5768194249B400726FDE /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0D6D576A194249BA00726FDE /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		0D9823D5198BB671004E3CC9 /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
 		0DD456431989A7E50031C970 /* camera.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = camera.cpp; sourceTree = "<group>"; };
 		0DD456441989A7E50031C970 /* camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = camera.h; sourceTree = "<group>"; };
 		0DD456451989A7E50031C970 /* core.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = core.h; sourceTree = "<group>"; };
@@ -73,9 +91,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0D9823DD198BB683004E3CC9 /* GEL.framework in Frameworks */,
 				0D6D576B194249BA00726FDE /* GLUT.framework in Frameworks */,
 				0D6D5769194249B400726FDE /* OpenGL.framework in Frameworks */,
-				0D4B849419899DC300DD2483 /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -85,6 +103,7 @@
 		0D6D5723194248CB00726FDE = {
 			isa = PBXGroup;
 			children = (
+				0D9823D5198BB671004E3CC9 /* GEL.xcodeproj */,
 				0DD456421989A7E50031C970 /* Pathtracer */,
 				0D4B849319899DC300DD2483 /* GEL.framework */,
 				0D6D576A194249BA00726FDE /* GLUT.framework */,
@@ -97,6 +116,14 @@
 			isa = PBXGroup;
 			children = (
 				0D6D572C194248CB00726FDE /* PathTracer */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		0D9823D6198BB671004E3CC9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				0D9823DA198BB672004E3CC9 /* GEL.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -148,6 +175,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				0D9823DC198BB67B004E3CC9 /* PBXTargetDependency */,
 			);
 			name = PathTracer;
 			productName = PathTracer;
@@ -173,12 +201,28 @@
 			mainGroup = 0D6D5723194248CB00726FDE;
 			productRefGroup = 0D6D572D194248CB00726FDE /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 0D9823D6198BB671004E3CC9 /* Products */;
+					ProjectRef = 0D9823D5198BB671004E3CC9 /* GEL.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				0D6D572B194248CB00726FDE /* PathTracer */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		0D9823DA198BB672004E3CC9 /* GEL.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GEL.framework;
+			remoteRef = 0D9823D9198BB672004E3CC9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
 		0D6D5728194248CB00726FDE /* Sources */ = {
@@ -201,6 +245,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		0D9823DC198BB67B004E3CC9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = 0D9823DB198BB67B004E3CC9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0D6D5733194248CB00726FDE /* Debug */ = {
