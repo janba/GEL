@@ -49,7 +49,6 @@
     <ClInclude Include="..\..\src\GEL\CGLA\Vec2ui.h" />
     <ClInclude Include="..\..\src\GEL\CGLA\Vec3d.h" />
     <ClInclude Include="..\..\src\GEL\CGLA\Vec3f.h" />
-    <ClInclude Include="..\..\src\GEL\CGLA\Vec3Hf.h" />
     <ClInclude Include="..\..\src\GEL\CGLA\Vec3i.h" />
     <ClInclude Include="..\..\src\GEL\CGLA\Vec3uc.h" />
     <ClInclude Include="..\..\src\GEL\CGLA\Vec3usi.h" />

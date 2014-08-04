@@ -36,23 +36,11 @@ namespace CGLA {
 		Vec4f(float _a, float _b, float _c, float _d): 
 			ArithVec4Float<float,Vec4f>(_a,_b,_c,_d) {}
 
-		/// Construct a homogenous vector (a,b,c,1)
-		Vec4f(float _a, float _b, float _c): 
-			ArithVec4Float<float,Vec4f>(_a,_b,_c,1.0f) {}
-
-		/// Construct a homogenous vector from a non-homogenous.
-		explicit Vec4f(const Vec3f& v): 
-			ArithVec4Float<float,Vec4f>(v[0],v[1],v[2],1.0f) {}
-
 		/// Construct a homogenous vector from a non-homogenous.
 		explicit Vec4f(const Vec3f& v,float _d): 
 			ArithVec4Float<float,Vec4f>(v[0],v[1],v[2],_d) {}
 
-		operator Vec3f() const
-		{
-			float k = 1.0f/(*this)[3];
-			return Vec3f((*this)[0]*k,(*this)[1]*k,(*this)[2]*k);
-		}
+
 	};
 }
 #endif
