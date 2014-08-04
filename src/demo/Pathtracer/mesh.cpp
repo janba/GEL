@@ -1,7 +1,7 @@
 #include "mesh.h"
 #include "scene.h"
 
-#include <Geometry/obj_load.h>
+#include <GEL/Geometry/obj_load.h>
 
 using namespace CGLA;
 using namespace Geometry;

@@ -90,9 +90,6 @@
     <ClInclude Include="..\..\src\GEL\CGLA\Vec3f.h">
       <Filter>CGLA\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\GEL\CGLA\Vec3Hf.h">
-      <Filter>CGLA\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\GEL\CGLA\Vec3i.h">
       <Filter>CGLA\Header Files</Filter>
     </ClInclude>
@@ -757,9 +754,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\GEL\Util\XmlParser.cpp">
       <Filter>Util\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\GEL\CGLA\Vec3Hf.cpp">
-      <Filter>CGLA\Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
