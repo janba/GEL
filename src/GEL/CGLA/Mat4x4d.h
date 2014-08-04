@@ -14,7 +14,6 @@
 #include "ExceptionStandard.h"
 #include "CGLA.h"
 #include "Vec3d.h"
-#include "Vec3Hf.h"
 #include "Vec4d.h"
 #include "ArithSqMat4x4Float.h"
 

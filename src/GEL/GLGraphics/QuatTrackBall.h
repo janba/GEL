@@ -15,7 +15,6 @@
 #include "../CGLA/Vec2i.h"
 #include "../CGLA/Vec2f.h"
 #include "../CGLA/Vec3f.h"
-#include "../CGLA/Vec3Hf.h"
 #include "../CGLA/Quatf.h"
 
 namespace GLGraphics

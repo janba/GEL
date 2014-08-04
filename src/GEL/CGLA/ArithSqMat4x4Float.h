@@ -15,7 +15,6 @@
 #include "ExceptionStandard.h"
 #include "CGLA.h"
 #include "Vec3f.h"
-#include "Vec3Hf.h"
 #include "Vec4f.h"
 #include "ArithSqMatFloat.h"
 
@@ -87,7 +86,7 @@ namespace CGLA
     {
       VT v_out = (*this) * VT(v_in[0],v_in[1],v_in[2],1);
       v_out.de_homogenize();
-      return VecT(v_out[0],v_out[1],v_out[2]);
+      return VecT(v_out);
     }
 
   };
