@@ -164,9 +164,19 @@ namespace HMesh
     template<typename ITEM>
     inline void ItemVector<ITEM>::resize(size_t _size, ITEM i)
     {
+        size_t old_size = items.size();
+        bool grow = _size >= old_size;
+        if (grow){
+            size_active += _size - old_size;
+        } else {
+            for(size_t i = _size; i < items.size(); ++i){
+                if(!active_items[i]){
+                    size_active--;
+                }
+            }
+        }
         items.resize(_size, i);
         active_items.resize(_size, true);
-        size_active = _size;
     }
 
     template<typename ITEM>
