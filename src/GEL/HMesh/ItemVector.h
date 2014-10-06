@@ -56,11 +56,6 @@ namespace HMesh
         /// total size of vector
         size_t allocated_size() const;
 
-        /// Resize the kernel NOTE: Sets all active flags to true
-        void resize(size_t _size, ITEM i = ITEM());
-        /// Request size change in kernel
-        void reserve(size_t i);
-
         /// Clear the kernel
         void clear();
 
@@ -160,21 +155,6 @@ namespace HMesh
     template<typename ITEM>
     inline size_t ItemVector<ITEM>::allocated_size() const
     { return items.size(); }
-
-    template<typename ITEM>
-    inline void ItemVector<ITEM>::resize(size_t _size, ITEM i)
-    {
-        items.resize(_size, i);
-        active_items.resize(_size, true);
-        size_active = _size;
-    }
-
-    template<typename ITEM>
-    inline void ItemVector<ITEM>::reserve(size_t i)
-    {
-        items.reserve(i);
-        active_items.reserve(i);
-    }
 
     template<typename ITEM>
     inline void ItemVector<ITEM>::clear()
