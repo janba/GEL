@@ -449,29 +449,51 @@ namespace GLGraphics
     const string ScalarFieldRenderer::fss =
     "	varying vec3 _normal;\n"
     "	varying float s;\n"
+    "	uniform float scalar_min;\n"
     "	uniform float scalar_max;\n"
     "   uniform float gamma;\n"
+    "   uniform int use_shading;\n"
+    "   uniform int use_stripes;\n"
+    "   uniform int color_signed;\n"
     "	const vec3 light_dir = vec3(0,0,1);\n"
     "	\n"
+    " vec4 rainbow(float f) {\n"
+    "    const float dx = 0.8;\n"
+    "    float g = (6.-2.*dx)*f+dx;\n"
+    "    float R = max(0.0,(3.-abs(g-4.)-abs(g-5.))/2.0);\n"
+    "    float G = max(0.0,(4.-abs(g-2.)-abs(g-4.))/2.0);\n"
+    "    float B = max(0.0,(3.-abs(g-1.)-abs(g-2.))/2.0);\n"
+    "    return vec4(R,G,B,0.0);\n"
+    " }"
+    " float stripe(float x) {return fract(x*20.0)>0.5?1.0:0.0;}"
+    " float saw(float x) {const float y=0.05; return  (x - y * floor(x/y))/y;}"
     "	void main()\n"
     "	{\n"
     "       vec3 normal = normalize(_normal);\n"
     "		float dot_ln = max(0.0,dot(light_dir, normal));\n"
     "		\n"
-    "		float s_norm = s/scalar_max;\n"
-    "		float stripe_signal = 50.0 * s_norm;\n"
-    "		vec4 stripe_col = vec4(.9,.9,.9,0);\n"
-    "		\n"
-    "		gl_FragColor = max(vec4(0), s_norm * vec4(-1,0,1,0));\n"
-    "       gl_FragColor *= dot_ln;\n"
-    "       gl_FragColor.r = pow(gl_FragColor.r, 1.0/gamma);\n"
-    "       gl_FragColor.g = pow(gl_FragColor.g, 1.0/gamma);\n"
-    "       gl_FragColor.b = pow(gl_FragColor.b, 1.0/gamma);\n"
-    "		gl_FragColor += 0.2*stripe_col * pow(cos(stripe_signal),70.0);\n"
+    "       if(color_signed==1) {\n"
+    "		  float s_norm = s/max(abs(scalar_max),abs(scalar_min));\n"
+    "		  gl_FragColor = s_norm*vec4(1,0,-1,0);\n"
+    "         if(use_stripes==1) gl_FragColor += vec4(.01,.01,.01,0)*stripe(s_norm);"
+    "       } else {\n"
+    "		  float s_norm = (s-scalar_min)/(scalar_max-scalar_min);\n"
+    "		  gl_FragColor = rainbow(s_norm);\n"
+    "         if(use_stripes==1) gl_FragColor -= vec4(.1,.1,.1,0)*stripe(s_norm);"
+    "       }\n"
+    "       if(use_shading==1) gl_FragColor *= 0.5+0.5*dot_ln;\n"
+    "       gl_FragColor.r = pow(max(0.0,gl_FragColor.r), 1.0/gamma);\n"
+    "       gl_FragColor.g = pow(max(0.0,gl_FragColor.g), 1.0/gamma);\n"
+    "       gl_FragColor.b = pow(max(0.0,gl_FragColor.b), 1.0/gamma);\n"
     "	}\n";
     
     void ScalarFieldRenderer::compile_display_list(const HMesh::Manifold& m, bool smooth,
-                                                   HMesh::VertexAttributeVector<double>& field, double max_val, float gamma)
+                                        HMesh::VertexAttributeVector<double>& field,
+                                        double min_val, double max_val,
+                                        float gamma,
+                                        int use_stripes,
+                                        int color_signed,
+                                        int use_shading)
     {
         
         GLint old_prog;
@@ -480,6 +502,10 @@ namespace GLGraphics
         
         GLuint scalar_attrib = glGetAttribLocation(prog, "scalar");
         glUniform1fARB(glGetUniformLocationARB(prog, "scalar_max"), max_val);
+        glUniform1fARB(glGetUniformLocationARB(prog, "scalar_min"), min_val);
+        glUniform1iARB(glGetUniformLocationARB(prog, "use_shading"), use_shading);
+        glUniform1iARB(glGetUniformLocationARB(prog, "use_stripes"), use_stripes);
+        glUniform1iARB(glGetUniformLocationARB(prog, "color_signed"), color_signed);
         
         //    static float& gamma = CreateCVar("display.scalar_field_renderer.gamma",2.2f);
         glUniform1fARB(glGetUniformLocationARB(prog, "gamma"), gamma);

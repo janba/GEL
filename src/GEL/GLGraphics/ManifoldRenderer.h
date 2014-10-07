@@ -204,7 +204,13 @@ namespace GLGraphics {
 	public:
 		ScalarFieldRenderer(): SimpleShaderRenderer(vss, fss) {}
         void compile_display_list(const HMesh::Manifold& m, bool smooth,
-                                  HMesh::VertexAttributeVector<double>& field, double max_val, float gamma = 2.2);
+                                  HMesh::VertexAttributeVector<double>& field,
+                                  double min_val,
+                                  double max_val,
+                                  float gamma = 2.2,
+                                  int use_stripes=0,
+                                  int color_signed=0,
+                                  int use_shading=0);
 	};
     
     /** Render a checkerboard pattern based on input texture map */

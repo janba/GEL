@@ -95,6 +95,18 @@ namespace GLGraphics {
         delete renderer;
         
         string short_name = display_method.substr(0,3);
+        
+        static Console::variable<int> use_shading(0);
+        static Console::variable<int> use_stripes(0);
+        static Console::variable<int> color_sign(0);
+        if(short_name=="mea"||short_name=="gau"||short_name=="sca")
+        {
+            use_shading.reg(cs, "display.scalar_field.use_shading", "use shading for scalar field visualization");
+            use_stripes.reg(cs, "display.scalar_field.use_stripes", "use stripes for scalar field visualization");
+            color_sign.reg(cs, "display.scalar_field.color_sign", "color according to sign when scalar field visualizing");
+
+        }
+        
         if(short_name== "wir")
             renderer = new WireframeRenderer(mani, smooth);
         
@@ -162,13 +174,14 @@ namespace GLGraphics {
             smoothing.reg(cs, "display.gaussian_curvature_renderer.smoothing", "");
             VertexAttributeVector<double> scalars(mani.allocated_vertices());
             gaussian_curvature_angle_defects(mani, scalars, smoothing);
-            double max_G = 0;
-            
-            for(VertexIDIterator v = mani.vertices_begin(); v != mani.vertices_end(); ++v)
-                max_G = max(abs(scalars[*v]), max_G);
-            
+            double max_G = -1e32;
+            double min_G = 1e32;
+            for(VertexID v: mani.vertices()) {
+                max_G = max((scalars[v]), max_G);
+                min_G = min((scalars[v]), min_G);
+            }
             renderer = new ScalarFieldRenderer();
-            dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth, scalars, max_G, gamma);
+            dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth, scalars, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
             
         }
         else if(short_name == "mea"){
@@ -177,18 +190,14 @@ namespace GLGraphics {
             
             VertexAttributeVector<double> scalars(mani.allocated_vertices());
             mean_curvatures(mani, scalars, smoothing);
-            double max_G = 0;
-            double mean = 0;
-            
-            for(VertexIDIterator v = mani.vertices_begin(); v != mani.vertices_end(); ++v){
-                max_G = max(abs(scalars[*v]), max_G);
-                mean +=scalars[*v];
+            double max_G = -1e32;
+            double min_G = 1e32;
+            for(VertexID v: mani.vertices()) {
+                max_G = max((scalars[v]), max_G);
+                min_G = min((scalars[v]), min_G);
             }
-            
-            cout << "avg mean curvature " << mean/mani.no_vertices();
-            
             renderer = new ScalarFieldRenderer();
-            dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth, scalars, max_G, gamma);
+            dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth, scalars, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
         }
         else if(short_name == "amb"){
             static Console::variable<int> smoothing(2);
@@ -223,8 +232,7 @@ namespace GLGraphics {
             for(VertexIDIterator v = mani.vertices_begin(); v != mani.vertices_end(); ++v)
                 max_G = max(abs(scalar_field[*v]), max_G);
             renderer = new ScalarFieldRenderer();
-            dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth,
-                                                                               scalar_field, max_G, gamma);
+            dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth,scalar_field, max_G, gamma,use_stripes,color_sign,use_shading);
         }
         else if(short_name == "lin")
         {
