@@ -164,10 +164,10 @@ namespace GLGraphics
     "	\n"
     "	vec4 a = vec4(0.0,0.1,.3,1.0);\n"
     "   float dot_ln = abs(dot(l, n));\n"
-    "	vec4 d = vec4(0.7) * dot_ln;\n"
+    "	vec4 d = vec4(0.7)*dot_ln;\n"
     "	vec4 s = vec4(0.3)*smoothstep(0.98,0.9999,dot(r, e));\n"
     "	\n"
-    "	gl_FragColor =  d+s;\n"
+    "	gl_FragColor = d+s;\n"
     "}\n";
     
     const string DebugRenderer::vss =
@@ -300,7 +300,7 @@ namespace GLGraphics
     "	float angle = acos(dot(r2, x));\n"
     "	\n"
     "	// decide if we hit a white or black ring, based on y value\n"
-    "	gl_FragColor = diff * vec4(1.0) + smoothstep(0.8, 1.0,cos(13.0*angle)) * vec4(-1.0);\n"
+    "	gl_FragColor = diff * vec4(1.0) + smoothstep(0.9, 0.95,cos(13.0*angle)) * vec4(-1.0);\n"
     "}\n";
     
     const string IsophoteLineRenderer::vss = 
@@ -330,7 +330,7 @@ namespace GLGraphics
     "   float diff  = dot(n,viewer_lightdir);\n"
     "	\n"
     "	// decide if we hit a white or black ring, based on y value\n"
-    "	gl_FragColor = diff * vec4(1.0) + smoothstep(0.8, 1.0,cos(20.0*angle)) * vec4(-1.0);\n"
+    "	gl_FragColor = diff * vec4(1.0) + smoothstep(0.9,0.95,cos(20.0*angle)) * vec4(-1.0);\n"
     "}\n";
     
     const string ToonRenderer::vss = 

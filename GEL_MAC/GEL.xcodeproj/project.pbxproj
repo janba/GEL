@@ -232,7 +232,6 @@
 		0D52EC4C197D1E23002C7150 /* HashKey.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB51197D18C1002C7150 /* HashKey.h */; };
 		0D52EC4D197D1E23002C7150 /* HashTable.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB52197D18C1002C7150 /* HashTable.h */; };
 		0D52EC4E197D1E23002C7150 /* Parse.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB54197D18C1002C7150 /* Parse.h */; };
-		0D52EC4F197D1E23002C7150 /* ResourceManager.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB55197D18C1002C7150 /* ResourceManager.h */; };
 		0D52EC50197D1E23002C7150 /* string_utils.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB57197D18C1002C7150 /* string_utils.h */; };
 		0D52EC51197D1E23002C7150 /* Timer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB58197D18C1002C7150 /* Timer.h */; };
 		0D52EC52197D1E23002C7150 /* XmlParser.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB5A197D18C1002C7150 /* XmlParser.h */; };
@@ -442,7 +441,6 @@
 				0D52EC4C197D1E23002C7150 /* HashKey.h in CopyFiles */,
 				0D52EC4D197D1E23002C7150 /* HashTable.h in CopyFiles */,
 				0D52EC4E197D1E23002C7150 /* Parse.h in CopyFiles */,
-				0D52EC4F197D1E23002C7150 /* ResourceManager.h in CopyFiles */,
 				0D52EC50197D1E23002C7150 /* string_utils.h in CopyFiles */,
 				0D52EC51197D1E23002C7150 /* Timer.h in CopyFiles */,
 				0D52EC52197D1E23002C7150 /* XmlParser.h in CopyFiles */,
@@ -675,7 +673,6 @@
 		0D52EB52197D18C1002C7150 /* HashTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HashTable.h; sourceTree = "<group>"; };
 		0D52EB53197D18C1002C7150 /* Parse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Parse.cpp; sourceTree = "<group>"; };
 		0D52EB54197D18C1002C7150 /* Parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Parse.h; sourceTree = "<group>"; };
-		0D52EB55197D18C1002C7150 /* ResourceManager.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ResourceManager.h; sourceTree = "<group>"; };
 		0D52EB56197D18C1002C7150 /* string_utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = string_utils.cpp; sourceTree = "<group>"; };
 		0D52EB57197D18C1002C7150 /* string_utils.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = string_utils.h; sourceTree = "<group>"; };
 		0D52EB58197D18C1002C7150 /* Timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Timer.h; sourceTree = "<group>"; };
@@ -1041,7 +1038,6 @@
 				0D52EB51197D18C1002C7150 /* HashKey.h */,
 				0D52EB52197D18C1002C7150 /* HashTable.h */,
 				0D52EB54197D18C1002C7150 /* Parse.h */,
-				0D52EB55197D18C1002C7150 /* ResourceManager.h */,
 				0D52EB57197D18C1002C7150 /* string_utils.h */,
 				0D52EB58197D18C1002C7150 /* Timer.h */,
 				0D52EB5A197D18C1002C7150 /* XmlParser.h */,
