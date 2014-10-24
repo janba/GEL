@@ -14,7 +14,7 @@
 		<string>https://github.com/janba/GEL.git</string>
 	</dict>
 	<key>IDESourceControlProjectPath</key>
-	<string>GEL_MAC/GEL.xcodeproj/project.xcworkspace</string>
+	<string>GEL_MAC/GEL.xcodeproj</string>
 	<key>IDESourceControlProjectRelativeInstallPathDictionary</key>
 	<dict>
 		<key>93556D3F94C1BFBFAADFFD066EA0BB7D7B8915B0</key>

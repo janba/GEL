@@ -117,6 +117,10 @@ namespace HMesh
 //            double w = 1.0/(1e-300+tan(a_left));
 //            w += 1.0/(1e-300+tan(a_right));
             double w = sin(a_left + a_right) / (1e-300 + sin(a_left)*sin(a_right));
+            
+//            double wl = dot(vertex-left, nbr-left)/length(cross(vertex-left, nbr-left));
+//            double wr = dot(vertex-right, nbr-right)/length(cross(vertex-right, nbr-right));
+//            double w = wl + wr;
             curv_normal += w * (nbr-vertex);
             w_sum += w;
         }

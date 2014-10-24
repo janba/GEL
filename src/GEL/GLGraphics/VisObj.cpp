@@ -193,6 +193,7 @@ namespace GLGraphics {
             double max_G = -1e32;
             double min_G = 1e32;
             for(VertexID v: mani.vertices()) {
+//                cout << scalars[v] << endl;
                 max_G = max((scalars[v]), max_G);
                 min_G = min((scalars[v]), min_G);
             }
