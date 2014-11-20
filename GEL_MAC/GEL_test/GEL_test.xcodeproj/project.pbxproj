@@ -10,12 +10,10 @@
 		0D4B8455198998A400DD2483 /* mat_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B8454198998A400DD2483 /* mat_test.cpp */; };
 		0D4B8457198998B800DD2483 /* ogl_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B8456198998B800DD2483 /* ogl_test.cpp */; };
 		0D4B84601989992B00DD2483 /* leastsq-test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B845E1989992B00DD2483 /* leastsq-test.cpp */; };
-		0D4B84681989997700DD2483 /* resman-test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B84611989993B00DD2483 /* resman-test.cpp */; };
 		0D4B84691989998600DD2483 /* eigensolvertest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B84651989996800DD2483 /* eigensolvertest.cpp */; };
 		0D4B846A1989999200DD2483 /* console_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B845C198998F800DD2483 /* console_test.cpp */; };
 		0D4B846B1989999A00DD2483 /* kdtree-test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B845A198998E300DD2483 /* kdtree-test.cpp */; };
 		0D4B846C1989999F00DD2483 /* simple_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B8458198998CD00DD2483 /* simple_test.cpp */; };
-		0D98240A198BB767004E3CC9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D9823F5198BB70C004E3CC9 /* GEL.framework */; };
 		0D98240B198BB76E004E3CC9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D9823F5198BB70C004E3CC9 /* GEL.framework */; };
 		0D98240C198BB776004E3CC9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D9823F5198BB70C004E3CC9 /* GEL.framework */; };
 		0D98240D198BB77E004E3CC9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D9823F5198BB70C004E3CC9 /* GEL.framework */; };
@@ -104,13 +102,6 @@
 			remoteGlobalIDString = 0D859992193D01B6009DB071;
 			remoteInfo = GEL;
 		};
-		0D982408198BB75E004E3CC9 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 0D9823F0198BB70C004E3CC9 /* GEL.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 0D859992193D01B6009DB071;
-			remoteInfo = GEL;
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -186,15 +177,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
-		0DD08948194777D900E4EC4C /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 		0DD089551947782E00E4EC4C /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -213,7 +195,6 @@
 		0D4B845A198998E300DD2483 /* kdtree-test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "kdtree-test.cpp"; path = "../../src/test/Geometry-kdtree/kdtree-test.cpp"; sourceTree = "<group>"; };
 		0D4B845C198998F800DD2483 /* console_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = console_test.cpp; path = "../../src/test/GLGraphics-console/console_test.cpp"; sourceTree = "<group>"; };
 		0D4B845E1989992B00DD2483 /* leastsq-test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "leastsq-test.cpp"; path = "../../src/test/LinAlg-leastsq/leastsq-test.cpp"; sourceTree = "<group>"; };
-		0D4B84611989993B00DD2483 /* resman-test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "resman-test.cpp"; path = "../../src/test/Util-resman/resman-test.cpp"; sourceTree = "<group>"; };
 		0D4B84651989996800DD2483 /* eigensolvertest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = eigensolvertest.cpp; path = "../../src/test/LinAlg-eigensolver/eigensolvertest.cpp"; sourceTree = "<group>"; };
 		0D6D57E41942563F00726FDE /* CGLA-covariance */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-covariance"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D6D58021942568B00726FDE /* CGLA-mat */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-mat"; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -227,7 +208,6 @@
 		0DD08923194777A200E4EC4C /* GLGraphics-console */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "GLGraphics-console"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DD08930194777B100E4EC4C /* LinAlg-eigensolver */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "LinAlg-eigensolver"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DD0893D194777CB00E4EC4C /* LinAlg-leastsq */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "LinAlg-leastsq"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0DD0894A194777D900E4EC4C /* Util-resman */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Util-resman"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DD089571947782E00E4EC4C /* CGLA-vec */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-vec"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DD0896E194778ED00E4EC4C /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DD08970194778F300E4EC4C /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
@@ -302,14 +282,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0DD08947194777D900E4EC4C /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				0D98240A198BB767004E3CC9 /* GEL.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		0DD089541947782E00E4EC4C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -345,7 +317,6 @@
 				0D6D57D61942561A00726FDE /* GLGraphics-console */,
 				0D4B84641989994200DD2483 /* LinAlg-eigensolver */,
 				0D6D57DA1942561A00726FDE /* LinAlg-leastsq */,
-				0D6D57DC1942561A00726FDE /* Util-resman */,
 				0D6D57BB194255D900726FDE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -361,7 +332,6 @@
 				0DD08923194777A200E4EC4C /* GLGraphics-console */,
 				0DD08930194777B100E4EC4C /* LinAlg-eigensolver */,
 				0DD0893D194777CB00E4EC4C /* LinAlg-leastsq */,
-				0DD0894A194777D900E4EC4C /* Util-resman */,
 				0DD089571947782E00E4EC4C /* CGLA-vec */,
 			);
 			name = Products;
@@ -428,15 +398,6 @@
 			);
 			name = "LinAlg-leastsq";
 			path = "../../test/LinAlg-leastsq";
-			sourceTree = "<group>";
-		};
-		0D6D57DC1942561A00726FDE /* Util-resman */ = {
-			isa = PBXGroup;
-			children = (
-				0D4B84611989993B00DD2483 /* resman-test.cpp */,
-			);
-			name = "Util-resman";
-			path = "../../test/Util-resman";
 			sourceTree = "<group>";
 		};
 		0D6D57DE1942561A00726FDE /* CGLA-vec */ = {
@@ -603,24 +564,6 @@
 			productReference = 0DD0893D194777CB00E4EC4C /* LinAlg-leastsq */;
 			productType = "com.apple.product-type.tool";
 		};
-		0DD08949194777D900E4EC4C /* Util-resman */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 0DD08950194777D900E4EC4C /* Build configuration list for PBXNativeTarget "Util-resman" */;
-			buildPhases = (
-				0DD08946194777D900E4EC4C /* Sources */,
-				0DD08947194777D900E4EC4C /* Frameworks */,
-				0DD08948194777D900E4EC4C /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				0D982409198BB75E004E3CC9 /* PBXTargetDependency */,
-			);
-			name = "Util-resman";
-			productName = "Util-resman";
-			productReference = 0DD0894A194777D900E4EC4C /* Util-resman */;
-			productType = "com.apple.product-type.tool";
-		};
 		0DD089561947782E00E4EC4C /* CGLA-vec */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0DD0895D1947782E00E4EC4C /* Build configuration list for PBXNativeTarget "CGLA-vec" */;
@@ -675,7 +618,6 @@
 				0DD08922194777A200E4EC4C /* GLGraphics-console */,
 				0DD0892F194777B100E4EC4C /* LinAlg-eigensolver */,
 				0DD0893C194777CB00E4EC4C /* LinAlg-leastsq */,
-				0DD08949194777D900E4EC4C /* Util-resman */,
 			);
 		};
 /* End PBXProject section */
@@ -755,14 +697,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0DD08946194777D900E4EC4C /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				0D4B84681989997700DD2483 /* resman-test.cpp in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		0DD089531947782E00E4EC4C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -818,11 +752,6 @@
 			isa = PBXTargetDependency;
 			name = GEL;
 			targetProxy = 0D982406198BB758004E3CC9 /* PBXContainerItemProxy */;
-		};
-		0D982409198BB75E004E3CC9 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = GEL;
-			targetProxy = 0D982408198BB75E004E3CC9 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -1121,34 +1050,6 @@
 			};
 			name = Release;
 		};
-		0DD08951194777D900E4EC4C /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
-				);
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		0DD08952194777D900E4EC4C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 		0DD0895E1947782E00E4EC4C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1257,15 +1158,6 @@
 			buildConfigurations = (
 				0DD08944194777CB00E4EC4C /* Debug */,
 				0DD08945194777CB00E4EC4C /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		0DD08950194777D900E4EC4C /* Build configuration list for PBXNativeTarget "Util-resman" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				0DD08951194777D900E4EC4C /* Debug */,
-				0DD08952194777D900E4EC4C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

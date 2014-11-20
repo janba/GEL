@@ -121,13 +121,15 @@ Harmonics::Harmonics(HMesh::Manifold& _mani):mani(_mani), vtouched(_mani.allocat
 
 void Harmonics::add_frequency(int es, float scale)
 {
-	if(es<maximum_eigenvalue)
+    if(es<maximum_eigenvalue) {
+//        double sauce =  pow(max(0.0,1.0-.10*V[es]/V[V.Length()-1]),scale);
+//        cout <<sauce << endl;
 		for(VertexIDIterator v = mani.vertices_begin(); v != mani.vertices_end(); ++v){
 			Vec3d p = Vec3d(proj[es]);
 			double Qval = Q[es][vtouched[*v]];
-			
 			mani.pos(*v) += p * Qval * scale;
 		}
+    }
 }
 
 void Harmonics::reset_shape()
