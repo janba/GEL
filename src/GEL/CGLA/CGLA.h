@@ -32,5 +32,6 @@
 #include "Vec4uc.h"
 #include "eigensolution.h"
 #include "statistics.h"
+#include "ls_solve.h"
 
 #endif

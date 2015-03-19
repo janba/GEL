@@ -431,6 +431,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0D2378ED1ABB593200874F06 /* HMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HMesh.h; sourceTree = "<group>"; };
 		0D52EA6F197D18C1002C7150 /* ArithMatFloat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithMatFloat.h; sourceTree = "<group>"; };
 		0D52EA70197D18C1002C7150 /* ArithQuat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithQuat.h; sourceTree = "<group>"; };
 		0D52EA71197D18C1002C7150 /* ArithSqMat2x2Float.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithSqMat2x2Float.h; sourceTree = "<group>"; };
@@ -658,6 +659,7 @@
 		0D8599A0193D01B6009DB071 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		0D8599A2193D01B6009DB071 /* GEL-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GEL-Prefix.pch"; sourceTree = "<group>"; };
 		0DA848C3193D02520067DA3B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		0DD53BE91ABB69C50074B704 /* ls_solve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ls_solve.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -858,6 +860,7 @@
 				0D52EAA9197D18C1002C7150 /* Vec4f.h */,
 				0D52EAAA197D18C1002C7150 /* Vec4i.h */,
 				0D52EAAB197D18C1002C7150 /* Vec4uc.h */,
+				0DD53BE91ABB69C50074B704 /* ls_solve.h */,
 			);
 			name = header;
 			sourceTree = "<group>";
@@ -944,6 +947,7 @@
 		0D52EBB5197D1930002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				0D2378ED1ABB593200874F06 /* HMesh.h */,
 				0D52EB15197D18C1002C7150 /* AttributeVector.h */,
 				0D52EB17197D18C1002C7150 /* cleanup.h */,
 				0D52EB19197D18C1002C7150 /* ConnectivityKernel.h */,

@@ -7,12 +7,7 @@
 #include "curvature.h"
 
 #include <iostream>
-#include "../CGLA/eigensolution.h"
-#include "../CGLA/Vec2d.h"
-#include "../CGLA/Vec3d.h"
-#include "../CGLA/Mat3x3d.h"
-#include "../CGLA/Mat2x2d.h"
-#include "../CGLA/Mat2x3d.h"
+#include "../CGLA/CGLA.h"
 
 #include "Manifold.h"
 #include "AttributeVector.h"
@@ -202,26 +197,8 @@ namespace HMesh
 
         return curv_tensor;
     }
-
-    template<class V, class M>
-    V ls_solve(const vector<V>& A, const vector<double>& b)
-    {
-        // Compute the matrix of parameter values
-        M ATA(0);
-        V ATb(0);
-        size_t N = A.size();
-        for(int n = 0; n < N; ++n){
-            ATb += b[n]*A[n];
-            for(int i = 0; i < 3; ++i)
-                for(int j = 0; j < 3; ++j)
-                    ATA[i][j] += A[n][i]*A[n][j];
-        }
-        return invert(ATA)*ATb;
-    }
     
-    template
-    Vec3d ls_solve<Vec3d, Mat3x3d>(const vector<Vec3d>& A, const vector<double>& b);
-
+    
     void curvature_tensor_paraboloid(const Manifold& m, VertexID v, Mat2x2d& curv_tensor, Mat3x3d& frame)
     {
         if(boundary(m, v))
@@ -248,7 +225,7 @@ namespace HMesh
             A[n] = Vec3d(0.5*sqr(p[0]), p[0]*p[1], 0.5*sqr(p[1]));
             b[n] = p[2];
         }
-        Vec3d x = ls_solve<Vec3d,Mat3x3d>(A,b);
+        Vec3d x = ls_solve(A,b);
         // Finally compute the shape tensor from the coefficients
         // using the first and second fundamental forms.
         curv_tensor = - Mat2x2d(x[0],x[1],x[1],x[2]);
