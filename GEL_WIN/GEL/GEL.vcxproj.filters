@@ -16,9 +16,6 @@
     <Filter Include="HMesh">
       <UniqueIdentifier>{f33a116c-3ecd-4f34-9c2b-afffee0a01b0}</UniqueIdentifier>
     </Filter>
-    <Filter Include="LinAlg">
-      <UniqueIdentifier>{a88efba3-3828-4803-8795-a954644e081f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Util">
       <UniqueIdentifier>{85c5cfa4-7416-4465-88bc-c85e56501ddd}</UniqueIdentifier>
     </Filter>
@@ -51,12 +48,6 @@
     </Filter>
     <Filter Include="HMesh\Source Files">
       <UniqueIdentifier>{535564c6-5e0e-4123-ac44-dd3a13e5e406}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="LinAlg\Header Files">
-      <UniqueIdentifier>{e1842137-1050-43bf-b68f-c0d6ca08ab0e}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="LinAlg\Source Files">
-      <UniqueIdentifier>{e9773b9d-3c96-4581-a992-88988c0ac30c}</UniqueIdentifier>
     </Filter>
     <Filter Include="Util\Header Files">
       <UniqueIdentifier>{be2c918d-9391-40a6-871c-1a0fb0b1796d}</UniqueIdentifier>
@@ -396,9 +387,6 @@
     <ClInclude Include="..\..\src\GEL\HMesh\flatten.h">
       <Filter>HMesh\Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\src\GEL\HMesh\harmonics.h">
-      <Filter>HMesh\Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\src\GEL\HMesh\ItemID.h">
       <Filter>HMesh\Header Files</Filter>
     </ClInclude>
@@ -455,18 +443,6 @@
     </ClInclude>
     <ClInclude Include="..\..\src\GEL\HMesh\x3d_load.h">
       <Filter>HMesh\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\GEL\LinAlg\Matrix.h">
-      <Filter>LinAlg\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\GEL\LinAlg\Vector.h">
-      <Filter>LinAlg\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\GEL\LinAlg\LapackFunc.h">
-      <Filter>LinAlg\Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="..\..\src\GEL\LinAlg\LinAlgIO.h">
-      <Filter>LinAlg\Header Files</Filter>
     </ClInclude>
     <ClInclude Include="..\..\src\GEL\Util\HashKey.h">
       <Filter>Util\Header Files</Filter>
@@ -695,9 +671,6 @@
     <ClCompile Include="..\..\src\GEL\HMesh\flatten.cpp">
       <Filter>HMesh\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\GEL\HMesh\harmonics.cpp">
-      <Filter>HMesh\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\GEL\HMesh\load.cpp">
       <Filter>HMesh\Source Files</Filter>
     </ClCompile>
@@ -736,12 +709,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\GEL\HMesh\subdivision.cpp">
       <Filter>HMesh\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\GEL\LinAlg\LapackFunc.cpp">
-      <Filter>LinAlg\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\GEL\LinAlg\LinAlgIO.cpp">
-      <Filter>LinAlg\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\GEL\Util\HashKey.cpp">
       <Filter>Util\Source Files</Filter>

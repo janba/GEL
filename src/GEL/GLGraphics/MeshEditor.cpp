@@ -30,10 +30,6 @@
 #include <CGLA/Mat2x3d.h>
 #include <CGLA/Mat4x4d.h>
 
-#include <LinAlg/Matrix.h>
-#include <LinAlg/Vector.h>
-#include <LinAlg/LapackFunc.h>
-
 #include <HMesh/Manifold.h>
 #include <HMesh/AttributeVector.h>
 #include <HMesh/mesh_optimization.h>
@@ -53,7 +49,6 @@
 #include <HMesh/cleanup.h>
 #include <HMesh/refine_edges.h>
 #include <HMesh/subdivision.h>
-#include <HMesh/harmonics.h>
 
 #include <Util/Timer.h>
 

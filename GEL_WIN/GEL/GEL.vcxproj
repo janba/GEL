@@ -120,7 +120,6 @@
     <ClInclude Include="..\..\src\GEL\HMesh\curvature.h" />
     <ClInclude Include="..\..\src\GEL\HMesh\dual.h" />
     <ClInclude Include="..\..\src\GEL\HMesh\flatten.h" />
-    <ClInclude Include="..\..\src\GEL\HMesh\harmonics.h" />
     <ClInclude Include="..\..\src\GEL\HMesh\ItemID.h" />
     <ClInclude Include="..\..\src\GEL\HMesh\ItemVector.h" />
     <ClInclude Include="..\..\src\GEL\HMesh\Iterators.h" />
@@ -141,10 +140,6 @@
     <ClInclude Include="..\..\src\GEL\HMesh\Walker.h" />
     <ClInclude Include="..\..\src\GEL\HMesh\x3d_load.h" />
     <ClInclude Include="..\..\src\GEL\HMesh\x3d_save.h" />
-    <ClInclude Include="..\..\src\GEL\LinAlg\LapackFunc.h" />
-    <ClInclude Include="..\..\src\GEL\LinAlg\LinAlgIO.h" />
-    <ClInclude Include="..\..\src\GEL\LinAlg\Matrix.h" />
-    <ClInclude Include="..\..\src\GEL\LinAlg\Vector.h" />
     <ClInclude Include="..\..\src\GEL\Util\ArgExtracter.h" />
     <ClInclude Include="..\..\src\GEL\Util\Grid2D.h" />
     <ClInclude Include="..\..\src\GEL\Util\HashKey.h" />
@@ -219,7 +214,6 @@
     <ClCompile Include="..\..\src\GEL\HMesh\curvature.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\dual.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\flatten.cpp" />
-    <ClCompile Include="..\..\src\GEL\HMesh\harmonics.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\load.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\Manifold.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\mesh_optimization.cpp" />
@@ -236,8 +230,6 @@
     <ClCompile Include="..\..\src\GEL\HMesh\triangulate.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\x3d_load.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\x3d_save.cpp" />
-    <ClCompile Include="..\..\src\GEL\LinAlg\LapackFunc.cpp" />
-    <ClCompile Include="..\..\src\GEL\LinAlg\LinAlgIO.cpp" />
     <ClCompile Include="..\..\src\GEL\Util\HashKey.cpp" />
     <ClCompile Include="..\..\src\GEL\Util\Parse.cpp" />
     <ClCompile Include="..\..\src\GEL\Util\string_utils.cpp" />
