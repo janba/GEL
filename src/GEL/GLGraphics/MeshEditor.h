@@ -144,9 +144,9 @@ namespace GLGraphics {
         /// Load the mesh but without clearing, effectively combining it with existing mesh.
         bool add_to_active_from_file(const std::string& str);
         
-        void harmonics_analyze_mesh() {active_visobj().harmonics_analyze();}
-        void harmonics_reset_shape() {active_visobj().harmonics_reset_shape();}
-        void harmonics_partial_reconstruct(int E0, int E1, float scale) {active_visobj().harmonics_partial_reconstruct(E0, E1, scale);}
+//        void harmonics_analyze_mesh() {active_visobj().harmonics_analyze();}
+//        void harmonics_reset_shape() {active_visobj().harmonics_reset_shape();}
+//        void harmonics_partial_reconstruct(int E0, int E1, float scale) {active_visobj().harmonics_partial_reconstruct(E0, E1, scale);}
 
     };
 }

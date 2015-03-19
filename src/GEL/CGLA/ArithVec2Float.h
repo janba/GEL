@@ -28,13 +28,6 @@ namespace CGLA {
 		ArithVec2Float() {}		
 	};
 
-	/// Returns normalized vector
-	template<class T, class V>
-	inline V normalize(const ArithVec2Float<T,V>& v) 
-	{
-		return v/v.length();
-	}
-
 	/// Rotates vector 90 degrees to obtain orthogonal vector
 	template<class T, class V>
 	inline V orthogonal(const ArithVec2Float<T,V>& v) 

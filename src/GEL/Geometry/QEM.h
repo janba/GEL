@@ -68,7 +68,7 @@ namespace Geometry
 					return CGLA::Vec3d(2*A*p+b);
 				}
 			
-			CGLA::Vec3d opt_pos(double QEM_thresh = 0.005, const CGLA::Vec3d& p0 = CGLA::Vec3d(0.0)) const;
+			CGLA::Vec3d opt_pos(double QEM_thresh = 0.5, const CGLA::Vec3d& p0 = CGLA::Vec3d(0.0)) const;
 			
 		};
 }

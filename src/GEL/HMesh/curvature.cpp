@@ -21,13 +21,7 @@
 #include "obj_load.h"
 #include "mesh_optimization.h"
 
-#include "../LinAlg/Matrix.h"
-#include "../LinAlg/Vector.h"
-#include "../LinAlg/LapackFunc.h"
-
 using namespace std;
-
-using namespace LinAlg;
 using namespace CGLA;
 using namespace HMesh;
 
@@ -209,6 +203,24 @@ namespace HMesh
         return curv_tensor;
     }
 
+    template<class V, class M>
+    V ls_solve(const vector<V>& A, const vector<double>& b)
+    {
+        // Compute the matrix of parameter values
+        M ATA(0);
+        V ATb(0);
+        size_t N = A.size();
+        for(int n = 0; n < N; ++n){
+            ATb += b[n]*A[n];
+            for(int i = 0; i < 3; ++i)
+                for(int j = 0; j < 3; ++j)
+                    ATA[i][j] += A[n][i]*A[n][j];
+        }
+        return invert(ATA)*ATb;
+    }
+    
+    template
+    Vec3d ls_solve<Vec3d, Mat3x3d>(const vector<Vec3d>& A, const vector<double>& b);
 
     void curvature_tensor_paraboloid(const Manifold& m, VertexID v, Mat2x2d& curv_tensor, Mat3x3d& frame)
     {
@@ -223,28 +235,20 @@ namespace HMesh
         Vec3d centre(m.pos(v));
 
         vector<Vec3d> points;
-        for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw())
+        for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()) {
             points.push_back(Vec3d(m.pos(w.vertex())));
-
-        int N = int(points.size());
-
-        CVector b(N);
-        // Compute the matrix of parameter values
-        CMatrix PMat(N, 3);
-        for(int i = 0; i < N; ++i){
-            Vec3d p = frame * (points[i]-centre);
-            b[i] = p[2];
-
-            PMat.set(i,0,0.5*sqr(p[0]));
-            PMat.set(i,1,p[0]*p[1]);
-            PMat.set(i,2,0.5*sqr(p[1]));
+            points.push_back(m.pos(w.next().opp().next().vertex()));
         }
 
-        // Compute the coefficients of the polynomial surface
-        CVector x(3);
-        x = LinearLSSolve(PMat,b);
-        if(isnan(x[0])) cout << __LINE__ << " " << PMat << b << endl ;
-
+        int N = int(points.size());
+        vector<Vec3d> A(N);
+        vector<double> b(N);
+        for(int n = 0; n < N; ++n){
+            Vec3d p = frame * (points[n]-centre);
+            A[n] = Vec3d(0.5*sqr(p[0]), p[0]*p[1], 0.5*sqr(p[1]));
+            b[n] = p[2];
+        }
+        Vec3d x = ls_solve<Vec3d,Mat3x3d>(A,b);
         // Finally compute the shape tensor from the coefficients
         // using the first and second fundamental forms.
         curv_tensor = - Mat2x2d(x[0],x[1],x[1],x[2]);

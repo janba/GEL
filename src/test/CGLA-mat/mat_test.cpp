@@ -13,11 +13,8 @@
 #include <GEL/CGLA/Vec3i.h>
 #include <GEL/CGLA/Vec3f.h>
 
-#include <GEL/LinAlg/LapackFunc.h>
-
 using namespace std;
 using namespace CGLA;
-using namespace LinAlg;
 
 double percentdiff(double a, double b)
 {
@@ -45,12 +42,6 @@ void power_eigensolution_test()
 		if(det_diff > 1)
 		{
 			cout << "Matrix " << M << " has Q matrix " <<  Q << " and L " << L << endl;
-			CMatrix CM(M);
-			CVector CV = SVD(CM);
-			cout << "Abs. eigenvalues computed using SVD "; 
-			for(int i=0;i<4;++i)
-				cout << (CV[i]) <<  " " ;
-			cout << endl;
 			cout << "Det(M) = " << determinant(M) << " trace(m) = " << trace(M) <<endl;
 			
 			cout << "Det(M) vs product of eigenvalues, difference = " 

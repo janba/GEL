@@ -79,8 +79,8 @@ int main()
   }
   if(success != 5)
   {
-    cout << "Failure in test of Vec2d Constructors";
-    return 1;
+    cout << "Failure in test of Vec2d Constructors" << endl;
+    
   }
   success = 0;
 
@@ -111,8 +111,8 @@ int main()
   }
   if(success != 5)
   {
-    cout << "Failure in test of Vec2d Data manipulation";
-    return 1;
+    cout << "Failure in test of Vec2d Data manipulation" << endl;
+    
   }
   success = 0;
 
@@ -159,8 +159,8 @@ int main()
   }
   if(success != 14)
   {
-    cout << "Failure in test of Vec2d Comparison operators";
-    return 1;
+    cout << "Failure in test of Vec2d Comparison operators" << endl;
+    
   }
   success = 0;
   
@@ -212,9 +212,8 @@ int main()
   }
   if(success != 8)
   {
-    cout << "Failure in test of Vec2d Assignment operators";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2d Assignment operators" << endl;
+    
   }
   success = 0;
 
@@ -227,9 +226,8 @@ int main()
   }
   if(success != 1)
   {
-    cout << "Failure in test of Vec2d Unary operators";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2d Unary operators" << endl;
+    
   }
   success = 0;
 
@@ -284,9 +282,8 @@ int main()
   } 
   if(success != 11)
   {
-    cout << "Failure in test of Vec2d Binary operators";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2d Binary operators" << endl;
+    
   }
   success = 0;
 
@@ -352,9 +349,8 @@ int main()
   }
   if(success != 11)
   {
-    cout << "Failure in test of Vec2d Vector operations";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2d Vector operations" << endl;
+    
   }
   success = 0;
   
@@ -389,9 +385,8 @@ int main()
   }
   if(success != 4)
   {
-    cout << "Failure in test of Vec2f Constructors";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2f Constructors" << endl;
+    
   }
   success = 0;
 
@@ -422,9 +417,8 @@ int main()
   }
   if(success != 5)
   {
-    cout << "Failure in test of Vec2f Data manipulation";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2f Data manipulation" << endl;
+    
   }
   success = 0;
 
@@ -471,9 +465,8 @@ int main()
   }
   if(success != 14)
   {
-    cout << "Failure in test of Vec2f Comparison operators";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2f Comparison operators" << endl;
+    
   }
   success = 0;
   
@@ -525,9 +518,8 @@ int main()
   }
   if(success != 8)
   {
-    cout << "Failure in test of Vec2f Assignment operators";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2f Assignment operators" << endl;
+    
   }
   success = 0;
 
@@ -540,9 +532,8 @@ int main()
   }
   if(success != 1)
   {
-    cout << "Failure in test of Vec2f Unary operators";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2f Unary operators" << endl;
+    
   }
   success = 0;
 
@@ -597,9 +588,8 @@ int main()
   } 
   if(success != 11)
   {
-    cout << "Failure in test of Vec2f Binary operators";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2f Binary operators" << endl;
+    
   }
   success = 0;
 
@@ -665,9 +655,8 @@ int main()
   }
   if(success != 11)
   {
-    cout << "Failure in test of Vec2f Vector operations";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2f Vector operations" << endl;
+    
   }
   success = 0;
 
@@ -710,9 +699,8 @@ int main()
   }
   if(success != 2)
   {
-    cout << "Failure in test of Vec2i Constructors";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2i Constructors" << endl;
+    
   }
   success = 0;
 
@@ -743,9 +731,8 @@ int main()
   }
   if(success != 5)
   {
-    cout << "Failure in test of Vec2i Data manipulation";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2i Data manipulation" << endl;
+    
   }
   success = 0;
 
@@ -792,9 +779,8 @@ int main()
   }
   if(success != 14)
   {
-    cout << "Failure in test of Vec2i Comparison operators";
-    system ("pause");
-    return 1;
+    cout << "Failure in test of Vec2i Comparison operators" << endl;
+    
   }
   success = 0;
   
@@ -846,8 +832,8 @@ int main()
   }
   if(success != 8)
   {
-    cout << "Failure in test of Vec2i Assignment operators";
-    return 1;
+    cout << "Failure in test of Vec2i Assignment operators" << endl;
+    
   }
   success = 0;
 
@@ -860,8 +846,8 @@ int main()
   }
   if(success != 1)
   {
-    cout << "Failure in test of Vec2i Unary operators";
-    return 1;
+    cout << "Failure in test of Vec2i Unary operators" << endl;
+    
   }
   success = 0;
 
@@ -916,8 +902,8 @@ int main()
   } 
   if(success != 11)
   {
-    cout << "Failure in test of Vec2i Binary operators";
-    return 1;
+    cout << "Failure in test of Vec2i Binary operators" << endl;
+    
   }
   success = 0;
 
@@ -942,8 +928,8 @@ int main()
   }
   if(success != 4)
   {
-    cout << "Failure in test of Vec2i Vector operations";
-    return 1;
+    cout << "Failure in test of Vec2i Vector operations" << endl;
+    
   }
   success = 0;
 
@@ -999,8 +985,8 @@ int main()
   }
   if(success != 5)
   {
-    cout << "Failure in test of Vec3i Constructors";
-    return 1;
+    cout << "Failure in test of Vec3i Constructors" << endl;
+    
   }
   success = 0;
 
@@ -1031,8 +1017,8 @@ int main()
   }
   if(success != 5)
   {
-    cout << "Failure in test of Vec3i Data manipulation";
-    return 1;
+    cout << "Failure in test of Vec3i Data manipulation" << endl;
+    
   }
   success = 0;
 
@@ -1067,8 +1053,8 @@ int main()
   }
   if(success != 14)
   {
-    cout << "Failure in test of Vec3i Comparison operators";
-    return 1;
+    cout << "Failure in test of Vec3i Comparison operators" << endl;
+    
   }
   success = 0;
   
@@ -1122,8 +1108,8 @@ int main()
   }
   if(success != 8)
   {
-    cout << "Failure in test of Vec3i Assignment operators";
-    return 1;
+    cout << "Failure in test of Vec3i Assignment operators" << endl;
+    
   }
   success = 0;
 
@@ -1136,8 +1122,8 @@ int main()
   }
   if(success != 1)
   {
-    cout << "Failure in test of Vec3i Unary operators";
-    return 1;
+    cout << "Failure in test of Vec3i Unary operators" << endl;
+    
   }
   success = 0;
 
@@ -1202,8 +1188,8 @@ int main()
   } 
   if(success != 11)
   {
-    cout << "Failure in test of Vec3i Binary operators";
-    return 1;
+    cout << "Failure in test of Vec3i Binary operators" << endl;
+    
   }
   success = 0;
 
@@ -1237,8 +1223,8 @@ int main()
   }
   if(success != 5)
   {
-    cout << "Failure in test of Vec3i Vector operations";
-    return 1;
+    cout << "Failure in test of Vec3i Vector operations" << endl;
+    
   }
   success = 0;
 
@@ -1285,8 +1271,8 @@ int main()
   }
   if(success != 7)
   {
-    cout << "Failure in test of Vec3f Constructors";
-    return 1;
+    cout << "Failure in test of Vec3f Constructors" << endl;
+    
   }
   success = 0;
 
@@ -1317,8 +1303,8 @@ int main()
   }
   if(success != 5)
   {
-    cout << "Failure in test of Vec3f Data manipulation";
-    return 1;
+    cout << "Failure in test of Vec3f Data manipulation" << endl;
+    
   }
   success = 0;
 
@@ -1353,8 +1339,8 @@ int main()
   }
   if(success != 14)
   {
-    cout << "Failure in test of Vec3f Comparison operators";
-    return 1;
+    cout << "Failure in test of Vec3f Comparison operators" << endl;
+    
   }
   success = 0;
   
@@ -1416,8 +1402,8 @@ int main()
   }
   if(success != 8)
   {
-    cout << "Failure in test of Vec3f Assignment operators";
-    return 1;
+    cout << "Failure in test of Vec3f Assignment operators" << endl;
+    
   }
   success = 0;
 
@@ -1430,8 +1416,8 @@ int main()
   }
   if(success != 1)
   {
-    cout << "Failure in test of Vec3f Unary operators";
-    return 1;
+    cout << "Failure in test of Vec3f Unary operators" << endl;
+    
   }
   success = 0;
 
@@ -1506,8 +1492,8 @@ int main()
   } 
   if(success != 11)
   {
-    cout << "Failure in test of Vec3f Binary operators";
-    return 1;
+    cout << "Failure in test of Vec3f Binary operators" << endl;
+    
   }
   success = 0;
 
@@ -1556,8 +1542,8 @@ int main()
   }
   if(success != 8)
   {
-    cout << "Failure in test of Vec3f Vector operations";
-    return 1;
+    cout << "Failure in test of Vec3f Vector operations" << endl;
+    
   }
   success = 0;
 
@@ -1605,8 +1591,8 @@ int main()
   }
   if(success != 5)
   {
-    cout << "Failure in test of Vec3d Constructors";
-    return 1;
+    cout << "Failure in test of Vec3d Constructors" << endl;
+    
   }
   success = 0;
 
@@ -1637,8 +1623,8 @@ int main()
   }
   if(success != 5)
   {
-    cout << "Failure in test of Vec3d Data manipulation";
-    return 1;
+    cout << "Failure in test of Vec3d Data manipulation" << endl;
+    
   }
   success = 0;
 
@@ -1673,8 +1659,8 @@ int main()
   }
   if(success != 14)
   {
-    cout << "Failure in test of Vec3d Comparison operators";
-    return 1;
+    cout << "Failure in test of Vec3d Comparison operators" << endl;
+    
   }
   success = 0;
   
@@ -1736,8 +1722,8 @@ int main()
   }
   if(success != 8)
   {
-    cout << "Failure in test of Vec3d Assignment operators";
-    return 1;
+    cout << "Failure in test of Vec3d Assignment operators" << endl;
+    
   }
   success = 0;
 
@@ -1750,8 +1736,8 @@ int main()
   }
   if(success != 1)
   {
-    cout << "Failure in test of Vec3d Unary operators";
-    return 1;
+    cout << "Failure in test of Vec3d Unary operators" << endl;
+    
   }
   success = 0;
 
@@ -1826,8 +1812,8 @@ int main()
   } 
   if(success != 11)
   {
-    cout << "Failure in test of Vec3d Binary operators";
-    return 1;
+    cout << "Failure in test of Vec3d Binary operators" << endl;
+    
   }
   success = 0;
 
@@ -1876,8 +1862,8 @@ int main()
   }
   if(success != 8)
   {
-    cout << "Failure in test of Vec3d Vector operations";
-    return 1;
+    cout << "Failure in test of Vec3d Vector operations" << endl;
+    
   }
   success = 0;
 
@@ -1886,7 +1872,7 @@ int main()
   ////////////////////////////////////////////////
 
   cout << "Performance time: " << t.get_secs();
-  cout << endl << "ArithVec and derived vector classes have been tested successfully";
+  cout << endl << "ArithVec and derived vector classes have been tested successfully" << endl;
 
   return 0;
 }

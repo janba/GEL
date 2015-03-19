@@ -33,7 +33,6 @@
 #endif
 
 #include <GEL/GLGraphics/Console.h>
-#include <GEL/HMesh/harmonics.h>
 #include <GEL/GLGraphics/MeshEditor.h>
 
 #include <GEL/CGLA/eigensolution.h>
@@ -43,10 +42,6 @@
 #include <GEL/CGLA/Mat2x2d.h>
 #include <GEL/CGLA/Mat2x3d.h>
 #include <GEL/CGLA/Mat4x4d.h>
-
-#include <GEL/LinAlg/Matrix.h>
-#include <GEL/LinAlg/Vector.h>
-#include <GEL/LinAlg/LapackFunc.h>
 
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/HMesh/AttributeVector.h>
@@ -78,7 +73,6 @@ using namespace Geometry;
 using namespace GLGraphics;
 using namespace CGLA;
 using namespace Util;
-using namespace LinAlg;
 
 MeshEditor me;
 

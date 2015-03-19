@@ -654,66 +654,66 @@ namespace GLGraphics {
             return;
         }
         
-            void console_analyze(MeshEditor* me, const std::vector<std::string> & args)
-            {
-                if(wantshelp(args))
-                {
-                    me->printf("usage:  harmonics.analyze");
-                    me->printf("Creates the Laplace Beltrami operator for the mesh and finds all eigensolutions.");
-                    me->printf("It also projects the vertices onto the eigenvectors - thus transforming the mesh");
-                    me->printf("to this basis.");
-                    me->printf("Note that this will stall the computer for a large mesh - as long as we use Lapack.");
-                    return;
-                }
-                me->harmonics_analyze_mesh();
-                return;
-            }
-        
-        
-        void console_partial_reconstruct(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(args.size() != 3)
-                me->printf("usage: haramonics.partial_reconstruct <e0> <e1> <s>");
-            
-            if(wantshelp(args)) {
-                me->printf("Reconstruct from projections onto eigenvectors. The two first arguments indicate");
-                me->printf("the eigenvector interval that we reconstruct from. The last argument is the ");
-                me->printf("scaling factor. Thus, for a vertex, v, the formula for computing the position, p, is:");
-                me->printf("for (i=e0; i<=e1;++i) p += proj[i] * Q[i][v] * s;");
-                me->printf("where proj[i] is the 3D vector containing the x, y, and z projections of the mesh onto");
-                me->printf("eigenvector i. Q[i][v] is the v'th coordinate of the i'th eigenvector.");
-                me->printf("Note that if vertex coordinates are not first reset, the result is probably unexpected.");
-            }
-            me->save_active_mesh();
-            
-            if(args.size() != 3)
-                return;
-            
-            int E0,E1;
-            float scale;
-            istringstream a0(args[0]);
-            a0 >> E0;
-            istringstream a1(args[1]);
-            a1 >> E1;
-            istringstream a2(args[2]);
-            a2 >> scale;
-            me->harmonics_partial_reconstruct(E0,E1,scale);
-            return;
-        }
-        
-        void console_reset_shape(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(wantshelp(args))
-            {
-                me->printf("usage: harmonics.reset_shape ");
-                me->printf("Simply sets all vertices to 0,0,0. Call this before doing partial_reconstruct");
-                me->printf("unless you know what you are doing.");
-                return;
-            }
-            me->save_active_mesh();
-            me->harmonics_reset_shape();
-            return;
-        }
+//            void console_analyze(MeshEditor* me, const std::vector<std::string> & args)
+//            {
+//                if(wantshelp(args))
+//                {
+//                    me->printf("usage:  harmonics.analyze");
+//                    me->printf("Creates the Laplace Beltrami operator for the mesh and finds all eigensolutions.");
+//                    me->printf("It also projects the vertices onto the eigenvectors - thus transforming the mesh");
+//                    me->printf("to this basis.");
+//                    me->printf("Note that this will stall the computer for a large mesh - as long as we use Lapack.");
+//                    return;
+//                }
+//                me->harmonics_analyze_mesh();
+//                return;
+//            }
+//        
+//        
+//        void console_partial_reconstruct(MeshEditor* me, const std::vector<std::string> & args)
+//        {
+//            if(args.size() != 3)
+//                me->printf("usage: haramonics.partial_reconstruct <e0> <e1> <s>");
+//            
+//            if(wantshelp(args)) {
+//                me->printf("Reconstruct from projections onto eigenvectors. The two first arguments indicate");
+//                me->printf("the eigenvector interval that we reconstruct from. The last argument is the ");
+//                me->printf("scaling factor. Thus, for a vertex, v, the formula for computing the position, p, is:");
+//                me->printf("for (i=e0; i<=e1;++i) p += proj[i] * Q[i][v] * s;");
+//                me->printf("where proj[i] is the 3D vector containing the x, y, and z projections of the mesh onto");
+//                me->printf("eigenvector i. Q[i][v] is the v'th coordinate of the i'th eigenvector.");
+//                me->printf("Note that if vertex coordinates are not first reset, the result is probably unexpected.");
+//            }
+//            me->save_active_mesh();
+//            
+//            if(args.size() != 3)
+//                return;
+//            
+//            int E0,E1;
+//            float scale;
+//            istringstream a0(args[0]);
+//            a0 >> E0;
+//            istringstream a1(args[1]);
+//            a1 >> E1;
+//            istringstream a2(args[2]);
+//            a2 >> scale;
+//            me->harmonics_partial_reconstruct(E0,E1,scale);
+//            return;
+//        }
+//        
+//        void console_reset_shape(MeshEditor* me, const std::vector<std::string> & args)
+//        {
+//            if(wantshelp(args))
+//            {
+//                me->printf("usage: harmonics.reset_shape ");
+//                me->printf("Simply sets all vertices to 0,0,0. Call this before doing partial_reconstruct");
+//                me->printf("unless you know what you are doing.");
+//                return;
+//            }
+//            me->save_active_mesh();
+//            me->harmonics_reset_shape();
+//            return;
+//        }
         
         
         void console_close_holes(MeshEditor* me, const std::vector<std::string> & args)
@@ -1358,8 +1358,8 @@ namespace GLGraphics {
                     display_render_mode = "isophotes"; break;
                 case 'r':
                     display_render_mode = "reflection"; break;
-                case 'h':
-                    display_render_mode = "harmonics"; break;
+//                case 'h':
+//                    display_render_mode = "harmonics"; break;
                 case 't':
                     display_render_mode = "toon"; break;
                 case 'g':
@@ -1697,9 +1697,9 @@ namespace GLGraphics {
         register_console_function("validity", console_valid,"");
         register_console_function("info", console_info,"");
         
-        register_console_function("harmonics.reset_shape", console_reset_shape, "");
-        register_console_function("harmonics.analyze", console_analyze, "");
-        register_console_function("harmonics.partial_reconstruct", console_partial_reconstruct,"");
+//        register_console_function("harmonics.reset_shape", console_reset_shape, "");
+//        register_console_function("harmonics.analyze", console_analyze, "");
+//        register_console_function("harmonics.partial_reconstruct", console_partial_reconstruct,"");
 
         register_console_function("Dijkstra", console_Dijkstra,"");
         

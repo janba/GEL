@@ -110,8 +110,8 @@ namespace GLGraphics {
         if(short_name== "wir")
             renderer = new WireframeRenderer(mani, smooth);
         
-        else if(short_name == "har")
-            renderer = new HarmonicsRenderer(mani, harm, cs);
+//        else if(short_name == "har")
+//            renderer = new HarmonicsRenderer(mani, harm, cs);
         
         else if(short_name == "iso") {
             renderer = new IsophoteLineRenderer();

@@ -13,7 +13,6 @@
 
 #include "../CGLA/Vec2d.h"
 #include "../GL/glew.h"
-#include "../HMesh/harmonics.h"
 #include "../GLGraphics/draw.h"
 #include "../GLGraphics/Console.h"
 #include "../GLGraphics/IDBufferWireFrameRenderer.h"
@@ -249,29 +248,29 @@ namespace GLGraphics {
         void compile_display_list(const HMesh::Manifold& m,HMesh::VertexAttributeVector<CGLA::Vec3d>& lines);
 	};
     
-    class HarmonicsRenderer: public GLGraphics::ManifoldRenderer
-    {
-        static GLuint prog_P0;
-        static GLGraphics::Console::variable<float> display_harmonics_time;
-        static GLGraphics::Console::variable<int> display_harmonics_diffuse;
-        static GLGraphics::Console::variable<int> display_harmonics_highlight;
-        static GLGraphics::Console::variable<int> display_harmonics_e0;
-        static GLGraphics::Console::variable<int> display_harmonics_e1;
-        
-        HMesh::Manifold* m;
-        HMesh::Harmonics* h;
-        
-        /// Draw with eigenvalues
-        void draw_adf();
-        void draw_esum();
-        
-    public:
-        HarmonicsRenderer(HMesh::Manifold& _m, HMesh::Harmonics* _h, GLGraphics::Console& cs);
-        
-        /// Parse keystrokes that would influence the interactive display
-        void parse_key(unsigned char key);
-        
-    };
+//    class HarmonicsRenderer: public GLGraphics::ManifoldRenderer
+//    {
+//        static GLuint prog_P0;
+//        static GLGraphics::Console::variable<float> display_harmonics_time;
+//        static GLGraphics::Console::variable<int> display_harmonics_diffuse;
+//        static GLGraphics::Console::variable<int> display_harmonics_highlight;
+//        static GLGraphics::Console::variable<int> display_harmonics_e0;
+//        static GLGraphics::Console::variable<int> display_harmonics_e1;
+//        
+//        HMesh::Manifold* m;
+//        HMesh::Harmonics* h;
+//        
+//        /// Draw with eigenvalues
+//        void draw_adf();
+//        void draw_esum();
+//        
+//    public:
+//        HarmonicsRenderer(HMesh::Manifold& _m, HMesh::Harmonics* _h, GLGraphics::Console& cs);
+//        
+//        /// Parse keystrokes that would influence the interactive display
+//        void parse_key(unsigned char key);
+//        
+//    };
 
     
 }

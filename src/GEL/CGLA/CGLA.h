@@ -19,6 +19,7 @@
 #include <cfloat>
 #include <climits>
 #include <cassert>
+#include <cstring>
 #include <algorithm>
 #include <functional>
 

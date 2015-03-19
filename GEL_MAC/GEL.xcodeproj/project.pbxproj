@@ -70,7 +70,6 @@
 		0D52EB97197D18C1002C7150 /* curvature.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB1A197D18C1002C7150 /* curvature.cpp */; };
 		0D52EB98197D18C1002C7150 /* dual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB1C197D18C1002C7150 /* dual.cpp */; };
 		0D52EB99197D18C1002C7150 /* flatten.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB1E197D18C1002C7150 /* flatten.cpp */; };
-		0D52EB9A197D18C1002C7150 /* harmonics.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB20197D18C1002C7150 /* harmonics.cpp */; };
 		0D52EB9B197D18C1002C7150 /* load.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB25197D18C1002C7150 /* load.cpp */; };
 		0D52EB9C197D18C1002C7150 /* Manifold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB27197D18C1002C7150 /* Manifold.cpp */; };
 		0D52EB9D197D18C1002C7150 /* mesh_optimization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB29197D18C1002C7150 /* mesh_optimization.cpp */; };
@@ -87,8 +86,6 @@
 		0D52EBA8197D18C1002C7150 /* triangulate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB3F197D18C1002C7150 /* triangulate.cpp */; };
 		0D52EBA9197D18C1002C7150 /* x3d_load.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB42197D18C1002C7150 /* x3d_load.cpp */; };
 		0D52EBAA197D18C1002C7150 /* x3d_save.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB44197D18C1002C7150 /* x3d_save.cpp */; };
-		0D52EBAB197D18C1002C7150 /* LapackFunc.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB47197D18C1002C7150 /* LapackFunc.cpp */; };
-		0D52EBAC197D18C1002C7150 /* LinAlgIO.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB49197D18C1002C7150 /* LinAlgIO.cpp */; };
 		0D52EBAD197D18C1002C7150 /* HashKey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB50197D18C1002C7150 /* HashKey.cpp */; };
 		0D52EBAE197D18C1002C7150 /* Parse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB53197D18C1002C7150 /* Parse.cpp */; };
 		0D52EBAF197D18C1002C7150 /* string_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB56197D18C1002C7150 /* string_utils.cpp */; };
@@ -202,7 +199,6 @@
 		0D52EC2E197D1DF3002C7150 /* curvature.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB1B197D18C1002C7150 /* curvature.h */; };
 		0D52EC2F197D1DF3002C7150 /* dual.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB1D197D18C1002C7150 /* dual.h */; };
 		0D52EC30197D1DF3002C7150 /* flatten.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB1F197D18C1002C7150 /* flatten.h */; };
-		0D52EC31197D1DF3002C7150 /* harmonics.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB21197D18C1002C7150 /* harmonics.h */; };
 		0D52EC32197D1DF3002C7150 /* ItemID.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB22197D18C1002C7150 /* ItemID.h */; };
 		0D52EC33197D1DF3002C7150 /* ItemVector.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB23197D18C1002C7150 /* ItemVector.h */; };
 		0D52EC34197D1DF3002C7150 /* Iterators.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB24197D18C1002C7150 /* Iterators.h */; };
@@ -223,14 +219,8 @@
 		0D52EC43197D1DF3002C7150 /* Walker.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB41197D18C1002C7150 /* Walker.h */; };
 		0D52EC44197D1DF3002C7150 /* x3d_load.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB43197D18C1002C7150 /* x3d_load.h */; };
 		0D52EC45197D1DF3002C7150 /* x3d_save.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB45197D18C1002C7150 /* x3d_save.h */; };
-		0D52EC46197D1E0B002C7150 /* LapackFunc.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB48197D18C1002C7150 /* LapackFunc.h */; };
-		0D52EC47197D1E0B002C7150 /* LinAlgIO.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB4A197D18C1002C7150 /* LinAlgIO.h */; };
-		0D52EC48197D1E0B002C7150 /* Matrix.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB4B197D18C1002C7150 /* Matrix.h */; };
-		0D52EC49197D1E0B002C7150 /* Vector.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB4C197D18C1002C7150 /* Vector.h */; };
 		0D52EC4A197D1E23002C7150 /* ArgExtracter.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB4E197D18C1002C7150 /* ArgExtracter.h */; };
 		0D52EC4B197D1E23002C7150 /* Grid2D.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB4F197D18C1002C7150 /* Grid2D.h */; };
-		0D52EC4C197D1E23002C7150 /* HashKey.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB51197D18C1002C7150 /* HashKey.h */; };
-		0D52EC4D197D1E23002C7150 /* HashTable.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB52197D18C1002C7150 /* HashTable.h */; };
 		0D52EC4E197D1E23002C7150 /* Parse.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB54197D18C1002C7150 /* Parse.h */; };
 		0D52EC50197D1E23002C7150 /* string_utils.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB57197D18C1002C7150 /* string_utils.h */; };
 		0D52EC51197D1E23002C7150 /* Timer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB58197D18C1002C7150 /* Timer.h */; };
@@ -238,7 +228,6 @@
 		0D859997193D01B6009DB071 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D859996193D01B6009DB071 /* Cocoa.framework */; };
 		0D8599A1193D01B6009DB071 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0D85999F193D01B6009DB071 /* InfoPlist.strings */; };
 		0DA848C4193D02520067DA3B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DA848C3193D02520067DA3B /* OpenGL.framework */; };
-		0DA848C6193D02590067DA3B /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DA848C5193D02590067DA3B /* Accelerate.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -393,7 +382,6 @@
 				0D52EC2E197D1DF3002C7150 /* curvature.h in CopyFiles */,
 				0D52EC2F197D1DF3002C7150 /* dual.h in CopyFiles */,
 				0D52EC30197D1DF3002C7150 /* flatten.h in CopyFiles */,
-				0D52EC31197D1DF3002C7150 /* harmonics.h in CopyFiles */,
 				0D52EC32197D1DF3002C7150 /* ItemID.h in CopyFiles */,
 				0D52EC33197D1DF3002C7150 /* ItemVector.h in CopyFiles */,
 				0D52EC34197D1DF3002C7150 /* Iterators.h in CopyFiles */,
@@ -423,10 +411,6 @@
 			dstPath = ../Headers/LinAlg;
 			dstSubfolderSpec = 7;
 			files = (
-				0D52EC46197D1E0B002C7150 /* LapackFunc.h in CopyFiles */,
-				0D52EC47197D1E0B002C7150 /* LinAlgIO.h in CopyFiles */,
-				0D52EC48197D1E0B002C7150 /* Matrix.h in CopyFiles */,
-				0D52EC49197D1E0B002C7150 /* Vector.h in CopyFiles */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -438,8 +422,6 @@
 			files = (
 				0D52EC4A197D1E23002C7150 /* ArgExtracter.h in CopyFiles */,
 				0D52EC4B197D1E23002C7150 /* Grid2D.h in CopyFiles */,
-				0D52EC4C197D1E23002C7150 /* HashKey.h in CopyFiles */,
-				0D52EC4D197D1E23002C7150 /* HashTable.h in CopyFiles */,
 				0D52EC4E197D1E23002C7150 /* Parse.h in CopyFiles */,
 				0D52EC50197D1E23002C7150 /* string_utils.h in CopyFiles */,
 				0D52EC51197D1E23002C7150 /* Timer.h in CopyFiles */,
@@ -622,8 +604,6 @@
 		0D52EB1D197D18C1002C7150 /* dual.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dual.h; sourceTree = "<group>"; };
 		0D52EB1E197D18C1002C7150 /* flatten.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = flatten.cpp; sourceTree = "<group>"; };
 		0D52EB1F197D18C1002C7150 /* flatten.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = flatten.h; sourceTree = "<group>"; };
-		0D52EB20197D18C1002C7150 /* harmonics.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = harmonics.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
-		0D52EB21197D18C1002C7150 /* harmonics.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = harmonics.h; sourceTree = "<group>"; };
 		0D52EB22197D18C1002C7150 /* ItemID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ItemID.h; sourceTree = "<group>"; };
 		0D52EB23197D18C1002C7150 /* ItemVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ItemVector.h; sourceTree = "<group>"; };
 		0D52EB24197D18C1002C7150 /* Iterators.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Iterators.h; sourceTree = "<group>"; };
@@ -660,17 +640,9 @@
 		0D52EB43197D18C1002C7150 /* x3d_load.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x3d_load.h; sourceTree = "<group>"; };
 		0D52EB44197D18C1002C7150 /* x3d_save.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = x3d_save.cpp; sourceTree = "<group>"; };
 		0D52EB45197D18C1002C7150 /* x3d_save.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x3d_save.h; sourceTree = "<group>"; };
-		0D52EB47197D18C1002C7150 /* LapackFunc.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LapackFunc.cpp; sourceTree = "<group>"; };
-		0D52EB48197D18C1002C7150 /* LapackFunc.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LapackFunc.h; sourceTree = "<group>"; };
-		0D52EB49197D18C1002C7150 /* LinAlgIO.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = LinAlgIO.cpp; sourceTree = "<group>"; };
-		0D52EB4A197D18C1002C7150 /* LinAlgIO.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LinAlgIO.h; sourceTree = "<group>"; };
-		0D52EB4B197D18C1002C7150 /* Matrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Matrix.h; sourceTree = "<group>"; };
-		0D52EB4C197D18C1002C7150 /* Vector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Vector.h; sourceTree = "<group>"; };
 		0D52EB4E197D18C1002C7150 /* ArgExtracter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArgExtracter.h; sourceTree = "<group>"; };
 		0D52EB4F197D18C1002C7150 /* Grid2D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Grid2D.h; sourceTree = "<group>"; };
 		0D52EB50197D18C1002C7150 /* HashKey.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HashKey.cpp; sourceTree = "<group>"; };
-		0D52EB51197D18C1002C7150 /* HashKey.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HashKey.h; sourceTree = "<group>"; };
-		0D52EB52197D18C1002C7150 /* HashTable.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HashTable.h; sourceTree = "<group>"; };
 		0D52EB53197D18C1002C7150 /* Parse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Parse.cpp; sourceTree = "<group>"; };
 		0D52EB54197D18C1002C7150 /* Parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Parse.h; sourceTree = "<group>"; };
 		0D52EB56197D18C1002C7150 /* string_utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = string_utils.cpp; sourceTree = "<group>"; };
@@ -686,9 +658,7 @@
 		0D85999E193D01B6009DB071 /* GEL-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GEL-Info.plist"; sourceTree = "<group>"; };
 		0D8599A0193D01B6009DB071 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		0D8599A2193D01B6009DB071 /* GEL-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GEL-Prefix.pch"; sourceTree = "<group>"; };
-		0D8599AB193D01B6009DB071 /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		0DA848C3193D02520067DA3B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
-		0DA848C5193D02590067DA3B /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -696,7 +666,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0DA848C6193D02590067DA3B /* Accelerate.framework in Frameworks */,
 				0DA848C4193D02520067DA3B /* OpenGL.framework in Frameworks */,
 				0D859997193D01B6009DB071 /* Cocoa.framework in Frameworks */,
 			);
@@ -807,7 +776,6 @@
 				0D52EB1A197D18C1002C7150 /* curvature.cpp */,
 				0D52EB1C197D18C1002C7150 /* dual.cpp */,
 				0D52EB1E197D18C1002C7150 /* flatten.cpp */,
-				0D52EB20197D18C1002C7150 /* harmonics.cpp */,
 				0D52EB25197D18C1002C7150 /* load.cpp */,
 				0D52EB27197D18C1002C7150 /* Manifold.cpp */,
 				0D52EB29197D18C1002C7150 /* mesh_optimization.cpp */,
@@ -828,17 +796,6 @@
 			);
 			name = HMesh;
 			path = ../../src/GEL/HMesh;
-			sourceTree = "<group>";
-		};
-		0D52EB46197D18C1002C7150 /* LinAlg */ = {
-			isa = PBXGroup;
-			children = (
-				0D52EB47197D18C1002C7150 /* LapackFunc.cpp */,
-				0D52EBB6197D1944002C7150 /* header */,
-				0D52EB49197D18C1002C7150 /* LinAlgIO.cpp */,
-			);
-			name = LinAlg;
-			path = ../../src/GEL/LinAlg;
 			sourceTree = "<group>";
 		};
 		0D52EB4D197D18C1002C7150 /* Util */ = {
@@ -994,7 +951,6 @@
 				0D52EB1B197D18C1002C7150 /* curvature.h */,
 				0D52EB1D197D18C1002C7150 /* dual.h */,
 				0D52EB1F197D18C1002C7150 /* flatten.h */,
-				0D52EB21197D18C1002C7150 /* harmonics.h */,
 				0D52EB22197D18C1002C7150 /* ItemID.h */,
 				0D52EB23197D18C1002C7150 /* ItemVector.h */,
 				0D52EB24197D18C1002C7150 /* Iterators.h */,
@@ -1019,24 +975,11 @@
 			name = header;
 			sourceTree = "<group>";
 		};
-		0D52EBB6197D1944002C7150 /* header */ = {
-			isa = PBXGroup;
-			children = (
-				0D52EB48197D18C1002C7150 /* LapackFunc.h */,
-				0D52EB4A197D18C1002C7150 /* LinAlgIO.h */,
-				0D52EB4B197D18C1002C7150 /* Matrix.h */,
-				0D52EB4C197D18C1002C7150 /* Vector.h */,
-			);
-			name = header;
-			sourceTree = "<group>";
-		};
 		0D52EBB7197D196D002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
 				0D52EB4E197D18C1002C7150 /* ArgExtracter.h */,
 				0D52EB4F197D18C1002C7150 /* Grid2D.h */,
-				0D52EB51197D18C1002C7150 /* HashKey.h */,
-				0D52EB52197D18C1002C7150 /* HashTable.h */,
 				0D52EB54197D18C1002C7150 /* Parse.h */,
 				0D52EB57197D18C1002C7150 /* string_utils.h */,
 				0D52EB58197D18C1002C7150 /* Timer.h */,
@@ -1065,10 +1008,8 @@
 		0D859995193D01B6009DB071 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				0DA848C5193D02590067DA3B /* Accelerate.framework */,
 				0DA848C3193D02520067DA3B /* OpenGL.framework */,
 				0D859996193D01B6009DB071 /* Cocoa.framework */,
-				0D8599AB193D01B6009DB071 /* XCTest.framework */,
 				0D859998193D01B6009DB071 /* Other Frameworks */,
 			);
 			name = Frameworks;
@@ -1092,7 +1033,6 @@
 				0D52EAEA197D18C1002C7150 /* GL */,
 				0D52EAEF197D18C1002C7150 /* GLGraphics */,
 				0D52EB14197D18C1002C7150 /* HMesh */,
-				0D52EB46197D18C1002C7150 /* LinAlg */,
 				0D52EB4D197D18C1002C7150 /* Util */,
 				0D85999D193D01B6009DB071 /* Supporting Files */,
 			);
@@ -1198,7 +1138,6 @@
 				0D52EB5F197D18C1002C7150 /* eigensolution.cpp in Sources */,
 				0D52EBA2197D18C1002C7150 /* ply_load.cpp in Sources */,
 				0D52EB8E197D18C1002C7150 /* ShadowBuffer.cpp in Sources */,
-				0D52EB9A197D18C1002C7150 /* harmonics.cpp in Sources */,
 				0D52EB60197D18C1002C7150 /* gel_rand.cpp in Sources */,
 				0D52EB62197D18C1002C7150 /* Mat3x3f.cpp in Sources */,
 				0D52EB93197D18C1002C7150 /* stb_image_write.c in Sources */,
@@ -1252,7 +1191,6 @@
 				0D52EB8B197D18C1002C7150 /* ManifoldRenderer.cpp in Sources */,
 				0D52EB64197D18C1002C7150 /* Mat4x4f.cpp in Sources */,
 				0D52EB87197D18C1002C7150 /* GLViewController.cpp in Sources */,
-				0D52EBAB197D18C1002C7150 /* LapackFunc.cpp in Sources */,
 				0D52EB96197D18C1002C7150 /* ConnectivityKernel.cpp in Sources */,
 				0D52EB8A197D18C1002C7150 /* image_helper.c in Sources */,
 				0D52EB6E197D18C1002C7150 /* BoundingNode.cpp in Sources */,
@@ -1272,7 +1210,6 @@
 				0D52EB74197D18C1002C7150 /* GradientFilter.cpp in Sources */,
 				0D52EB8C197D18C1002C7150 /* MeshEditor.cpp in Sources */,
 				0D52EB82197D18C1002C7150 /* verification.cpp in Sources */,
-				0D52EBAC197D18C1002C7150 /* LinAlgIO.cpp in Sources */,
 				0D52EB98197D18C1002C7150 /* dual.cpp in Sources */,
 				0D52EBA8197D18C1002C7150 /* triangulate.cpp in Sources */,
 				0D52EB73197D18C1002C7150 /* geo_obj_load.cpp in Sources */,

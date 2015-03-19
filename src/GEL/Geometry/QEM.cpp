@@ -7,9 +7,8 @@
 #include <iostream>
 
 #include "QEM.h"
-#include "../LinAlg/LapackFunc.h"
+#include <CGLA/eigensolution.h>
 
-using namespace LinAlg;
 using namespace CGLA;
 using namespace std;
 
@@ -17,34 +16,36 @@ namespace Geometry
 {
 	Vec3d QEM::opt_pos(double sv_thresh, const CGLA::Vec3d& p0) const
 	{
-        CMatrix U,S,V;
-        SVD(A,U,S,V);
-        CMatrix Sp(3,3,0.0);
+        // Compute eigensolution of the symmetric matrix A. This
+        // allows us to factorize it into A = U L U^T and compute
+        // the pseudoinverse.
+        Mat3x3d U(0),L(0);
+        int n = power_eigensolution(A, U, L);
         
-        double s00 = S.get(0,0);
-        double limit = sv_thresh * s00;
-        
-        Sp.set(0,0,1.0/s00);
-        Vec3d diff(0.0);
-        for(int i=1;i<3;++i)
-        {
-            double sii = S.get(i,i);
-            if(sii < limit)
-            {
-                Sp.set(i,i,0.0);
-                Vec3d vi(V.get(0,i), V.get(1,i), V.get(2,i));
-                diff += vi*dot(vi, p0);
-            }
-            else
-                Sp.set(i,i,1.0/sii);
+        // Unfortunately, eigendecomposition does not find the basis
+        // vectors of the 0-space, so we compute either one or two
+        // vectors below that span the 0-space.
+        switch(n) {
+            case 0:
+                return p0;
+            case 1:
+                orthogonal(U[0], U[1], U[2]);
+                break;
+            case 2:
+                U[2] = cross(U[0],U[1]);
+                break;
         }
         
-        CMatrix Ap = V * Sp * U.Transposed();
-        
-        CVector x(3);
-        x = Ap * CVector(b*0.5);
-        
-        return diff-Vec3d(x[0],x[1],x[2]);
+        // For each eigenvalue, we compute the corresponding component
+        // of either the least squares or least norm solution.
+        double limit = abs(sv_thresh * L[0][0]);
+        Vec3d x(0);
+        for(int i=0;i<3;++i) {
+            if(abs(L[i][i])<limit)
+                x += U[i] * dot(U[i], p0);
+            else
+                x -= U[i] * dot(U[i], 0.5*b)/L[i][i];
+        }
+        return x;
 	}
-    
 }

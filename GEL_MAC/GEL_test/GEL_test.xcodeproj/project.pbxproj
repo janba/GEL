@@ -9,8 +9,6 @@
 /* Begin PBXBuildFile section */
 		0D4B8455198998A400DD2483 /* mat_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B8454198998A400DD2483 /* mat_test.cpp */; };
 		0D4B8457198998B800DD2483 /* ogl_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B8456198998B800DD2483 /* ogl_test.cpp */; };
-		0D4B84601989992B00DD2483 /* leastsq-test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B845E1989992B00DD2483 /* leastsq-test.cpp */; };
-		0D4B84691989998600DD2483 /* eigensolvertest.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B84651989996800DD2483 /* eigensolvertest.cpp */; };
 		0D4B846A1989999200DD2483 /* console_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B845C198998F800DD2483 /* console_test.cpp */; };
 		0D4B846B1989999A00DD2483 /* kdtree-test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B845A198998E300DD2483 /* kdtree-test.cpp */; };
 		0D4B846C1989999F00DD2483 /* simple_test.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D4B8458198998CD00DD2483 /* simple_test.cpp */; };
@@ -194,8 +192,6 @@
 		0D4B8458198998CD00DD2483 /* simple_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = simple_test.cpp; path = "../../src/test/CGLA-simple/simple_test.cpp"; sourceTree = "<group>"; };
 		0D4B845A198998E300DD2483 /* kdtree-test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "kdtree-test.cpp"; path = "../../src/test/Geometry-kdtree/kdtree-test.cpp"; sourceTree = "<group>"; };
 		0D4B845C198998F800DD2483 /* console_test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = console_test.cpp; path = "../../src/test/GLGraphics-console/console_test.cpp"; sourceTree = "<group>"; };
-		0D4B845E1989992B00DD2483 /* leastsq-test.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = "leastsq-test.cpp"; path = "../../src/test/LinAlg-leastsq/leastsq-test.cpp"; sourceTree = "<group>"; };
-		0D4B84651989996800DD2483 /* eigensolvertest.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = eigensolvertest.cpp; path = "../../src/test/LinAlg-eigensolver/eigensolvertest.cpp"; sourceTree = "<group>"; };
 		0D6D57E41942563F00726FDE /* CGLA-covariance */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-covariance"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D6D58021942568B00726FDE /* CGLA-mat */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-mat"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D9823F0198BB70C004E3CC9 /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
@@ -293,14 +289,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0D4B84641989994200DD2483 /* LinAlg-eigensolver */ = {
-			isa = PBXGroup;
-			children = (
-				0D4B84651989996800DD2483 /* eigensolvertest.cpp */,
-			);
-			name = "LinAlg-eigensolver";
-			sourceTree = "<group>";
-		};
 		0D6D57B1194255D900726FDE = {
 			isa = PBXGroup;
 			children = (
@@ -315,8 +303,6 @@
 				0D6D57D21942561A00726FDE /* CGLA-simple */,
 				0D6D57D41942561A00726FDE /* Geometry-kdtree */,
 				0D6D57D61942561A00726FDE /* GLGraphics-console */,
-				0D4B84641989994200DD2483 /* LinAlg-eigensolver */,
-				0D6D57DA1942561A00726FDE /* LinAlg-leastsq */,
 				0D6D57BB194255D900726FDE /* Products */,
 			);
 			sourceTree = "<group>";
@@ -389,15 +375,6 @@
 			);
 			name = "GLGraphics-console";
 			path = "../../test/GLGraphics-console";
-			sourceTree = "<group>";
-		};
-		0D6D57DA1942561A00726FDE /* LinAlg-leastsq */ = {
-			isa = PBXGroup;
-			children = (
-				0D4B845E1989992B00DD2483 /* leastsq-test.cpp */,
-			);
-			name = "LinAlg-leastsq";
-			path = "../../test/LinAlg-leastsq";
 			sourceTree = "<group>";
 		};
 		0D6D57DE1942561A00726FDE /* CGLA-vec */ = {
@@ -685,7 +662,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0D4B84691989998600DD2483 /* eigensolvertest.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -693,7 +669,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0D4B84601989992B00DD2483 /* leastsq-test.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

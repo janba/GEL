@@ -11,7 +11,7 @@
 #ifndef __CGLA_VEC2D_H__
 #define __CGLA_VEC2D_H__
 
-#include "ArithVec.h"
+#include "ArithVec2Float.h"
 #include "Vec2i.h"
 #include "Vec2f.h"
 

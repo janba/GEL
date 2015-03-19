@@ -18,7 +18,7 @@
 #include "../GLGraphics/Console.h"
 #include "../GLGraphics/GLViewController.h"
 #include "../GLGraphics/ManifoldRenderer.h"
-#include "../HMesh/harmonics.h"
+//#include "../HMesh/harmonics.h"
 
 extern int WINX;
 extern int WINY;
@@ -41,7 +41,7 @@ class VisObj
     HMesh::VertexAttributeVector<double> scalar_field;
     HMesh::VertexAttributeVector<CGLA::Vec3d> line_field;
     
-    HMesh::Harmonics* harm;
+//    HMesh::Harmonics* harm;
     CGLA::Vec3d bsphere_center;
     float bsphere_radius;
     
@@ -93,17 +93,17 @@ public:
         create_display_list = true;
     }
     
-    void harmonics_analyze() {
-        harm = new HMesh::Harmonics(mani);
-    }
-
-    void harmonics_reset_shape() {
-        harm->reset_shape();
-    }
-
-    void harmonics_partial_reconstruct(int E0, int E1, float scale) {
-        harm->partial_reconstruct(E0,E1, scale);
-    }
+//    void harmonics_analyze() {
+//        harm = new HMesh::Harmonics(mani);
+//    }
+//
+//    void harmonics_reset_shape() {
+//        harm->reset_shape();
+//    }
+//
+//    void harmonics_partial_reconstruct(int E0, int E1, float scale) {
+//        harm->partial_reconstruct(E0,E1, scale);
+//    }
 
 };
 
