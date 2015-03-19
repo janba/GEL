@@ -16,7 +16,7 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include "../CGLA/CGLA.h"
+#include "../CGLA/CGLA-util.h"
 #include "../CGLA/ArithVec.h"
 
 #if (_MSC_VER >= 1200)

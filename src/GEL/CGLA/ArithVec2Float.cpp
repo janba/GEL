@@ -10,7 +10,7 @@
 #include "Vec2d.h"
 #include "Mat2x2f.h"
 #include "Mat2x2d.h"
-#include "CGLA.h"
+#include "CGLA-util.h"
 
 namespace CGLA {
   using namespace std;

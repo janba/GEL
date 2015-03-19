@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "CGLA.h"
+#include "CGLA-util.h"
 
 namespace
 {

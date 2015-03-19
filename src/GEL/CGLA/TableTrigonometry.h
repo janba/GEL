@@ -12,7 +12,7 @@
 #define __CGLA_TABLETRIGONOMETRY_H__
 
 #include <vector>
-#include "CGLA.h"
+#include "CGLA-util.h"
 
 namespace CGLA {
 

@@ -86,7 +86,6 @@
 		0D52EBA8197D18C1002C7150 /* triangulate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB3F197D18C1002C7150 /* triangulate.cpp */; };
 		0D52EBA9197D18C1002C7150 /* x3d_load.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB42197D18C1002C7150 /* x3d_load.cpp */; };
 		0D52EBAA197D18C1002C7150 /* x3d_save.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB44197D18C1002C7150 /* x3d_save.cpp */; };
-		0D52EBAD197D18C1002C7150 /* HashKey.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB50197D18C1002C7150 /* HashKey.cpp */; };
 		0D52EBAE197D18C1002C7150 /* Parse.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB53197D18C1002C7150 /* Parse.cpp */; };
 		0D52EBAF197D18C1002C7150 /* string_utils.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB56197D18C1002C7150 /* string_utils.cpp */; };
 		0D52EBB0197D18C1002C7150 /* XmlParser.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB59197D18C1002C7150 /* XmlParser.cpp */; };
@@ -105,7 +104,7 @@
 		0D52EBCF197D1DAB002C7150 /* ArithVecFloat.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EA7F197D18C1002C7150 /* ArithVecFloat.h */; };
 		0D52EBD0197D1DAB002C7150 /* ArithVecInt.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EA80197D18C1002C7150 /* ArithVecInt.h */; };
 		0D52EBD1197D1DAB002C7150 /* BitMask.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EA81197D18C1002C7150 /* BitMask.h */; };
-		0D52EBD2197D1DAB002C7150 /* CGLA.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EA82197D18C1002C7150 /* CGLA.h */; };
+		0D52EBD2197D1DAB002C7150 /* CGLA-util.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EA82197D18C1002C7150 /* CGLA-util.h */; };
 		0D52EBD3197D1DAB002C7150 /* eigensolution.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EA84197D18C1002C7150 /* eigensolution.h */; };
 		0D52EBD4197D1DAB002C7150 /* ExceptionStandard.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EA85197D18C1002C7150 /* ExceptionStandard.h */; };
 		0D52EBD5197D1DAB002C7150 /* Mat2x2d.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EA87197D18C1002C7150 /* Mat2x2d.h */; };
@@ -251,7 +250,7 @@
 				0D52EBCF197D1DAB002C7150 /* ArithVecFloat.h in CopyFiles */,
 				0D52EBD0197D1DAB002C7150 /* ArithVecInt.h in CopyFiles */,
 				0D52EBD1197D1DAB002C7150 /* BitMask.h in CopyFiles */,
-				0D52EBD2197D1DAB002C7150 /* CGLA.h in CopyFiles */,
+				0D52EBD2197D1DAB002C7150 /* CGLA-util.h in CopyFiles */,
 				0D52EBD3197D1DAB002C7150 /* eigensolution.h in CopyFiles */,
 				0D52EBD4197D1DAB002C7150 /* ExceptionStandard.h in CopyFiles */,
 				0D52EBD5197D1DAB002C7150 /* Mat2x2d.h in CopyFiles */,
@@ -451,7 +450,7 @@
 		0D52EA7F197D18C1002C7150 /* ArithVecFloat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithVecFloat.h; sourceTree = "<group>"; };
 		0D52EA80197D18C1002C7150 /* ArithVecInt.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithVecInt.h; sourceTree = "<group>"; };
 		0D52EA81197D18C1002C7150 /* BitMask.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = BitMask.h; sourceTree = "<group>"; };
-		0D52EA82197D18C1002C7150 /* CGLA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CGLA.h; sourceTree = "<group>"; };
+		0D52EA82197D18C1002C7150 /* CGLA-util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "CGLA-util.h"; sourceTree = "<group>"; };
 		0D52EA83197D18C1002C7150 /* eigensolution.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = eigensolution.cpp; sourceTree = "<group>"; };
 		0D52EA84197D18C1002C7150 /* eigensolution.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = eigensolution.h; sourceTree = "<group>"; };
 		0D52EA85197D18C1002C7150 /* ExceptionStandard.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ExceptionStandard.h; sourceTree = "<group>"; };
@@ -642,7 +641,6 @@
 		0D52EB45197D18C1002C7150 /* x3d_save.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = x3d_save.h; sourceTree = "<group>"; };
 		0D52EB4E197D18C1002C7150 /* ArgExtracter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArgExtracter.h; sourceTree = "<group>"; };
 		0D52EB4F197D18C1002C7150 /* Grid2D.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Grid2D.h; sourceTree = "<group>"; };
-		0D52EB50197D18C1002C7150 /* HashKey.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = HashKey.cpp; sourceTree = "<group>"; };
 		0D52EB53197D18C1002C7150 /* Parse.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Parse.cpp; sourceTree = "<group>"; };
 		0D52EB54197D18C1002C7150 /* Parse.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Parse.h; sourceTree = "<group>"; };
 		0D52EB56197D18C1002C7150 /* string_utils.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = string_utils.cpp; sourceTree = "<group>"; };
@@ -650,6 +648,7 @@
 		0D52EB58197D18C1002C7150 /* Timer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Timer.h; sourceTree = "<group>"; };
 		0D52EB59197D18C1002C7150 /* XmlParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XmlParser.cpp; sourceTree = "<group>"; };
 		0D52EB5A197D18C1002C7150 /* XmlParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XmlParser.h; sourceTree = "<group>"; };
+		0D57306D1ABB570900F33E40 /* CGLA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CGLA.h; sourceTree = "<group>"; };
 		0D859993193D01B6009DB071 /* GEL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GEL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D859996193D01B6009DB071 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		0D859999193D01B6009DB071 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -801,7 +800,6 @@
 		0D52EB4D197D18C1002C7150 /* Util */ = {
 			isa = PBXGroup;
 			children = (
-				0D52EB50197D18C1002C7150 /* HashKey.cpp */,
 				0D52EB53197D18C1002C7150 /* Parse.cpp */,
 				0D52EB56197D18C1002C7150 /* string_utils.cpp */,
 				0D52EB59197D18C1002C7150 /* XmlParser.cpp */,
@@ -814,6 +812,7 @@
 		0D52EBB1197D18D4002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				0D57306D1ABB570900F33E40 /* CGLA.h */,
 				0D52EA6F197D18C1002C7150 /* ArithMatFloat.h */,
 				0D52EA70197D18C1002C7150 /* ArithQuat.h */,
 				0D52EA71197D18C1002C7150 /* ArithSqMat2x2Float.h */,
@@ -829,7 +828,7 @@
 				0D52EA7F197D18C1002C7150 /* ArithVecFloat.h */,
 				0D52EA80197D18C1002C7150 /* ArithVecInt.h */,
 				0D52EA81197D18C1002C7150 /* BitMask.h */,
-				0D52EA82197D18C1002C7150 /* CGLA.h */,
+				0D52EA82197D18C1002C7150 /* CGLA-util.h */,
 				0D52EA84197D18C1002C7150 /* eigensolution.h */,
 				0D52EA85197D18C1002C7150 /* ExceptionStandard.h */,
 				0D52EA87197D18C1002C7150 /* Mat2x2d.h */,
@@ -1141,7 +1140,6 @@
 				0D52EB60197D18C1002C7150 /* gel_rand.cpp in Sources */,
 				0D52EB62197D18C1002C7150 /* Mat3x3f.cpp in Sources */,
 				0D52EB93197D18C1002C7150 /* stb_image_write.c in Sources */,
-				0D52EBAD197D18C1002C7150 /* HashKey.cpp in Sources */,
 				0D52EB79197D18C1002C7150 /* Polygonizer.cpp in Sources */,
 				0D52EBAE197D18C1002C7150 /* Parse.cpp in Sources */,
 				0D52EB7D197D18C1002C7150 /* tessellate.cpp in Sources */,

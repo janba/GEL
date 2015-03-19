@@ -6,7 +6,7 @@
 
 #include <iostream>
 #include "../GL/glew.h"
-#include "../CGLA/CGLA.h"
+#include "../CGLA/CGLA-util.h"
 #include "QuatTrackBall.h"
 #include "GLViewController.h"
 

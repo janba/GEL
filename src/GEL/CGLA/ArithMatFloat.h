@@ -15,7 +15,7 @@
 #include <iostream>
 #include <numeric>
 
-#include "CGLA.h"
+#include "CGLA-util.h"
 
 
 namespace CGLA

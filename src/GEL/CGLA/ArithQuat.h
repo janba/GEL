@@ -11,7 +11,7 @@
 #ifndef __CGLA_ARITHQUAT_H__
 #define __CGLA_ARITHQUAT_H__
 
-#include "CGLA.h"
+#include "CGLA-util.h"
 #include "ArithVecFloat.h"
 #include "ArithSqMatFloat.h"
 #include <cmath>

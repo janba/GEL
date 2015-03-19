@@ -11,7 +11,7 @@
 #ifndef __GLGRAPHICS_SIMPLETRACKBALL_H__
 #define __GLGRAPHICS_SIMPLETRACKBALL_H__
 
-#include "../CGLA/CGLA.h"
+#include "../CGLA/CGLA-util.h"
 #include "../CGLA/Vec3f.h"
 
 

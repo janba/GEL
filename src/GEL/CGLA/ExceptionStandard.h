@@ -17,28 +17,28 @@
 
 namespace CGLA
 {
-
-	class CGLAMotherException
-	{
-		std::string str;
-	public:
-		CGLAMotherException(const std::string s)
-			{
-				str = s;
-			}
-  
-		void print(std::ostream& os) const 
-		{
-			os << str << std::endl; 
-		}
-	};
-
+    
+    class CGLAMotherException
+    {
+        std::string str;
+    public:
+        CGLAMotherException(const std::string s)
+        {
+            str = s;
+        }
+        
+        void print(std::ostream& os) const
+        {
+            os << str << std::endl;
+        }
+    };
+    
 #define CGLA_DERIVEEXCEPTION(nameoe)															\
-	class nameoe: public CGLAMotherException									\
-	{																													\
-	public:																										\
-		nameoe(const std::string& s): CGLAMotherException(s) {}	\
-	};																												\
+class nameoe: public CGLAMotherException									\
+{																													\
+public:																										\
+nameoe(const std::string& s): CGLAMotherException(s) {}	\
+};																												\
 
 }
 

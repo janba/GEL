@@ -11,7 +11,7 @@
 #ifndef __CGLA_MAT3X3D_H__
 #define __CGLA_MAT3X3D_H__
 
-#include "CGLA.h"
+#include "CGLA-util.h"
 #include "Vec3d.h"
 #include "ArithSqMat3x3Float.h"
 

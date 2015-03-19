@@ -6,7 +6,7 @@
 //  Copyright (c) 2013 J. Andreas Bærentzen. All rights reserved.
 //
 
-#include "../CGLA/CGLA.h"
+#include "../CGLA/CGLA-util.h"
 #include "../Geometry/Neighbours.h"
 #include "../Geometry/GridAlgorithm.h"
 #include "XForm.h"

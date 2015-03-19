@@ -12,7 +12,7 @@
 #define __CGLA_MAT4X4D_H__
 
 #include "ExceptionStandard.h"
-#include "CGLA.h"
+#include "CGLA-util.h"
 #include "Vec3d.h"
 #include "Vec4d.h"
 #include "ArithSqMat4x4Float.h"

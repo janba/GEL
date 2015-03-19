@@ -32,7 +32,7 @@ J. Andreas Bærentzen 2003.
 #include <vector>
 #include <list>
 #include <sys/types.h>
-#include "../CGLA/CGLA.h"
+#include "../CGLA/CGLA-util.h"
 #include "Polygonizer.h"
 
 using namespace std;
