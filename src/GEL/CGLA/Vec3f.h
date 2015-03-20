@@ -56,5 +56,9 @@ namespace CGLA {
 		explicit Vec3f(const Vec4f&);
 	};
 
+    
+    class Mat3x3f;
+    template<> struct VecT_to_MatT<Vec3f> {using MatT = Mat3x3f;};
+
 }
 #endif

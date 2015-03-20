@@ -34,7 +34,8 @@ namespace CGLA {
 		explicit Vec2f(float a): ArithVec2Float<float,Vec2f>(a,a) {}
 	};
 
-
+    class Mat2x2f;
+    template<> struct VecT_to_MatT<Vec2f> {using MatT = Mat2x2f;};
 
 }
 #endif

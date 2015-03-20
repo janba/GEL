@@ -50,6 +50,9 @@ namespace CGLA {
 			ArithVec3Float<double,Vec3d>(v[0],v[1],v[2]) {}
 	};
 
+    class Mat3x3d;
+    template<> struct VecT_to_MatT<Vec3d> {using MatT = Mat3x3d;};
+
 
 }
 #endif

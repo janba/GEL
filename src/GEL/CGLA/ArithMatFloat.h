@@ -357,6 +357,7 @@ namespace CGLA
             }
     }
     
+    
     /** Compute the outer product of a and b using an arbitrary
      binary operation: op(a, transpose(b)). This is
      a matrix with a::rows and b::columns. */

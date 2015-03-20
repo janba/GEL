@@ -40,6 +40,10 @@ namespace CGLA {
 		explicit Vec4d(const Vec3d& v,double _d): 
 			ArithVec4Float<double,Vec4d>(v[0],v[1],v[2],_d) {}
 	};
+
+    class Mat4x4d;
+    template<> struct VecT_to_MatT<Vec4d> {using MatT = Mat4x4d;};
+
 }
 #endif
 

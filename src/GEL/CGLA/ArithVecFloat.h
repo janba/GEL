@@ -86,6 +86,11 @@ namespace CGLA {
         return v*1.0;
     }
     
+    /** The template below is used to map vector types to matrix types. In each of the floating point vector classes
+     the template is specialized such that when the template argument is that particular vector class, the appropriate
+     matrix class is represented by MatT. For instance, VecT_to_MatT<Vec3d>::MatT is the type Mat3x3d */
+    template<typename V> class VecT_to_MatT {using MatT = void;};
+
 }
 
 #endif

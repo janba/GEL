@@ -39,6 +39,9 @@ namespace CGLA {
 			ArithVec2Float<double,Vec2d>(a,a) {}
   
 	};
+    
+    class Mat2x2d;
+    template<> struct VecT_to_MatT<Vec2d> {using MatT = Mat2x2d;};
 
 }
 #endif

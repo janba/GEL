@@ -42,6 +42,10 @@ namespace CGLA {
 
 
 	};
+
+    class Mat4x4f;
+    template<> struct VecT_to_MatT<Vec4f> {using MatT = Mat4x4f;};
+
 }
 #endif
 
