@@ -4,6 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
+#include <map>
 #include "cleanup.h"
 
 #include "../CGLA/Vec3f.h"
@@ -198,10 +199,10 @@ namespace HMesh
             }
         return  cnt;
     }
-
     
-    int stitch_mesh(Manifold& m, double rad)
-    {
+    
+    VertexAttributeVector<int> cluster_vertices(Manifold& m, double rad) {
+
         KDTree<Vec3d, VertexID> vtree;
         
         for(VertexIDIterator vid = m.vertices_begin(); vid != m.vertices_end(); ++vid)
@@ -210,7 +211,6 @@ namespace HMesh
         vtree.build();
         
         VertexAttributeVector<int> cluster_id(m.allocated_vertices(),-1);
-        vector<vector<HalfEdgeID> > clustered_halfedges;
         
         int cluster_ctr=0;
         for(VertexIDIterator vid = m.vertices_begin(); vid != m.vertices_end(); ++vid)
@@ -220,16 +220,22 @@ namespace HMesh
                 vector<VertexID> vals;
                 int n = vtree.in_sphere(m.pos(*vid), rad, keys, vals);
                 
-                vector<HalfEdgeID> boundary_edges;
                 for(int i=0;i<n;++i)
-                {
                     cluster_id[vals[i]] = cluster_ctr;
-                    Walker w = m.walker(vals[i]);
-                    boundary_edges.push_back(w.halfedge());
-                }
-                clustered_halfedges.push_back(boundary_edges);
                 ++cluster_ctr;
             }
+        
+        return cluster_id;
+    }
+    
+
+    
+    int stitch_mesh(Manifold& m, const VertexAttributeVector<int>& cluster_id)
+    {
+        map<int, vector<HalfEdgeID>> clustered_halfedges;
+        for(auto v: m.vertices())
+            if(cluster_id[v] != -1 && boundary(m, v))
+                clustered_halfedges[cluster_id[v]].push_back(m.walker(v).halfedge());
         
         int unstitched=0;
         for(HalfEdgeIDIterator hid = m.halfedges_begin(); hid != m.halfedges_end(); ++hid)
@@ -274,6 +280,11 @@ namespace HMesh
             }
     }
     
+    int stitch_mesh(Manifold& mani, double rad)
+    {
+        auto cluster_id = cluster_vertices(mani, rad);
+        return stitch_mesh(mani, cluster_id);
+    }
     
     void stitch_more(Manifold& mani, double rad)
     {
@@ -281,9 +292,6 @@ namespace HMesh
         for(iter=0;iter<2;++iter)
         {
             unstitched = stitch_mesh(mani, rad);
-            if(unstitched == 0)
-                break;
-            
             vector<HalfEdgeID> hvec;
             for(HalfEdgeIDIterator h = mani.halfedges_begin(); h != mani.halfedges_end();++h)
                 if(mani.walker(*h).face() == InvalidFaceID)
@@ -293,6 +301,7 @@ namespace HMesh
             
         }
     }
+
     
     
     void close_holes(Manifold& m)

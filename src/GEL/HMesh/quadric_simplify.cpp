@@ -305,17 +305,16 @@ namespace HMesh
                 if(halfedge_vec[*h].time_stamp == 0)
                     push_simplify_rec(*h);
             }
-            cout << "Simplify";
+            cout << "Simplifying"<<endl;
             
             int work = 0;
             while(!sim_queue.empty() && work < max_work){
                 SimplifyRec simplify_record = sim_queue.top();
                 sim_queue.pop();
-                
                 work += 2*collapse(simplify_record);
-                if((sim_queue.size() % 10000) == 0){
-                    cout << ".";
-                }
+//                if((sim_queue.size() % 10000) == 0){
+//                    cout << "error " << simplify_record.err << endl;
+//                }
 //                cout << "work = " << work << endl;
 //                cout << "sim Q size = " << sim_queue.size() << endl;
             }

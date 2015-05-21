@@ -105,12 +105,41 @@ namespace HMesh
     
     FaceID Manifold::add_face(std::vector<Manifold::Vec> points)
     {
-        int F = points.size();
-        vector<int> indices;
-        for(size_t i=0;i<points.size(); ++i)
-            indices.push_back(i);
-        FaceID fid = *faces_end();
-        build(points.size(), reinterpret_cast<double*>(&points[0]), 1, &F, &indices[0]);
+        int N = points.size();
+        vector<VertexID> vertices(N);
+        for(size_t i=0;i<points.size(); ++i) {
+            vertices[i]=kernel.add_vertex();
+            pos(vertices[i]) = points[i];
+        }
+        vector<Edge> edges(N);
+        for(size_t i=0;i<N; ++i) {
+            VertexID v0 = vertices[i];
+            VertexID v1 = vertices[(i+1)%points.size()];
+
+            Edge& e = edges[i];
+            e.h0 = kernel.add_halfedge();
+            e.h1 = kernel.add_halfedge();
+            e.count = 1;
+            
+            // glue operation: 1 edge = 2 glued halfedges
+            glue(e.h0, e.h1);
+            
+            // update halfedges with the vertices they point to
+            kernel.set_vert(e.h0, v1);
+            kernel.set_vert(e.h1, v0);
+
+            kernel.set_out(vertices[(i+1)%N], edges[i].h1);
+        }
+
+        FaceID fid = kernel.add_face();
+        for(size_t i=0;i<N; ++i) {
+            kernel.set_face(edges[i].h0, fid);
+            kernel.set_face(edges[i].h1, InvalidFaceID);
+            link(edges[i].h0,edges[(i+1)%N].h0);
+            link(edges[(i+1)%N].h1,edges[i].h1);
+        }
+        kernel.set_last(fid, edges[N-1].h0);
+        
         return fid;
     }
     
@@ -1001,8 +1030,8 @@ namespace HMesh
                 EdgeKey ek(v0, v1);
                 typename EdgeMap::iterator em_iter = edge_map.find(ek);
                 
-                // current edge has not been created
-                if(em_iter == edge_map.end()){
+                
+                auto make_edge = [&]() -> Edge {
                     // create edge for map
                     Edge e;
                     e.h0 = kernel.add_halfedge();
@@ -1019,7 +1048,13 @@ namespace HMesh
                     // update halfedges with the vertices they point to
                     kernel.set_vert(e.h0, v1);
                     kernel.set_vert(e.h1, v0);
+                    return e;
+                };
+                
+                // current edge has not been created
+                if(em_iter == edge_map.end()){
                     
+                    Edge e = make_edge();
                     // update map
                     edge_map[ek] = e;
                     
@@ -1027,13 +1062,19 @@ namespace HMesh
                     fh.push_back(e.h0);
                 }
                 else{
-                    // update current face with halfedge from edge
-                    fh.push_back(em_iter->second.h1);
-                    
-                    // asserting that a halfedge is visited exactly twice;
-                    // once for each face on either side of the edge.
-                    em_iter->second.count++;
-                    assert(em_iter->second.count == 2);
+                    if(em_iter->second.count==1) {
+                        // update current face with halfedge from edge
+                        fh.push_back(em_iter->second.h1);
+                    }
+                    else {
+                        Edge e = make_edge();
+                        fh.push_back(e.h0);
+                        // asserting that a halfedge is visited exactly twice;
+                        // once for each face on either side of the edge.
+                        em_iter->second.count++;
+                        if(em_iter->second.count > 2)
+                            cerr << em_iter->second.count << " coincident edges ..." << endl;
+                    }
                 }
             }
             

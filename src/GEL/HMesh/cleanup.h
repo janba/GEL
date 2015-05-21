@@ -15,6 +15,7 @@
 namespace HMesh
 {
     class Manifold;
+    template<class T> class VertexAttributeVector;
     /** \brief Remove caps from a manifold consisting of only triangles.
     A cap is a triangle with two very small angles and an angle close to pi, however a cap does not necessarily have a very short edge.
     Set the ang_thresh to a value close to pi. The closer to pi the _less_ sensitive the cap removal.
@@ -33,6 +34,7 @@ namespace HMesh
      which vertices coincide. The return value is the number of edges that could not be stitched. 
      Often this is because it would introduce a non-manifold situation.*/
     int stitch_mesh(Manifold& m, double rad);
+    int stitch_mesh(Manifold& m, const VertexAttributeVector<int>& cluster_id);
 
     /** \brief Stitches the mesh together, splits edges that could not be stitched and goes again.
      This function thereby handles situations where stitch mesh would not have worked. */

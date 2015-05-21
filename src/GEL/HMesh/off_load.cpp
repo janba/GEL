@@ -33,7 +33,7 @@ namespace HMesh
 
         ifs >> NV >> NF >> NE;
 
-        vector<Vec3f> vertices(NV);
+        vector<Vec3d> vertices(NV);
         for(size_t i = 0; i < NV; ++i){
             ifs >> vertices[i];
         }
@@ -50,7 +50,7 @@ namespace HMesh
                 indices.push_back(idx);
             }
         }
-        m.build(NV, reinterpret_cast<float *>(&vertices[0]), NF, &faces[0], &indices[0]);
+        m.build(NV, reinterpret_cast<double*>(&vertices[0]), NF, &faces[0], &indices[0]);
         return true;
     }
 }

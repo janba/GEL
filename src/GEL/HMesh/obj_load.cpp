@@ -7,6 +7,7 @@
 #include <fstream>
 #include "obj_load.h"
 #include "Manifold.h"
+#include "cleanup.h"
 
 using namespace std;
 using namespace CGLA;
@@ -22,7 +23,7 @@ namespace HMesh
         if(obj_file)
         {
             string buf;
-            vector<Vec3f> vertices;
+            vector<Vec3d> vertices;
             vector<int> faces;
             vector<int> indices;
             
@@ -34,18 +35,18 @@ namespace HMesh
                     {
                         if(buf == "v")
                         {
-                            Vec3f v_geo;
+                            Vec3d v_geo;
                             obj_file >> v_geo;
                             vertices.push_back(v_geo);
                         }
                         else if(buf == "vn")
                         {
-                            Vec3f v_norm;
+                            Vec3d v_norm;
                             obj_file >> v_norm;
                         }
                         else if(buf == "vt")
                         {
-                            Vec3f v_tex;
+                            Vec3d v_tex;
                             obj_file >> v_tex[0] >> v_tex[1];
                             v_tex[2]=1;
                         }
@@ -103,13 +104,31 @@ namespace HMesh
                 }
             }
             cout << "Loaded " << vertices.size() << " vertices and " << faces.size() << " faces"<< endl;
+#if 0 // old school loading
             m.clear();
             m.build(vertices.size(),
-                    reinterpret_cast<float*>(&vertices[0]),
+                    reinterpret_cast<double*>(&vertices[0]),
                     faces.size(),
                     &faces[0],
                     &indices[0]);
-            
+#else // robust loading
+            m.clear();
+            int k=0;
+            VertexAttributeVector<int> cluster_id;
+            for(int i=0;i<faces.size();++i) {
+                vector<Vec3d> pts(faces[i]);
+                for(int j=0;j<faces[i]; ++j)
+                    pts[j] = vertices[indices[j+k]];
+                FaceID f = m.add_face(pts);
+                int j=0;
+                circulate_face_ccw(m, f, [&](VertexID v){
+                    cluster_id[v] = indices[j+k];
+                    ++j;
+                });
+                k += faces[i];
+            }
+            stitch_mesh(m, cluster_id);
+#endif
             return true;
         }
         return false;

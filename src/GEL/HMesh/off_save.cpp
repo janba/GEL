@@ -11,7 +11,7 @@
 #include <string>
 #include <vector>
 
-#include "../CGLA/Vec3f.h"
+#include "../CGLA/Vec3d.h"
 
 #include "Manifold.h"
 #include "AttributeVector.h"

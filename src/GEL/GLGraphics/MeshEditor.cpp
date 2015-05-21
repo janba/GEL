@@ -930,6 +930,13 @@ namespace GLGraphics {
             }
             istringstream a0(args[0]);
             a0 >> keep_fraction;
+
+            bool optimal_positions = true;
+            if(args.size() == 2)
+            {
+                istringstream a1(args[1]);
+                a1 >> optimal_positions;
+            }
             
             Vec3d p0, p7;
             bbox(me->active_mesh(), p0, p7);
@@ -944,7 +951,7 @@ namespace GLGraphics {
             timer.start();
             
             //simplify
-            quadric_simplify(me->active_mesh(),keep_fraction,0.0001f,true);
+            quadric_simplify(me->active_mesh(),keep_fraction,0.0001f,optimal_positions);
             
             cout << "Simplification complete, process time: " << timer.get_secs() << " seconds" << endl;
             
