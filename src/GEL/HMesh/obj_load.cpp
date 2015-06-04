@@ -5,6 +5,7 @@
  * ----------------------------------------------------------------------- */
 
 #include <fstream>
+#include "load.h"
 #include "obj_load.h"
 #include "Manifold.h"
 #include "cleanup.h"
@@ -104,31 +105,12 @@ namespace HMesh
                 }
             }
             cout << "Loaded " << vertices.size() << " vertices and " << faces.size() << " faces"<< endl;
-#if 0 // old school loading
             m.clear();
-            m.build(vertices.size(),
+            safe_build(m, vertices.size(),
                     reinterpret_cast<double*>(&vertices[0]),
                     faces.size(),
                     &faces[0],
                     &indices[0]);
-#else // robust loading
-            m.clear();
-            int k=0;
-            VertexAttributeVector<int> cluster_id;
-            for(int i=0;i<faces.size();++i) {
-                vector<Vec3d> pts(faces[i]);
-                for(int j=0;j<faces[i]; ++j)
-                    pts[j] = vertices[indices[j+k]];
-                FaceID f = m.add_face(pts);
-                int j=0;
-                circulate_face_ccw(m, f, [&](VertexID v){
-                    cluster_id[v] = indices[j+k];
-                    ++j;
-                });
-                k += faces[i];
-            }
-            stitch_mesh(m, cluster_id);
-#endif
             return true;
         }
         return false;

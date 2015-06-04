@@ -69,7 +69,6 @@
 		0D52EB96197D18C1002C7150 /* ConnectivityKernel.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB18197D18C1002C7150 /* ConnectivityKernel.cpp */; };
 		0D52EB97197D18C1002C7150 /* curvature.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB1A197D18C1002C7150 /* curvature.cpp */; };
 		0D52EB98197D18C1002C7150 /* dual.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB1C197D18C1002C7150 /* dual.cpp */; };
-		0D52EB99197D18C1002C7150 /* flatten.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB1E197D18C1002C7150 /* flatten.cpp */; };
 		0D52EB9B197D18C1002C7150 /* load.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB25197D18C1002C7150 /* load.cpp */; };
 		0D52EB9C197D18C1002C7150 /* Manifold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB27197D18C1002C7150 /* Manifold.cpp */; };
 		0D52EB9D197D18C1002C7150 /* mesh_optimization.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EB29197D18C1002C7150 /* mesh_optimization.cpp */; };
@@ -197,7 +196,6 @@
 		0D52EC2D197D1DF3002C7150 /* ConnectivityKernel.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB19197D18C1002C7150 /* ConnectivityKernel.h */; };
 		0D52EC2E197D1DF3002C7150 /* curvature.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB1B197D18C1002C7150 /* curvature.h */; };
 		0D52EC2F197D1DF3002C7150 /* dual.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB1D197D18C1002C7150 /* dual.h */; };
-		0D52EC30197D1DF3002C7150 /* flatten.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB1F197D18C1002C7150 /* flatten.h */; };
 		0D52EC32197D1DF3002C7150 /* ItemID.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB22197D18C1002C7150 /* ItemID.h */; };
 		0D52EC33197D1DF3002C7150 /* ItemVector.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB23197D18C1002C7150 /* ItemVector.h */; };
 		0D52EC34197D1DF3002C7150 /* Iterators.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB24197D18C1002C7150 /* Iterators.h */; };
@@ -380,7 +378,6 @@
 				0D52EC2D197D1DF3002C7150 /* ConnectivityKernel.h in CopyFiles */,
 				0D52EC2E197D1DF3002C7150 /* curvature.h in CopyFiles */,
 				0D52EC2F197D1DF3002C7150 /* dual.h in CopyFiles */,
-				0D52EC30197D1DF3002C7150 /* flatten.h in CopyFiles */,
 				0D52EC32197D1DF3002C7150 /* ItemID.h in CopyFiles */,
 				0D52EC33197D1DF3002C7150 /* ItemVector.h in CopyFiles */,
 				0D52EC34197D1DF3002C7150 /* Iterators.h in CopyFiles */,
@@ -602,8 +599,6 @@
 		0D52EB1B197D18C1002C7150 /* curvature.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = curvature.h; sourceTree = "<group>"; };
 		0D52EB1C197D18C1002C7150 /* dual.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = dual.cpp; sourceTree = "<group>"; };
 		0D52EB1D197D18C1002C7150 /* dual.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = dual.h; sourceTree = "<group>"; };
-		0D52EB1E197D18C1002C7150 /* flatten.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = flatten.cpp; sourceTree = "<group>"; };
-		0D52EB1F197D18C1002C7150 /* flatten.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = flatten.h; sourceTree = "<group>"; };
 		0D52EB22197D18C1002C7150 /* ItemID.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ItemID.h; sourceTree = "<group>"; };
 		0D52EB23197D18C1002C7150 /* ItemVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ItemVector.h; sourceTree = "<group>"; };
 		0D52EB24197D18C1002C7150 /* Iterators.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Iterators.h; sourceTree = "<group>"; };
@@ -776,7 +771,6 @@
 				0D52EB18197D18C1002C7150 /* ConnectivityKernel.cpp */,
 				0D52EB1A197D18C1002C7150 /* curvature.cpp */,
 				0D52EB1C197D18C1002C7150 /* dual.cpp */,
-				0D52EB1E197D18C1002C7150 /* flatten.cpp */,
 				0D52EB25197D18C1002C7150 /* load.cpp */,
 				0D52EB27197D18C1002C7150 /* Manifold.cpp */,
 				0D52EB29197D18C1002C7150 /* mesh_optimization.cpp */,
@@ -953,7 +947,6 @@
 				0D52EB19197D18C1002C7150 /* ConnectivityKernel.h */,
 				0D52EB1B197D18C1002C7150 /* curvature.h */,
 				0D52EB1D197D18C1002C7150 /* dual.h */,
-				0D52EB1F197D18C1002C7150 /* flatten.h */,
 				0D52EB22197D18C1002C7150 /* ItemID.h */,
 				0D52EB23197D18C1002C7150 /* ItemVector.h */,
 				0D52EB24197D18C1002C7150 /* Iterators.h */,
@@ -1219,7 +1212,6 @@
 				0D52EBB0197D18C1002C7150 /* XmlParser.cpp in Sources */,
 				0D52EB65197D18C1002C7150 /* statistics.cpp in Sources */,
 				0D52EB8D197D18C1002C7150 /* QuatTrackBall.cpp in Sources */,
-				0D52EB99197D18C1002C7150 /* flatten.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

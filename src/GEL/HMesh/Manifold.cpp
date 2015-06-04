@@ -473,13 +473,13 @@ namespace HMesh
         // get the one-ring of v0
         vector<VertexID> link0;
         circulate_vertex_ccw(m, v0, (std::function<void(VertexID)>)[&](VertexID vn) {
-            link0.push_back(vn);
+            link0.emplace_back(vn);
         });
 		
         // get the one-ring of v1
         vector<VertexID> link1;
         circulate_vertex_ccw(m, v1, (std::function<void(VertexID)>)[&](VertexID vn) {
-            link1.push_back(vn);
+            link1.emplace_back(vn);
         });
 		
         // sort the vertices of the two rings
@@ -1030,8 +1030,8 @@ namespace HMesh
                 EdgeKey ek(v0, v1);
                 typename EdgeMap::iterator em_iter = edge_map.find(ek);
                 
-                
-                auto make_edge = [&]() -> Edge {
+                // if current edge has not been created
+                if(em_iter == edge_map.end()){
                     // create edge for map
                     Edge e;
                     e.h0 = kernel.add_halfedge();
@@ -1048,13 +1048,7 @@ namespace HMesh
                     // update halfedges with the vertices they point to
                     kernel.set_vert(e.h0, v1);
                     kernel.set_vert(e.h1, v0);
-                    return e;
-                };
-                
-                // current edge has not been created
-                if(em_iter == edge_map.end()){
                     
-                    Edge e = make_edge();
                     // update map
                     edge_map[ek] = e;
                     
@@ -1062,19 +1056,12 @@ namespace HMesh
                     fh.push_back(e.h0);
                 }
                 else{
-                    if(em_iter->second.count==1) {
-                        // update current face with halfedge from edge
-                        fh.push_back(em_iter->second.h1);
-                    }
-                    else {
-                        Edge e = make_edge();
-                        fh.push_back(e.h0);
-                        // asserting that a halfedge is visited exactly twice;
-                        // once for each face on either side of the edge.
-                        em_iter->second.count++;
-                        if(em_iter->second.count > 2)
-                            cerr << em_iter->second.count << " coincident edges ..." << endl;
-                    }
+                    // update current face with halfedge from edge
+                    fh.push_back(em_iter->second.h1);
+                    // asserting that a halfedge is visited exactly twice;
+                    // once for each face on either side of the edge.
+                    em_iter->second.count++;
+                    assert(em_iter->second.count == 2);
                 }
             }
             
@@ -1106,6 +1093,8 @@ namespace HMesh
                 ensure_boundary_consistency(*v);
         }
     }
+    
+    
     void Manifold::link(HalfEdgeID h0, HalfEdgeID h1)
     {
         kernel.set_next(h0, h1);

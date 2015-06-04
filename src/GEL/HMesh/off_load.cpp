@@ -5,7 +5,7 @@
  * ----------------------------------------------------------------------- */
 
 #include "off_load.h"
-
+#include "load.h"
 #include <fstream>
 
 #include "Manifold.h"
@@ -50,7 +50,12 @@ namespace HMesh
                 indices.push_back(idx);
             }
         }
-        m.build(NV, reinterpret_cast<double*>(&vertices[0]), NF, &faces[0], &indices[0]);
+        safe_build(m, vertices.size(),
+                   reinterpret_cast<double*>(&vertices[0]),
+                   faces.size(),
+                   &faces[0],
+                   &indices[0]);
+
         return true;
     }
 }

@@ -35,7 +35,7 @@
 #include <HMesh/mesh_optimization.h>
 #include <HMesh/curvature.h>
 #include <HMesh/triangulate.h>
-#include <HMesh/flatten.h>
+//#include <HMesh/flatten.h>
 #include <HMesh/dual.h>
 #include <HMesh/load.h>
 #include <HMesh/quadric_simplify.h>
@@ -240,6 +240,16 @@ namespace GLGraphics {
             me->refit();
         }
         
+        void console_reset_trackball(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("display.reset_trackball");
+                return;
+            }
+            me->refit();
+        }
+
+        
         void console_test(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)) {
@@ -252,36 +262,36 @@ namespace GLGraphics {
         }
 
         
-        void console_flatten(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(wantshelp(args)) {
-                me->printf("usage: flatten <floater|harmonic|barycentric>");
-                me->printf("This function flattens a meshs with a simple boundary. It is mostly for showing mesh");
-                me->printf("parametrization methods. The current mesh MUST have a SINGLE boundary loop");
-                me->printf("This loop is mapped to the unit circle in a regular fashion (equal angle intervals).");
-                me->printf("All non boundary vertices are placed at the origin. Then the system is relaxed iteratively");
-                me->printf("using the weight scheme given as argument.");
-                return;
-            }
-            
-            me->save_active_mesh();
-            
-            WeightScheme ws = BARYCENTRIC_W;
-            if(args.size()>0){
-                if(args[0] == "floater")
-                    ws = FLOATER_W;
-                else if(args[0] == "harmonic")
-                    ws = HARMONIC_W;
-                else if(args[0] == "lscm")
-                    ws = LSCM_W;
-            }
-            else
-                return;
-            
-            flatten(me->active_mesh(), ws);
-            
-            return;
-        }
+//        void console_flatten(MeshEditor* me, const std::vector<std::string> & args)
+//        {
+//            if(wantshelp(args)) {
+//                me->printf("usage: flatten <floater|harmonic|barycentric>");
+//                me->printf("This function flattens a meshs with a simple boundary. It is mostly for showing mesh");
+//                me->printf("parametrization methods. The current mesh MUST have a SINGLE boundary loop");
+//                me->printf("This loop is mapped to the unit circle in a regular fashion (equal angle intervals).");
+//                me->printf("All non boundary vertices are placed at the origin. Then the system is relaxed iteratively");
+//                me->printf("using the weight scheme given as argument.");
+//                return;
+//            }
+//            
+//            me->save_active_mesh();
+//            
+//            WeightScheme ws = BARYCENTRIC_W;
+//            if(args.size()>0){
+//                if(args[0] == "floater")
+//                    ws = FLOATER_W;
+//                else if(args[0] == "harmonic")
+//                    ws = HARMONIC_W;
+//                else if(args[0] == "lscm")
+//                    ws = LSCM_W;
+//            }
+//            else
+//                return;
+//            
+//            flatten(me->active_mesh(), ws);
+//            
+//            return;
+//        }
         
         void console_save(MeshEditor* me, const std::vector<std::string> & args)
         {
@@ -864,8 +874,14 @@ namespace GLGraphics {
             map<int,int> val_hist;
             
             Manifold& m = me->active_mesh();
-            for(HalfEdgeID h: m.halfedges())
+            
+            double avg_len = 0;
+            for(HalfEdgeID h: m.halfedges()) {
                 DebugRenderer::edge_colors[h] = Vec3f(0.3);
+                avg_len += length(m,h);
+            }
+            avg_len /= m.no_halfedges();
+            me->printf("Avg. edge length: %f", avg_len);
             for(VertexID v: m.vertices())
             {
                 int val = valency(m,v);
@@ -1691,7 +1707,7 @@ namespace GLGraphics {
         register_console_function("noise.perturb_topology", console_noisy_flips,"");
         
         register_console_function("dual", console_dual,"");
-        register_console_function("flatten", console_flatten,"");
+//        register_console_function("flatten", console_flatten,"");
         
         register_console_function("align", console_align,"");
         register_console_function("undo", console_undo,"");
@@ -1705,6 +1721,7 @@ namespace GLGraphics {
 
         register_console_function("Dijkstra", console_Dijkstra,"");
         
+        register_console_function("display.reset_trackball", console_reset_trackball, "Resets trackball");
         register_console_function("display.save_trackball", console_save_trackball, "Saves trackball to disk");
         register_console_function("display.load_trackball", console_load_trackball, "Load trackball to disk");
         

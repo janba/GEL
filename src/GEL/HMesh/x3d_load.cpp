@@ -16,6 +16,7 @@
 #include "../Util/XmlParser.h"
 
 #include "Manifold.h"
+#include "load.h"
 
 namespace HMesh
 {
@@ -27,7 +28,7 @@ namespace HMesh
     {
         vector<int> faces;
         vector<int> indices;
-        vector<float> vertices;
+        vector<double> vertices;
 
         void coord_index_to_face_vec(const vector<int>& coord_index, vector<int>& faces, vector<int>& indices)
         {
@@ -107,11 +108,11 @@ namespace HMesh
         
         cout << "vertices " << vertices.size() << endl;
 
-        m.build(vertices.size()/3, 
-            reinterpret_cast<float*>(&vertices[0]), 
-            faces.size(), 
-            &faces[0], 
-            &indices[0]);
+        safe_build(m, vertices.size()/3,
+                   reinterpret_cast<double*>(&vertices[0]),
+                   faces.size(),
+                   &faces[0],
+                   &indices[0]);
         
         cout << " Loading took " << tim.get_secs() << endl;
         return true;

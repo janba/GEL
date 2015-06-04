@@ -552,7 +552,7 @@ namespace GLGraphics
     "       vec3 normal = normalize(_normal);\n"
     "		float dot_ln = max(0.0,dot(light_dir, normal));\n"
     "		vec2 rt = uv;//vec2(length(uv),atan(uv.y, uv.x));\n"
-    "		float stripe_signal = smoothstep(-0.001,0.001,sin(2.0*pi*rt.x)*sin(10.0*rt.y));\n"
+    "		float stripe_signal = smoothstep(-0.001,0.001,sin(2.0*pi*rt.x)*sin(2.0*pi*rt.y));\n"
     "		\n"
     "		gl_FragColor = dot_ln * vec4(0.35,0.25,0.5,0);\n"
    "		gl_FragColor.rgb += 0.7*stripe_signal;\n"

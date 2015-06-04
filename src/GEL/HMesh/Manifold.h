@@ -45,9 +45,15 @@ namespace HMesh
         Manifold();
 
         /** \brief Build a manifold. 
-        The arguments are the number of vertices, no_vertices, the vector of vertices, vertvec, the number of faces, no_faces. 
-        facevec is an array where each entry indicates the number of vertices in that face.
-        The array indices contains all the corresponding vertex indices in one concatenated list. */
+         The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
+         the number of faces (no_faces), a pointer to an array of float values (vert_vec) and an array
+         of indices (indices).
+         Note that each vertex is three floating point numbers. The indices vector is one long list of
+         all vertex indices. Note also that this function call assumes that the mesh is manifold. Failing
+         that the results are undefined but usually a crash due to a failed assertion. 
+         Finally, we should consider the option to build a manifold with single precision floating point
+         values deprecated. Hence, safe_build exists only as double precision.
+         */
         void build( size_t no_vertices,
                     const float* vertvec,
                     size_t no_faces,
@@ -55,10 +61,13 @@ namespace HMesh
                     const int* indices);
 
         /** \brief Build a manifold.
-         This function is for vertices given in double precision.
-         The arguments are the number of vertices, no_vertices, the vector of vertices, vertvec, the number of faces, no_faces.
-         facevec is an array where each entry indicates the number of vertices in that face.
-         The array indices contains all the corresponding vertex indices in one concatenated list. */
+         The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
+         the number of faces (no_faces), a pointer to an array of double values (vert_vec) and an array
+         of indices (indices).
+         Note that each vertex is three double precision floating point numbers. 
+         The indices vector is one long list of all vertex indices. Note also that this function
+         assumes that the mesh is manifold. Failing that the results are undefined but usually a 
+         crash due to a failed assertion. */
         void build( size_t no_vertices,
                    const double* vertvec,
                    size_t no_faces,
@@ -67,6 +76,8 @@ namespace HMesh
 
         /// Build a manifold from a TriMesh
         void build(const Geometry::TriMesh& mesh);
+
+
         
         /** Add a face to the Manifold.
          This function is provided a vector of points in space and transforms it into a single 
