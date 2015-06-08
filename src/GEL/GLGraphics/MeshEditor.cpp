@@ -240,10 +240,10 @@ namespace GLGraphics {
             me->refit();
         }
         
-        void console_reset_trackball(MeshEditor* me, const std::vector<std::string> & args)
+        void console_refit_trackball(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)) {
-                me->printf("display.reset_trackball");
+                me->printf("display.refit_trackball");
                 return;
             }
             me->refit();
@@ -1654,8 +1654,8 @@ namespace GLGraphics {
         for(VisObj& vis_obj : vo)
             vis_obj.view_control().reshape(vp[2], vp[3]);
         
-        glEnable(GL_CULL_FACE);
-        glCullFace(GL_BACK);
+//        glEnable(GL_CULL_FACE);
+//        glCullFace(GL_BACK);
         glEnable(GL_LIGHTING);
         glEnable(GL_LIGHT0);
         glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, 1);
@@ -1721,7 +1721,7 @@ namespace GLGraphics {
 
         register_console_function("Dijkstra", console_Dijkstra,"");
         
-        register_console_function("display.reset_trackball", console_reset_trackball, "Resets trackball");
+        register_console_function("display.refit_trackball", console_refit_trackball, "Resets trackball");
         register_console_function("display.save_trackball", console_save_trackball, "Saves trackball to disk");
         register_console_function("display.load_trackball", console_load_trackball, "Load trackball to disk");
         

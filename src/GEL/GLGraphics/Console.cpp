@@ -289,8 +289,8 @@ void Console::draw_textf(int scaling, int x, int y,
 
 void Console::tab_completion()
 {
-    if (m_current_command.empty())
-        return;
+//    if (m_current_command.empty())
+//        return;
 
     //search through command list..
     std::set<std::string> matches;
@@ -298,10 +298,8 @@ void Console::tab_completion()
     for (it1=m_commands.begin(); it1!= m_commands.end(); ++it1)
     {
         std::string cmd = it1->first;
-        if (cmd.find(m_current_command) != 0)
-            continue;
-
-        matches.insert(cmd);
+        if (cmd.find(m_current_command) == 0 || m_current_command.empty())
+            matches.insert(cmd);
     }
 
     if (matches.empty())
@@ -316,8 +314,16 @@ void Console::tab_completion()
     //show possible matches
     std::stringstream ss;
     std::set<std::string>::const_iterator it2;
-    for (it2=matches.begin(); it2!=matches.end(); ++it2)
+    int character_count=0;
+    for (it2=matches.begin(); it2!=matches.end(); ++it2) {
+        if(it2->length() + character_count > 80)
+        {
+            ss << "\n";
+            character_count = 0;
+        }
         ss << *it2 << " ";
+        character_count += it2->length();
+    }
     print(ss.str().c_str());
 
     //find longest common prefix and set as current command
