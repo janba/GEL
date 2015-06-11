@@ -59,7 +59,7 @@ namespace HMesh
     inline Vec3d laplacian(const Manifold& m, VertexID v)
     {
         Vec3d p(0);
-        int n = circulate_vertex_ccw(m, v, (std::function<void(VertexID)>)[&](VertexID v){ p += m.pos(v); });
+        int n = circulate_vertex_ccw(m, v, static_cast<std::function<void(VertexID)>>([&](VertexID v){ p += m.pos(v); }));
         return p / n - m.pos(v);
     }
     
@@ -73,7 +73,7 @@ namespace HMesh
             if(!boundary(m, v))
             {
                 Vec3d L(0);
-                int n = circulate_vertex_ccw(m, v, (std::function<void(VertexID)>)[&](VertexID v){ L += m.pos(v); });
+                int n = circulate_vertex_ccw(m, v, static_cast<std::function<void(VertexID)>>([&](VertexID v){ L += m.pos(v); }));
                 new_pos[v] = L/n;
             }
         m.positions_attribute_vector() = new_pos;

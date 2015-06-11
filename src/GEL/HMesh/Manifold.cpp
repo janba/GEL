@@ -1514,7 +1514,7 @@ namespace HMesh
 
     int valency(const Manifold& m, VertexID v)
     {
-        return circulate_vertex_ccw(m,v, (std::function<void(Walker&)>)[](Walker){});
+        return circulate_vertex_ccw(m,v, static_cast<std::function<void(Walker&)>>([](Walker){}));
     }
     
     Manifold::Vec normal(const Manifold& m, VertexID v)
@@ -1559,14 +1559,14 @@ namespace HMesh
     bool connected(const Manifold& m, VertexID v0, VertexID v1)
     {
         bool c=false;
-        circulate_vertex_ccw(m, v0, (std::function<void(VertexID)>)[&](VertexID v){ c |= (v==v1);});
+        circulate_vertex_ccw(m, v0, static_cast<std::function<void(VertexID)>>([&](VertexID v){ c |= (v==v1);}));
         return c;
     }
 
     
     int no_edges(const Manifold& m, FaceID f)
     {
-        return circulate_face_ccw(m, f, (std::function<void(Walker&)>)[](Walker w){});
+        return circulate_face_ccw(m, f, static_cast<std::function<void(Walker&)>>([](Walker w){}));
     }
     
     Manifold::Vec normal(const Manifold& m, FaceID f)

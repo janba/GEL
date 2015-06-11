@@ -604,8 +604,8 @@
 		0D52EB24197D18C1002C7150 /* Iterators.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Iterators.h; sourceTree = "<group>"; };
 		0D52EB25197D18C1002C7150 /* load.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = load.cpp; sourceTree = "<group>"; };
 		0D52EB26197D18C1002C7150 /* load.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = load.h; sourceTree = "<group>"; };
-		0D52EB27197D18C1002C7150 /* Manifold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Manifold.cpp; sourceTree = "<group>"; };
-		0D52EB28197D18C1002C7150 /* Manifold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Manifold.h; sourceTree = "<group>"; };
+		0D52EB27197D18C1002C7150 /* Manifold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = Manifold.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
+		0D52EB28197D18C1002C7150 /* Manifold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; lineEnding = 0; path = Manifold.h; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.objcpp; };
 		0D52EB29197D18C1002C7150 /* mesh_optimization.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = mesh_optimization.cpp; sourceTree = "<group>"; };
 		0D52EB2A197D18C1002C7150 /* mesh_optimization.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = mesh_optimization.h; sourceTree = "<group>"; };
 		0D52EB2B197D18C1002C7150 /* obj_load.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = obj_load.cpp; sourceTree = "<group>"; };
@@ -624,7 +624,7 @@
 		0D52EB38197D18C1002C7150 /* quadric_simplify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = quadric_simplify.h; sourceTree = "<group>"; };
 		0D52EB39197D18C1002C7150 /* refine_edges.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = refine_edges.cpp; sourceTree = "<group>"; };
 		0D52EB3A197D18C1002C7150 /* refine_edges.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = refine_edges.h; sourceTree = "<group>"; };
-		0D52EB3B197D18C1002C7150 /* smooth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = smooth.cpp; sourceTree = "<group>"; };
+		0D52EB3B197D18C1002C7150 /* smooth.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; lineEnding = 0; path = smooth.cpp; sourceTree = "<group>"; xcLanguageSpecificationIdentifier = xcode.lang.cpp; };
 		0D52EB3C197D18C1002C7150 /* smooth.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = smooth.h; sourceTree = "<group>"; };
 		0D52EB3D197D18C1002C7150 /* subdivision.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = subdivision.cpp; sourceTree = "<group>"; };
 		0D52EB3E197D18C1002C7150 /* subdivision.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = subdivision.h; sourceTree = "<group>"; };
