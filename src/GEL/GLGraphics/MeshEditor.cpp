@@ -7,7 +7,8 @@
 //
 #include <thread>
 #if !defined (WIN32)
-  #include <unistd.h>
+#include <stdarg.h>
+#include <unistd.h>
 #endif
 #include <GL/glew.h>
 #include <functional>

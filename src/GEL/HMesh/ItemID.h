@@ -32,8 +32,8 @@ namespace HMesh
         bool operator <(const ItemID& other) const { return index < other.index; }
         
         IndexType get_index() const { return index;}
-		
-    private:
+        template<typename ITEM, typename ITEMID> friend class AttributeVector;		
+	//    private:
         IndexType index;
         static const IndexType INVALID_INDEX =  -1;
 
@@ -42,7 +42,7 @@ namespace HMesh
         friend class ConnectivityKernel;
             
         template<typename ITEM> friend class ItemVector;
-        template<typename ITEM, typename ITEMID> friend class AttributeVector;
+
         template<typename X>
         friend std::ostream& operator<<(std::ostream& os, const ItemID<X>&);
 
