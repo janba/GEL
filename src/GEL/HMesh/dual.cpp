@@ -35,9 +35,9 @@ namespace HMesh
         for(auto v : m.vertices())
             if(valency(m, v) > 2 && !(boundary(m, v)))
             {
-				int N = circulate_vertex_ccw(m, v, (std::function<void(FaceID)>)[&](FaceID fid) {
+				int N = circulate_vertex_ccw(m, v, static_cast<std::function<void(FaceID)>>([&](FaceID fid) {
                     indices.push_back(ftouched[fid]);
-                });
+                }));
                 // Insert face valency in the face vector.
                 faces.push_back(N);
             }

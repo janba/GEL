@@ -324,9 +324,9 @@ namespace HMesh
         vector<int> faces;
         for(FaceID f: m.faces()) {
             faces.push_back(no_edges(m, f));
-			circulate_face_cw(m, f, (std::function<void(VertexID)>)[&](VertexID v){
+			circulate_face_cw(m, f, static_cast<std::function<void(VertexID)>>([&](VertexID v){
                 indices.push_back(idvec[v]);
-            });
+            }));
         }
         m.clear();
         m.build(vertices.size(), vertices[0].get(), faces.size(), &faces[0], &indices[0]);

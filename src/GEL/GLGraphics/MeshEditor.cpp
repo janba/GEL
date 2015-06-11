@@ -889,7 +889,7 @@ namespace GLGraphics {
                 ++val_hist[val];
                 
                 if(val != 4)
-                    circulate_vertex_ccw(m, v, (std::function<void(HalfEdgeID)>)[&](HalfEdgeID h){
+                    circulate_vertex_ccw(m, v, static_cast<std::function<void(HalfEdgeID)>>([&](HalfEdgeID h){
                         Walker w = m.walker(h);
                         DebugRenderer::edge_colors[h] = Vec3f(1);
                         DebugRenderer::edge_colors[w.opp().halfedge()] = Vec3f(1);
@@ -898,7 +898,7 @@ namespace GLGraphics {
                             DebugRenderer::edge_colors[w.halfedge()] = Vec3f(1);
                             DebugRenderer::edge_colors[w.opp().halfedge()] = Vec3f(1);
                         }
-                    });
+                    }));
             }
             map<int, int> ngon_hist;
             for(FaceID f: m.faces()) {
