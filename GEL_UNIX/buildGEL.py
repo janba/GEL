@@ -28,6 +28,7 @@ def compile():
 
 def link():
     objects = [oname(build_dir, s+'.o') for s in sources]
+    after()
     run('ar', '-cr', oname(build_dir, target), objects)
 
 def clean():
