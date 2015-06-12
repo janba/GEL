@@ -26,7 +26,7 @@ namespace Geometry
 
       A number of functions are defined allowing for rendering of the triangle
       mesh. */
-  class TriMesh 
+  class TriMesh
   {
   public:
 		
