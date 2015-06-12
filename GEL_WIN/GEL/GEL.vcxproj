@@ -213,7 +213,6 @@
     <ClCompile Include="..\..\src\GEL\HMesh\ConnectivityKernel.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\curvature.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\dual.cpp" />
-    <ClCompile Include="..\..\src\GEL\HMesh\flatten.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\load.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\Manifold.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\mesh_optimization.cpp" />
@@ -230,7 +229,6 @@
     <ClCompile Include="..\..\src\GEL\HMesh\triangulate.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\x3d_load.cpp" />
     <ClCompile Include="..\..\src\GEL\HMesh\x3d_save.cpp" />
-    <ClCompile Include="..\..\src\GEL\Util\HashKey.cpp" />
     <ClCompile Include="..\..\src\GEL\Util\Parse.cpp" />
     <ClCompile Include="..\..\src\GEL\Util\string_utils.cpp" />
     <ClCompile Include="..\..\src\GEL\Util\XmlParser.cpp" />

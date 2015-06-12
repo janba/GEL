@@ -59,7 +59,7 @@ namespace HMesh
             }
             FaceID f = m.add_face(pts);
             int j=0;
-            circulate_face_ccw(m, f, [&](VertexID v){
+            circulate_face_ccw(m, f, (std::function<void(VertexID)>)[&](VertexID v){
                 cluster_id[v] = indices[j+k];
                 ++j;
             });

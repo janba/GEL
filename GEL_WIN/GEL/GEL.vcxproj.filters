@@ -668,9 +668,6 @@
     <ClCompile Include="..\..\src\GEL\HMesh\dual.cpp">
       <Filter>HMesh\Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\src\GEL\HMesh\flatten.cpp">
-      <Filter>HMesh\Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="..\..\src\GEL\HMesh\load.cpp">
       <Filter>HMesh\Source Files</Filter>
     </ClCompile>
@@ -709,9 +706,6 @@
     </ClCompile>
     <ClCompile Include="..\..\src\GEL\HMesh\subdivision.cpp">
       <Filter>HMesh\Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\src\GEL\Util\HashKey.cpp">
-      <Filter>Util\Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\src\GEL\Util\Parse.cpp">
       <Filter>Util\Source Files</Filter>

@@ -8,8 +8,8 @@
  * @brief CGLA main header: contains a number of constants and function decs.
  */
 
-#ifndef __CGLA_CGLA-util.h__
-#define __CGLA_CGLA-util.h__
+#ifndef __CGLA_CGLA_util__
+#define __CGLA_CGLA_util__
 
 #if (_MSC_VER >= 1200)
 #pragma warning (disable: 4244 4800)
