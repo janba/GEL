@@ -225,6 +225,9 @@
 		0D859997193D01B6009DB071 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D859996193D01B6009DB071 /* Cocoa.framework */; };
 		0D8599A1193D01B6009DB071 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0D85999F193D01B6009DB071 /* InfoPlist.strings */; };
 		0DA848C4193D02520067DA3B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DA848C3193D02520067DA3B /* OpenGL.framework */; };
+		0DD3C0BF1B7C983300C02626 /* CGLA.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D57306D1ABB570900F33E40 /* CGLA.h */; };
+		0DD3C0C01B7C983800C02626 /* ls_solve.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DD53BE91ABB69C50074B704 /* ls_solve.h */; };
+		0DE1F9071B35B9210012ACF9 /* HMesh.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D2378ED1ABB593200874F06 /* HMesh.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -234,6 +237,8 @@
 			dstPath = ../Headers/CGLA;
 			dstSubfolderSpec = 7;
 			files = (
+				0DD3C0C01B7C983800C02626 /* ls_solve.h in CopyFiles */,
+				0DD3C0BF1B7C983300C02626 /* CGLA.h in CopyFiles */,
 				0D52EBC4197D1DAB002C7150 /* ArithQuat.h in CopyFiles */,
 				0D52EBC5197D1DAB002C7150 /* ArithSqMat2x2Float.h in CopyFiles */,
 				0D52EBC6197D1DAB002C7150 /* ArithSqMat3x3Float.h in CopyFiles */,
@@ -373,6 +378,7 @@
 			dstPath = ../Headers/HMesh;
 			dstSubfolderSpec = 7;
 			files = (
+				0DE1F9071B35B9210012ACF9 /* HMesh.h in CopyFiles */,
 				0D52EC2B197D1DF3002C7150 /* AttributeVector.h in CopyFiles */,
 				0D52EC2C197D1DF3002C7150 /* cleanup.h in CopyFiles */,
 				0D52EC2D197D1DF3002C7150 /* ConnectivityKernel.h in CopyFiles */,
@@ -398,15 +404,6 @@
 				0D52EC43197D1DF3002C7150 /* Walker.h in CopyFiles */,
 				0D52EC44197D1DF3002C7150 /* x3d_load.h in CopyFiles */,
 				0D52EC45197D1DF3002C7150 /* x3d_save.h in CopyFiles */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		0DA84959193D059F0067DA3B /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = ../Headers/LinAlg;
-			dstSubfolderSpec = 7;
-			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1060,7 +1057,6 @@
 				0DA84925193D05100067DA3B /* CopyFiles */,
 				0DA84929193D05300067DA3B /* CopyFiles */,
 				0DA8493D193D05650067DA3B /* CopyFiles */,
-				0DA84959193D059F0067DA3B /* CopyFiles */,
 				0DA8495E193D05DE0067DA3B /* CopyFiles */,
 				0DA8498D193D070F0067DA3B /* ShellScript */,
 			);

@@ -11,6 +11,7 @@
 
 #pragma once
 
+#include <set>
 #include <algorithm>
 #include "../CGLA/Vec3d.h"
 
@@ -211,7 +212,7 @@ namespace HMesh
 		Note that this function can create some unusual and arguably degenerate meshes. For instance, 
 		two triangles which share all vertices is collapsed to a single pair of vertices connected by 
 		a pair of halfedges bounding the same face. */
-		FaceID merge_one_ring(VertexID v, float max_loop_length = FLT_MAX);
+		FaceID merge_one_ring(VertexID v);
 
         /** \brief Close hole given by the invalid face of halfedgehandle h.
          returns FaceID of the created face or the face that is already there if the 
@@ -345,6 +346,9 @@ namespace HMesh
     /// Return the geometric length of a halfedge.
     double length(const Manifold& m, HalfEdgeID h);
 
+    /// Returns the id of the boundary edge or InvalidHalfEdgeID if the vertex is not on the boundary
+    HalfEdgeID boundary_edge(const Manifold& m, VertexID v);
+    
     /// Returns true if the vertex is a boundary vertex.
     bool boundary(const Manifold& m, VertexID v);
 
@@ -496,6 +500,14 @@ namespace HMesh
     {
         return circulate_face_cw(m, f, static_cast<std::function<void(Walker&)>>([&](Walker& w){g(w.halfedge());}));
     }
-    
 
+   
+    /// A set of vertices
+    typedef std::set<VertexID> VertexSet;
+    
+    /// A set of faces
+    typedef std::set<FaceID> FaceSet;
+    
+    // A set of halfedges
+    typedef std::set<HalfEdgeID> HalfEdgeSet;
 }

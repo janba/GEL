@@ -233,10 +233,11 @@ namespace HMesh
     int stitch_mesh(Manifold& m, const VertexAttributeVector<int>& cluster_id)
     {
         map<int, vector<HalfEdgeID>> clustered_halfedges;
-        for(auto v: m.vertices())
-            if(cluster_id[v] != -1 && boundary(m, v))
-                clustered_halfedges[cluster_id[v]].push_back(m.walker(v).halfedge());
-        
+        for(auto v: m.vertices()) {
+            HalfEdgeID h = boundary_edge(m, v);
+            if(cluster_id[v] != -1 && h != InvalidHalfEdgeID)
+                clustered_halfedges[cluster_id[v]].push_back(h);
+        }
         int unstitched=0;
         for(HalfEdgeIDIterator hid = m.halfedges_begin(); hid != m.halfedges_end(); ++hid)
         {
@@ -256,9 +257,10 @@ namespace HMesh
                     if(m.in_use(h1))
                     {
                         Walker w = m.walker(h1);
-                        if(cluster_id[w.vertex()] == cluster_id[v0])
+                        if(cluster_id[w.vertex()] == cluster_id[v0]) {
                             if(m.stitch_boundary_edges(h0,h1))
                                 break;
+                        }
                     }
                     
                 }

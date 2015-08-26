@@ -1,14 +1,13 @@
 #ifndef __HMESH__HMESH_H__
 #define __HMESH__HMESH_H__
 
+#include "Manifold.h"
 #include "AttributeVector.h"
 #include "Iterators.h"
-#include "Manifold.h"
 #include "Walker.h"
 #include "cleanup.h"
 #include "curvature.h"
 #include "dual.h"
-#include "flatten.h"
 #include "load.h"
 #include "mesh_optimization.h"
 #include "obj_load.h"

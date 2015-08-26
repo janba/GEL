@@ -513,60 +513,63 @@ namespace HMesh
             
             // Case below implies that h0 and h1 are the same edge with different ID
             // That should not happen.
-            assert(!(v0a == v0b && v1a == v1b));
-            
+//            if((v0a == v0b && v1a == v1b)) {
+//                cout << "bubbelub" << endl;
+//                return false;
+//            }
+            //If the vertices are already connected, welding them together will be awkward.
             if(connected(*this, v0a, v0b))
                 return false;
             if(connected(*this, v1a, v1b))
                 return false;
             
             
-            if(v0b != v0a)
-            {
-                
-                // Check the link intersection v0a and v0b are welded together
-                // if they share a neighbouring vertex, it will appear twice in the combined
-                // one ring unless it v1a and v1a==v1b
-                vector<VertexID> lisect;
-                if(link_intersection(*this, v0a, v0b, lisect))
-                {
-                    vector<VertexID>::iterator iter;
-                    
-                    if(v1a == v1b)
-                    {
-                        iter = find(lisect.begin(), lisect.end(), v1a);
-                        if(iter != lisect.end())
-                            lisect.erase(iter);
-                    }
-                    iter = find(lisect.begin(), lisect.end(), kernel.vert(kernel.next(h0)));
-                    if(iter != lisect.end())
-                        lisect.erase(iter);
-                    if(lisect.size() > 0)
-                        return false;
-                }
-            }
-            
-            if(v1a != v1b)
-            {
-                // Check the same for the other endpoints.
-                vector<VertexID> lisect;
-                if(link_intersection(*this, v1a, v1b, lisect))
-                {
-                    vector<VertexID>::iterator iter;
-                    
-                    if(v0a == v0b)
-                    {
-                        iter = find(lisect.begin(), lisect.end(), v0a);
-                        if(iter != lisect.end())
-                            lisect.erase(iter);
-                    }
-                    iter = find(lisect.begin(), lisect.end(), kernel.vert(kernel.next(h1)));
-                    if(iter != lisect.end())
-                        lisect.erase(iter);
-                    if(lisect.size() > 0)
-                        return false;
-                }
-            }
+//            if(v0b != v0a)
+//            {
+//                
+//                // Check the link intersection v0a and v0b are welded together
+//                // if they share a neighbouring vertex, it will appear twice in the combined
+//                // one ring unless it v1a and v1a==v1b
+//                vector<VertexID> lisect;
+//                if(link_intersection(*this, v0a, v0b, lisect))
+//                {
+//                    vector<VertexID>::iterator iter;
+//                    
+//                    if(v1a == v1b)
+//                    {
+//                        iter = find(lisect.begin(), lisect.end(), v1a);
+//                        if(iter != lisect.end())
+//                            lisect.erase(iter);
+//                    }
+//                    iter = find(lisect.begin(), lisect.end(), kernel.vert(kernel.next(h0)));
+//                    if(iter != lisect.end())
+//                        lisect.erase(iter);
+//                    if(lisect.size() > 0)
+//                        return false;
+//                }
+//            }
+//            
+//            if(v1a != v1b)
+//            {
+//                // Check the same for the other endpoints.
+//                vector<VertexID> lisect;
+//                if(link_intersection(*this, v1a, v1b, lisect))
+//                {
+//                    vector<VertexID>::iterator iter;
+//                    
+//                    if(v0a == v0b)
+//                    {
+//                        iter = find(lisect.begin(), lisect.end(), v0a);
+//                        if(iter != lisect.end())
+//                            lisect.erase(iter);
+//                    }
+//                    iter = find(lisect.begin(), lisect.end(), kernel.vert(kernel.next(h1)));
+//                    if(iter != lisect.end())
+//                        lisect.erase(iter);
+//                    if(lisect.size() > 0)
+//                        return false;
+//                }
+//            }
             
             
             if(v0b != v0a)
@@ -629,7 +632,7 @@ namespace HMesh
     
     
     
-    FaceID Manifold::merge_one_ring(VertexID v, float max_loop_length)
+    FaceID Manifold::merge_one_ring(VertexID v)
     {
         // If the vertex is either not in use or has just
         // one incident edge (or less), bail out.
@@ -641,12 +644,14 @@ namespace HMesh
         // first face visited is not the invalid face outside the boundary. If the boundary
         // vertex is adjacent to only one vertex, there is little to do and we bail out.
         bool vertex_is_boundary = false;
+        HalfEdgeID h = boundary_edge(*this, v);
         Walker hew = walker(v);
-        if(boundary(*this, v))
+        if(h != InvalidHalfEdgeID)
         {
-            if(val==2) return InvalidFaceID;
+            if(val==2)
+                return InvalidFaceID;
             vertex_is_boundary = true;
-            hew = hew.circulate_vertex_ccw();
+            hew = walker(h).circulate_vertex_ccw();
         }
         
         // Prepare some vectors for taking out the trash: We remove all old faces and all orphaned edges
@@ -663,9 +668,9 @@ namespace HMesh
         for(;!hew.full_circle(); hew = hew.circulate_vertex_ccw())
         {
             garbage_faces.push_back(hew.face());
-            for(Walker hew2 = walker(hew.halfedge());
-                !hew2.full_circle(); hew2 = hew2.circulate_face_ccw())
-                loop.push_back(hew2.halfedge());
+            Walker w = walker(hew.halfedge());
+            for(; !w.full_circle(); w = w.next())
+                loop.push_back(w.halfedge());
         }
         
         
@@ -681,9 +686,9 @@ namespace HMesh
             for(size_t i=0;i<loop.size();++i)
                 if(walker(loop[i]).opp().halfedge() == loop[(i+1)%loop.size()])
                 {
-                    VertexID vid = walker(loop[i]).vertex();
+                    VertexID vid = kernel.vert(loop[i]);
                     if(vid != v)
-                        garbage_vertices.push_back(walker(loop[i]).vertex());
+                        garbage_vertices.push_back(vid);
                     garbage_halfedges.push_back(loop[i]);
                     garbage_halfedges.push_back(loop[(i+1)%loop.size()]);
                     loop[i] = InvalidHalfEdgeID;
@@ -697,12 +702,6 @@ namespace HMesh
             loop = loop_tmp;
         } while(did_work > 0 && loop.size() > 4);
         
-        // Check whether the loop is too long
-        float loop_len=0.0;
-        for(size_t i=0;i<loop.size();++i)
-            loop_len += length(*this, loop[i]);
-        if(loop_len > max_loop_length)
-            return InvalidFaceID;
         
         // The following block checks wheteher the same halfedge appears twice. In this
         // case we fail since it means that the one ring contains the same face twice.
@@ -713,12 +712,12 @@ namespace HMesh
             return InvalidFaceID;
         
         // Remove all faces and connected halfedges and the original vertex v.
-        for(size_t i=0;i<garbage_vertices.size(); ++i)
-            kernel.remove_vertex(garbage_vertices[i]);
-        for(size_t i=0;i<garbage_faces.size(); ++i)
-            kernel.remove_face(garbage_faces[i]);
-        for(size_t i=0;i<garbage_halfedges.size(); ++i)
-            kernel.remove_halfedge(garbage_halfedges[i]);
+        for(auto v: garbage_vertices)
+            kernel.remove_vertex(v);
+        for(auto f: garbage_faces)
+            kernel.remove_face(f);
+        for(auto h: garbage_halfedges)
+            kernel.remove_halfedge(h);
         if(!vertex_is_boundary)
             kernel.remove_vertex(v);
         
@@ -729,17 +728,8 @@ namespace HMesh
         for(size_t i=0;i<loop.size(); ++i)
         {
             kernel.set_face(loop[i], f);
-            Walker hw = walker(loop[i]);
-            kernel.set_out(hw.vertex(),hw.opp().halfedge());
+            kernel.set_out(kernel.vert(loop[i]),kernel.opp(loop[i]));
             link(loop[i],loop[(i+1)%loop.size()]);
-            assert(hw.vertex() == walker(loop[(i+1)%loop.size()]).opp().vertex());
-        }
-        
-        // Finally, we ensure boundary consitency for all vertices in the loop.
-        for(size_t i=0;i<loop.size(); ++i)
-        {
-            Walker hw = walker(loop[i]);
-            ensure_boundary_consistency(hw.vertex());
         }
         
         // Return the brand new merged face.
@@ -1379,7 +1369,7 @@ namespace HMesh
                 faces0.push_back(vj.face());
             if(++k>m.no_vertices())
             {
-                cout << "mesh is corrupted" << endl;
+                cout << "precond_collapse failed: mesh is corrupted" << endl;
                 return false;
             }
         }
@@ -1396,7 +1386,7 @@ namespace HMesh
                 faces1.push_back(vj.face());
             if(++k>m.no_vertices())
             {
-                cout << "mesh is corrupted" << endl;
+                cout << "precond_collapse failed: mesh is corrupted" << endl;
                 return false;
             }
         }
@@ -1423,8 +1413,10 @@ namespace HMesh
         set_intersection(faces0.begin(), faces0.end(),
                          faces1.begin(), faces1.end(),
                          fii);
-        if(fisect.size() > 0)
+        if(fisect.size() > 0) {
+            cout << "precond_collapse failed: same face in both 1-rings" << endl;
             return false;
+        }
         
          k = 0;
         // if the adjacent face is a triangle (see 2)
@@ -1433,14 +1425,19 @@ namespace HMesh
             
             // valency test (see 5)
             if(valency(m, v) < 3)
+            {
+                cout << "precond_collapse failed: left vertex in triangle has val<3" << endl;
                 return false;
+            }
+
             
             // remove the vertex shared by the two rings from the intersection
             vector<VertexID>::iterator iter;
             iter = find(lisect.begin(), lisect.end(), v);
-            assert(iter != lisect.end());
-            lisect.erase(iter);
-            ++k;
+            if (iter != lisect.end()) {
+                lisect.erase(iter);
+                ++k;
+            }
         }
         // if the adjacent face is a triangle (see 2)
         if(hew.opp().next().next().next().halfedge() == hew.opp().halfedge()){
@@ -1448,26 +1445,40 @@ namespace HMesh
             
             // valency test (see 5)
             if(valency(m, v) < 3)
+            {
+                cout << "precond_collapse failed: right vertex in triangle has val<3" << endl;
                 return false;
+            }
+
             
             // remove the vertex shared by the two rings from the intersection
             vector<VertexID>::iterator iter;
             iter = find(lisect.begin(), lisect.end(), v);
-            assert(iter != lisect.end());
-            lisect.erase(iter);
-            ++k;
+            if (iter != lisect.end()) {
+                lisect.erase(iter);
+                ++k;
+            }
         }
         // double edge test (see 3)
         if(lisect.size() != 0)
+        {
+            cout << "precond_collapse failed: vertex shared by both 1-rings" << endl;
             return false;
+        }
         
         // tetrahedon test (see 4)
         if(k == 2 && (link0.size() + link1.size() == 6))
+        {
+            cout << "precond_collapse failed: tet test" << endl;
             return false;
+        }
         
         // test that we do not merge holes (see 6)
         if(boundary(m, v0) && boundary(m, v1) && hew.face() != InvalidFaceID && hew.opp().face() != InvalidFaceID)
+        {
+            cout << "precond_collapse failed: would merge holes" << endl;
             return false;
+        }
         
         return true;
     }
@@ -1506,10 +1517,17 @@ namespace HMesh
         return true;
     }
     
+    HalfEdgeID boundary_edge(const Manifold& m, VertexID v)
+    {
+        HalfEdgeID h = InvalidHalfEdgeID;
+        circulate_vertex_ccw(m, v, [&](Walker w){if(w.face()==InvalidFaceID) h = w.halfedge();});
+        return h;
+    }
+    
     bool boundary(const Manifold& m, VertexID v)
     {
-        Walker j  = m.walker(v);
-        return boundary(m, j.halfedge());
+        return boundary_edge(m, v) != InvalidHalfEdgeID;
+        
     }
 
     int valency(const Manifold& m, VertexID v)

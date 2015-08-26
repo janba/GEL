@@ -241,6 +241,21 @@ namespace GLGraphics {
             me->refit();
         }
         
+        void console_merge_1_ring(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: edit.selected.merge_1_ring");
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            auto sel = me->get_vertex_selection();
+            for(auto v: m.vertices())
+                if(m.in_use(v) && sel[v]==1)
+                    m.merge_one_ring(v);
+        }
+        
+        
         void console_refit_trackball(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)) {
@@ -1727,6 +1742,8 @@ namespace GLGraphics {
         register_console_function("display.load_trackball", console_load_trackball, "Load trackball to disk");
         
         register_console_function("transform.scale", console_scale, "Scale mesh");
+        register_console_function("edit.selected.merge_1_ring", console_merge_1_ring, "Merge 1-ring of selected vertices");
+        
         register_console_function("test", console_test, "Test some shit");
         active.reg(theConsole, "active_mesh", "The active mesh");
         display_render_mode.reg(theConsole, "display.render_mode", "Display render mode");

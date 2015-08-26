@@ -302,7 +302,7 @@ namespace HMesh
             int max_idx = 0;
             int min_idx = 1;
 
-            if(L[max_idx][max_idx]<L[min_idx][min_idx]) swap(max_idx, min_idx);
+            if(abs(L[max_idx][max_idx])<abs(L[min_idx][min_idx])) swap(max_idx, min_idx);
 
             Mat3x3d frame_t = transpose(frame);
 
@@ -352,7 +352,7 @@ namespace HMesh
                 int max_idx = 0;
                 int min_idx = 1;
 
-                if(l[max_idx] < l[min_idx]) swap(max_idx, min_idx);
+                if(abs(l[max_idx]) < abs(l[min_idx])) swap(max_idx, min_idx);
                 
                 // Yes - the biggest eigenvalue corresponds to the min direction
                 // and vice versa.
