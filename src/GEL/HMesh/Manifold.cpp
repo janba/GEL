@@ -1520,7 +1520,7 @@ namespace HMesh
     HalfEdgeID boundary_edge(const Manifold& m, VertexID v)
     {
         HalfEdgeID h = InvalidHalfEdgeID;
-        circulate_vertex_ccw(m, v, [&](Walker w){if(w.face()==InvalidFaceID) h = w.halfedge();});
+        circulate_vertex_ccw(m, v, static_cast<std::function<void(Walker)>>([&](Walker w){if(w.face()==InvalidFaceID) h = w.halfedge();}));
         return h;
     }
     
