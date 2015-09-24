@@ -573,12 +573,12 @@ namespace HMesh
             
             
             if(v0b != v0a)
-                circulate_vertex_ccw(*this, v0b, static_cast<std::function<void(Walker&)>>([&](Walker hew) {
+                circulate_vertex_ccw(*this, v0b, static_cast<std::function<void(Walker&)>>([&](Walker& hew) {
                     kernel.set_vert(hew.opp().halfedge(), v0a);
                 }));
             
             if(v1b != v1a)
-                circulate_vertex_ccw(*this, v1b, static_cast<std::function<void(Walker&)>>([&](Walker hew) {
+                circulate_vertex_ccw(*this, v1b, static_cast<std::function<void(Walker&)>>([&](Walker& hew) {
                     kernel.set_vert(hew.opp().halfedge(), v1a);
                 }));
             
@@ -1520,7 +1520,7 @@ namespace HMesh
     HalfEdgeID boundary_edge(const Manifold& m, VertexID v)
     {
         HalfEdgeID h = InvalidHalfEdgeID;
-        circulate_vertex_ccw(m, v, static_cast<std::function<void(Walker)>>([&](Walker w){if(w.face()==InvalidFaceID) h = w.halfedge();}));
+        circulate_vertex_ccw(m, v, static_cast<std::function<void(Walker&)>>([&](Walker& w){if(w.face()==InvalidFaceID) h = w.halfedge();}));
         return h;
     }
     
@@ -1532,7 +1532,7 @@ namespace HMesh
 
     int valency(const Manifold& m, VertexID v)
     {
-        return circulate_vertex_ccw(m,v, static_cast<std::function<void(Walker&)>>([](Walker){}));
+        return circulate_vertex_ccw(m,v, static_cast<std::function<void(Walker&)>>([](Walker&){}));
     }
     
     Manifold::Vec normal(const Manifold& m, VertexID v)
@@ -1584,7 +1584,7 @@ namespace HMesh
     
     int no_edges(const Manifold& m, FaceID f)
     {
-        return circulate_face_ccw(m, f, static_cast<std::function<void(Walker&)>>([](Walker w){}));
+        return circulate_face_ccw(m, f, static_cast<std::function<void(Walker&)>>([](Walker& w){}));
     }
     
     Manifold::Vec normal(const Manifold& m, FaceID f)
