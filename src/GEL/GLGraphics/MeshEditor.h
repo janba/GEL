@@ -41,6 +41,7 @@ namespace GLGraphics {
         }
 
         Console theConsole;
+        Console::variable<int> selection_mode;
         Console::variable<int> active;
         Console::variable<std::string> display_render_mode;
         Console::variable<float> brush_size;
@@ -48,19 +49,38 @@ namespace GLGraphics {
         Console::variable<float> display_gamma;
 
     public:
-        MeshEditor():active(0), display_render_mode("normal"), brush_size(0.01), display_smooth_shading(true),
+        MeshEditor():
+        selection_mode(0),
+        active(0),
+        display_render_mode("normal"),
+        brush_size(0.01),
+        display_smooth_shading(true),
         display_gamma(2.2) {}
 
         /// Initialize the mesh editor. Do this only when OpenGL state is available.
         void init();
         
-        bool select_vertex(const CGLA::Vec2i& pos) {
-            return active_visobj().select_vertex(pos);
+        bool select(const CGLA::Vec2i& pos) {
+            switch(selection_mode){
+                case 0: return active_visobj().select_vertex(pos);
+                case 1: return active_visobj().select_halfedge(pos);
+                case 2: return active_visobj().select_face(pos);
+            }
+            return false;
         }
         
-         HMesh::VertexAttributeVector<int>& get_vertex_selection()  {
+         HMesh::VertexSet& get_vertex_selection()  {
             return active_visobj().get_vertex_selection();
         }
+        
+        HMesh::FaceSet& get_face_selection()  {
+            return active_visobj().get_face_selection();
+        }
+
+        HMesh::HalfEdgeSet& get_halfedge_selection()  {
+            return active_visobj().get_halfedge_selection();
+        }
+
         
 
         

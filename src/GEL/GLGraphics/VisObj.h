@@ -36,29 +36,58 @@ class VisObj
     
     GLGraphics::ManifoldRenderer* renderer = nullptr;
     
-    bool active_selection = false;
-    HMesh::VertexAttributeVector<int> vertex_selection;
+    HMesh::VertexSet vertex_selection;
+    HMesh::HalfEdgeSet halfedge_selection;
+    HMesh::FaceSet face_selection;
+    
+    
     HMesh::VertexAttributeVector<double> scalar_field;
     HMesh::VertexAttributeVector<CGLA::Vec3d> line_field;
     
-//    HMesh::Harmonics* harm;
     CGLA::Vec3d bsphere_center;
     float bsphere_radius;
     
     void produce_renderer(const std::string& display_method , Console& cs, bool smooth, float gamma);
     void draw_selection();
+    
+    template<typename IDType>
+    bool select_entity(const CGLA::Vec2i& pos,
+                       std::vector<std::pair<IDType, CGLA::Vec3d>>& item_vec,
+                       IDType invalid_id,
+                       std::set<IDType>& selection_set);
+
+    
 public:
     
     VisObj(): view_ctrl(WINX,WINY, CGLA::Vec3f(0), 1.0) {}
     
-    HMesh::VertexAttributeVector<int>& get_vertex_selection() {
+    
+    HMesh::VertexSet& get_vertex_selection() {
         return vertex_selection;
     }
     bool select_vertex(const CGLA::Vec2i& pos);
-    void clear_selection() {
-        for(auto vid : mani.vertices()) vertex_selection[vid] = 0;
-        active_selection = false;
+    void clear_vertex_selection() {
+        vertex_selection.clear();
     }
+
+    HMesh::FaceSet& get_face_selection() {
+        return face_selection;
+    }
+    bool select_face(const CGLA::Vec2i& pos);
+    void clear_face_selection() {
+        face_selection.clear();
+    }
+    
+
+    HMesh::HalfEdgeSet& get_halfedge_selection() {
+        return halfedge_selection;
+    }
+    bool select_halfedge(const CGLA::Vec2i& pos);
+    void clear_halfedge_selection() {
+       halfedge_selection.clear();
+    }
+
+    
     
     HMesh::VertexAttributeVector<double>& get_scalar_field_attrib_vector() {
         return scalar_field;
@@ -92,19 +121,7 @@ public:
     {
         create_display_list = true;
     }
-    
-//    void harmonics_analyze() {
-//        harm = new HMesh::Harmonics(mani);
-//    }
-//
-//    void harmonics_reset_shape() {
-//        harm->reset_shape();
-//    }
-//
-//    void harmonics_partial_reconstruct(int E0, int E1, float scale) {
-//        harm->partial_reconstruct(E0,E1, scale);
-//    }
-
+ 
 };
 
 }

@@ -30,6 +30,16 @@ namespace Geometry
 
 namespace HMesh
 {
+    /// A set of vertices
+    typedef std::set<VertexID> VertexSet;
+    
+    /// A set of faces
+    typedef std::set<FaceID> FaceSet;
+    
+    // A set of halfedges
+    typedef std::set<HalfEdgeID> HalfEdgeSet;
+
+    
     /** The Manifold class represents a halfedge based mesh. Since meshes based on the halfedge
      representation must be manifold (although exceptions could be made) the class is thus named.
      Manifold contains many functions for mesh manipulation and associated the position attribute
@@ -234,7 +244,7 @@ namespace HMesh
          The path is specified as a selection set of vertices. If the selected vertices form a closed 
          loop, a piece is cut off from the mesh. Surprising results can occur if the selected vertices
          can be connected by more than one sequence (or a self intersecting sequence) of edges. */
-        HalfEdgeID slit_edges(VertexAttributeVector<int>& selection);
+        HalfEdgeID slit_edges(HMesh::VertexSet& selection);
 
         /// \brief Flip an edge h. 
         void flip_edge(HalfEdgeID h);
@@ -500,14 +510,5 @@ namespace HMesh
     {
         return circulate_face_cw(m, f, static_cast<std::function<void(Walker&)>>([&](Walker& w){g(w.halfedge());}));
     }
-
    
-    /// A set of vertices
-    typedef std::set<VertexID> VertexSet;
-    
-    /// A set of faces
-    typedef std::set<FaceID> FaceSet;
-    
-    // A set of halfedges
-    typedef std::set<HalfEdgeID> HalfEdgeSet;
 }
