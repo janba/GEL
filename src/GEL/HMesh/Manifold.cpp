@@ -5,6 +5,7 @@
  * ----------------------------------------------------------------------- */
 #include <iterator>
 #include "Manifold.h"
+#include "ManifoldRenderer.h"
 
 #include <iostream>
 #include <vector>
@@ -805,12 +806,25 @@ namespace HMesh
     
     VertexID Manifold::slit_vertex(VertexID v, HalfEdgeID h_in, HalfEdgeID h_out)
     {
-        assert(kernel.face(h_in) != InvalidFaceID);
-        assert(kernel.face(h_out) != InvalidFaceID);
-        assert(kernel.opp(h_out) != h_in);
+        // Check validity of input. Neither h_in nor h_out may be adjacent to a hole
+        // i.e. their faces must be defined. They must also not be each others opposite
+        // edges. Finally, if their op
+        if (kernel.face(h_in) == InvalidFaceID ||
+            kernel.face(h_out) == InvalidFaceID ||
+            kernel.opp(h_out) == h_in)
+            return InvalidVertexID;
+
+        if (kernel.next(kernel.opp(h_out)) == kernel.opp(h_in) &&
+            kernel.face(kernel.opp(h_in)) == InvalidFaceID &&
+            kernel.face(kernel.opp(h_out)) == InvalidFaceID)
+            return InvalidVertexID;
         
+        // Slitting always creates a new vertex.
         VertexID v_new = kernel.add_vertex();
         pos(v_new) = pos(v);
+        
+        // Go counter clockwise from h_out to h_in. Set all
+        // halfedges that used to point to v to point to v_new
         HalfEdgeID h = kernel.prev(h_out);
         kernel.set_vert(h, v_new);
         while ( h != h_in) {
@@ -819,106 +833,107 @@ namespace HMesh
         }
         
         HalfEdgeID h_in_opp = kernel.opp(h_in);
-        HalfEdgeID hn_in, hn_in_opp;
+        HalfEdgeID h_new_in, h_new_in_opp;
         if(kernel.face(h_in_opp) != InvalidFaceID)
         {
-            hn_in = kernel.add_halfedge();
-            kernel.set_face(hn_in, InvalidFaceID);
-            glue(h_in_opp, hn_in);
+            // Create two boundary edges that form a wedge between
+            // h_in and h_in_opp -- if h_in_opp is not boundary
+            h_new_in = kernel.add_halfedge();
+            kernel.set_face(h_new_in, InvalidFaceID);
+            glue(h_in_opp, h_new_in);
             
-            hn_in_opp = kernel.add_halfedge();
-            kernel.set_face(hn_in_opp, InvalidFaceID);
-            glue(h_in, hn_in_opp);
+            h_new_in_opp = kernel.add_halfedge();
+            kernel.set_face(h_new_in_opp, InvalidFaceID);
+            glue(h_in, h_new_in_opp);
             
-            link(hn_in_opp, hn_in);
+            link(h_new_in_opp, h_new_in);
             
             VertexID v_i = kernel.vert(h_in_opp);
-            kernel.set_vert(hn_in_opp, v_i);
-            kernel.set_out(v_i, hn_in);
+            kernel.set_vert(h_new_in_opp, v_i);
+            kernel.set_out(v_i, h_new_in);
         }
         else
         {
-            hn_in_opp = h_in_opp;
-            hn_in = kernel.prev(hn_in_opp);
-            h_in_opp = kernel.opp(hn_in);
+            h_new_in_opp = h_in_opp;
+            h_new_in = kernel.prev(h_new_in_opp);
+            h_in_opp = kernel.opp(h_new_in);
         }
         
         HalfEdgeID h_out_opp = kernel.opp(h_out);
-        HalfEdgeID hn_out,hn_out_opp;
+        HalfEdgeID h_new_out,h_new_out_opp;
         if(kernel.face(h_out_opp) != InvalidFaceID)
         {
-            hn_out = kernel.add_halfedge();
-            kernel.set_face(hn_out, InvalidFaceID);
-            glue(h_out_opp, hn_out);
+            // Create two boundary edges that for a wedge between
+            // h_out and h_out_opp -- if h_out_opp is not boundary
+            h_new_out = kernel.add_halfedge();
+            kernel.set_face(h_new_out, InvalidFaceID);
+            glue(h_out_opp, h_new_out);
             
-            hn_out_opp = kernel.add_halfedge();
-            kernel.set_face(hn_out_opp, InvalidFaceID);
-            glue(h_out, hn_out_opp);
+            h_new_out_opp = kernel.add_halfedge();
+            kernel.set_face(h_new_out_opp, InvalidFaceID);
+            glue(h_out, h_new_out_opp);
 
-            link(hn_out, hn_out_opp);
+            link(h_new_out, h_new_out_opp);
 
             VertexID v_o = kernel.vert(h_out);
-            kernel.set_vert(hn_out, v_o);
-            kernel.set_out(v_o, hn_out_opp);
+            kernel.set_vert(h_new_out, v_o);
+            kernel.set_out(v_o, h_new_out_opp);
         }
         else
         {
-            hn_out_opp = h_out_opp;
-            hn_out = kernel.next(hn_out_opp);
-            h_out_opp = kernel.opp(hn_out);
+            h_new_out_opp = h_out_opp;
+            h_new_out = kernel.next(h_new_out_opp);
+            h_out_opp = kernel.opp(h_new_out);
         }
         
-        link(hn_out_opp, hn_in_opp);
-        link(hn_in, hn_out);
+        link(h_new_out_opp, h_new_in_opp);
+        link(h_new_in, h_new_out);
         
-        kernel.set_vert(hn_in, v);
-        kernel.set_vert(hn_out_opp, v_new);
+        kernel.set_vert(h_new_in, v);
+        kernel.set_vert(h_new_out_opp, v_new);
         
-        kernel.set_out(v, hn_out);
-        kernel.set_out(v_new, hn_in_opp);
+        kernel.set_out(v, h_new_out);
+        kernel.set_out(v_new, h_new_in_opp);
         
         return v_new;
     }
 
     
-    HalfEdgeID Manifold::slit_edges(VertexAttributeVector<int>& insel)
+    HalfEdgeID Manifold::slit_edges(HMesh::VertexSet& insel)
     {
         HalfEdgeID h;
-        for(auto vid : vertices())
+        for(auto vid : insel)
         {
-            if(insel[vid])
+            HalfEdgeID h_in = InvalidHalfEdgeID, h_out = InvalidHalfEdgeID;
+            Walker w = walker(vid);
+            while(!w.full_circle())
             {
-                HalfEdgeID h_in = InvalidHalfEdgeID, h_out = InvalidHalfEdgeID;
-                Walker w = walker(vid);
-                while(!w.full_circle())
-                {
-                    if(insel[w.vertex()]) {
-                        if(h_in == InvalidHalfEdgeID) {
-                            if(w.opp().face() == InvalidFaceID)
-                                h_in = w.opp().next().opp().halfedge();
-                            else
-                                h_in = w.opp().halfedge();
-                        }
-                        else {
-                            if(w.face() == InvalidFaceID)
-                                h_out = w.prev().opp().halfedge();
-                            else
-                                h_out = w.halfedge();
-                            break;
-                        }
+                if(insel.count(w.vertex())) {
+                    if(h_in == InvalidHalfEdgeID) {
+                        if(w.opp().face() == InvalidFaceID)
+                            h_in = w.opp().next().opp().halfedge();
+                        else
+                            h_in = w.opp().halfedge();
                     }
-                    w = w.circulate_vertex_ccw();
+                    else {
+                        if(w.face() == InvalidFaceID)
+                            h_out = w.prev().opp().halfedge();
+                        else
+                            h_out = w.halfedge();
+                        break;
+                    }
                 }
-                if(h_in != InvalidHalfEdgeID &&
-                   h_out != InvalidHalfEdgeID) {
-                    VertexID v_new = slit_vertex(vid, h_in, h_out);
-                    h = walker(v_new).halfedge();
-                }
+                w = w.circulate_vertex_ccw();
+            }
+            if(h_in != InvalidHalfEdgeID &&
+               h_out != InvalidHalfEdgeID) {
+                VertexID v_new = slit_vertex(vid, h_in, h_out);
+                h = walker(v_new).halfedge();
             }
         }
         return h;
     }
-
+    
     
     void Manifold::flip_edge(HalfEdgeID h)
     {
@@ -1264,6 +1279,11 @@ namespace HMesh
                     return false;
                 }
                 VertexID ring_v = j.vertex();
+                if(!m.in_use(ring_v))
+                {
+                    cout << "Invalid vertex in one-ring of vertex" << endl;
+                    return false;
+                }
                 
                 // test one-ring for multiple occurences of vertex
                 if(find(link.begin(), link.end(), ring_v) != link.end()){
