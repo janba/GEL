@@ -50,45 +50,75 @@ namespace GLGraphics {
     {
         if(!load(file, mani))
             return false;
-        refit();
         return true;
     }
     
-    
-    bool VisObj::select_vertex(const CGLA::Vec2i& pos)
-    {
+    template<typename IDType>
+    bool VisObj::select_entity(const Vec2i& pos, vector<pair<IDType, Vec3d>>& item_vec,
+                               IDType invalid_id,
+                               set<IDType>& selection_set) {
         float d;
         if(depth_pick(pos[0], pos[1], d))
         {
             Vec3d c;
             float r;
             bsphere(mani, c, r);
-            VertexID closest = InvalidVertexID;
+            IDType closest = invalid_id;
             double min_dist = DBL_MAX;
-            for(auto vid : mani.vertices())
+            for(auto item : item_vec)
             {
-                Vec3d wp = world2screen(mani.pos(vid));
-                if(sqr_length(Vec2d(wp[0],wp[1])-Vec2d(pos))<100)
+                const Vec3d& p = item.second;
+                Vec3d wp = world2screen(p);
+                if(sqr_length(Vec2d(wp[0],wp[1])-Vec2d(pos))<300)
                 {
-                    double dist = sqr_length(screen2world(pos[0], pos[1], d)-mani.pos(vid));
+                    double dist = sqr_length(screen2world(pos[0], pos[1], d)-p);
                     if(dist < min_dist)
                     {
                         min_dist = dist;
-                        closest = vid;
+                        closest = item.first;
                     }
                 }
             }
-            if(closest != InvalidVertexID) {
-                vertex_selection.resize(mani.allocated_vertices(),0);
-                vertex_selection[closest] = !vertex_selection[closest];
-                active_selection = true;
+            if(closest != invalid_id)
+            {
+                auto info = selection_set.insert(closest);
+                if(info.second == false)
+                    selection_set.erase(info.first);
                 post_create_display_list();
                 return true;
+
             }
         }
         return false;
-        
     }
+    
+    bool VisObj::select_vertex(const CGLA::Vec2i& pos)
+    {
+        vector<pair<VertexID, Vec3d>> vertex_vec;
+        for(auto v: mani.vertices())
+            vertex_vec.push_back(make_pair(v, mani.pos(v)));
+        return select_entity(pos, vertex_vec, InvalidVertexID, vertex_selection);
+    }
+
+    bool VisObj::select_face(const CGLA::Vec2i& pos)
+    {
+        vector<pair<FaceID, Vec3d>> face_vec;
+        for(auto f: mani.faces())
+            face_vec.push_back(make_pair(f, centre(mani, f)));
+        return select_entity(pos, face_vec, InvalidFaceID, face_selection);
+    }
+
+    bool VisObj::select_halfedge(const CGLA::Vec2i& pos)
+    {
+        vector<pair<HalfEdgeID, Vec3d>> half_edge_vec;
+        for(auto h: mani.halfedges()) {
+            Walker w = mani.walker(h);
+            if(w.halfedge()<w.opp().halfedge())
+                half_edge_vec.push_back(make_pair(h,0.5*(mani.pos(w.vertex())+mani.pos(w.opp().vertex()))));
+        }
+        return select_entity(pos, half_edge_vec, InvalidHalfEdgeID, halfedge_selection);
+    }
+
 
     void VisObj::produce_renderer(const std::string& display_method , Console& cs, bool smooth, float gamma)
     {
@@ -256,19 +286,46 @@ namespace GLGraphics {
         float r = view_ctrl.get_eye_dist();
         r *= 0.003;
         glDisable(GL_LIGHTING);
-        for(auto vid : mani.vertices())
+        glDepthFunc(GL_LEQUAL);
+        glColor3f(1,1,0);
+
+        for(auto vid : vertex_selection)
+            if(mani.in_use(vid))
+            {
+                Vec3d p = mani.pos(vid);
+                glPushMatrix();
+                glTranslated(p[0], p[1], p[2]);
+                glScalef(r, r, r);
+                draw_ball();
+                glPopMatrix();
+            }
+        glColor3f(1,.8,0);
+        for(auto fid: face_selection)
         {
-            Vec3d p = mani.pos(vid);
-            if(vertex_selection[vid])
-                glColor3f(1,1,0);
-            else
-                glColor3f(0, 0, 0.3);
-            glPushMatrix();
-            glTranslated(p[0], p[1], p[2]);
-            glScalef(r, r, r);
-            draw_ball();
-            glPopMatrix();
+            if(mani.in_use(fid))
+            {
+                glBegin(GL_POLYGON);
+                circulate_face_ccw(mani, fid, [&](VertexID v){
+                    glVertex3dv(mani.pos(v).get());
+                });
+                glEnd();
+            }
         }
+        glColor3f(1,.6,0);
+        for(auto hid: halfedge_selection)
+        {
+            glLineWidth(10);
+            if(mani.in_use(hid))
+            {
+                Walker w = mani.walker(hid);
+                glBegin(GL_LINES);
+                glVertex3dv(mani.pos(w.vertex()).get());
+                glVertex3dv(mani.pos(w.opp().vertex()).get());
+                glEnd();
+            }
+            glLineWidth(1);
+        }
+        glDepthFunc(GL_LESS);
         glEnable(GL_LIGHTING);
     }
 
@@ -281,7 +338,9 @@ namespace GLGraphics {
         }
         view_ctrl.set_gl_modelview();
         renderer->draw();
-        if(active_selection)
+        if(!vertex_selection.empty() ||
+           !face_selection.empty() ||
+           !halfedge_selection.empty())
             draw_selection();
     }
 }
