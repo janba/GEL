@@ -23,13 +23,7 @@
 #include <GLGraphics/glsl_shader.h>
 #include <GLGraphics/ShadowBuffer.h>
 
-#include <CGLA/eigensolution.h>
-#include <CGLA/Vec2d.h>
-#include <CGLA/Vec3d.h>
-#include <CGLA/Mat3x3d.h>
-#include <CGLA/Mat2x2d.h>
-#include <CGLA/Mat2x3d.h>
-#include <CGLA/Mat4x4d.h>
+#include <CGLA/CGLA.h>
 
 #include <HMesh/Manifold.h>
 #include <HMesh/AttributeVector.h>
@@ -217,29 +211,99 @@ namespace GLGraphics {
         void console_scale(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)) {
-                me->printf("usage: scale sx sy sz");
+                me->printf("usage: transform.scale sx sy sz");
+                me->printf("Note: If only sx is provided, uniform scaling is applied");
                 return;
             }
             
             Vec3d s;
-            
             if(args.size() > 0){
                 istringstream a0(args[0]);
-                a0 >> s[0];
+                double scale;
+                a0 >> scale;
+                s = Vec3d(scale);
             }
             if(args.size() > 1){
-                istringstream a0(args[0]);
+                istringstream a0(args[1]);
                 a0 >> s[1];
             }
             if(args.size() > 2){
-                istringstream a0(args[0]);
+                istringstream a0(args[2]);
                 a0 >> s[2];
             }
             
             me->save_active_mesh();
             transform_mesh(me->active_mesh(),scaling_Mat4x4d(s));
-            me->refit();
         }
+
+        void console_rotate(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: transform.rotate axis_x axis_y axis_z angle");
+                return;
+            }
+            
+            Vec3d a;
+            double angle;
+            
+            if(args.size() > 0){
+                istringstream a0(args[0]);
+                a0 >> a[0];
+            }
+            if(args.size() > 1){
+                istringstream a0(args[1]);
+                a0 >> a[1];
+            }
+            if(args.size() > 2){
+                istringstream a0(args[2]);
+                a0 >> a[2];
+            }
+            if(args.size() > 3){
+                istringstream a0(args[3]);
+                a0 >> angle;
+            }
+            
+            me->save_active_mesh();
+            Quatd q;
+            q.make_rot(angle, a);
+            transform_mesh(me->active_mesh(),q.get_Mat4x4d());
+        }
+
+        
+        void console_translate(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: transform.translate tx ty tz");
+                me->printf("Note: recenters if no arguments are provided.");
+                return;
+            }
+            
+            Vec3d t;
+            
+            if(args.size()==0)
+            {
+                float rad;
+                bsphere(me->active_mesh(), t, rad);
+            }
+            else {
+                if(args.size() > 0){
+                    istringstream a0(args[0]);
+                    a0 >> t[0];
+                }
+                if(args.size() > 1){
+                    istringstream a0(args[0]);
+                    a0 >> t[1];
+                }
+                if(args.size() > 2){
+                    istringstream a0(args[0]);
+                    a0 >> t[2];
+                }
+            }
+            
+            me->save_active_mesh();
+            transform_mesh(me->active_mesh(),translation_Mat4x4d(-t));
+        }
+
         
         void console_merge_1_ring(MeshEditor* me, const std::vector<std::string> & args)
         {
@@ -250,10 +314,151 @@ namespace GLGraphics {
             me->save_active_mesh();
             Manifold& m = me->active_mesh();
             auto sel = me->get_vertex_selection();
-            for(auto v: m.vertices())
-                if(m.in_use(v) && sel[v]==1)
+            for(auto v: sel)
+                if(m.in_use(v))
                     m.merge_one_ring(v);
         }
+        
+        
+        void console_flip_edge(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: edit.selected.flip_edge");
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            auto sel = me->get_halfedge_selection();
+            for(auto h: sel)
+                if(m.in_use(h) && precond_flip_edge(m, h))
+                    m.flip_edge(h);
+        }
+
+        void console_collapse_edge(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: edit.selected.collapse_edge");
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            auto sel = me->get_halfedge_selection();
+            for(auto h: sel)
+                if(m.in_use(h) && precond_collapse_edge(m, h))
+                    m.collapse_edge(h);
+        }
+
+        void console_dissolve_edge(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: edit.selected.dissolve_edge");
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            auto sel = me->get_halfedge_selection();
+            for(auto h: sel)
+                if(m.in_use(h))
+                    m.merge_faces(m.walker(h).face(), h);
+        }
+        
+        void console_split_edge(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: edit.selected.split_edge");
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            auto sel = me->get_halfedge_selection();
+            for(auto h: sel)
+                if(m.in_use(h))
+                    m.split_edge(h);
+        }
+        
+        void console_stellate_face(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: edit.selected.stellate_face");
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            auto sel = me->get_face_selection();
+            for(auto f: sel)
+                if(m.in_use(f))
+                    m.split_face_by_vertex(f);
+        }
+        
+        
+        void console_triangulate_face(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: edit.selected.triangulate_face");
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            auto sel = me->get_face_selection();
+            for(auto f: sel)
+                if(m.in_use(f))
+                    triangulate_face_by_edge_split(m, f);
+        }
+
+        void console_delete(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: edit.selected.merge_1_ring");
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            auto vsel = me->get_vertex_selection();
+            auto hsel = me->get_halfedge_selection();
+            auto fsel = me->get_face_selection();
+            for(auto v: vsel)
+                if(m.in_use(v))
+                    m.remove_vertex(v);
+            for(auto h: hsel)
+                if(m.in_use(h))
+                    m.remove_edge(h);
+
+            for(auto f: fsel)
+                if(m.in_use(f))
+                    m.remove_face(f);
+        }
+        
+        void console_split_face(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: edit.selected.split_face");
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            auto vsel = me->get_vertex_selection();
+            auto fsel = me->get_face_selection();
+            for(auto f: fsel)
+                if(m.in_use(f))
+                {
+                    VertexID v0=InvalidVertexID,v1=InvalidVertexID;
+                    circulate_face_ccw(m, f, [&](VertexID v){
+                        if(vsel.count(v))
+                        {
+                            if(v0==InvalidVertexID)
+                                v0 = v;
+                            else
+                                v1 = v;
+                        
+                        }
+                    
+                    });
+                    m.split_face_by_edge(f, v0, v1);
+                }
+        }
+        
+
+
         
         
         void console_refit_trackball(MeshEditor* me, const std::vector<std::string> & args)
@@ -276,38 +481,6 @@ namespace GLGraphics {
             me->save_active_mesh();
             me->active_mesh().slit_edges(me->get_vertex_selection());
         }
-
-        
-//        void console_flatten(MeshEditor* me, const std::vector<std::string> & args)
-//        {
-//            if(wantshelp(args)) {
-//                me->printf("usage: flatten <floater|harmonic|barycentric>");
-//                me->printf("This function flattens a meshs with a simple boundary. It is mostly for showing mesh");
-//                me->printf("parametrization methods. The current mesh MUST have a SINGLE boundary loop");
-//                me->printf("This loop is mapped to the unit circle in a regular fashion (equal angle intervals).");
-//                me->printf("All non boundary vertices are placed at the origin. Then the system is relaxed iteratively");
-//                me->printf("using the weight scheme given as argument.");
-//                return;
-//            }
-//            
-//            me->save_active_mesh();
-//            
-//            WeightScheme ws = BARYCENTRIC_W;
-//            if(args.size()>0){
-//                if(args[0] == "floater")
-//                    ws = FLOATER_W;
-//                else if(args[0] == "harmonic")
-//                    ws = HARMONIC_W;
-//                else if(args[0] == "lscm")
-//                    ws = LSCM_W;
-//            }
-//            else
-//                return;
-//            
-//            flatten(me->active_mesh(), ws);
-//            
-//            return;
-//        }
         
         void console_save(MeshEditor* me, const std::vector<std::string> & args)
         {
@@ -1409,7 +1582,9 @@ namespace GLGraphics {
                 case 'G':
                     display_render_mode = "gaussian_curvature"; break;
                 case ' ':
-                    active_visobj().clear_selection();
+                    active_visobj().clear_vertex_selection();
+                    active_visobj().clear_face_selection();
+                    active_visobj().clear_halfedge_selection();
                     break;
                 
             }
@@ -1495,7 +1670,29 @@ namespace GLGraphics {
             Vec3d p1 = screen2world(pos[0], pos[1], depth);
             Vec3d v = p1-p0;
             Manifold& m = active_mesh();
-            for(auto vid : m.vertices())
+            auto vset = active_visobj().get_vertex_selection();
+            auto hset = active_visobj().get_halfedge_selection();
+            auto fset = active_visobj().get_face_selection();
+            
+            if(!vset.empty())
+                for(auto vid : vset)
+                    m.pos(vid) = active_visobj().mesh_old().pos(vid) + v;
+            else if(!hset.empty())
+                for(auto h : hset) {
+                    Walker w = m.walker(h);
+                    auto vid0 = w.vertex();
+                    auto vid1 = w.opp().vertex();
+                    m.pos(vid0) = active_visobj().mesh_old().pos(vid0) + v;
+                    m.pos(vid1) = active_visobj().mesh_old().pos(vid1) + v;
+                }
+            else if(!fset.empty())
+                for(auto f: fset)
+                {
+                    circulate_face_ccw(m, f, [&](VertexID vid){
+                        m.pos(vid) = active_visobj().mesh_old().pos(vid) + v;
+                    });
+                }
+            else for(auto vid : m.vertices())
                 m.pos(vid) = active_visobj().mesh_old().pos(vid) + weight_vector[vid] * v;
             post_create_display_list();
             return true;
@@ -1511,7 +1708,7 @@ namespace GLGraphics {
     
     
     
-    mutex parallel_work;
+//    mutex parallel_work;
     void MeshEditor::display(int scale){
 
         // Clear screen.
@@ -1742,9 +1939,23 @@ namespace GLGraphics {
         register_console_function("display.load_trackball", console_load_trackball, "Load trackball to disk");
         
         register_console_function("transform.scale", console_scale, "Scale mesh");
+        register_console_function("transform.rotate", console_rotate, "Rotate mesh");
+        register_console_function("transform.translate", console_translate, "Translate mesh");
+        
         register_console_function("edit.selected.merge_1_ring", console_merge_1_ring, "Merge 1-ring of selected vertices");
         
+        register_console_function("edit.selected.split_edge", console_split_edge , "");
+        register_console_function("edit.selected.collapse_edge", console_collapse_edge, "");
+        register_console_function("edit.selected.flip_edge", console_flip_edge, "");
+        register_console_function("edit.selected.dissolve_edge", console_dissolve_edge, "");
+        register_console_function("edit.selected.stellate_face", console_stellate_face, "");
+        register_console_function("edit.selected.split_face", console_split_face, "");
+        register_console_function("edit.selected.delete", console_delete, "");
+        register_console_function("edit.selected.triangulate_face", console_triangulate_face, "");
+
         register_console_function("test", console_test, "Test some shit");
+        
+        selection_mode.reg(theConsole, "selection.mode", "The selection mode. 0 = vertex, 1 = halfedge, 2 = face");
         active.reg(theConsole, "active_mesh", "The active mesh");
         display_render_mode.reg(theConsole, "display.render_mode", "Display render mode");
         brush_size.reg(theConsole, "brush_size", "Size of brush used for editing");
