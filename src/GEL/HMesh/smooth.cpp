@@ -56,14 +56,6 @@ namespace HMesh
     void for_each_halfedge(Manifold& m, function<void(HalfEdgeID)> f) { for(auto h : m.halfedges()) f(h); }
 
     
-    inline Vec3d laplacian(const Manifold& m, VertexID v)
-    {
-        Vec3d p(0);
-        int n = circulate_vertex_ccw(m, v, static_cast<std::function<void(VertexID)>>([&](VertexID v){ p += m.pos(v); }));
-        return p / n - m.pos(v);
-    }
-    
-    
     int CORES = 8;
     
     void laplacian_smooth_example(Manifold& m)
@@ -230,7 +222,7 @@ namespace HMesh
         auto batch_size = m.no_vertices()/CORES;
         int cnt = 0;
         for_each_vertex(m, [&](VertexID v) {
-            //if (!boundary(m, v))
+            if (!boundary(m, v))
                 vertex_ids[(cnt++/batch_size)%CORES].push_back(v);
         });
         return vertex_ids;

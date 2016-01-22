@@ -345,7 +345,7 @@ namespace GLGraphics {
             auto sel = me->get_halfedge_selection();
             for(auto h: sel)
                 if(m.in_use(h) && precond_collapse_edge(m, h))
-                    m.collapse_edge(h);
+                    m.collapse_edge(h,true);
         }
 
         void console_dissolve_edge(MeshEditor* me, const std::vector<std::string> & args)
@@ -404,6 +404,79 @@ namespace GLGraphics {
                 if(m.in_use(f))
                     triangulate_face_by_edge_split(m, f);
         }
+        
+        void console_bridge_faces(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: edit.selected.bridge_faces");
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            auto sel = me->get_face_selection();
+            if(sel.size() != 2) {
+                me->printf("You must select exactly two faces");
+                return;
+            }
+
+            int i=0;
+            FaceID f0, f1;
+            for(auto f: sel)
+            {
+                int n = no_edges(m, f);
+                if(i==0) {
+                    f0 = f;
+                    i+= n;
+                }
+                else {
+                    i-= n;
+                    f1 = f;
+                }
+            }
+            if(i!= 0){
+                me->printf("The selected faces must have same number of edges");
+                return;
+            }
+            vector<VertexID> loop0;
+            circulate_face_ccw(m, f0, [&](VertexID v) {
+                loop0.push_back(v);
+            });
+            
+            vector<VertexID> loop1;
+            circulate_face_ccw(m, f1, [&](VertexID v) {
+                loop1.push_back(v);
+            });
+            
+            vector<pair<VertexID, VertexID> > connections;
+            
+            size_t L0= loop0.size();
+            size_t L1= loop1.size();
+            
+            assert(L0==L1);
+            
+            size_t L = L0;
+            
+            float min_len = FLT_MAX;
+            int j_off_min_len = -1;
+            for(int j_off = 0; j_off < L; ++j_off)
+            {
+                float len = 0;
+                for(int i=0;i<L;++i)
+                    len += sqr_length(m.pos(loop0[i]) - m.pos(loop1[(L+j_off - i)%L]));
+                if(len < min_len)
+                {
+                    j_off_min_len = j_off;
+                    min_len = len;
+                }
+            }
+            for(int i=0;i<L;++i)
+                connections.push_back(pair<VertexID, VertexID>(loop0[i],loop1[(L+ j_off_min_len - i)%L]));
+            // Merge the two one rings producing two faces.
+            
+            // Bridge the just created faces.
+            vector<HalfEdgeID> newhalfedges = m.bridge_faces(f0, f1, connections);
+        }
+
 
         void console_delete(MeshEditor* me, const std::vector<std::string> & args)
         {
@@ -648,6 +721,21 @@ namespace GLGraphics {
             remove_duplicates(me->active_mesh(), r * rad);
             return;
         }
+        
+        void console_compact(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: cleanup.compact");
+                me->printf("Removes unreferenced vertices");
+                
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            m.cleanup();
+            return;
+        }
+
 
         
         void console_remove_val2(MeshEditor* me, const std::vector<std::string> & args)
@@ -1144,12 +1232,15 @@ namespace GLGraphics {
             }
             
             Vec3d p0, p7;
-            bbox(me->active_mesh(), p0, p7);
+            Manifold m = me->active_mesh();
+            bbox(m, p0, p7);
             Vec3d d = p7-p0;
-            float s = 1.0/d.max_coord();
+            float s = d.max_coord();
             Vec3d pcentre = (p7+p0)/2.0;
-            for(VertexIDIterator vi = me->active_mesh().vertices_begin(); vi != me->active_mesh().vertices_end(); ++vi){
-                me->active_mesh().pos(*vi) = (me->active_mesh().pos(*vi) - pcentre) * s;
+            for(VertexID v: m.vertices())
+            {
+                m.pos(v) -= pcentre;
+                m.pos(v) /= s;
             }
             cout << "Timing the Garland Heckbert (quadric based) mesh simplication..." << endl;
             Timer timer;
@@ -1160,11 +1251,11 @@ namespace GLGraphics {
             
             cout << "Simplification complete, process time: " << timer.get_secs() << " seconds" << endl;
             
-            //clean up the mesh, a lot of edges were just collapsed
-            me->active_mesh().cleanup();
-            
-            for(VertexIDIterator vi = me->active_mesh().vertices_begin(); vi != me->active_mesh().vertices_end(); ++vi)
-                me->active_mesh().pos(*vi) = me->active_mesh().pos(*vi)*d.max_coord() + pcentre;
+            for(VertexID v: m.vertices())
+            {
+                m.pos(v) *= s;
+                m.pos(v) += pcentre;
+            }
             return;
         }
         
@@ -1664,6 +1755,50 @@ namespace GLGraphics {
     
     bool MeshEditor::drag_mesh(const CGLA::Vec2i& pos)
     {
+        auto deform_mesh = [&](Manifold& m, VertexAttributeVector<float>& wv, Vec3d& v)
+        {
+            const Manifold& m_old = active_visobj().mesh_old();
+            VertexAttributeVector<Vec3d> new_pos;
+            for(auto vid : m_old.vertices())
+                new_pos[vid] = m_old.pos(vid) + weight_vector[vid] * v;
+            m.positions_attribute_vector() = new_pos;
+        };
+        
+        
+        auto inflate_mesh = [&](Manifold& m, VertexAttributeVector<float>& wv, const Vec3d& p0)
+        {
+            Vec3d c;
+            float r;
+            bsphere(m, c, r);
+            VertexAttributeVector<Vec3d> new_pos;
+            for(auto vid : m.vertices()) {
+                Vec3d p = m.pos(vid);
+                double l = sqr_length(p0-p);
+                double wgt = exp(-l/(brush_size*r*r));
+                new_pos[vid] = m.pos(vid) +
+                wgt * (0.25 * laplacian(m, vid) + (r*0.0025)*normal(m, vid));
+            }
+            m.positions_attribute_vector() = new_pos;
+        };
+        
+        
+        auto smooth_mesh = [&](Manifold& m, VertexAttributeVector<float>& wv, const Vec3d& p0)
+        {
+            Vec3d c;
+            float r;
+            bsphere(m, c, r);
+            VertexAttributeVector<Vec3d> new_pos;
+            for(auto vid : m.vertices()) {
+                Vec3d p = m.pos(vid);
+                double l = sqr_length(p0-p);
+                double wgt = exp(-l/(brush_size*r*r));
+                new_pos[vid] = m.pos(vid) +
+                wgt * 0.5 * laplacian(m, vid);
+            }
+            m.positions_attribute_vector() = new_pos;
+        };
+
+        
         if(dragging)
         {
             Vec3d p0 = screen2world(mouse_x, mouse_y, depth);
@@ -1692,8 +1827,15 @@ namespace GLGraphics {
                         m.pos(vid) = active_visobj().mesh_old().pos(vid) + v;
                     });
                 }
-            else for(auto vid : m.vertices())
-                m.pos(vid) = active_visobj().mesh_old().pos(vid) + weight_vector[vid] * v;
+            else {
+                if(string(brush_type) == "smooth")
+                    smooth_mesh(m, weight_vector, p1);
+                else if(string(brush_type) == "inflate")
+                    inflate_mesh(m, weight_vector, p1);
+                else if(string(brush_type) == "deform")
+                    deform_mesh(m, weight_vector, v);
+            }
+            
             post_create_display_list();
             return true;
         }
@@ -1895,7 +2037,6 @@ namespace GLGraphics {
         register_console_function("optimize.minimize_dihedral_angles", console_minimize_dihedral,"");
         register_console_function("optimize.minimize_curvature", console_minimize_curvature,"");
         register_console_function("optimize.maximize_min_angle", console_maximize_min_angle,"");
-        register_console_function("cleanup.close_holes", console_close_holes,"");
         register_console_function("load_mesh", console_reload,"");
         register_console_function("add_mesh", console_add_mesh,"");
         
@@ -1905,6 +2046,9 @@ namespace GLGraphics {
         register_console_function("cleanup.flip_orientation", console_flip_orientation,"");
         register_console_function("cleanup.remove_caps", console_remove_caps,"");
         register_console_function("cleanup.remove_needles", console_remove_needles,"");
+        register_console_function("cleanup.close_holes", console_close_holes,"");
+        register_console_function("cleanup.compact", console_compact,"");
+
         register_console_function("triangulate", console_triangulate,"");
         register_console_function("refine.split_edges", console_refine_edges,"");
         register_console_function("refine.split_faces", console_refine_faces,"");
@@ -1952,13 +2096,16 @@ namespace GLGraphics {
         register_console_function("edit.selected.split_face", console_split_face, "");
         register_console_function("edit.selected.delete", console_delete, "");
         register_console_function("edit.selected.triangulate_face", console_triangulate_face, "");
+        register_console_function("edit.selected.bridge_faces", console_bridge_faces, "");
 
         register_console_function("test", console_test, "Test some shit");
         
         selection_mode.reg(theConsole, "selection.mode", "The selection mode. 0 = vertex, 1 = halfedge, 2 = face");
         active.reg(theConsole, "active_mesh", "The active mesh");
         display_render_mode.reg(theConsole, "display.render_mode", "Display render mode");
-        brush_size.reg(theConsole, "brush_size", "Size of brush used for editing");
+        brush_size.reg(theConsole, "brush.size", "Size of brush used for editing");
+        brush_type.reg(theConsole, "brush.type", "smooth, deform, or inflate");
+        
         display_smooth_shading.reg(theConsole, "display.smooth_shading", "1 for smooth shading 0 for flat");
         display_gamma.reg(theConsole, "display.gamma", "The gamma setting for the display");
 

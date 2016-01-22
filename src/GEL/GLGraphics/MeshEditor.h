@@ -22,7 +22,6 @@ namespace GLGraphics {
     class MeshEditor
     {
         bool console_visible = false;
-        
         bool dragging = false;
         int mouse_x, mouse_y;
         float depth;
@@ -41,6 +40,7 @@ namespace GLGraphics {
         }
 
         Console theConsole;
+        Console::variable<std::string> brush_type;
         Console::variable<int> selection_mode;
         Console::variable<int> active;
         Console::variable<std::string> display_render_mode;
@@ -50,6 +50,7 @@ namespace GLGraphics {
 
     public:
         MeshEditor():
+        brush_type("smooth"),
         selection_mode(0),
         active(0),
         display_render_mode("normal"),

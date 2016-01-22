@@ -222,6 +222,7 @@
 		0D52EC50197D1E23002C7150 /* string_utils.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB57197D18C1002C7150 /* string_utils.h */; };
 		0D52EC51197D1E23002C7150 /* Timer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB58197D18C1002C7150 /* Timer.h */; };
 		0D52EC52197D1E23002C7150 /* XmlParser.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB5A197D18C1002C7150 /* XmlParser.h */; };
+		0D6583DB1C1871DF005C966A /* Graph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6583D91C1871DF005C966A /* Graph.cpp */; };
 		0D859997193D01B6009DB071 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D859996193D01B6009DB071 /* Cocoa.framework */; };
 		0D8599A1193D01B6009DB071 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0D85999F193D01B6009DB071 /* InfoPlist.strings */; };
 		0DA848C4193D02520067DA3B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DA848C3193D02520067DA3B /* OpenGL.framework */; };
@@ -642,6 +643,8 @@
 		0D52EB59197D18C1002C7150 /* XmlParser.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = XmlParser.cpp; sourceTree = "<group>"; };
 		0D52EB5A197D18C1002C7150 /* XmlParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XmlParser.h; sourceTree = "<group>"; };
 		0D57306D1ABB570900F33E40 /* CGLA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CGLA.h; sourceTree = "<group>"; };
+		0D6583D91C1871DF005C966A /* Graph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Graph.cpp; sourceTree = "<group>"; };
+		0D6583DA1C1871DF005C966A /* Graph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Graph.h; sourceTree = "<group>"; };
 		0D859993193D01B6009DB071 /* GEL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GEL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D859996193D01B6009DB071 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		0D859999193D01B6009DB071 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -706,6 +709,7 @@
 				0D52EABF197D18C1002C7150 /* geo_load.cpp */,
 				0D52EAC0197D18C1002C7150 /* geo_obj_load.cpp */,
 				0D52EAC1197D18C1002C7150 /* GradientFilter.cpp */,
+				0D6583D91C1871DF005C966A /* Graph.cpp */,
 				0D52EAC5197D18C1002C7150 /* Implicit.cpp */,
 				0D52EACA197D18C1002C7150 /* load_raw.cpp */,
 				0D52EACD197D18C1002C7150 /* Neighbours.cpp */,
@@ -869,6 +873,7 @@
 				0D52EABB197D18C1002C7150 /* BSPTree.h */,
 				0D52EABD197D18C1002C7150 /* build_bbtree.h */,
 				0D52EABE197D18C1002C7150 /* Cell.h */,
+				0D6583DA1C1871DF005C966A /* Graph.h */,
 				0D52EAC2197D18C1002C7150 /* GradientFilter.h */,
 				0D52EAC3197D18C1002C7150 /* GridAlgorithm.h */,
 				0D52EAC4197D18C1002C7150 /* HGrid.h */,
@@ -1153,6 +1158,7 @@
 				0D52EB81197D18C1002C7150 /* TriMesh.cpp in Sources */,
 				0D52EB7B197D18C1002C7150 /* rply.c in Sources */,
 				0D52EB76197D18C1002C7150 /* load_raw.cpp in Sources */,
+				0D6583DB1C1871DF005C966A /* Graph.cpp in Sources */,
 				0D52EB94197D18C1002C7150 /* VisObj.cpp in Sources */,
 				0D52EB9D197D18C1002C7150 /* mesh_optimization.cpp in Sources */,
 				0D52EB6A197D18C1002C7150 /* AABox.cpp in Sources */,
