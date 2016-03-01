@@ -162,7 +162,38 @@ namespace GLGraphics
     "	\n"
     "	gl_FragColor = d+s;\n"
     "}\n";
+
+    const string GhostRenderer::vss =
+    "varying vec3 _n;\n"
+    "varying vec3 v;\n"
+    "\n"
+    "void main(void)\n"
+    "{\n"
+    "	gl_Position = ftransform();\n"
+    "	v = vec3(gl_ModelViewMatrix * gl_Vertex);\n"
+    "	_n = normalize(gl_NormalMatrix * gl_Normal);\n"
+    "}\n";
     
+    const string GhostRenderer::fss =
+    "varying vec3 _n;\n"
+    "varying vec3 v;\n"
+    "\n"
+    "void main(void)\n"
+    "{\n"
+    "   vec3 n = normalize(_n);\n"
+    "	vec3 l = normalize(-v);\n"
+    "	vec3 e = l;\n"
+    "	vec3 r = normalize(2.0*dot(l, n)*n - l);\n"
+    "	\n"
+    "	vec4 a = vec4(0.0,0.1,.3,1.0);\n"
+    "   float dot_ln = abs(dot(l, n));\n"
+    "	vec4 d = vec4(0.7)*dot_ln;\n"
+    "	vec4 s = vec4(0.3)*smoothstep(0.98,0.9999,dot(r, e));\n"
+    "	\n"
+    "	gl_FragColor = vec4(0.85);\n"
+    "   gl_FragDepth = 0.999;"
+    "}\n";
+
     const string DebugRenderer::vss =
     "varying vec3 _n;\n"
     "varying vec3 v;\n"

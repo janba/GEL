@@ -119,7 +119,8 @@ namespace GLGraphics {
         
 	};
     
-    /** Ugly basic gouraud rendering. This class uses OpenGL's fixed function pipeline. */
+    
+    /** Basic Phong. */
     class NormalRenderer: public SimpleShaderRenderer
     {
         const static std::string vss;
@@ -129,7 +130,18 @@ namespace GLGraphics {
         NormalRenderer():
         SimpleShaderRenderer(vss, fss) {}
     };
-    
+
+    /** Ghostly rendering */
+    class GhostRenderer: public SimpleShaderRenderer
+    {
+        const static std::string vss;
+        const static std::string fss;
+        
+    public:
+        GhostRenderer():
+        SimpleShaderRenderer(vss, fss) {}
+    };
+
     /** Debug renderer. Color code faces and show vertices as balls.*/
     class DebugRenderer: public SimpleShaderRenderer
     {

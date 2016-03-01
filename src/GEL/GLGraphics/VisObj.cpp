@@ -270,6 +270,11 @@ namespace GLGraphics {
             renderer = new LineFieldRenderer();
             dynamic_cast<LineFieldRenderer*>(renderer)->compile_display_list(mani, get_line_field_attrib_vector());
         }
+        else if(short_name == "ghs")
+        {
+            renderer = new GhostRenderer();
+            dynamic_cast<GhostRenderer*>(renderer)->compile_display_list(mani,smooth);
+        }
         else {
             renderer = new NormalRenderer();
             renderer->compile_display_list(mani, smooth);
@@ -342,5 +347,7 @@ namespace GLGraphics {
            !face_selection.empty() ||
            !halfedge_selection.empty())
             draw_selection();
+        if(!graph.empty())
+            draw(graph);
     }
 }

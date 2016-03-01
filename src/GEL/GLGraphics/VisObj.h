@@ -14,6 +14,7 @@
 #include "../GL/glew.h"
 #include "../HMesh/Manifold.h"
 #include "../CGLA/Vec3d.h"
+#include "../Geometry/Graph.h"
 #include "../GLGraphics/draw.h"
 #include "../GLGraphics/Console.h"
 #include "../GLGraphics/GLViewController.h"
@@ -33,6 +34,8 @@ class VisObj
     
     HMesh::Manifold mani;
     HMesh::Manifold old_mani;
+    
+    Geometry::AMGraph3D graph;
     
     GLGraphics::ManifoldRenderer* renderer = nullptr;
     
@@ -103,6 +106,8 @@ public:
     
     HMesh::Manifold& mesh() {return mani;}
     const HMesh::Manifold& mesh_old() const {return old_mani;}
+    
+    Geometry::AMGraph3D& get_graph() {return graph;}
     
     void save_old() {old_mani = mani;}
     void restore_old() {mani = old_mani;}

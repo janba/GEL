@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0D1028351C74CC9E00250431 /* Graph.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D1028331C74A95200250431 /* Graph.h */; };
+		0D1028361C74D1BC00250431 /* Range.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D1028341C74B10600250431 /* Range.h */; };
+		0D37DF941C8591FF00CD0A07 /* AttribVec.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D37DF931C85905A00CD0A07 /* AttribVec.h */; };
 		0D52EB5B197D18C1002C7150 /* ArithSqMat3x3Float.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EA72197D18C1002C7150 /* ArithSqMat3x3Float.cpp */; };
 		0D52EB5C197D18C1002C7150 /* ArithSqMat4x4Float.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EA74197D18C1002C7150 /* ArithSqMat4x4Float.cpp */; };
 		0D52EB5D197D18C1002C7150 /* ArithVec2Float.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EA78197D18C1002C7150 /* ArithVec2Float.cpp */; };
@@ -294,6 +297,7 @@
 			dstPath = ../Headers/Geometry;
 			dstSubfolderSpec = 7;
 			files = (
+				0D1028351C74CC9E00250431 /* Graph.h in CopyFiles */,
 				0D52EBF1197D1DB9002C7150 /* AABox.h in CopyFiles */,
 				0D52EBF2197D1DB9002C7150 /* AncestorGrid.h in CopyFiles */,
 				0D52EBF3197D1DB9002C7150 /* BBox.h in CopyFiles */,
@@ -414,6 +418,8 @@
 			dstPath = ../Headers/Util;
 			dstSubfolderSpec = 7;
 			files = (
+				0D37DF941C8591FF00CD0A07 /* AttribVec.h in CopyFiles */,
+				0D1028361C74D1BC00250431 /* Range.h in CopyFiles */,
 				0D52EC4A197D1E23002C7150 /* ArgExtracter.h in CopyFiles */,
 				0D52EC4B197D1E23002C7150 /* Grid2D.h in CopyFiles */,
 				0D52EC4E197D1E23002C7150 /* Parse.h in CopyFiles */,
@@ -426,7 +432,10 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		0D1028331C74A95200250431 /* Graph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Graph.h; sourceTree = "<group>"; };
+		0D1028341C74B10600250431 /* Range.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Range.h; sourceTree = "<group>"; };
 		0D2378ED1ABB593200874F06 /* HMesh.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = HMesh.h; sourceTree = "<group>"; };
+		0D37DF931C85905A00CD0A07 /* AttribVec.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AttribVec.h; sourceTree = "<group>"; };
 		0D52EA6F197D18C1002C7150 /* ArithMatFloat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithMatFloat.h; sourceTree = "<group>"; };
 		0D52EA70197D18C1002C7150 /* ArithQuat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithQuat.h; sourceTree = "<group>"; };
 		0D52EA71197D18C1002C7150 /* ArithSqMat2x2Float.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithSqMat2x2Float.h; sourceTree = "<group>"; };
@@ -644,7 +653,6 @@
 		0D52EB5A197D18C1002C7150 /* XmlParser.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = XmlParser.h; sourceTree = "<group>"; };
 		0D57306D1ABB570900F33E40 /* CGLA.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CGLA.h; sourceTree = "<group>"; };
 		0D6583D91C1871DF005C966A /* Graph.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Graph.cpp; sourceTree = "<group>"; };
-		0D6583DA1C1871DF005C966A /* Graph.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Graph.h; sourceTree = "<group>"; };
 		0D859993193D01B6009DB071 /* GEL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = GEL.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 		0D859996193D01B6009DB071 /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		0D859999193D01B6009DB071 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
@@ -873,7 +881,6 @@
 				0D52EABB197D18C1002C7150 /* BSPTree.h */,
 				0D52EABD197D18C1002C7150 /* build_bbtree.h */,
 				0D52EABE197D18C1002C7150 /* Cell.h */,
-				0D6583DA1C1871DF005C966A /* Graph.h */,
 				0D52EAC2197D18C1002C7150 /* GradientFilter.h */,
 				0D52EAC3197D18C1002C7150 /* GridAlgorithm.h */,
 				0D52EAC4197D18C1002C7150 /* HGrid.h */,
@@ -900,6 +907,7 @@
 				0D52EAE6197D18C1002C7150 /* TriMesh.h */,
 				0D52EAE8197D18C1002C7150 /* verification.h */,
 				0D52EAE9197D18C1002C7150 /* XForm.h */,
+				0D1028331C74A95200250431 /* Graph.h */,
 			);
 			name = header;
 			sourceTree = "<group>";
@@ -982,6 +990,8 @@
 				0D52EB57197D18C1002C7150 /* string_utils.h */,
 				0D52EB58197D18C1002C7150 /* Timer.h */,
 				0D52EB5A197D18C1002C7150 /* XmlParser.h */,
+				0D1028341C74B10600250431 /* Range.h */,
+				0D37DF931C85905A00CD0A07 /* AttribVec.h */,
 			);
 			name = header;
 			sourceTree = "<group>";

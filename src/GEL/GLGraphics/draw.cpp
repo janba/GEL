@@ -211,6 +211,30 @@ namespace GLGraphics
         }
     }
     
+    void draw(const Geometry::AMGraph3D& graph)
+    {
+        glPointSize(5);
+        glLineWidth(3);
+        glDisable(GL_LIGHTING);
+        glBegin(GL_POINTS);
+        for(auto n: graph.node_ids())
+        {
+            glColor3fv(graph.node_color[n].get());
+            glVertex3dv(graph.pos[n].get());
+        }
+        glEnd();
+        glBegin(GL_LINES);
+        for(auto n: graph.node_ids())
+            for(auto e: graph.neighbors(n))
+            {
+                glColor3fv(graph.edge_color[e.second].get());
+                glVertex3dv(graph.pos[n].get());
+                glVertex3dv(graph.pos[e.first].get());
+            }
+        glEnd();
+        glEnable(GL_LIGHTING);
+    
+    }
     
     bool depth_pick(int x, int y, float& depth)
     {

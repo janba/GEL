@@ -18,6 +18,7 @@
 #include "../Geometry/BoundingINode.h"
 #include "../Geometry/BoundingLNode.h"
 #include "../Geometry/BoundingTree.h"
+#include "../Geometry/Graph.h"
 
 namespace HMesh
 {
@@ -47,6 +48,8 @@ namespace GLGraphics
 	
 	/// Draw an oriented bounding box
 	void draw(const Geometry::OBox& box);
+    
+    void draw(const Geometry::AMGraph3D& graph);
 	
 	/// Draw an object of type T which contains only triangles as wireframe. In practice T = Manifold or TriMesh.
 	template<typename T>
