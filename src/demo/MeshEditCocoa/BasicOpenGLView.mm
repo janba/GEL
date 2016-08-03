@@ -169,7 +169,7 @@ GLenum glReportError (int where = -1)
         if([theEvent modifierFlags] & NSShiftKeyMask)
             me.grab_mesh(pos);
         else if([theEvent modifierFlags] & NSControlKeyMask) {
-            if(me.select_vertex(pos))
+            if(me.select(pos))
                 [self setNeedsDisplay: YES];
         }
         else

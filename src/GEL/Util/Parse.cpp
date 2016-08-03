@@ -46,17 +46,17 @@ namespace Util {
 
 	void parse(const char* str,int& x) {
 		/* Establish string and get the first token: */
-		x = strtol(str,0,10);
+		x = atoi(str);
 	} 
 
 	void parse(const char* str,Vec2i& vec)
 	{   /* Establish string and get the first token: */
 		const char *btoken=next_btoken(const_cast<char*>(str));
 		char *etoken=next_etoken(btoken);
-		vec[0] = strtol(btoken,0,10);
+		vec[0] = atoi(btoken);
 		btoken= next_btoken(etoken);
 		etoken= next_etoken(btoken);
-		vec[1] = strtol(btoken,0,10);
+		vec[1] = atoi(btoken);
 	}
 
 

@@ -16,13 +16,14 @@ namespace
 {
     const float EDGE_MIN_SQ_LENGTH = CGLA::MINUTE;
 
-    inline bool degenerate_edge(const Manifold& m, HalfEdgeID h)
-    {
-		Walker w = m.walker(h);
-        if(sqr_length(m.pos(w.vertex()) - m.pos(w.opp().vertex())) < 1e-8)
-            return true;
-        return false;
-    }
+// Commented out since apparently unused:
+//    inline bool degenerate_edge(const Manifold& m, HalfEdgeID h)
+//    {
+//		Walker w = m.walker(h);
+//        if(sqr_length(m.pos(w.vertex()) - m.pos(w.opp().vertex())) < 1e-8)
+//            return true;
+//        return false;
+//    }
 
 }
 

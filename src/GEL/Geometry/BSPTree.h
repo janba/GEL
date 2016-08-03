@@ -113,9 +113,9 @@ namespace Geometry
 
     void make_fast_tree(BSPNode *node);
     void push_fast_bsp_node(BSPNode *node, int id);
-    void intersect_fast_node(Ray &ray, 
-                             const FastBSPNode *node, 
-                             double t_min, double t_max) const;
+//    void intersect_fast_node(Ray &ray, 
+//                             const FastBSPNode *node, 
+//                             double t_min, double t_max) const;
     bool intersect(Ray &ray, const ISectTri &isecttri, double t_max) const;
   };
 }

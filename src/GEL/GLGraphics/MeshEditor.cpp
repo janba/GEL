@@ -53,19 +53,19 @@ namespace GLGraphics {
             return false;
         }
 
-        
-        bool wantshelp(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(args.size() == 0)
-                return false;
-            
-            string str = args[0];
-            
-            if(str=="help" || str=="HELP" || str=="Help" || str=="?")
-                return true;
-            
-            return false;
-        }
+// Commented out since apparently unused:
+//        bool wantshelp(MeshEditor* me, const std::vector<std::string> & args)
+//        {
+//            if(args.size() == 0)
+//                return false;
+//            
+//            string str = args[0];
+//            
+//            if(str=="help" || str=="HELP" || str=="Help" || str=="?")
+//                return true;
+//            
+//            return false;
+//        }
         
         /// Function that aligns two meshes.
         void console_align(MeshEditor* me, const std::vector<std::string> & args)
@@ -1108,14 +1108,15 @@ namespace GLGraphics {
                 }
             
             }
-            
-            auto int_to_col = [](int x, int xmax) {
-                Vec3f vec(((x*2)%xmax)/float(xmax),
-                          1-((x*5)%xmax)/float(xmax),
-                          ((x*11)%xmax)/float(xmax));
-                vec /= vec.max_coord();
-                return vec;
-            };
+
+// Commented out since apparently unused:
+//            auto int_to_col = [](int x, int xmax) {
+//                Vec3f vec(((x*2)%xmax)/float(xmax),
+//                          1-((x*5)%xmax)/float(xmax),
+//                          ((x*11)%xmax)/float(xmax));
+//                vec /= vec.max_coord();
+//                return vec;
+//            };
             
             auto tip = [&](VertexID tip_candidate) {
                 bool is_tip = true;

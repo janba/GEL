@@ -53,7 +53,7 @@ namespace GLGraphics
 	
 	/// Draw an object of type T which contains only triangles as wireframe. In practice T = Manifold or TriMesh.
 	template<typename T>
-	inline void draw_triangles_in_wireframe(T& m, bool per_vertex_norms, const CGLA::Vec3f& line_color);
+	void draw_triangles_in_wireframe(T& m, bool per_vertex_norms, const CGLA::Vec3f& line_color);
 
   /// Draw an object of type T as wireframe.  In practice T = Manifold or TriMesh.
 	template<class T>

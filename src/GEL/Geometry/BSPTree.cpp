@@ -366,37 +366,37 @@ namespace Geometry
 
 /*__declspec(align(16))*/ static const unsigned int modulo[] = {0,1,2,0,1};
 
-  inline bool intersect2(Ray &ray, const TriAccel &acc, double t_max) 
-  {
-//inline bool Intersect(TriAccel &acc,Ray &ray)
-#define ku modulo[acc.k+1]
-#define kv modulo[acc.k+2]
-    // don’t prefetch here, assume data has already been prefetched
-    // start high-latency division as early as possible
-    const double nd = 1.0/((double)ray.direction[acc.k] + (double)acc.n_u * (double)ray.direction[ku] + (double)acc.n_v * (double)ray.direction[kv]);
-    const double f = ((double)acc.n_d - (double)ray.origin[acc.k]   - (double)acc.n_u * (double)ray.origin[ku] - (double)acc.n_v * (double)ray.origin[kv]) * nd;
-    // check for valid distance.
-    if (!(t_max > f && f > 0.001)||ray.dist<f) return false;
-    // compute hitpoint positions on uv plane
-    const double hu = (ray.origin[ku] + f * ray.direction[ku]);
-    const double hv = (ray.origin[kv] + f * ray.direction[kv]);
-    // check first barycentric coordinate
-    const double lambda = (hu * (double)acc.b_nu + hv * (double)acc.b_nv + (double)acc.b_d);
-    if (lambda < 0.0) return false;
-    // check second barycentric coordinate
-    const double mue = (hu * (double)acc.c_nu + hv * (double)acc.c_nv + (double)acc.c_d);
-    if (mue < 0.0) return false;
-    // check third barycentric coordinate
-    if (lambda+mue > 1.0) return false;
-    // have a valid hitpoint here. store it.
-    ray.dist = f;
-    ray.u = lambda;
-    ray.v = mue;
-    ray.hit_object = (TriMesh*)acc.mesh_id;
-    ray.hit_face_id = acc.tri_id;
-    ray.has_hit=true;
-    return true;
-  }
+//  inline bool intersect2(Ray &ray, const TriAccel &acc, double t_max) 
+//  {
+////inline bool Intersect(TriAccel &acc,Ray &ray)
+//#define ku modulo[acc.k+1]
+//#define kv modulo[acc.k+2]
+//    // don’t prefetch here, assume data has already been prefetched
+//    // start high-latency division as early as possible
+//    const double nd = 1.0/((double)ray.direction[acc.k] + (double)acc.n_u * (double)ray.direction[ku] + (double)acc.n_v * (double)ray.direction[kv]);
+//    const double f = ((double)acc.n_d - (double)ray.origin[acc.k]   - (double)acc.n_u * (double)ray.origin[ku] - (double)acc.n_v * (double)ray.origin[kv]) * nd;
+//    // check for valid distance.
+//    if (!(t_max > f && f > 0.001)||ray.dist<f) return false;
+//    // compute hitpoint positions on uv plane
+//    const double hu = (ray.origin[ku] + f * ray.direction[ku]);
+//    const double hv = (ray.origin[kv] + f * ray.direction[kv]);
+//    // check first barycentric coordinate
+//    const double lambda = (hu * (double)acc.b_nu + hv * (double)acc.b_nv + (double)acc.b_d);
+//    if (lambda < 0.0) return false;
+//    // check second barycentric coordinate
+//    const double mue = (hu * (double)acc.c_nu + hv * (double)acc.c_nv + (double)acc.c_d);
+//    if (mue < 0.0) return false;
+//    // check third barycentric coordinate
+//    if (lambda+mue > 1.0) return false;
+//    // have a valid hitpoint here. store it.
+//    ray.dist = f;
+//    ray.u = lambda;
+//    ray.v = mue;
+//    ray.hit_object = trimesh[acc.mesh_id];
+//    ray.hit_face_id = acc.tri_id;
+//    ray.has_hit=true;
+//    return true;
+//  }
 
   bool BSPTree::intersect_node(Ray &ray, const BSPNode &node, double t_min, double t_max) const 
   {
@@ -542,62 +542,62 @@ namespace Geometry
     double t_max;
   };
 
-  inline void IntersectAlltrianglesInLeaf(const BSPLeaf* leaf, Ray &ray, double t_max) {
-    TriAccel** tri_acc_ptr = reinterpret_cast<TriAccel**>(leaf->flagAndOffset & (0x7FFFFFFF));
-    for(unsigned int i = 0; i < leaf->count; ++i)
-      intersect2(ray, *(*tri_acc_ptr + i), t_max);
-  }
+//  inline void IntersectAlltrianglesInLeaf(const BSPLeaf* leaf, Ray &ray, double t_max) {
+//    TriAccel** tri_acc_ptr = reinterpret_cast<TriAccel**>(leaf->flagAndOffset & (0x7FFFFFFF));
+//    for(unsigned int i = 0; i < leaf->count; ++i)
+//      intersect2(ray, *(*tri_acc_ptr + i), t_max);
+//  }
 
-  void BSPTree::intersect_fast_node(Ray &ray, const FastBSPNode *node, double t_min, double t_max) const 
-  {
-    Stack stack[MAX_DEPTH];
-    int stack_id=0;
-    double t;
-    // Precalculate one over dir
-    double one_over_dir[3];
-    for(int i=0;i<3;i++) 
-    {
-      if (ray.direction[i]!=0)
-        one_over_dir[i]=1.0/ray.direction[i];
-      else
-        one_over_dir[i]=1.0/d_eps;
-    }
-
-    int dimension;
-    while(1) 
-    {
-      while(!ABSP_ISLEAF(node)) 
-      {
-        dimension = ABSP_DIMENSION(node);
-        t = (node->inner.splitCoordinate - ray.origin[dimension])*one_over_dir[dimension];
-        if (t>=t_max) 
-          node = ABSP_NEARNODE(node);
-        else if (t<=t_min)
-          node = ABSP_FARNODE(node);
-        else 
-        {
-          // Stack push
-          stack[stack_id].node = ABSP_FARNODE(node);
-          stack[stack_id].t_min = t;
-          stack[stack_id++].t_max = t_max;
-          // Set current node to near side
-          node = ABSP_NEARNODE(node);
-          t_max = t;
-        }
-      }
-      
-      IntersectAlltrianglesInLeaf(&node->leaf, ray, t_max);
-      if (ray.dist<t_max)
-        return;
-      if (stack_id==0)
-        return;
-      // Stack pop
-      
-      node = stack[--stack_id].node;
-      t_min = stack[stack_id].t_min;
-      t_max = stack[stack_id].t_max;
-    }
-  }
+//  void BSPTree::intersect_fast_node(Ray &ray, const FastBSPNode *node, double t_min, double t_max) const 
+//  {
+//    Stack stack[MAX_DEPTH];
+//    int stack_id=0;
+//    double t;
+//    // Precalculate one over dir
+//    double one_over_dir[3];
+//    for(int i=0;i<3;i++) 
+//    {
+//      if (ray.direction[i]!=0)
+//        one_over_dir[i]=1.0/ray.direction[i];
+//      else
+//        one_over_dir[i]=1.0/d_eps;
+//    }
+//
+//    int dimension;
+//    while(1) 
+//    {
+//      while(!ABSP_ISLEAF(node)) 
+//      {
+//        dimension = ABSP_DIMENSION(node);
+//        t = (node->inner.splitCoordinate - ray.origin[dimension])*one_over_dir[dimension];
+//        if (t>=t_max) 
+//          node = ABSP_NEARNODE(node);
+//        else if (t<=t_min)
+//          node = ABSP_FARNODE(node);
+//        else 
+//        {
+//          // Stack push
+//          stack[stack_id].node = ABSP_FARNODE(node);
+//          stack[stack_id].t_min = t;
+//          stack[stack_id++].t_max = t_max;
+//          // Set current node to near side
+//          node = ABSP_NEARNODE(node);
+//          t_max = t;
+//        }
+//      }
+//      
+//      IntersectAlltrianglesInLeaf(&node->leaf, ray, t_max);
+//      if (ray.dist<t_max)
+//        return;
+//      if (stack_id==0)
+//        return;
+//      // Stack pop
+//      
+//      node = stack[--stack_id].node;
+//      t_min = stack[stack_id].t_min;
+//      t_max = stack[stack_id].t_max;
+//    }
+//  }
 
   bool BSPTree::intersect(Ray &ray, const ISectTri &isecttri, double t_max) const 
   {

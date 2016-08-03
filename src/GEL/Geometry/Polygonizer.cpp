@@ -438,7 +438,8 @@ namespace Geometry
 			CORNER *b = cube->corners[c2];
 			CORNER *c = cube->corners[c3];
 			CORNER *d = cube->corners[c4];
-			int index = 0, apos, bpos, cpos, dpos, e1, e2, e3, e4, e5, e6;
+            int index = 0, apos, bpos, cpos, dpos;
+            int e1=-1, e2=-1, e3=-1, e4=-1, e5=-1, e6=-1;
 			if ((apos = (a->value > 0.0))) index += 8;
 			if ((bpos = (b->value > 0.0))) index += 4;
 			if ((cpos = (c->value > 0.0))) index += 2;

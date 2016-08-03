@@ -48,7 +48,6 @@
 #include <GEL/HMesh/mesh_optimization.h>
 #include <GEL/HMesh/curvature.h>
 #include <GEL/HMesh/triangulate.h>
-#include <GEL/HMesh/flatten.h>
 #include <GEL/HMesh/dual.h>
 #include <GEL/HMesh/load.h>
 #include <GEL/HMesh/quadric_simplify.h>

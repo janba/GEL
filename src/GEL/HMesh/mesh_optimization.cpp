@@ -49,47 +49,49 @@ namespace HMesh
 			}
         };
 		
-        Vec3d compute_normal(Vec3d* v)
-        {
-            Vec3d norm;
-            for(int i = 0; i < 4; ++i)
-            {
-                norm[0] += (v[i][1]-v[(i+1)%4][1])*(v[i][2]+v[(i+1)%4][2]);
-                norm[1] += (v[i][2]-v[(i+1)%4][2])*(v[i][0]+v[(i+1)%4][0]);
-                norm[2] += (v[i][0]-v[(i+1)%4][0])*(v[i][1]+v[(i+1)%4][1]);
-            }
-            float l = norm.length();
-            if(l>0.0f)
-                norm /= l;
-            return norm;
-        }
+// Commented out since apparently unused:
+//        Vec3d compute_normal(Vec3d* v)
+//        {
+//            Vec3d norm;
+//            for(int i = 0; i < 4; ++i)
+//            {
+//                norm[0] += (v[i][1]-v[(i+1)%4][1])*(v[i][2]+v[(i+1)%4][2]);
+//                norm[1] += (v[i][2]-v[(i+1)%4][2])*(v[i][0]+v[(i+1)%4][0]);
+//                norm[2] += (v[i][0]-v[(i+1)%4][0])*(v[i][1]+v[(i+1)%4][1]);
+//            }
+//            float l = norm.length();
+//            if(l>0.0f)
+//                norm /= l;
+//            return norm;
+//        }
 		
-        bool would_flip(const Manifold& m, HalfEdgeID h)
-        {
-            Walker w = m.walker(h);
-			
-            VertexID hv = w.vertex();
-            VertexID hov = w.opp().vertex();
-            VertexID hnv = w.next().vertex();
-            VertexID honv = w.opp().next().vertex();
-			
-            Vec3d v[4];
-            v[0] = Vec3d(m.pos(hv));
-            v[1] = Vec3d(m.pos(hov));
-            v[2] = Vec3d(m.pos(hnv));
-            v[3] = Vec3d(m.pos(honv));
-			
-            Vec3d dir = compute_normal(v);
-			
-            Vec3d n1a = cross(v[3]-v[0], v[2]-v[0]);
-            Vec3d n2a = cross(v[2]-v[1], v[3]-v[1]);
-			
-            if(dot(normalize(n1a), dir) < 0)
-                return true;
-            if(dot(normalize(n2a), dir) < 0)
-                return true;
-            return false;
-        }
+// Commented out since apparently unused:
+//        bool would_flip(const Manifold& m, HalfEdgeID h)
+//        {
+//            Walker w = m.walker(h);
+//			
+//            VertexID hv = w.vertex();
+//            VertexID hov = w.opp().vertex();
+//            VertexID hnv = w.next().vertex();
+//            VertexID honv = w.opp().next().vertex();
+//			
+//            Vec3d v[4];
+//            v[0] = Vec3d(m.pos(hv));
+//            v[1] = Vec3d(m.pos(hov));
+//            v[2] = Vec3d(m.pos(hnv));
+//            v[3] = Vec3d(m.pos(honv));
+//			
+//            Vec3d dir = compute_normal(v);
+//			
+//            Vec3d n1a = cross(v[3]-v[0], v[2]-v[0]);
+//            Vec3d n2a = cross(v[2]-v[1], v[3]-v[1]);
+//			
+//            if(dot(normalize(n1a), dir) < 0)
+//                return true;
+//            if(dot(normalize(n2a), dir) < 0)
+//                return true;
+//            return false;
+//        }
     }
 	
 	
