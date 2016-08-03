@@ -293,7 +293,8 @@ namespace GLGraphics
         glUseProgram(old_prog);
     }
     
-    const string ReflectionLineRenderer::vss = 
+    
+    const string ReflectionLineRenderer::vss =
     "varying vec3 _n;\n"
     "varying vec3 v;\n"
     "\n"

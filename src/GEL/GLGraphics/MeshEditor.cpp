@@ -16,8 +16,8 @@
 #include <string>
 #include <iostream>
 #include <vector>
-#include <algorithm>
 #include <queue>
+#include <algorithm>
 
 #include <GLGraphics/Console.h>
 #include <GLGraphics/glsl_shader.h>
@@ -25,25 +25,7 @@
 
 #include <CGLA/CGLA.h>
 
-#include <HMesh/Manifold.h>
-#include <HMesh/AttributeVector.h>
-#include <HMesh/mesh_optimization.h>
-#include <HMesh/curvature.h>
-#include <HMesh/triangulate.h>
-//#include <HMesh/flatten.h>
-#include <HMesh/dual.h>
-#include <HMesh/load.h>
-#include <HMesh/quadric_simplify.h>
-#include <HMesh/smooth.h>
-#include <HMesh/x3d_save.h>
-#include <HMesh/obj_save.h>
-#include <HMesh/off_save.h>
-#include <HMesh/mesh_optimization.h>
-#include <HMesh/triangulate.h>
-#include <HMesh/cleanup.h>
-#include <HMesh/cleanup.h>
-#include <HMesh/refine_edges.h>
-#include <HMesh/subdivision.h>
+#include <HMesh/HMesh.h>
 
 #include <Util/Timer.h>
 
@@ -1073,46 +1055,138 @@ namespace GLGraphics {
             
             Manifold& m = me->active_mesh();
             
+            VertexID source_vertex = *me->get_vertex_selection().begin();
             
-            VertexAttributeVector<double> dist(m.allocated_vertices(), DBL_MAX);
-            VertexAttributeVector<int> visited(m.allocated_vertices(), 0);
-            VertexID v = *m.vertices_begin();
-            dist[v]=0;
-            priority_queue<pair<double,VertexID>> pq;
-            pq.push(make_pair(-dist[v], v));
-            double max_dist;
-            while(!pq.empty())
-            {
-                VertexID v = pq.top().second;
-                max_dist = dist[v];
-                pq.pop();
+            auto d_out = Dijkstra(m, source_vertex);
+            auto& dist = d_out.dist;
+            auto& pred = d_out.pred;
+            
+            
+            auto& scalar_field = me->active_visobj().get_scalar_field_attrib_vector();
+            double max_dist = 0;
+            for (auto v: m.vertices())
+                if(dist[v] > max_dist)
+                    max_dist = dist[v];
+            for(auto vid : m.vertices())
+                scalar_field[vid] = 1-dist[vid]/max_dist;
+            
+            
+            VertexAttributeVector<int> main_branch(m.allocated_vertices(),-1);
+            queue<VertexID> vertex_queue;
+            for(auto v: m.vertices())
+                if(v != source_vertex)
+                    vertex_queue.push(v);
+            
+            int main_branch_no = 1;
+            
+            while(!vertex_queue.empty()) {
+            
+                VertexID v = vertex_queue.front();
+                vertex_queue.pop();
                 
-                if(!visited[v]){
-                    visited[v]=1;
+                if(main_branch[v]==-1)
+                {
+                    vector<VertexID> path;
                     
-                    for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_ccw())
-                        if(!visited[w.vertex()])
+                    do {
+                        path.push_back(v);
+                        v = pred[v];
+                    } while( v != source_vertex &&
+                            main_branch[v] == -1);
+                    
+                    if(v == source_vertex)
+                    {
+                        for(auto w : path)
+                            main_branch[w] = main_branch_no;
+                        ++main_branch_no;
+                    }
+                    else {
+                        int current_branch = main_branch[v];
+                        for(auto w : path)
+                            main_branch[w] = current_branch;
+                    }
+                }
+            
+            }
+            
+            auto int_to_col = [](int x, int xmax) {
+                Vec3f vec(((x*2)%xmax)/float(xmax),
+                          1-((x*5)%xmax)/float(xmax),
+                          ((x*11)%xmax)/float(xmax));
+                vec /= vec.max_coord();
+                return vec;
+            };
+            
+            auto tip = [&](VertexID tip_candidate) {
+                bool is_tip = true;
+                circulate_vertex_ccw(m, tip_candidate, [&](VertexID v){
+                    if(pred[v] == tip_candidate)
+                        is_tip = false;
+                });
+                return is_tip;
+            };
+            
+            auto grad = [&](VertexID tip_v) {
+                VertexID v2 = pred[tip_v];
+                return normalize(m.pos(tip_v)-m.pos(v2));
+            };
+            
+            double shortest_loop_len = DBL_MAX;
+            VertexID loop_v0, loop_v1;
+            for(auto h: m.halfedges()) {
+                Walker w = m.walker(h);
+                VertexID l0 = w.vertex();
+                VertexID l1 = w.opp().vertex();
+                if(tip(l0) && tip(l1) &&
+                   main_branch[l0] != main_branch[l1])
+                {
+                    double s = dot(grad(l0),grad(l1));
+                    if(s<-0.75) {
+                        double loop_len = dist[l0]+dist[l1];
+                        if(loop_len< shortest_loop_len)
                         {
-                            double d = dist[v] + length(m, w.halfedge());
-                            if(d<dist[w.vertex()]) {
-                                dist[w.vertex()] = d;
-                                pq.push(make_pair(-d, w.vertex()));
-                            }
+                            shortest_loop_len = loop_len;
+                            loop_v0 = l0;
+                            loop_v1 = l1;
                         }
+                    }
+                }
+                DebugRenderer::edge_colors[h] = Vec3f(0);
+            }
+            
+            if(shortest_loop_len<DBL_MAX)
+            {
+                while(loop_v0 != source_vertex) {
+                    circulate_vertex_ccw(m, loop_v0, [&](Walker w) {
+                        VertexID vn = w.vertex();
+                        if ((vn == pred[loop_v0])) {
+                            DebugRenderer::edge_colors[w.halfedge()] = Vec3f(1);
+                            DebugRenderer::edge_colors[w.opp().halfedge()] = Vec3f(1);
+                            
+                        }
+                    });
+                    loop_v0 = pred[loop_v0];
+                }
+                while(loop_v1 != source_vertex) {
+                    circulate_vertex_ccw(m, loop_v1, [&](Walker w) {
+                        VertexID vn = w.vertex();
+                        if ((vn == pred[loop_v1])) {
+                            DebugRenderer::edge_colors[w.halfedge()] = Vec3f(1);
+                            DebugRenderer::edge_colors[w.opp().halfedge()] = Vec3f(1);
+                            
+                        }
+                    });
+                    loop_v1 = pred[loop_v1];
                 }
             }
             
-            for(auto vid : m.vertices()) {
-                DebugRenderer::vertex_colors[vid] = Vec3f(1-dist[vid]/max_dist,0,0);
-                cout << dist[vid] << endl;
-            }
-            for(auto fid : m.faces())
-                DebugRenderer::face_colors[fid] = Vec3f(0.3);
             
-            for(auto hid : m.halfedges()) {
-                Walker w = m.walker(hid);
-                DebugRenderer::edge_colors[hid] = Vec3f(1.0-max(dist[w.vertex()],dist[w.opp().vertex()])/max_dist,0,0);
-            }
+            
+            for(auto v: m.vertices())
+                DebugRenderer::vertex_colors[v] = Vec3f(0);
+            for(auto f: m.faces())
+                DebugRenderer::face_colors[f] = Vec3f(0.3);
+            
             return;
         }
 
@@ -1666,6 +1740,10 @@ namespace GLGraphics {
                     display_render_mode = "ambient_occlusion"; break;
                 case 'c':
                     display_render_mode = "copper"; break;
+                case 's':
+                    display_render_mode = "scalar"; break;
+                case 'd':
+                    display_render_mode = "debug"; break;
                 case 'C':
                     display_render_mode = "curvature_lines"; break;
                 case 'M':

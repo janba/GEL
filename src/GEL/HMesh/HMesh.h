@@ -23,5 +23,6 @@
 #include "triangulate.h"
 #include "x3d_load.h"
 #include "x3d_save.h"
+#include "graph_algorithm.h"
 
 #endif

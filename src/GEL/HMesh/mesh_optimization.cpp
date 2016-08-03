@@ -712,7 +712,7 @@ namespace HMesh
 	}
     
     
-    void edge_equalize(Manifold& m, const Implicit& imp, int max_iter)
+    void edge_equalize(Manifold& m, const Implicit& imp, float tau, int max_iter)
     {
         
         for(int iter=0;iter<max_iter;++iter)
@@ -724,7 +724,7 @@ namespace HMesh
             
             TAL_smoothing(m,1,1);
             for(VertexIDIterator vid = m.vertices_begin(); vid != m.vertices_end(); ++vid)
-                imp.push_to_surface(m.pos(*vid),0,avg_edge_len*0.5);
+                imp.push_to_surface(m.pos(*vid),tau,avg_edge_len*0.5);
             
             vector<float> edge_lengths;
             int n=0;

@@ -143,7 +143,7 @@ namespace HMesh
     void randomize_mesh(Manifold& m, int max_iter);
 
     /// Perform many operations in order to equalize edge lengths.
-    void edge_equalize(HMesh::Manifold& m, const Geometry::Implicit& imp, int max_iter);
+    void edge_equalize(HMesh::Manifold& m, const Geometry::Implicit& imp, float tau, int max_iter);
 
 }
 

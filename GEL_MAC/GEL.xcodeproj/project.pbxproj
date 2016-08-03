@@ -228,6 +228,8 @@
 		0D6583DB1C1871DF005C966A /* Graph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D6583D91C1871DF005C966A /* Graph.cpp */; };
 		0D859997193D01B6009DB071 /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D859996193D01B6009DB071 /* Cocoa.framework */; };
 		0D8599A1193D01B6009DB071 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = 0D85999F193D01B6009DB071 /* InfoPlist.strings */; };
+		0DA7DC601CEBA687009FD206 /* graph_algorithm.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DA7DC5E1CEBA687009FD206 /* graph_algorithm.cpp */; };
+		0DA7DC611CEBAC0C009FD206 /* graph_algorithm.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DA7DC5F1CEBA687009FD206 /* graph_algorithm.h */; };
 		0DA848C4193D02520067DA3B /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DA848C3193D02520067DA3B /* OpenGL.framework */; };
 		0DD3C0BF1B7C983300C02626 /* CGLA.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D57306D1ABB570900F33E40 /* CGLA.h */; };
 		0DD3C0C01B7C983800C02626 /* ls_solve.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DD53BE91ABB69C50074B704 /* ls_solve.h */; };
@@ -383,6 +385,7 @@
 			dstPath = ../Headers/HMesh;
 			dstSubfolderSpec = 7;
 			files = (
+				0DA7DC611CEBAC0C009FD206 /* graph_algorithm.h in CopyFiles */,
 				0DE1F9071B35B9210012ACF9 /* HMesh.h in CopyFiles */,
 				0D52EC2B197D1DF3002C7150 /* AttributeVector.h in CopyFiles */,
 				0D52EC2C197D1DF3002C7150 /* cleanup.h in CopyFiles */,
@@ -661,6 +664,8 @@
 		0D85999E193D01B6009DB071 /* GEL-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "GEL-Info.plist"; sourceTree = "<group>"; };
 		0D8599A0193D01B6009DB071 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		0D8599A2193D01B6009DB071 /* GEL-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "GEL-Prefix.pch"; sourceTree = "<group>"; };
+		0DA7DC5E1CEBA687009FD206 /* graph_algorithm.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = graph_algorithm.cpp; sourceTree = "<group>"; };
+		0DA7DC5F1CEBA687009FD206 /* graph_algorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph_algorithm.h; sourceTree = "<group>"; };
 		0DA848C3193D02520067DA3B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DD53BE91ABB69C50074B704 /* ls_solve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ls_solve.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -796,6 +801,7 @@
 				0D52EB3F197D18C1002C7150 /* triangulate.cpp */,
 				0D52EB42197D18C1002C7150 /* x3d_load.cpp */,
 				0D52EB44197D18C1002C7150 /* x3d_save.cpp */,
+				0DA7DC5E1CEBA687009FD206 /* graph_algorithm.cpp */,
 				0D52EBB5197D1930002C7150 /* header */,
 			);
 			name = HMesh;
@@ -951,6 +957,7 @@
 		0D52EBB5197D1930002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				0DA7DC5F1CEBA687009FD206 /* graph_algorithm.h */,
 				0D2378ED1ABB593200874F06 /* HMesh.h */,
 				0D52EB15197D18C1002C7150 /* AttributeVector.h */,
 				0D52EB17197D18C1002C7150 /* cleanup.h */,
@@ -1218,6 +1225,7 @@
 				0D52EB8C197D18C1002C7150 /* MeshEditor.cpp in Sources */,
 				0D52EB82197D18C1002C7150 /* verification.cpp in Sources */,
 				0D52EB98197D18C1002C7150 /* dual.cpp in Sources */,
+				0DA7DC601CEBA687009FD206 /* graph_algorithm.cpp in Sources */,
 				0D52EBA8197D18C1002C7150 /* triangulate.cpp in Sources */,
 				0D52EB73197D18C1002C7150 /* geo_obj_load.cpp in Sources */,
 				0D52EB75197D18C1002C7150 /* Implicit.cpp in Sources */,

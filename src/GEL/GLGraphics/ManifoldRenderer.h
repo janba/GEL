@@ -155,7 +155,6 @@ namespace GLGraphics {
     public:
         DebugRenderer(): SimpleShaderRenderer(vss, fss) {}
         void compile_display_list(const HMesh::Manifold& m, bool smooth, float rad);
-        
     };
     
     /** Render reflection lines. This class renders the object as if it is specular and inside

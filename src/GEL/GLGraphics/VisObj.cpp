@@ -259,11 +259,14 @@ namespace GLGraphics {
         }
         else if(short_name == "sca")
         {
-            double max_G = abs(scalar_field[*mani.vertices_begin()]);
-            for(VertexIDIterator v = mani.vertices_begin(); v != mani.vertices_end(); ++v)
-                max_G = max(abs(scalar_field[*v]), max_G);
+            double max_G = scalar_field[*mani.vertices_begin()];
+            double min_G = scalar_field[*mani.vertices_begin()];
+            for(VertexIDIterator v = mani.vertices_begin(); v != mani.vertices_end(); ++v) {
+                max_G = max((scalar_field[*v]), max_G);
+                min_G = min((scalar_field[*v]), min_G);
+            }
             renderer = new ScalarFieldRenderer();
-            dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth,scalar_field, max_G, gamma,use_stripes,color_sign,use_shading);
+            dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth,scalar_field, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
         }
         else if(short_name == "lin")
         {

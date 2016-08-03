@@ -97,7 +97,7 @@ namespace HMesh
                 imp.push_to_surface(mani.pos(*vid),0,avg_edge_len*0.5);
         }
         mani.cleanup();
-        cout << "Produced" << mani.no_faces() << " faces " << endl;
+        cout << "Produced " << mani.no_faces() << " faces " << endl;
     }
     
 }
