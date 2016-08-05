@@ -5,7 +5,6 @@
  * ----------------------------------------------------------------------- */
 #include <iterator>
 #include "Manifold.h"
-#include "ManifoldRenderer.h"
 
 #include <iostream>
 #include <vector>

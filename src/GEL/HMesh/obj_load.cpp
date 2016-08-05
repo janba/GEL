@@ -17,7 +17,7 @@ namespace HMesh
 {
     using std::string;
     
-    bool obj_load(const string& filename, Manifold& m)
+    bool obj_load(const string& filename, Manifold& m, bool safe)
     {
         ifstream obj_file(filename.data());
         
@@ -106,11 +106,21 @@ namespace HMesh
             }
             cout << "Loaded " << vertices.size() << " vertices and " << faces.size() << " faces"<< endl;
             m.clear();
-            safe_build(m, vertices.size(),
-                       reinterpret_cast<double*>(&vertices[0]),
-                       faces.size(),
-                       &faces[0],
-                       &indices[0]);
+            
+            if (safe)
+                safe_build(m, vertices.size(),
+                           reinterpret_cast<double*>(&vertices[0]),
+                           faces.size(),
+                           &faces[0],
+                           &indices[0]);
+            else
+                m.build(
+                        vertices.size(),
+                        reinterpret_cast<double*>(&vertices[0]),
+                        faces.size(),
+                        &faces[0],
+                        &indices[0]);
+
             return true;
         }
         return false;

@@ -9,6 +9,7 @@
 #include <vector>
 #include "../CGLA/Vec3d.h"
 
+#include "load.h"
 #include "Manifold.h"
 #include "AttributeVector.h"
 
@@ -46,7 +47,7 @@ namespace HMesh
         m.clear();
         
         // And build
-        m.build(    vertices.size(),
+        safe_build(m, vertices.size(),
                 reinterpret_cast<double*>(&vertices[0]),
                 faces.size(),
                 &faces[0],
