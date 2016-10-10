@@ -350,31 +350,4 @@ namespace GLGraphics
         glPopMatrix();
     }
     
-    /** Draw the tree. The first argument is the level counter, the second
-     argument is the level at which to stop drawing. */
-    template <class BoxType>
-    void draw(const Geometry::BoundingINode<BoxType>& node, int level, int max_level)
-    {
-        if(level == max_level)
-        {
-            draw(node);
-            return;
-        }
-        node->left->draw(level + 1, max_level);
-        node->right->draw(level + 1, max_level);
-    }
-    
-    template <class BoxType>
-    void draw(const Geometry::BoundingLNode<BoxType>& node, int level, int max_level)
-    {
-#if USE_LEAF_BOXES
-        draw(node); 
-#endif
-    }
-    
-    template <class BoxType>
-    void draw(const Geometry::BoundingTree<BoxType>& tree, int max_level)
-    {
-        draw(*tree.root, 0, max_level);
-    }
 }

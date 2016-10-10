@@ -38,6 +38,8 @@ class BoundingTree
 	BoundingTree(): root(0) {}
 
 	~BoundingTree() {delete root;}
+    
+    bool empty() const {return root == 0;}
 
 	void build(std::vector<Triangle>& triangles);
 

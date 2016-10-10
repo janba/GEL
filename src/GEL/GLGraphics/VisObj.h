@@ -15,6 +15,7 @@
 #include "../HMesh/Manifold.h"
 #include "../CGLA/Vec3d.h"
 #include "../Geometry/Graph.h"
+#include "../Geometry/build_bbtree.h"
 #include "../GLGraphics/draw.h"
 #include "../GLGraphics/Console.h"
 #include "../GLGraphics/GLViewController.h"
@@ -37,6 +38,8 @@ class VisObj
     
     Geometry::AMGraph3D graph;
     
+    Geometry::OBBTree obb_tree;
+    
     GLGraphics::ManifoldRenderer* renderer = nullptr;
     
     HMesh::VertexSet vertex_selection;
@@ -45,6 +48,7 @@ class VisObj
     
     
     HMesh::VertexAttributeVector<double> scalar_field;
+    HMesh::VertexAttributeVector<CGLA::Vec3d> color_field;
     HMesh::VertexAttributeVector<CGLA::Vec3d> line_field;
     
     CGLA::Vec3d bsphere_center;
@@ -95,6 +99,10 @@ public:
     HMesh::VertexAttributeVector<double>& get_scalar_field_attrib_vector() {
         return scalar_field;
     }
+    
+    HMesh::VertexAttributeVector<CGLA::Vec3d>& get_color_field_attrib_vector() {
+        return color_field;
+    }
 
     HMesh::VertexAttributeVector<CGLA::Vec3d>& get_line_field_attrib_vector() {
         return line_field;
@@ -108,6 +116,8 @@ public:
     const HMesh::Manifold& mesh_old() const {return old_mani;}
     
     Geometry::AMGraph3D& get_graph() {return graph;}
+    
+    void construct_obb_tree();
     
     void save_old() {old_mani = mani;}
     void restore_old() {mani = old_mani;}

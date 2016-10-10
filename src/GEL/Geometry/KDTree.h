@@ -252,9 +252,10 @@ namespace Geometry
 		// will be smaller than or equal the median. All elements to the right
 		// will be greater than or equal to the median.
 		const Comp comp(disc);
-		std::nth_element(&init_nodes[kvec_beg], 
-										 &init_nodes[median], 
-										 &init_nodes[kvec_end], comp);
+        KDNode* data = &init_nodes[0];
+        std::nth_element(data+kvec_beg,
+                         data+median,
+                         data+kvec_end, comp);
 
 		// Insert the node in the final data structure.
 		nodes[cur] = init_nodes[median];

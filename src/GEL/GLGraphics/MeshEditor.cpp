@@ -1740,7 +1740,7 @@ namespace GLGraphics {
                 case 'a':
                     display_render_mode = "ambient_occlusion"; break;
                 case 'c':
-                    display_render_mode = "copper"; break;
+                    display_render_mode = "color"; break;
                 case 's':
                     display_render_mode = "scalar"; break;
                 case 'd':
@@ -1877,6 +1877,32 @@ namespace GLGraphics {
             m.positions_attribute_vector() = new_pos;
         };
 
+        auto paint_mesh = [&](Manifold& m, VertexAttributeVector<float>& wv, const Vec3d& p0)
+        {
+            Vec3d c;
+            float r;
+            bsphere(m, c, r);
+            auto& col_map = active_visobj().get_color_field_attrib_vector();
+            
+            /// This is inelegant, but we need to know if the damn thing is initialized.
+            if(isnan(col_map[*m.vertices().begin()][0])) {
+                cout << "col_map.size " << col_map.size() << endl;
+                for(auto vid: m.vertices())
+                    col_map[vid] = Vec3d(0);
+            }
+            
+            double support_radius = r * brush_size;
+            for(auto vid : m.vertices()) {
+                Vec3d p = m.pos(vid);
+                double l = length(p0-p);
+                if(l<support_radius) {
+                    double t = l/support_radius;
+                    double wgt = 1.0 - (3*t*t - 2 * t*t*t);
+                    col_map[vid] += 0.1*wgt*Vec3d(paint_color);
+                }
+            }
+        };
+
         
         if(dragging)
         {
@@ -1913,6 +1939,11 @@ namespace GLGraphics {
                     inflate_mesh(m, weight_vector, p1);
                 else if(string(brush_type) == "deform")
                     deform_mesh(m, weight_vector, v);
+                else if(string(brush_type) == "paint") {
+                    float d;
+                    if(depth_pick(pos[0], pos[1], d))
+                        paint_mesh(m, weight_vector, screen2world(pos[0], pos[1], d));
+                }
             }
             
             post_create_display_list();
@@ -2183,7 +2214,8 @@ namespace GLGraphics {
         active.reg(theConsole, "active_mesh", "The active mesh");
         display_render_mode.reg(theConsole, "display.render_mode", "Display render mode");
         brush_size.reg(theConsole, "brush.size", "Size of brush used for editing");
-        brush_type.reg(theConsole, "brush.type", "smooth, deform, or inflate");
+        brush_type.reg(theConsole, "brush.type", "Smooth, deform, inflate, or paint");
+        paint_color.reg(theConsole, "brush.color", "The color of the brush used in paint mode");
         
         display_smooth_shading.reg(theConsole, "display.smooth_shading", "1 for smooth shading 0 for flat");
         display_gamma.reg(theConsole, "display.gamma", "The gamma setting for the display");

@@ -341,6 +341,29 @@ namespace HMesh
 
     
 
+    CGLA::Vec3d cot_laplacian(const Manifold& m, VertexID v)
+    {
+        CGLA::Vec3d p(0);
+        Vec3d vertex = m.pos(v);
+        double w_sum=0;
+        circulate_vertex_ccw(m, v, [&](Walker wv){
+            Vec3d nbr(m.pos(wv.vertex()));
+            Vec3d left(m.pos(wv.next().vertex()));
+            Vec3d right(m.pos(wv.opp().prev().opp().vertex()));
+            
+            double d_left = dot(normalize(nbr-left),
+                                normalize(vertex-left));
+            double d_right = dot(normalize(nbr-right),
+                                 normalize(vertex-right));
+            double a_left  = acos(min(1.0, max(-1.0, d_left)));
+            double a_right = acos(min(1.0, max(-1.0, d_right)));
+            
+            double w = max(0.0,1.0/tan(a_left) + 1.0/tan(a_right));
+            p += w * nbr;
+            w_sum += w;
+        });
+        return p / w_sum - m.pos(v);
+    }
     
     
     void taubin_smooth(Manifold& m, int max_iter)

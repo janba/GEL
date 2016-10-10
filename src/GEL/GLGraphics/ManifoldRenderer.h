@@ -223,6 +223,22 @@ namespace GLGraphics {
                                   int use_shading=0);
 	};
     
+    /** Render a scalar field. Positive scalars are mapped to blue and negative to red.
+     This class also has controls for gamma correction which is highly useful if the
+     scalars are mostly small or large and simply scaling to the 0-1 range does not
+     produce a good result. */
+    class ColorFieldRenderer: public SimpleShaderRenderer
+    {
+        const static std::string vss;
+        const static std::string fss;
+    public:
+        ColorFieldRenderer(): SimpleShaderRenderer(vss, fss) {}
+        void compile_display_list(const HMesh::Manifold& m, bool smooth,
+                                  HMesh::VertexAttributeVector<CGLA::Vec3d>& field,
+                                  float gamma = 2.2);
+    };
+
+    
     /** Render a checkerboard pattern based on input texture map */
     class CheckerBoardRenderer: public SimpleShaderRenderer
 	{

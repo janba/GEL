@@ -45,6 +45,7 @@ namespace GLGraphics {
         Console::variable<int> active;
         Console::variable<std::string> display_render_mode;
         Console::variable<float> brush_size;
+        Console::variable<CGLA::Vec3d> paint_color;
         Console::variable<int> display_smooth_shading;
         Console::variable<float> display_gamma;
 

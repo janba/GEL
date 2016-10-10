@@ -23,6 +23,7 @@ using namespace std;
 using namespace CGLA;
 using namespace HMesh;
 using namespace GLGraphics;
+using namespace Geometry;
 
 int WINX=800, WINY=800;
 
@@ -268,6 +269,14 @@ namespace GLGraphics {
             renderer = new ScalarFieldRenderer();
             dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth,scalar_field, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
         }
+        else if(short_name == "col")
+        {
+            renderer = new ColorFieldRenderer();
+            dynamic_cast<ColorFieldRenderer*>(renderer)->compile_display_list(mani,
+                                                                             smooth,
+                                                                             color_field,
+                                                                             gamma);
+        }
         else if(short_name == "lin")
         {
             renderer = new LineFieldRenderer();
@@ -337,6 +346,11 @@ namespace GLGraphics {
         glEnable(GL_LIGHTING);
     }
 
+    void VisObj::construct_obb_tree()
+    {
+        build_OBBTree(mani, obb_tree);
+    }
+
     
     void VisObj::display(const std::string& display_method , Console& cs, bool smooth, float gamma)
     {
@@ -352,5 +366,11 @@ namespace GLGraphics {
             draw_selection();
         if(!graph.empty())
             draw(graph);
+        if(!obb_tree.empty())
+        {
+            static Console::variable<int> max_level(1);
+            max_level.reg(cs, "display.obb_tree.max_level", "Maximum level for OBB Tree rendering");
+            draw(obb_tree,max_level);
+        }
     }
 }

@@ -558,7 +558,74 @@ namespace GLGraphics
         glUseProgram(old_prog);
         
     }
+
     
+    const string ColorFieldRenderer::vss =
+    "	attribute vec3 color;\n"
+    "	varying vec3 _normal;\n"
+    "	varying vec3 _color;\n"
+    "	\n"
+    "	void main(void)\n"
+    "	{\n"
+    "		gl_Position =  ftransform();\n"
+    "		_normal = normalize(gl_NormalMatrix * gl_Normal);\n"
+    "		_color = color;\n"
+    "	}\n";
+    
+    const string ColorFieldRenderer::fss =
+    "	varying vec3 _normal;\n"
+    "	varying vec3 _color;\n"
+    "   uniform float gamma;\n"
+    "	const vec3 light_dir = vec3(0,0,1);\n"
+    "	\n"
+    "	void main()\n"
+    "	{\n"
+    "       vec3 normal = normalize(_normal);\n"
+    "		float dot_ln = max(0.0,dot(light_dir, normal));\n"
+    "		\n"
+    "       gl_FragColor.rgb =  (_color*0.8 + vec3(0.2))*(0.3+0.7*dot_ln);\n"
+    "       gl_FragColor.r = pow(max(0.0,gl_FragColor.r), 1.0/gamma);\n"
+    "       gl_FragColor.g = pow(max(0.0,gl_FragColor.g), 1.0/gamma);\n"
+    "       gl_FragColor.b = pow(max(0.0,gl_FragColor.b), 1.0/gamma);\n"
+    "	}\n";
+    
+    void ColorFieldRenderer::compile_display_list(const HMesh::Manifold& m, bool smooth,
+                                                  HMesh::VertexAttributeVector<Vec3d>& field,
+                                                  float gamma)
+    {
+        
+        GLint old_prog;
+        glGetIntegerv(GL_CURRENT_PROGRAM, &old_prog);
+        glUseProgram(prog);
+        
+        GLuint color_attrib = glGetAttribLocation(prog, "color");
+        
+        glUniform1fARB(glGetUniformLocationARB(prog, "gamma"), gamma);
+        glNewList(display_list,GL_COMPILE);
+        
+        for(FaceIDIterator f = m.faces_begin(); f != m.faces_end(); ++f){
+            if(!smooth)
+                glNormal3dv(normal(m, *f).get());
+            if(no_edges(m, *f)== 3)
+                glBegin(GL_TRIANGLES);
+            else
+                glBegin(GL_POLYGON);
+            
+            
+            for(Walker w = m.walker(*f); !w.full_circle(); w = w.circulate_face_ccw()){
+                Vec3d n(normal(m, w.vertex()));
+                if(smooth)
+                    glNormal3dv(n.get());
+                glVertexAttrib3dv(color_attrib, field[w.vertex()].get());
+                glVertex3dv(m.pos(w.vertex()).get());
+            }
+            glEnd();
+        }
+        glEndList();
+        glUseProgram(old_prog);
+        
+    }
+
     HMesh::VertexAttributeVector<CGLA::Vec2f> CheckerBoardRenderer::param;
 
     const string CheckerBoardRenderer::vss =
@@ -785,177 +852,6 @@ namespace GLGraphics
     "	gl_FragColor.a = 1.0;\n"
     "}\n";
     
-//    GLuint HarmonicsRenderer::prog_P0 = 0;
-//    GLGraphics::Console::variable<float> HarmonicsRenderer::display_harmonics_time;
-//    GLGraphics::Console::variable<int> HarmonicsRenderer::display_harmonics_diffuse;
-//    GLGraphics::Console::variable<int> HarmonicsRenderer::display_harmonics_highlight;
-//
-//    GLGraphics::Console::variable<int> HarmonicsRenderer::display_harmonics_e0;
-//    GLGraphics::Console::variable<int> HarmonicsRenderer::display_harmonics_e1;
-//    
-//    string vss =
-//	"#version 120\n"
-//	"#extension GL_EXT_gpu_shader4 : enable\n"
-//	"	\n"
-//	"	\n"
-//	"	attribute float eigenvalue;\n"
-//	"	attribute float eigenvalue2;\n"
-//	"	varying vec3 normal;\n"
-//	"	varying float eig;\n"
-//	"	varying float eig2;\n"
-//	"	\n"
-//	"	void main(void)\n"
-//	"	{\n"
-//	"		gl_Position =  ftransform();\n"
-//	"		normal = normalize(gl_NormalMatrix * gl_Normal);\n"
-//	"		eig = eigenvalue;\n"
-//	"		eig2 = eigenvalue2;\n"
-//	"	}\n";
-//	
-//	string fss =
-//	"#version 120\n"
-//	"#extension GL_EXT_gpu_shader4 : enable\n"
-//	"	\n"
-//	"	varying vec3 normal;\n"
-//	"	varying float eig;\n"
-//	"	varying float eig2;\n"
-//	"	uniform float eig_max;\n"
-//	"	uniform float eig_max2;\n"
-//	"	uniform bool do_highlight;\n"
-//	"	uniform bool do_diffuse;\n"
-//	"	const vec3 light_dir = vec3(0,0,1);\n"
-//	"	\n"
-//	" float basef(float x) {return max(0.0,min(1.0,2.0-4.0*abs(x)));\n}"
-//	"	void main()\n"
-//	"	{\n"
-//	"		float dot_ln = max(0.0,dot(light_dir, normal));\n"
-//	"		\n"
-//	"		float eig_norm = eig/eig_max;\n"
-//	"		float stripe_signal = 250 * eig_norm;\n"
-//	//"		vec4 stripe_col = abs(stripe_signal) < 3.14 ? vec4(1,1,0,0) : vec4(.4,.4,.4,0);\n"
-//	"		vec4 stripe_col = -vec4(.4,.4,.4,0);\n"
-//	"		\n"
-//	"       float alpha = (1.0-eig_norm) * 2.0 * 3.1415926;\n"
-//	"       float offs = 2.0*3.1415/3.0;\n"
-//	"		gl_FragColor = vec4(0,0,1,0)*basef(eig_norm)+vec4(0,1,0,0)*basef(eig_norm-0.5)+vec4(1,0,0,0)* basef(eig_norm-1.0);\n"
-//	"		if(do_diffuse)   gl_FragColor *= dot_ln;\n"
-//	"		if(do_highlight) gl_FragColor += dot_ln*dot_ln*dot_ln*dot_ln*dot_ln*dot_ln*dot_ln*vec4(.5,.5,.5,0);\n"
-//	"		gl_FragColor -= vec4(.4,.4,.4,.4)*smoothstep(0.2,0.6,cos(stripe_signal));\n"
-//	"	}\n";
-//    
-//
-//    HarmonicsRenderer::HarmonicsRenderer(HMesh::Manifold& _m, HMesh::Harmonics* _h, GLGraphics::Console& cs): m(&_m), h(_h)
-//    {
-//        if (prog_P0 == 0) {
-//            string shader_path = "/Users/jab/GEL/apps/MeshEdit/";
-//            GLuint vs = create_glsl_shader(GL_VERTEX_SHADER, vss);
-//            GLuint fs = create_glsl_shader(GL_FRAGMENT_SHADER, fss);
-//            
-//            // Create the program
-//            prog_P0 = glCreateProgram();
-//            
-//            // Attach all shaders
-//            if(vs) glAttachShader(prog_P0, vs);
-//            if(fs) glAttachShader(prog_P0, fs);
-//            
-//            // Link the program object and print out the info log
-//            glLinkProgram(prog_P0);
-//            print_glsl_program_log(prog_P0);
-//            
-//            // Install program object as part of current state
-//            glUseProgram(0);
-//            
-//            
-//            display_harmonics_diffuse.reg(cs, "display.harmonics.diffuse", "");
-//            display_harmonics_time.reg(cs, "display.harmonics.time", "");
-//            display_harmonics_highlight.reg(cs, "display.harmonics.highlight", "");
-//            display_harmonics_e0.reg(cs,"display.harmonics.e0","");
-//            display_harmonics_e1.reg(cs,"display.harmonics.e1","");
-//        }
-//        draw_esum();
-//    }
-//    
-//    
-//    void HarmonicsRenderer::parse_key(unsigned char key)
-//    {
-//        switch(key) {
-//            case '+':
-//                display_harmonics_time = display_harmonics_time+0.001;
-//                break;
-//            case '-':
-//                display_harmonics_time = display_harmonics_time-0.001;
-//                break;
-//            case 'd':
-//                display_harmonics_diffuse = !display_harmonics_diffuse;
-//                break;
-//            case 'h':
-//                display_harmonics_highlight = !display_harmonics_highlight;
-//                break;
-//        }
-//        
-//    }
-//    
-//    
-//    
-//    
-//    void HarmonicsRenderer::draw_adf()
-//    {
-//        VertexAttributeVector<double> F;
-//        double F_max = h->compute_adf(F, display_harmonics_time);
-//        cout << "F max" <<  F_max << endl;
-//        
-//        glNewList(display_list, GL_COMPILE);
-//        glUseProgram(prog_P0);
-//        glUniform1f(glGetUniformLocation(prog_P0,"eig_max"),F_max);//2*M_PI);
-//        glUniform1i(glGetUniformLocation(prog_P0,"do_diffuse"),display_harmonics_diffuse);
-//        glUniform1i(glGetUniformLocation(prog_P0,"do_highlight"),display_harmonics_highlight);
-//        GLuint attrib = glGetAttribLocationARB(prog_P0, "eigenvalue");
-//        
-//        glFrontFace(GL_CW);
-//        for(FaceIDIterator f = m->faces_begin(); f != m->faces_end(); ++f){
-//            glBegin(GL_TRIANGLES);
-//            for(Walker w = m->walker(*f); !w.full_circle(); w = w.circulate_face_cw()){
-//                glVertexAttrib1f(attrib,F[w.vertex()]);
-//                glNormal3dv(normal(*m, w.vertex()).get());
-//                glVertex3dv(m->pos(w.vertex()).get());
-//            }
-//            glEnd();
-//        }
-//        glFrontFace(GL_CCW);
-//        glUseProgram(0);
-//        glEndList();
-//    }
-//
-//    void HarmonicsRenderer::draw_esum()
-//    {
-//        VertexAttributeVector<double> F;
-//        double F_max = h->compute_esum(F, display_harmonics_e0, display_harmonics_e1);
-//        cout << "F max" <<  F_max << endl;
-//        
-//        glNewList(display_list, GL_COMPILE);
-//        glUseProgram(prog_P0);
-//        glUniform1f(glGetUniformLocation(prog_P0,"eig_max"),F_max);//2*M_PI);
-//        glUniform1i(glGetUniformLocation(prog_P0,"do_diffuse"),display_harmonics_diffuse);
-//        glUniform1i(glGetUniformLocation(prog_P0,"do_highlight"),display_harmonics_highlight);
-//        GLuint attrib = glGetAttribLocationARB(prog_P0, "eigenvalue");
-//        
-//        glFrontFace(GL_CW);
-//        for(FaceIDIterator f = m->faces_begin(); f != m->faces_end(); ++f){
-//            glBegin(GL_TRIANGLES);
-//            for(Walker w = m->walker(*f); !w.full_circle(); w = w.circulate_face_cw()){
-//                glVertexAttrib1f(attrib,F[w.vertex()]);
-//                glNormal3dv(normal(*m, w.vertex()).get());
-//                glVertex3dv(m->pos(w.vertex()).get());
-//            }
-//            glEnd();
-//        }
-//        glFrontFace(GL_CCW);
-//        glUseProgram(0);
-//        glEndList();
-//    }
-//
-//
-//    
 }
 
 
