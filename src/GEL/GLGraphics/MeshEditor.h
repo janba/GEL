@@ -9,6 +9,7 @@
 #ifndef __GEL__MeshEditor__
 #define __GEL__MeshEditor__
 
+#include <sstream>
 #include <mutex>
 #include <string>
 #include "../GLGraphics/Console.h"
@@ -19,6 +20,20 @@
 namespace GLGraphics {
     extern std::mutex parallel_work;
     
+    
+    template<typename T>
+    T console_arg(const std::vector<std::string> & args, int num, T dflt)
+    {
+        if(args.size() > num){
+            std::istringstream iss(args[num]);
+            T a;
+            iss >> a;
+            return a;
+        }
+        return dflt;
+    }
+
+    
     class MeshEditor
     {
         bool console_visible = false;
@@ -28,7 +43,7 @@ namespace GLGraphics {
         HMesh::VertexAttributeVector<float> weight_vector;
         HMesh::VertexAttributeVector<CGLA::Vec3d> orig_pos;
 
-        static const int NO_MESHES = 9;
+        static const int NO_MESHES = 25;
         std::array<VisObj,NO_MESHES> vo;
         
     public:
@@ -83,7 +98,8 @@ namespace GLGraphics {
             return active_visobj().get_halfedge_selection();
         }
 
-        
+        /// Returns the number of mesh objects
+        int get_no_meshes() const {return NO_MESHES;}
 
         
         /** Tests whether the position passed as argument is on the mesh (return true) 
@@ -101,6 +117,9 @@ namespace GLGraphics {
 
         // GLViewController stuff
         void reshape(int w, int h);
+        CGLA::Vec2i shape();
+        
+        
         void grab_ball(TrackBallAction action, const CGLA::Vec2i& pos);
         void roll_ball(const CGLA::Vec2i& pos);
         void release_ball();
@@ -121,7 +140,7 @@ namespace GLGraphics {
         }
         
         /// Returns the name of the file whence the active mesh was loaded.
-        const std::string& file_name() const {return active_visobj().file_name();}
+        std::string& get_file_name() {return active_visobj().get_file_name();}
 
         // Get mesh and mesh state.
         void save_active_mesh() {active_visobj().save_old();}
@@ -153,9 +172,21 @@ namespace GLGraphics {
 
         /// Returns a reference to active mesh.
         HMesh::Manifold& active_mesh() { return active_visobj().mesh(); }
+        
+        
+        void set_active(int i) {
+           // active = std::min((NO_MESHES-1), (std::max(0, i)));
+        }
+        
+        int get_active_no() const {
+            return active;
+        }
 
         /// Returns a reference to mesh i
         HMesh::Manifold& get_mesh(int i) { return vo[i].mesh(); }
+        
+        /// Returns a reference to visobj i
+        GLGraphics::VisObj& get_visobj(int i) { return vo[i];}
 
        /// Add a file to the next empty slot.
         bool add_file(const std::string& str);
@@ -166,10 +197,6 @@ namespace GLGraphics {
         /// Load the mesh but without clearing, effectively combining it with existing mesh.
         bool add_to_active_from_file(const std::string& str);
         
-//        void harmonics_analyze_mesh() {active_visobj().harmonics_analyze();}
-//        void harmonics_reset_shape() {active_visobj().harmonics_reset_shape();}
-//        void harmonics_partial_reconstruct(int E0, int E1, float scale) {active_visobj().harmonics_partial_reconstruct(E0, E1, scale);}
-
     };
 }
 

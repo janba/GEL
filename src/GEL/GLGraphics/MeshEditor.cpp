@@ -9,7 +9,13 @@
 #if !defined (WIN32)
 #include <stdarg.h>
 #include <unistd.h>
+#include <dirent.h>
+#else
+#include <Util/dirent.h>
 #endif
+
+#include <regex>
+
 #include <GL/glew.h>
 #include <functional>
 #include "MeshEditor.h"
@@ -53,19 +59,55 @@ namespace GLGraphics {
             return false;
         }
 
-// Commented out since apparently unused:
-//        bool wantshelp(MeshEditor* me, const std::vector<std::string> & args)
-//        {
-//            if(args.size() == 0)
-//                return false;
-//            
-//            string str = args[0];
-//            
-//            if(str=="help" || str=="HELP" || str=="Help" || str=="?")
-//                return true;
-//            
-//            return false;
-//        }
+        static map<unsigned short,string> hotkey_to_string = {
+            {'w', "wireframe render mode"},
+            {'n', "normal render mode"},
+            {'i', "isophotes render mode"},
+            {'r', "reflection render mode"},
+            {'t', "toon render mode"},
+            {'g', "glazed render mode"},
+            {'a', "ambient occlusion render mode"},
+            {'c', "color field render mode"},
+            {'s', "scalar field render mode"},
+            {'d', "debug render mode"},
+            {'C', "curvature lines render mode"},
+            {'M', "mean curvature render mode"},
+            {'G', "gaussian curvature render mode"},
+//            {27,  "toggle console"},
+            {'1', "switch to mesh 1"},
+            {'2', "switch to mesh 2"},
+            {'3', "switch to mesh 3"},
+            {'4', "switch to mesh 4"},
+            {'5', "switch to mesh 5"},
+            {'6', "switch to mesh 6"},
+            {'7', "switch to mesh 7"},
+            {'8', "switch to mesh 8"},
+            {'9', "switch to mesh 9"},
+            {' ', "clear selections"},
+            {'f', "toggle smooth/flat shading"},
+            {'R', "repeat last command"}
+        };
+        
+        void console_list_controls(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            me->printf("");
+            me->printf("== MeshEdit Controls ==");
+            me->printf("");
+            me->printf("-- Mouse movement --");
+            me->printf("Left button down                           : rotate");
+            me->printf("Left button down + SHIFT                   : edit");
+            me->printf("Middle button down (or right button + ALT) : zoom");
+            me->printf("Right button down                          : pan");
+            me->printf("-- Mouse button press --");
+            me->printf("Left mouse click + CTRL                 : select");
+            me->printf("-- Hotkeys (note some are upper case) --");
+            me->printf("  ESC : toggles console");
+            me->printf("  <-  : switch to mesh with lower number ");
+            me->printf("  ->  : switch to mesh with higher number ");
+            for(auto& h: hotkey_to_string) {
+                me->printf("  '%c' : %s", h.first, h.second.c_str());
+            }
+        }
         
         /// Function that aligns two meshes.
         void console_align(MeshEditor* me, const std::vector<std::string> & args)
@@ -420,14 +462,14 @@ namespace GLGraphics {
                 return;
             }
             vector<VertexID> loop0;
-            circulate_face_ccw(m, f0, [&](VertexID v) {
+			circulate_face_ccw(m, f0, std::function<void(VertexID)>([&](VertexID v){
                 loop0.push_back(v);
-            });
+            }) );
             
             vector<VertexID> loop1;
-            circulate_face_ccw(m, f1, [&](VertexID v) {
+			circulate_face_ccw(m, f1, std::function<void(VertexID)>( [&](VertexID v) {
                 loop1.push_back(v);
-            });
+            }) );
             
             vector<pair<VertexID, VertexID> > connections;
             
@@ -497,7 +539,7 @@ namespace GLGraphics {
                 if(m.in_use(f))
                 {
                     VertexID v0=InvalidVertexID,v1=InvalidVertexID;
-                    circulate_face_ccw(m, f, [&](VertexID v){
+					circulate_face_ccw(m, f, std::function<void(VertexID)>( [&](VertexID v){
                         if(vsel.count(v))
                         {
                             if(v0==InvalidVertexID)
@@ -507,7 +549,7 @@ namespace GLGraphics {
                         
                         }
                     
-                    });
+                    }) );
                     m.split_face_by_edge(f, v0, v1);
                 }
         }
@@ -751,21 +793,21 @@ namespace GLGraphics {
         }
         
         
-        void console_doosabin_subdivide(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(wantshelp(args)) {
-                me->printf("usage: subdivide.doo_sabin ");
-                me->printf("Does one step of Doo-Sabin Subdivision");
-                
-                return;
-            }
-            me->save_active_mesh();
-            
-            cc_split(me->active_mesh(),me->active_mesh());
-            dual(me->active_mesh());
-            
-            return;
-        }
+//        void console_doosabin_subdivide(MeshEditor* me, const std::vector<std::string> & args)
+//        {
+//            if(wantshelp(args)) {
+//                me->printf("usage: subdivide.doo_sabin ");
+//                me->printf("Does one step of Doo-Sabin Subdivision");
+//
+//                return;
+//            }
+//            me->save_active_mesh();
+//
+//            cc_split(me->active_mesh(),me->active_mesh());
+//            dual(me->active_mesh());
+//
+//            return;
+//        }
         
         void console_butterfly_subdivide(MeshEditor* me, const std::vector<std::string> & args)
         {
@@ -782,20 +824,20 @@ namespace GLGraphics {
             return;
         }
         
-        void console_dual(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(wantshelp(args))
-            {
-                me->printf("usage: dual ");
-                me->printf("Produces the dual by converting each face to a vertex placed at the barycenter.");
-                return;
-            }
-            me->save_active_mesh();
-            
-            dual(me->active_mesh());
-            
-            return;
-        }
+//        void console_dual(MeshEditor* me, const std::vector<std::string> & args)
+//        {
+//            if(wantshelp(args))
+//            {
+//                me->printf("usage: dual ");
+//                me->printf("Produces the dual by converting each face to a vertex placed at the barycenter.");
+//                return;
+//            }
+//            me->save_active_mesh();
+//
+//            dual(me->active_mesh());
+//
+//            return;
+//        }
         
         
         void console_minimize_curvature(MeshEditor* me, const std::vector<std::string> & args)
@@ -997,6 +1039,7 @@ namespace GLGraphics {
         
         void console_reload(MeshEditor* me, const std::vector<std::string> & args)
         {
+            string fn = console_arg(args, 0, string(""));
             if(wantshelp(args))
             {
                 me->printf("usage:  load <file>");
@@ -1006,12 +1049,39 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
             
-            if(!me->reload_active_from_file(args.size() > 0 ? args[0]:""))
-                me->printf("failed to load");
-            
-            return;
+            DIR *dir;
+            struct dirent *ent;
+            vector<string> file_matches;
+            if ((dir = opendir (".")) != NULL) {
+                /* print all the files and directories within directory */
+                while ((ent = readdir (dir)) != NULL) {
+                    if(regex_match(ent->d_name, regex(fn)))
+                        file_matches.push_back(ent->d_name);
+                    }
+                closedir (dir);
+            } else {
+                /* could not open directory */
+                me->printf("Could not access directory");
+            }
+
+            for(int i=0;i<file_matches.size();++i)
+            {
+                if(me->reload_active_from_file(file_matches[i])) {
+                    int act = me->get_active_no();
+                    if((act+1) == me->get_no_meshes())
+                        break;
+                    if((i+1) < file_matches.size())
+                        me->set_active(act+1);
+                    me->printf("Loaded %s", file_matches[i].c_str());
+                }
+                else
+                {
+                    me->printf("failed to load: %s", file_matches[i].c_str());
+                    continue;
+                }
+            }
         }
-        
+
         
         void console_add_mesh(MeshEditor* me, const std::vector<std::string> & args)
         {
@@ -1108,22 +1178,13 @@ namespace GLGraphics {
                 }
             
             }
-
-// Commented out since apparently unused:
-//            auto int_to_col = [](int x, int xmax) {
-//                Vec3f vec(((x*2)%xmax)/float(xmax),
-//                          1-((x*5)%xmax)/float(xmax),
-//                          ((x*11)%xmax)/float(xmax));
-//                vec /= vec.max_coord();
-//                return vec;
-//            };
             
             auto tip = [&](VertexID tip_candidate) {
                 bool is_tip = true;
-                circulate_vertex_ccw(m, tip_candidate, [&](VertexID v){
+				circulate_vertex_ccw(m, tip_candidate, std::function<void(VertexID)>( [&](VertexID v){
                     if(pred[v] == tip_candidate)
                         is_tip = false;
-                });
+                }) );
                 return is_tip;
             };
             
@@ -1158,25 +1219,25 @@ namespace GLGraphics {
             if(shortest_loop_len<DBL_MAX)
             {
                 while(loop_v0 != source_vertex) {
-                    circulate_vertex_ccw(m, loop_v0, [&](Walker w) {
+					circulate_vertex_ccw(m, loop_v0, std::function<void(Walker &)>([&](Walker w) {
                         VertexID vn = w.vertex();
                         if ((vn == pred[loop_v0])) {
                             DebugRenderer::edge_colors[w.halfedge()] = Vec3f(1);
                             DebugRenderer::edge_colors[w.opp().halfedge()] = Vec3f(1);
                             
                         }
-                    });
+                    }) );
                     loop_v0 = pred[loop_v0];
                 }
                 while(loop_v1 != source_vertex) {
-                    circulate_vertex_ccw(m, loop_v1, [&](Walker w) {
+					circulate_vertex_ccw(m, loop_v1, std::function<void(Walker&)>([&](Walker w) {
                         VertexID vn = w.vertex();
                         if ((vn == pred[loop_v1])) {
                             DebugRenderer::edge_colors[w.halfedge()] = Vec3f(1);
                             DebugRenderer::edge_colors[w.opp().halfedge()] = Vec3f(1);
                             
                         }
-                    });
+                    }));
                     loop_v1 = pred[loop_v1];
                 }
             }
@@ -1208,6 +1269,25 @@ namespace GLGraphics {
                 ctable[6] = Vec3f(1,0,1);
             }
             return ctable[i%100000];
+        }
+        void console_info_all(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            Vec3d p0_all(FLT_MAX), p7_all(-FLT_MAX);
+            for(int i=0;i<me->get_no_meshes();++i)
+            {
+                Vec3d p0, p7;
+                Manifold& m = me->get_mesh(i);
+                if (m.no_faces()>0) {
+                    bbox(m, p0, p7);
+                    p0_all = v_min(p0, p0_all);
+                    p7_all = v_max(p7, p7_all);
+                }
+            }
+            
+            stringstream bbox_corners;
+            bbox_corners << p0_all << " - " << p7_all << endl;
+            me->printf("Bounding box corners : %s", bbox_corners.str().c_str());
+
         }
 
         void console_info(MeshEditor* me, const std::vector<std::string> & args)
@@ -1454,41 +1534,6 @@ namespace GLGraphics {
         }
         
         
-        void console_mean_curvature_smooth(MeshEditor* me, const std::vector<std::string> & args){
-            if(wantshelp(args)) {
-                me->printf("usage:  smooth.mean_curvature <weight> <iter>");
-                me->printf("Perform mean curvature smoothing. weight is the scaling factor for the");
-                me->printf("mean curvature vector which has been normalized by dividing by edge lengths");
-                me->printf("this allows for larger steps as suggested by Desbrun et al.");
-                me->printf("default weight = 1.0. Default number of iterations = 1");
-                return;
-            }
-            me->save_active_mesh();
-            
-            double t=1.0;
-            if(args.size() > 0){
-                istringstream a0(args[0]);
-                a0 >> t;
-            }
-            int iter=1;
-            if(args.size() > 1){
-                istringstream a0(args[1]);
-                a0 >> iter;
-            }
-            VertexAttributeVector<Vec3d> new_pos(me->active_mesh().allocated_vertices());
-            for(int j = 0; j < iter; ++j){
-                for(VertexIDIterator v = me->active_mesh().vertices_begin(); v != me->active_mesh().vertices_end(); ++v) {
-                    Vec3d m;
-                    double w_sum;
-                    unnormalized_mean_curvature_normal(me->active_mesh(), *v, m, w_sum);
-                    new_pos[*v] = Vec3d(me->active_mesh().pos(*v))  + (t * m/w_sum);
-                }
-                for(VertexIDIterator v = me->active_mesh().vertices_begin(); v != me->active_mesh().vertices_end(); ++v)
-                    me->active_mesh().pos(*v) = new_pos[*v];
-            }
-            return;
-        }
-        
         void console_taubin_smooth(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)){
@@ -1693,16 +1738,8 @@ namespace GLGraphics {
             return;
         }
         else {
-            
+
             switch(key) {
-                    case 'R':
-                {
-                    theConsole.key_up();
-                    theConsole.keyboard(13);
-                    active_visobj().post_create_display_list();
-                }
-                    break;
-                case 'q': exit(0);
                 case '\033':
                     console_visible = false;
                     break;
@@ -1715,51 +1752,41 @@ namespace GLGraphics {
                 case '7':
                 case '8':
                 case '9':
-                {
-                    int w[4];
-                    glGetIntegerv(GL_VIEWPORT, w);
                     active = key - '1';
-                    active_view_control().reshape(w[2],w[3]);
-                }
                     break;
-                case 'f': display_smooth_shading = !display_smooth_shading; break;
-                case 'w':
-                    display_render_mode = "wire"; break;
-                case 'n':
-                    display_render_mode = "normal"; break;
-                case 'i':
-                    display_render_mode = "isophotes"; break;
-                case 'r':
-                    display_render_mode = "reflection"; break;
-//                case 'h':
-//                    display_render_mode = "harmonics"; break;
-                case 't':
-                    display_render_mode = "toon"; break;
-                case 'g':
-                    display_render_mode = "glazed"; break;
-                case 'a':
-                    display_render_mode = "ambient_occlusion"; break;
-                case 'c':
-                    display_render_mode = "color"; break;
-                case 's':
-                    display_render_mode = "scalar"; break;
-                case 'd':
-                    display_render_mode = "debug"; break;
-                case 'C':
-                    display_render_mode = "curvature_lines"; break;
-                case 'M':
-                    display_render_mode = "mean_curvature"; break;
-                case 'G':
-                    display_render_mode = "gaussian_curvature"; break;
                 case ' ':
                     active_visobj().clear_vertex_selection();
                     active_visobj().clear_face_selection();
                     active_visobj().clear_halfedge_selection();
+                    post_create_display_list();
                     break;
-                
+                case 'f':
+                    display_smooth_shading = !display_smooth_shading;
+                    post_create_display_list();
+                    break;
+                case 'w':
+                case 'n':
+                case 'i':
+                case 'r':
+                case 't':
+                case 'g':
+                case 'a':
+                case 'c':
+                case 's':
+                case 'd':
+                case 'C':
+                case 'M':
+                case 'G':
+                    display_render_mode = hotkey_to_string[key];
+                    post_create_display_list();
+                    break;
+                case 'R':
+                    theConsole.key_up();
+                    theConsole.keyboard(13);
+                    post_create_display_list();
+                    break;
             }
             
-            if(key != '\033') post_create_display_list();
         }
         
     }
@@ -1775,14 +1802,56 @@ namespace GLGraphics {
         theConsole.print(buffer);
     }
 
-    void MeshEditor::key_up(){theConsole.key_up();}
-    void MeshEditor::key_down(){theConsole.key_down();}
-    void MeshEditor::key_left(){theConsole.key_left();}
-    void MeshEditor::key_right(){theConsole.key_right();}
-    void MeshEditor::key_home(){theConsole.key_home();}
-    void MeshEditor::key_end(){theConsole.key_end();}
-    
-    
+    void MeshEditor::key_up(){
+        if(console_visible)
+            theConsole.key_up();
+        else
+        {
+            int w[4];
+            glGetIntegerv(GL_VIEWPORT, w);
+            active = 0;
+            active_view_control().reshape(w[2],w[3]);
+        }
+    }
+    void MeshEditor::key_down(){
+        if(console_visible)
+            theConsole.key_down();
+        else
+        {
+            int w[4];
+            glGetIntegerv(GL_VIEWPORT, w);
+            active = NO_MESHES-1;
+            active_view_control().reshape(w[2],w[3]);
+        }
+    }
+    void MeshEditor::key_left(){
+        if(console_visible)
+            theConsole.key_left();
+        else
+        {
+            int w[4];
+            glGetIntegerv(GL_VIEWPORT, w);
+            active = max(0, active-1);
+            active_view_control().reshape(w[2],w[3]);
+        }
+    }
+    void MeshEditor::key_right(){
+        if(console_visible)
+            theConsole.key_right();
+        else
+        {
+            int w[4];
+            glGetIntegerv(GL_VIEWPORT, w);
+            active = min(NO_MESHES-1, active+1);
+            active_view_control().reshape(w[2],w[3]);
+        }
+    }
+    void MeshEditor::key_home(){
+        theConsole.key_home();
+    }
+    void MeshEditor::key_end(){
+        theConsole.key_end();
+    }
     
     void MeshEditor::grab_ball(TrackBallAction action, const CGLA::Vec2i& pos){
         active_view_control().grab_ball(action, pos);
@@ -1928,9 +1997,9 @@ namespace GLGraphics {
             else if(!fset.empty())
                 for(auto f: fset)
                 {
-                    circulate_face_ccw(m, f, [&](VertexID vid){
+					circulate_face_ccw(m, f, std::function<void(VertexID)>( [&](VertexID vid){
                         m.pos(vid) = active_visobj().mesh_old().pos(vid) + v;
-                    });
+                    }) );
                 }
             else {
                 if(string(brush_type) == "smooth")
@@ -2110,6 +2179,10 @@ namespace GLGraphics {
         for(VisObj& v : vo)
             v.view_control().reshape(w, h);
     }
+    
+    Vec2i MeshEditor::shape() {
+        return vo[active].view_control().shape();
+    }
 
     void MeshEditor::init() {
         glewInit();
@@ -2133,11 +2206,10 @@ namespace GLGraphics {
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material);
         glEnable(GL_DEPTH_TEST);
         
+        register_console_function("help.controls", console_list_controls, "");
         register_console_function("simplify", console_simplify,"");
-        
         register_console_function("ridge_lines", console_ridge_lines,"");
         
-        register_console_function("smooth.mean_curvature", console_mean_curvature_smooth,"");
         register_console_function("smooth.laplacian", console_laplacian_smooth,"");
         register_console_function("smooth.taubin", console_taubin_smooth,"");
         register_console_function("smooth.fuzzy_vector_median_anisotropic", console_fvm_anisotropic_smooth ,"");
@@ -2166,26 +2238,22 @@ namespace GLGraphics {
         register_console_function("subdivide.rootcc", console_root_cc_subdivide,"");
         register_console_function("subdivide.loop", console_loop_subdivide,"");
         register_console_function("subdivide.root3", console_root3_subdivide,"");
-        register_console_function("subdivide.doo_sabin", console_doosabin_subdivide,"");
+//        register_console_function("subdivide.doo_sabin", console_doosabin_subdivide,"");
         register_console_function("subdivide.butterfly", console_butterfly_subdivide,"");
         register_console_function("save_mesh", console_save,"");
         register_console_function("noise.perturb_vertices", console_vertex_noise,"");
         register_console_function("noise.perturb_vertices_perpendicular", console_perpendicular_vertex_noise,"");
         register_console_function("noise.perturb_topology", console_noisy_flips,"");
         
-        register_console_function("dual", console_dual,"");
-//        register_console_function("flatten", console_flatten,"");
         
         register_console_function("align", console_align,"");
         register_console_function("undo", console_undo,"");
         
         register_console_function("validity", console_valid,"");
         register_console_function("info", console_info,"");
+        register_console_function("info.all_meshes", console_info_all,"");
         
-//        register_console_function("harmonics.reset_shape", console_reset_shape, "");
-//        register_console_function("harmonics.analyze", console_analyze, "");
-//        register_console_function("harmonics.partial_reconstruct", console_partial_reconstruct,"");
-
+        
         register_console_function("Dijkstra", console_Dijkstra,"");
         
         register_console_function("display.refit_trackball", console_refit_trackball, "Resets trackball");

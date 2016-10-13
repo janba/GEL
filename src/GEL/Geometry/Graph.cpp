@@ -14,6 +14,12 @@ namespace Geometry {
     
     using namespace CGLA;
     using namespace std;
+
+	/// Special ID value for invalid node
+	const AMGraph3D::NodeID AMGraph::InvalidNodeID = std::numeric_limits<size_t>::max();
+
+	/// Special ID value for invalid edge
+	const AMGraph3D::EdgeID AMGraph::InvalidEdgeID = std::numeric_limits<size_t>::max();
     
     AMGraph3D merge_coincident_nodes(const AMGraph3D& g, double thresh)
     {

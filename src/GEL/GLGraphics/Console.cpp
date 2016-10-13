@@ -62,7 +62,7 @@ Console::Console() : m_history_index(0), m_caret(0),
              "Save history of commands to file.");
 }
 
-Console::~Console() throw()
+Console::~Console()
 {
     save_history();
 }
@@ -86,12 +86,30 @@ void Console::load_history()
 
 void Console::save_history() const
 {
-    std::ofstream ofs(history_filename);
-    if (!ofs)
-        std::cerr << "Console: Unable to save history.";
-    else
-        for (auto it=m_history.begin(); it!=m_history.end(); ++it)
-            ofs << *it << '\n';
+	FILE *f = fopen(history_filename, "a+");
+	if (f)
+	{
+        for (auto& h_line : m_history)
+			fprintf(f, "%s\n", h_line.c_str());
+
+		fclose(f);
+	}
+	else
+	{
+		std::cerr << "Console: Unable to save history.";
+	}
+
+	/* ofstream crashes in release mode in Windows */
+
+	//std::ofstream ofs;
+	//ofs.open(history_filename, std::fstream::app);
+
+	//	if (!ofs)
+	//		std::cerr << "Console: Unable to save history.";
+	//	else
+	//	for (auto it = m_history.begin(); it != m_history.end(); ++it)
+	//		ofs << *it << '\n';
+
 }
 
 void Console::clear_history()
@@ -687,6 +705,8 @@ void Console::help()
     printf("Printing list of commands:");
 
     command_map_t::const_iterator it = m_commands.begin();
+    std::stringstream ss;
+    int character_count=0;
     while (it != m_commands.end())
     {
         int n = 0;
@@ -698,8 +718,16 @@ void Console::help()
         }
         while (it!=m_commands.end() && it->first==prev);
 
-        printf("  %s(%i)", prev.c_str(), n);
+        if(prev.length() + 4 + character_count > 80)
+        {
+            ss << "\n";
+            character_count = 0;
+        }
+        ss << prev.c_str() << "(" << n << ") ";
+        character_count += prev.length() + 4;
     }
+    print(ss.str().c_str());
+    
 }
 
 void Console::help(const std::string& cmd)

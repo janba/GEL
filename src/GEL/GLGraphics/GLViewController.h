@@ -62,6 +62,9 @@ namespace GLGraphics
 
 		/// Reshape window.
 		void reshape(int W, int H);
+        
+        /// Get window dimensions
+        CGLA::Vec2i shape() const { return CGLA::Vec2i(WINX, WINY);}
 		
 		/// Set near and far planes.
 		void set_near_and_far();

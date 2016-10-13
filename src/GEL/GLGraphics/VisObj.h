@@ -22,9 +22,6 @@
 #include "../GLGraphics/ManifoldRenderer.h"
 //#include "../HMesh/harmonics.h"
 
-extern int WINX;
-extern int WINY;
-
 namespace GLGraphics {
 
 class VisObj
@@ -66,7 +63,7 @@ class VisObj
     
 public:
     
-    VisObj(): view_ctrl(WINX,WINY, CGLA::Vec3f(0), 1.0) {}
+    VisObj() {}
     
     
     HMesh::VertexSet& get_vertex_selection() {
@@ -108,7 +105,7 @@ public:
         return line_field;
     }
     
-    const std::string& file_name() const {return file;}
+    std::string& get_file_name() {return file;}
     
     float get_bsphere_radius() const { return bsphere_radius;}
     

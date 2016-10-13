@@ -33,7 +33,7 @@ class Console
 {
 public:
     Console();
-    ~Console() throw();
+    ~Console();
 
     // keyboard and display
     void display(int scaling=1);

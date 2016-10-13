@@ -25,8 +25,6 @@ using namespace HMesh;
 using namespace GLGraphics;
 using namespace Geometry;
 
-int WINX=800, WINY=800;
-
 namespace GLGraphics {
     
     void VisObj::refit()
@@ -322,9 +320,9 @@ namespace GLGraphics {
             if(mani.in_use(fid))
             {
                 glBegin(GL_POLYGON);
-                circulate_face_ccw(mani, fid, [&](VertexID v){
+				circulate_face_ccw(mani, fid, std::function<void(VertexID)>([&](VertexID v){
                     glVertex3dv(mani.pos(v).get());
-                });
+                }) );
                 glEnd();
             }
         }
