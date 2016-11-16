@@ -53,6 +53,8 @@ namespace HMesh
         FaceID face() const; 
         /// get ID of current halfedge of walker
         HalfEdgeID halfedge() const;
+        /// Get ID of either halfedge or ID - whichever has the smaller index.
+        HalfEdgeID hmin() const;
         
         /// assignment operator
         Walker operator =(const Walker& w);
@@ -107,6 +109,12 @@ namespace HMesh
 
     inline HalfEdgeID Walker::halfedge() const
     { return current; }
+
+    
+    inline HalfEdgeID Walker::hmin() const
+    { return (current<ck->opp(current))?current:ck->opp(current); }
+
+    
 
     inline Walker Walker::operator =(const Walker& w)
     { 

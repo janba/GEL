@@ -315,11 +315,11 @@ namespace GLGraphics {
                     a0 >> t[0];
                 }
                 if(args.size() > 1){
-                    istringstream a0(args[0]);
+                    istringstream a0(args[1]);
                     a0 >> t[1];
                 }
                 if(args.size() > 2){
-                    istringstream a0(args[0]);
+                    istringstream a0(args[2]);
                     a0 >> t[2];
                 }
             }
@@ -979,7 +979,7 @@ namespace GLGraphics {
         
         void console_reload(MeshEditor* me, const std::vector<std::string> & args)
         {
-            string fn = console_arg(args, 0, string(""));
+            string fn = console_arg(args, 0, me->active_visobj().get_file_name());
             if(wantshelp(args))
             {
                 me->printf("usage:  load <file>");
@@ -1003,6 +1003,11 @@ namespace GLGraphics {
                 /* could not open directory */
                 me->printf("Could not access directory");
             }
+            
+            // So no file in directory matched file name. Perhaps a full path was given
+            // or a relative path. We try loading without matching.
+            if(file_matches.empty())
+                file_matches.push_back(fn);
 
             for(int i=0;i<file_matches.size();++i)
             {
@@ -1055,142 +1060,6 @@ namespace GLGraphics {
             return;
         }
         
-        void console_Dijkstra(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(wantshelp(args))
-            {
-                me->printf("usage:  Dijkstra");
-                return;
-            }
-            
-            Manifold& m = me->active_mesh();
-            
-            VertexID source_vertex = *me->get_vertex_selection().begin();
-            
-            auto d_out = Dijkstra(m, source_vertex);
-            auto& dist = d_out.dist;
-            auto& pred = d_out.pred;
-            
-            
-            auto& scalar_field = me->active_visobj().get_scalar_field_attrib_vector();
-            double max_dist = 0;
-            for (auto v: m.vertices())
-                if(dist[v] > max_dist)
-                    max_dist = dist[v];
-            for(auto vid : m.vertices())
-                scalar_field[vid] = 1-dist[vid]/max_dist;
-            
-            
-            VertexAttributeVector<int> main_branch(m.allocated_vertices(),-1);
-            queue<VertexID> vertex_queue;
-            for(auto v: m.vertices())
-                if(v != source_vertex)
-                    vertex_queue.push(v);
-            
-            int main_branch_no = 1;
-            
-            while(!vertex_queue.empty()) {
-            
-                VertexID v = vertex_queue.front();
-                vertex_queue.pop();
-                
-                if(main_branch[v]==-1)
-                {
-                    vector<VertexID> path;
-                    
-                    do {
-                        path.push_back(v);
-                        v = pred[v];
-                    } while( v != source_vertex &&
-                            main_branch[v] == -1);
-                    
-                    if(v == source_vertex)
-                    {
-                        for(auto w : path)
-                            main_branch[w] = main_branch_no;
-                        ++main_branch_no;
-                    }
-                    else {
-                        int current_branch = main_branch[v];
-                        for(auto w : path)
-                            main_branch[w] = current_branch;
-                    }
-                }
-            
-            }
-            
-            auto tip = [&](VertexID tip_candidate) {
-                bool is_tip = true;
-				circulate_vertex_ccw(m, tip_candidate, std::function<void(VertexID)>( [&](VertexID v){
-                    if(pred[v] == tip_candidate)
-                        is_tip = false;
-                }) );
-                return is_tip;
-            };
-            
-            auto grad = [&](VertexID tip_v) {
-                VertexID v2 = pred[tip_v];
-                return normalize(m.pos(tip_v)-m.pos(v2));
-            };
-            
-            double shortest_loop_len = DBL_MAX;
-            VertexID loop_v0, loop_v1;
-            for(auto h: m.halfedges()) {
-                Walker w = m.walker(h);
-                VertexID l0 = w.vertex();
-                VertexID l1 = w.opp().vertex();
-                if(tip(l0) && tip(l1) &&
-                   main_branch[l0] != main_branch[l1])
-                {
-                    double s = dot(grad(l0),grad(l1));
-                    if(s<-0.75) {
-                        double loop_len = dist[l0]+dist[l1];
-                        if(loop_len< shortest_loop_len)
-                        {
-                            shortest_loop_len = loop_len;
-                            loop_v0 = l0;
-                            loop_v1 = l1;
-                        }
-                    }
-                }
-                DebugRenderer::edge_colors[h] = Vec3f(0);
-            }
-            
-            if(shortest_loop_len<DBL_MAX)
-            {
-                while(loop_v0 != source_vertex) {
-					circulate_vertex_ccw(m, loop_v0, std::function<void(Walker &)>([&](Walker w) {
-                        VertexID vn = w.vertex();
-                        if ((vn == pred[loop_v0])) {
-                            DebugRenderer::edge_colors[w.halfedge()] = Vec3f(1);
-                            DebugRenderer::edge_colors[w.opp().halfedge()] = Vec3f(1);
-                            
-                        }
-                    }) );
-                    loop_v0 = pred[loop_v0];
-                }
-                while(loop_v1 != source_vertex) {
-					circulate_vertex_ccw(m, loop_v1, std::function<void(Walker&)>([&](Walker w) {
-                        VertexID vn = w.vertex();
-                        if ((vn == pred[loop_v1])) {
-                            DebugRenderer::edge_colors[w.halfedge()] = Vec3f(1);
-                            DebugRenderer::edge_colors[w.opp().halfedge()] = Vec3f(1);
-                            
-                        }
-                    }));
-                    loop_v1 = pred[loop_v1];
-                }
-            }
-            
-            
-            
-            for(auto v: m.vertices())
-                DebugRenderer::vertex_colors[v] = Vec3f(0);
-            for(auto f: m.faces())
-                DebugRenderer::face_colors[f] = Vec3f(0.3);
-            
-            return;
-        }
 
         const Vec3f& get_color(int i)
         {
@@ -2172,8 +2041,10 @@ namespace GLGraphics {
         register_console_function("cleanup.compact", console_compact,"");
 
         register_console_function("triangulate", console_triangulate,"");
+        register_console_function("dual", console_dual,"");
         register_console_function("refine.split_edges", console_refine_edges,"");
         register_console_function("refine.split_faces", console_refine_faces,"");
+        
         register_console_function("subdivide.catmull_clark", console_cc_subdivide,"");
         register_console_function("subdivide.rootcc", console_root_cc_subdivide,"");
         register_console_function("subdivide.loop", console_loop_subdivide,"");
@@ -2193,9 +2064,7 @@ namespace GLGraphics {
         register_console_function("info", console_info,"");
         register_console_function("info.all_meshes", console_info_all,"");
         
-        
-        register_console_function("Dijkstra", console_Dijkstra,"");
-        
+                
         register_console_function("display.refit_trackball", console_refit_trackball, "Resets trackball");
         register_console_function("display.save_trackball", console_save_trackball, "Saves trackball to disk");
         register_console_function("display.load_trackball", console_load_trackball, "Load trackball to disk");
