@@ -18,6 +18,9 @@
 #include <iterator> //back_inserter
 #include <fstream>
 #include <utility> //min
+#include <unistd.h>
+#include <sys/socket.h>
+#include <sys/fcntl.h>
 
 //#define NOMINMAX
 //#include <windows.h>
@@ -54,17 +57,21 @@ Console::Console() : m_history_index(0), m_caret(0),
 
     reg_cmd0("history", std::bind(&Console::history, this),
              "Show history of commands.");
-    reg_cmd0("clear_history", std::bind(&Console::history, this),
+    reg_cmd0("clear_history", std::bind(&Console::clear_history, this),
              "Clear history of commands.");
     reg_cmd0("load_history", std::bind(&Console::load_history, this),
              "Load history of commands from file.");
     reg_cmd0("save_history", std::bind(&Console::save_history, this),
              "Save history of commands to file.");
+    
+    reg_cmd0("socket.listen", std::bind(&Console::open_socket, this),
+             "");
 }
 
 Console::~Console()
 {
     save_history();
+    unlink(addr.c_str());
 }
 
 //----------------------------------------------------------------------------
@@ -86,7 +93,7 @@ void Console::load_history()
 
 void Console::save_history() const
 {
-	FILE *f = fopen(history_filename, "a+");
+	FILE *f = fopen(history_filename, "w");
 	if (f)
 	{
         for (auto& h_line : m_history)
@@ -590,11 +597,91 @@ std::vector<std::string> Console::parse_cmdline(const char* buffer) const
     return tmp;
 }
 
+
+//----------------------------------------------------------------------------
+
+void Console::open_socket() {
+    
+    // Create a socket with a local domain and a duplex stream type
+    sck = socket(PF_LOCAL, SOCK_STREAM, 0);
+
+    
+    // Now, bind the socket to a point in the file system
+    sockaddr sck_addr;
+    sck_addr.sa_family = AF_LOCAL;
+    memcpy(sck_addr.sa_data, addr.c_str(), addr.length());
+    sck_addr.sa_len = addr.length();
+    if(bind(sck, &sck_addr, sizeof(sockaddr)) != 0) {
+        this->print("Failed to bind socket");
+        return;
+    }
+    
+    // Listen for incoming connections (max 1)
+    if(listen(sck, 1) != 0) {
+        this->print("Listening failed");
+        return;
+    }
+    
+    // Accept any takers
+    sockaddr sck_addr_accept;
+    socklen_t sck_len_accept;
+    sck_conn = accept(sck, &sck_addr_accept, &sck_len_accept);
+    if(sck_conn == -1) {
+        this->print("accept failed");
+        return;
+    }
+    
+    // Ensure that we do non-blocking IO
+    fcntl(sck_conn, F_SETFL, O_NONBLOCK);
+    
+    // Send a greeting to the other end!
+    std::string message = "MeshEdit socket connection\n\n";
+    send(sck_conn, message.c_str(), message.length(), 0);
+}
+
+bool Console::listen_commands() {
+    char buffer[256];
+    
+    // First we peek and if a newline is found
+    int l = recv(sck_conn, buffer, 255, MSG_PEEK);
+    for(int i=0;i<l;++i)
+        if(buffer[i]=='\n')
+        {
+            // We properly read the buffer
+            l = recv(sck_conn, buffer, 255, 0);
+            buffer[i]=0;
+            auto str = std::string(buffer, l);
+            
+            // Clear current command and reset the caret
+            m_current_command.clear();
+            m_caret = 0;
+            printf(">%s", str.c_str());
+            
+            //add command to history..
+            m_history.push_back(str);
+            m_history_index = m_history.size();
+            
+            // Execute command
+            execute(str.c_str());
+            return true;
+        }
+    return false;
+}
+
 //----------------------------------------------------------------------------
 
 void Console::print(const char* buffer)
 {
     std::string tmp(buffer);
+    
+    auto add_to_buffer = [&](const std::string& s) {
+        m_buffer.push_back(s);
+        if(sck_conn != -1) {
+            send(sck_conn, m_buffer.back().c_str(), m_buffer.back().length(), 0);
+            const char nl = '\n';
+            send(sck_conn, &nl, 1, 0);
+        }
+    };
 
     //parse into multiple lines
     size_t curr = 0;
@@ -605,12 +692,12 @@ void Console::print(const char* buffer)
 
         if (end == std::string::npos)
         {
-            m_buffer.push_back(tmp.substr(curr, end));
+            add_to_buffer(tmp.substr(curr, end));
             break;
         }
 
         size_t len = end-curr;
-        m_buffer.push_back(tmp.substr(curr, len));
+        add_to_buffer(tmp.substr(curr, len));
         curr = end + 1;
     }
 }

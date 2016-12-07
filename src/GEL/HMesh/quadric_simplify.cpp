@@ -103,8 +103,6 @@ namespace HMesh
             QuadricSimplifier(Manifold& _m, VertexAttributeVector<int>& _collapse_mask,
                               double _singular_thresh, bool _choose_optimal_positions):
             m(_m), 
-            halfedge_vec(_m.allocated_halfedges()), 
-            qem_vec(_m.allocated_vertices()),
             collapse_mask(_collapse_mask),
             singular_thresh(_singular_thresh),
             choose_optimal_positions(_choose_optimal_positions)

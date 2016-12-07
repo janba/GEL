@@ -66,6 +66,7 @@ namespace HMesh
             k += facevec[i];
         }
         stitch_mesh(m, cluster_id);
+        m.cleanup();
     }
 
 }

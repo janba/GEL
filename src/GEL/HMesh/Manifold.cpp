@@ -1109,6 +1109,53 @@ namespace HMesh
         kernel.set_opp(h0, h1);
         kernel.set_opp(h1, h0);
     }
+    
+    void Manifold::merge(Manifold& m2) {
+        if(!(m2.no_vertices() == m2.allocated_vertices() &&
+             m2.no_halfedges() == m2.allocated_halfedges() &&
+             m2.no_faces() == m2.allocated_faces() ))
+            m2.cleanup();
+        if(!(no_vertices() == allocated_vertices() &&
+             no_halfedges() == allocated_halfedges() &&
+             no_faces() == allocated_faces() ))
+            cleanup();
+        
+        const int NV = no_vertices();
+        const int NH = no_halfedges();
+        const int NF = no_faces();
+        
+        function<VertexID(VertexID)> map_vid = [NV](VertexID v) -> VertexID {
+            return VertexID(v.get_index() + NV);
+        };
+        function<HalfEdgeID(HalfEdgeID)> map_hid = [NH](HalfEdgeID h) -> HalfEdgeID {
+            return HalfEdgeID(h.get_index() + NH);
+        };
+        function<FaceID(FaceID)> map_fid = [NF](FaceID f) -> FaceID {
+            return FaceID(f.get_index() + NF);
+        };
+        
+        for (auto v : m2.vertices()) {
+            VertexID v_new = kernel.add_vertex();
+            kernel.set_out(v_new, map_hid(m2.kernel.out(v)));
+            pos(v_new) = m2.pos(v);
+        }
+        
+        for (auto h : m2.halfedges()) {
+            HalfEdgeID h_new = kernel.add_halfedge();
+            kernel.set_opp(h_new, map_hid(m2.kernel.opp(h)));
+            kernel.set_next(h_new, map_hid(m2.kernel.next(h)));
+            kernel.set_prev(h_new, map_hid(m2.kernel.prev(h)));
+            kernel.set_face(h_new, map_fid(m2.kernel.face(h)));
+            kernel.set_vert(h_new, map_vid(m2.kernel.vert(h)));
+        }
+        
+        for (auto f : m2.faces()) {
+            FaceID f_new = kernel.add_face();
+            kernel.set_last(f_new, map_hid(m2.kernel.last(f)));
+        }
+    }
+
+    
     void Manifold::ensure_boundary_consistency(VertexID v)
     {
         // boundary consistency check by performing two vertex circulations

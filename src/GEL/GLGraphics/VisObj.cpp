@@ -52,17 +52,18 @@ namespace GLGraphics {
         return true;
     }
     
-    template<typename IDType>
-    bool VisObj::select_entity(const Vec2i& pos, vector<pair<IDType, Vec3d>>& item_vec,
-                               IDType invalid_id,
-                               set<IDType>& selection_set) {
+    template<typename T>
+    bool VisObj::select_entity(const Vec2i& pos,
+                               vector<pair<ItemID<T>, Vec3d>>& item_vec,
+                               ItemID<T> invalid_id,
+                               IDSet<T>& selection_set) {
         float d;
         if(depth_pick(pos[0], pos[1], d))
         {
             Vec3d c;
             float r;
             bsphere(mani, c, r);
-            IDType closest = invalid_id;
+            auto closest = invalid_id;
             double min_dist = DBL_MAX;
             for(auto item : item_vec)
             {
@@ -171,12 +172,12 @@ namespace GLGraphics {
             method.reg(cs, "display.curvature_lines.method", "");
             smoothing_iter.reg(cs, "display.curvature_lines.smoothing_iter", "");
             
-            VertexAttributeVector<Mat3x3d> curvature_tensors(mani.allocated_vertices());
-            VertexAttributeVector<Vec3d> min_curv_direction(mani.allocated_vertices());
-            VertexAttributeVector<Vec3d> max_curv_direction(mani.allocated_vertices());
+            VertexAttributeVector<Mat3x3d> curvature_tensors;
+            VertexAttributeVector<Vec3d> min_curv_direction;
+            VertexAttributeVector<Vec3d> max_curv_direction;
             string _line_direction = line_direction;
             VertexAttributeVector<Vec3d>& lines = (_line_direction == "min") ? min_curv_direction : max_curv_direction;
-            VertexAttributeVector<Vec2d> curvature(mani.allocated_vertices());
+            VertexAttributeVector<Vec2d> curvature;
             
             if(string(method) == "tensors")
             {

@@ -66,8 +66,8 @@ namespace HMesh
     {
     public:
         IDIteratorPair(IDIterator<ITEM> _f, IDIterator<ITEM> _l): f(_f), l(_l) {}
-        IDIterator<ITEM> begin() {return f;}
-        IDIterator<ITEM> end() {return l;}
+        IDIterator<ITEM> begin() const {return f;}
+        IDIterator<ITEM> end() const {return l;}
     private:
         IDIterator<ITEM> f,l;
     };

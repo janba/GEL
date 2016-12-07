@@ -9,9 +9,6 @@
 #if !defined (WIN32)
 #include <stdarg.h>
 #include <unistd.h>
-#include <dirent.h>
-#else
-#include <Util/dirent.h>
 #endif
 
 #include <regex>
@@ -113,55 +110,61 @@ namespace GLGraphics {
         void console_align(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)) {
-                me->printf("usage: align <dest> <src>");
-                me->printf("This function aligns dest mesh with src");
-                me->printf("In practice the GLViewController of src is copied to dst.");
-                me->printf("both arguments are mandatory and must be numbers between 1 and 9.");
+                me->printf("usage: align_with <src>");
+                me->printf("This function aligns current mesh with src");
+                me->printf("In practice the GLViewController of src is copied to current mesh.");
+                me->printf("The argument is mandatory and must correspond to a valide mesh entry.");
                 me->printf("Note that results might be unexpexted if the meshes are not on the same scale");
             }
             
             int dest = 0;
             
             if(args.size()>0){
-                istringstream a0(args[0]);
-                a0 >> dest;
-                --dest;
-                
-                if(dest <0 || dest>8)
+                int src = console_arg(args, 0, 1);
+                if(src <0 || src>= me->get_no_meshes())
                 {
-                    me->printf("dest mesh out of range (1-9)");
+                    me->printf("src mesh out of range");
                     return;
                 }
+                me->align(src,me->get_active_no());
             }
             else
-            {
-                me->printf("neither source nor destination mesh?!");
-                return;
-            }
-            
-            int src = 0;
-            if(args.size()>1){
-                istringstream a1(args[1]);
-                a1 >> src;
-                --src;
-                
-                if(src <0 || src>8)
-                {
-                    me->printf("src mesh out of range (1-9)");
-                    return;
-                }
-            }
-            else
-            {
-                me->printf("no src mesh?");
-                return;
-            }
-            me->align(src,dest);
+                me->printf("You must enter the mesh number that you want to align with");
         }
         
-        
-        
-        
+        void console_merge(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: merge_with <src>");
+                me->printf("merges src into current mesh");
+                return;
+            }
+            int src = console_arg(args, 0, 2);
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            Manifold& m_src = me->get_mesh(src);
+            m.merge(m_src);
+            return;
+        }
+
+        void console_clear(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: clear");
+                me->printf("clears current mesh");
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            m.clear();
+            return;
+        }
+
+        void console_quit(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            exit(0);
+        }
+
         void console_ridge_lines(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)) {
@@ -173,12 +176,10 @@ namespace GLGraphics {
             
             Manifold& mani = me->active_mesh();
             
-            VertexAttributeVector<Mat3x3d> curvature_tensors(mani.allocated_vertices());
-            VertexAttributeVector<Vec3d> min_curv_direction(mani.allocated_vertices());
-            VertexAttributeVector<Vec3d> max_curv_direction(mani.allocated_vertices());
-            VertexAttributeVector<Vec2d> curvature(mani.allocated_vertices());
-            
-            
+            VertexAttributeVector<Mat3x3d> curvature_tensors;
+            VertexAttributeVector<Vec3d> min_curv_direction;
+            VertexAttributeVector<Vec3d> max_curv_direction;
+            VertexAttributeVector<Vec2d> curvature;
             
             curvature_paraboloids(mani,
                                   min_curv_direction,
@@ -979,7 +980,7 @@ namespace GLGraphics {
         
         void console_reload(MeshEditor* me, const std::vector<std::string> & args)
         {
-            string fn = console_arg(args, 0, me->active_visobj().get_file_name());
+            string file_name = console_arg(args, 0, me->active_visobj().get_file_name());
             if(wantshelp(args))
             {
                 me->printf("usage:  load <file>");
@@ -988,43 +989,11 @@ namespace GLGraphics {
                 return;
             }
             me->save_active_mesh();
-            
-            DIR *dir;
-            struct dirent *ent;
-            vector<string> file_matches;
-            if ((dir = opendir (".")) != NULL) {
-                /* print all the files and directories within directory */
-                while ((ent = readdir (dir)) != NULL) {
-                    if(regex_match(ent->d_name, regex(fn)))
-                        file_matches.push_back(ent->d_name);
-                    }
-                closedir (dir);
-            } else {
-                /* could not open directory */
-                me->printf("Could not access directory");
-            }
-            
-            // So no file in directory matched file name. Perhaps a full path was given
-            // or a relative path. We try loading without matching.
-            if(file_matches.empty())
-                file_matches.push_back(fn);
 
-            for(int i=0;i<file_matches.size();++i)
-            {
-                if(me->reload_active_from_file(file_matches[i])) {
-                    int act = me->get_active_no();
-                    if((act+1) == me->get_no_meshes())
-                        break;
-                    if((i+1) < file_matches.size())
-                        me->set_active(act+1);
-                    me->printf("Loaded %s", file_matches[i].c_str());
-                }
-                else
-                {
-                    me->printf("failed to load: %s", file_matches[i].c_str());
-                    continue;
-                }
-            }
+            if(me->reload_active_from_file(file_name))
+                me->printf("Loaded %s", file_name.c_str());
+            else
+                me->printf("failed to load: %s", file_name.c_str());
         }
 
         
@@ -1281,7 +1250,7 @@ namespace GLGraphics {
                 a0 >> noise_amplitude;
             }
             
-            VertexAttributeVector<Vec3d> normals(me->active_mesh().allocated_vertices());
+            VertexAttributeVector<Vec3d> normals;
             for(VertexIDIterator vi = me->active_mesh().vertices_begin(); vi != me->active_mesh().vertices_end(); ++vi)
                 normals[*vi] = normal(me->active_mesh(), *vi);
             
@@ -1661,6 +1630,18 @@ namespace GLGraphics {
     void MeshEditor::key_end(){
         theConsole.key_end();
     }
+   
+    bool MeshEditor::listen_commands() {
+        static Timer tim;
+        tim.start();
+        if(theConsole.listen_commands()) {
+            double t = tim.get_secs();
+            printf("%f seconds",t);
+            post_create_display_list();
+            return true;
+        }
+        return false;
+    }
     
     void MeshEditor::grab_ball(TrackBallAction action, const CGLA::Vec2i& pos){
         active_view_control().grab_ball(action, pos);
@@ -2015,6 +1996,13 @@ namespace GLGraphics {
         glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, material);
         glEnable(GL_DEPTH_TEST);
         
+        register_console_function("quit", console_quit,"");
+        register_console_function("exit", console_quit,"");
+        register_console_function("bye", console_quit,"");
+        
+        register_console_function("merge_with", console_merge, "");
+        register_console_function("clear_mesh", console_clear, "");
+
         register_console_function("help.controls", console_list_controls, "");
         register_console_function("simplify", console_simplify,"");
         register_console_function("ridge_lines", console_ridge_lines,"");
@@ -2057,7 +2045,7 @@ namespace GLGraphics {
         register_console_function("noise.perturb_topology", console_noisy_flips,"");
         
         
-        register_console_function("align", console_align,"");
+        register_console_function("align_with", console_align,"");
         register_console_function("undo", console_undo,"");
         
         register_console_function("validity", console_valid,"");
@@ -2102,7 +2090,7 @@ namespace GLGraphics {
     }
     
     bool MeshEditor::add_file(const std::string& str)
-    {
+    {   
         while (active_mesh().no_vertices()>0 && active<NO_MESHES)
             active  = active + 1;
         if(active == NO_MESHES)

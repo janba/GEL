@@ -34,10 +34,9 @@ namespace Geometry
 	template<class KeyT, class ValT>
 	class KDTree
 	{
+    public:
 		typedef typename KeyT::ScalarType ScalarType;
 		typedef KeyT KeyType;
-		typedef std::vector<KeyT> KeyVectorType;
-		typedef std::vector<ValT> ValVectorType;
 	
 		/// KDNode struct represents node in KD tree
 		struct KDNode
@@ -58,8 +57,12 @@ namespace Geometry
 				return dot(dist_vec, dist_vec);
 			}
 		};
+        
+        typedef std::vector<KDNode> NodeVecType;
+        typedef typename NodeVecType::const_iterator NodeVecConstIterType;
+        
+    private:
 
-		typedef std::vector<KDNode> NodeVecType;
 		bool is_built;
 		NodeVecType init_nodes;
 		NodeVecType nodes;
@@ -143,6 +146,9 @@ namespace Geometry
 			init_nodes.swap(v);
 			is_built = true;
 		}
+        
+        NodeVecConstIterType begin() const { return nodes.begin();}
+        NodeVecConstIterType end() const {return nodes.end();}
 
 		/** Find the key value pair closest to the key given as first 
 				argument. The second argument is the maximum search distance. Upon

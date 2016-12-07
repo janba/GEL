@@ -30,15 +30,6 @@ namespace Geometry
 
 namespace HMesh
 {
-    /// A set of vertices
-    typedef std::set<VertexID> VertexSet;
-    
-    /// A set of faces
-    typedef std::set<FaceID> FaceSet;
-    
-    // A set of halfedges
-    typedef std::set<HalfEdgeID> HalfEdgeSet;
-
     
     /** The Manifold class represents a halfedge based mesh. Since meshes based on the halfedge
      representation must be manifold (although exceptions could be made) the class is thus named.
@@ -88,6 +79,8 @@ namespace HMesh
         /// Build a manifold from a TriMesh
         void build(const Geometry::TriMesh& mesh);
 
+        /// Merge present Manifold with argument.
+        void merge(Manifold& m2);
 
         
         /** Add a face to the Manifold.

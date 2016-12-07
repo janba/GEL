@@ -22,8 +22,7 @@ namespace HMesh
     {
         if(&m != &m_in)
             m = m_in;
-        
-        VertexAttributeVector<int> vtouched(m_in.allocated_vertices(), 0);
+        VertexAttributeVector<int> vtouched(m.allocated_vertices(), 0);
         
         vector<HalfEdgeID> hedges;
         for(HalfEdgeID h : m.halfedges())
@@ -33,10 +32,7 @@ namespace HMesh
         for(HalfEdgeID h : hedges)
             vtouched[m.split_edge(h)] = 1;
         
-        
-        vector<FaceID> faces;
-        for(FaceID fid : m.faces())
-            faces.push_back(fid);
+        FaceSet faces(m.faces());
         for(FaceID fid : faces)
         {
             Walker w = m.walker(fid);
@@ -46,9 +42,9 @@ namespace HMesh
             
             assert(vtouched[w.vertex()] == 1);
             
-            FaceID f = fid;
             VertexID v1, orig_vert = w.vertex();
             w = w.next();
+            FaceID f = fid;
             do
             {
                 VertexID v0 = w.opp().vertex();
@@ -243,49 +239,44 @@ namespace HMesh
     
     void subd_smooth(Subd subd_method, Manifold& m)
     {
+        VertexAttributeVector<Vec3d> new_vertices(Vec3d(0));
         
-        VertexAttributeVector<Vec3d> new_vertices(m.no_vertices(), Vec3d(0,0,0));
-        
-        for(FaceIDIterator fid = m.faces_begin(); fid != m.faces_end(); ++fid)
+        for(auto f: m.faces())
         {
-            FaceID f = *fid;
-            for(Walker wlk = m.walker(f); !wlk.full_circle(); wlk = wlk.next())
-            {
-                float val = valency(m, wlk.vertex());
-                float A,B;
+            circulate_face_ccw(m, f, [&](VertexID v0) {
+                double val = valency(m, v0);
+                double A,B;
                 
                 switch(subd_method)
                 {
                     case QUAD_SUBD:
-                        A = 1.0f / (4.0f * val);
-                        B = 1.0f / (4.0f * val);
+                        A = 1.0 / (4.0 * val);
+                        B = 1.0 / (4.0 * val);
                         break;
                     case CC_SUBD:
-                        A = (1.0f-3.0f/val)	* (1.0f/val);
-                        B = sqr(1.0f/val);
+                        A = (1.0-3.0/val) * (1.0/val);
+                        B = sqr(1.0/val);
                         break;
                     case TRI_SUBD:
-                        A = 2.0f / (8.0f * val);
-                        B = 3.0f / (8.0f * val);
+                        A = 2.0 / (8.0 * val);
+                        B = 3.0 / (8.0 * val);
                         break;
                     case LOOP_SUBD:
-                        float w = 5.0f/8.0f - sqr(3.0f/8.0f + 0.25 * cos(2.0f*M_PI/val));
-                        A = (1-2*w)/val;
+                        float w = 5.0/8.0 - sqr(3.0/8.0 + 0.25 * cos(2.0*M_PI/val));
+                        A = (1.0-2.0*w)/val;
                         B = w/val;
                         break;
                 }
-                for(Walker wlk2 = m.walker(f); !wlk2.full_circle(); wlk2 = wlk2.next())
-                {
-                    if(wlk2.vertex()==wlk.vertex())
-                        new_vertices[wlk.vertex()] += A * m.pos(wlk2.vertex());
+                circulate_face_ccw(m, f, [&](VertexID v) {
+                    if(v == v0)
+                        new_vertices[v0] += A * m.pos(v);
                     else
-                        new_vertices[wlk.vertex()] += B * m.pos(wlk2.vertex());
-                }
+                        new_vertices[v0] += B * m.pos(v);
+                });
                 
-            }
+            });
         }
-        for(VertexIDIterator vid = m.vertices_begin(); vid != m.vertices_end(); ++vid)
-            m.pos(*vid) = new_vertices[*vid];
+        m.positions_attribute_vector() = new_vertices;
     }
 
     void cc_smooth(Manifold& m)

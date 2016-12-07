@@ -54,11 +54,11 @@ class VisObj
     void produce_renderer(const std::string& display_method , Console& cs, bool smooth, float gamma);
     void draw_selection();
     
-    template<typename IDType>
+    template<typename T>
     bool select_entity(const CGLA::Vec2i& pos,
-                       std::vector<std::pair<IDType, CGLA::Vec3d>>& item_vec,
-                       IDType invalid_id,
-                       std::set<IDType>& selection_set);
+                       std::vector<std::pair<HMesh::ItemID<T>, CGLA::Vec3d>>& item_vec,
+                       HMesh::ItemID<T> invalid_id,
+                       HMesh::IDSet<T>& selection_set);
 
     
 public:

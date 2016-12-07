@@ -241,7 +241,7 @@ namespace HMesh
     void smooth_curvature_tensors(const Manifold& m, VertexAttributeVector<Mat3x3d>& curvature_tensors)
     {
         assert(curvature_tensors.size() == m.allocated_vertices());
-        VertexAttributeVector<Mat3x3d> tmp_curvature_tensors(m.allocated_vertices());
+        VertexAttributeVector<Mat3x3d> tmp_curvature_tensors;
         double tmp_area;
 
         for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){

@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <map>
+#include <set>
 #include "ItemVector.h"
 #include "ItemID.h"
 #include "Iterators.h"
@@ -70,6 +71,35 @@ namespace HMesh
         FaceIDRemap fmap;
         HalfEdgeIDRemap hmap;
     };
+    
+    
+    /** A set of IDs. This class template is useful in defining sets of mesh entities.
+     We regularly need to pass around sets of vertices, faces, and halfedges and this
+     template allows for that. Note that there is a constructor which allows us to silently
+     convert all vertices (faces or halfedges) in a manifold to a set. */
+    template<typename T>
+    class IDSet: public std::set<ItemID<T>>
+    {
+    public:
+        IDSet(const IDIteratorPair<T>& _vertices) {
+            for(const auto x : _vertices)
+                this->insert(x);
+        }
+        
+        IDSet(const std::initializer_list<ItemID<T>>& il): std::set<ItemID<T>>(il) {}
+        
+        IDSet() {}
+    };
+    
+    /// Set of vertices
+    using VertexSet = IDSet<Vertex>;
+    
+    /// Set of faces
+    using FaceSet = IDSet<Face>;
+    
+    /// Set of halfedges
+    using HalfEdgeSet = IDSet<HalfEdge>;
+
 
     /** The connectivity kernel is basically an aggregate of ItemVectors for vertices, faces, and halfedges.
      This class contains no geometry information - only information about connectivitiy. Arguably it abstracts

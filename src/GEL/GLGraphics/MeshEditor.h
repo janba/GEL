@@ -169,13 +169,15 @@ namespace GLGraphics {
         void key_right();
         void key_home();
         void key_end();
+        
+        bool listen_commands();
 
         /// Returns a reference to active mesh.
         HMesh::Manifold& active_mesh() { return active_visobj().mesh(); }
         
         
         void set_active(int i) {
-           // active = std::min((NO_MESHES-1), (std::max(0, i)));
+            active = std::min((NO_MESHES-1), (std::max(0, i)));
         }
         
         int get_active_no() const {

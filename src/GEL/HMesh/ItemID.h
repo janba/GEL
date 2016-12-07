@@ -24,6 +24,7 @@ namespace HMesh
     {
     public:
         typedef size_t IndexType;
+        typedef T EntityType;
 
         ItemID(): index(INVALID_INDEX){}
 

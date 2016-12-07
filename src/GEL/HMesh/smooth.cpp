@@ -214,7 +214,7 @@ namespace HMesh
         for(int iter = 0;iter<max_iter; ++iter)
         {
             
-            FaceAttributeVector<Vec3d> filtered_norms(m.allocated_faces());
+            FaceAttributeVector<Vec3d> filtered_norms;
             
             for(FaceID f: m.faces()){
                 filtered_norms[f] = (nsm == BILATERAL_NORMAL_SMOOTH)?

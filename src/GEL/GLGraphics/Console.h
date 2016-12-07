@@ -44,6 +44,10 @@ public:
     void key_end();
     void key_up();
     void key_down();
+    
+    // Socket IO
+    void open_socket();
+    bool listen_commands();
 
     //stdio-like io
     void print(const char* buffer);
@@ -301,6 +305,9 @@ private:
 
     static const unsigned char g_png_data[];
     static const size_t g_png_size;
+    
+    std::string addr = "/tmp/MeshEdit";
+    int sck=-1, sck_conn=-1;
 };
 
 //0-ary
