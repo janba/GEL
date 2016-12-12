@@ -508,6 +508,7 @@ void Console::execute(const char* buffer)
              printf("Unknown exception.");
          }
 
+         printf("[done]");
          m_is_executing = false;
 
          return;
@@ -616,8 +617,8 @@ void Console::open_socket() {
         return;
     }
     
-    // Listen for incoming connections (max 1)
-    if(listen(sck, 1) != 0) {
+    // Listen for incoming connections (max 2)
+    if(listen(sck, 2) != 0) {
         this->print("Listening failed");
         return;
     }
@@ -640,17 +641,16 @@ void Console::open_socket() {
 }
 
 bool Console::listen_commands() {
-    char buffer[256];
+    char buffer[1024];
     
     // First we peek and if a newline is found
-    int l = recv(sck_conn, buffer, 255, MSG_PEEK);
+    int l = recv(sck_conn, buffer, 1024, MSG_PEEK);
     for(int i=0;i<l;++i)
         if(buffer[i]=='\n')
         {
             // We properly read the buffer
-            l = recv(sck_conn, buffer, 255, 0);
-            buffer[i]=0;
-            auto str = std::string(buffer, l);
+            recv(sck_conn, buffer, i+1, 0);
+            auto str = std::string(buffer, i);
             
             // Clear current command and reset the caret
             m_current_command.clear();

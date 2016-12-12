@@ -13,6 +13,8 @@
 
 namespace Geometry
 {
+    
+    /** Class that allows transformations between a voxel space and object coordinates */
     class XForm
     {
         CGLA::Vec3d llf;
@@ -21,6 +23,9 @@ namespace Geometry
         CGLA::Vec3i DIM;
     public:
         XForm() {}
+        
+        /** Construct from the corners of the object's bounding volume (lower, left, front) and
+            (upper, right, top), the volume dimensions and optionally margin. */
         XForm(const CGLA::Vec3d& _llf, const CGLA::Vec3d& _urt, const CGLA::Vec3i& _DIM, double _margin=0.1):
         llf(_llf), urt(_urt), DIM(_DIM)
         {
@@ -42,20 +47,26 @@ namespace Geometry
             }
         }
         
+        /// Get volume dimensions
         CGLA::Vec3i get_dims() const {return DIM;}
         
+        /// Apply: transform from object to voxel coords.
         const CGLA::Vec3d apply(const CGLA::Vec3d& p) const
         {
             return scale*(p-llf+CGLA::Vec3d(margin));
         }
         
+        /// Apply inverse: transform from voxel to object coords.
         const CGLA::Vec3d inverse(const CGLA::Vec3d& p) const
         {
             return p/scale + llf - CGLA::Vec3d(margin);
         }
         
+        /// Return the inverse scale: ratio of object to voxel size.
         double inv_scale() const {return 1.0/scale;}
         
+        
+        /// Printout information about the transformation
         void print()
         {
             std::cout << scale << " " << (-llf+CGLA::Vec3d(margin)) << std::endl;
