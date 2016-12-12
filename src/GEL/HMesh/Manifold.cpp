@@ -1,4 +1,4 @@
-/* ----------------------------------------------------------------------- *
+    /* ----------------------------------------------------------------------- *
  * This file is part of GEL, http://www.imm.dtu.dk/GEL
  * Copyright (C) the authors and DTU Informatics
  * For license and list of authors, see ../../doc/intro.pdf
@@ -1035,7 +1035,8 @@ namespace HMesh
                 typename EdgeMap::iterator em_iter = edge_map.find(ek);
                 
                 // if current edge has not been created
-                if(em_iter == edge_map.end()){
+                if(em_iter == edge_map.end() || em_iter->second.count == 2){
+
                     // create edge for map
                     Edge e;
                     e.h0 = kernel.add_halfedge();
@@ -1065,7 +1066,6 @@ namespace HMesh
                     // asserting that a halfedge is visited exactly twice;
                     // once for each face on either side of the edge.
                     em_iter->second.count++;
-                    assert(em_iter->second.count == 2);
                 }
             }
             

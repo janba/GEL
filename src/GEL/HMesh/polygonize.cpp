@@ -93,8 +93,19 @@ namespace HMesh
         for(int iter=0;iter<4;++iter)
         {
             TAL_smoothing(mani, .25, 1);
-            for(VertexIDIterator vid = mani.vertices_begin(); vid != mani.vertices_end(); ++vid)
-                imp.push_to_surface(mani.pos(*vid),0,avg_edge_len*0.5);
+            
+            for(auto v: mani.vertices())
+                if(mani.in_use(v)) {
+                    Vec3d p = mani.pos(v);
+                    if(!isnan(p[0]))
+                        imp.push_to_surface(p,0,avg_edge_len*0.5);
+                    if(isnan(p[0])) {
+                        mani.remove_vertex(v);
+                    }
+                    else
+                        mani.pos(v) = p;
+            }
+
         }
         mani.cleanup();
         cout << "Produced " << mani.no_faces() << " faces " << endl;
