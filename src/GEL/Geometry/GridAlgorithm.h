@@ -77,7 +77,8 @@ namespace Geometry
 											 int x_dim, int xy_dim,
 											 const CGLA::Vec3i& p0, 
 											 const CGLA::Vec3i& p7,
-											 const const F& functor,
+											 
+const F& functor,
 											 const CGLA::Vec3i& offset = CGLA::Vec3i(0))
 	{
 		const int Amin = p0[2]*xy_dim;

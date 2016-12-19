@@ -13,6 +13,7 @@
 #include "../GLGraphics/Console.h"
 #include "../GL/glew.h"
 #include <cstdarg>
+#include <cstring> //std::memcpy
 #include <set>
 #include <iostream> //cerr
 #include <iterator> //back_inserter
@@ -611,7 +612,9 @@ void Console::open_socket() {
     sockaddr sck_addr;
     sck_addr.sa_family = AF_LOCAL;
     memcpy(sck_addr.sa_data, addr.c_str(), addr.length());
+#ifndef __GNUC__
     sck_addr.sa_len = addr.length();
+#endif
     if(bind(sck, &sck_addr, sizeof(sockaddr)) != 0) {
         this->print("Failed to bind socket");
         return;
