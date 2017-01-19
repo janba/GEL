@@ -24,7 +24,7 @@ namespace Geometry {
      ids for the concrete edges. This class can be used but has no properties for the edges or nodes. Using
      an external data structure, such attributes can be added.
      */
-    class AMGraph{
+    class AMGraph {
     public:
         
         /// ID type for nodes
@@ -45,7 +45,7 @@ namespace Geometry {
     protected:
         
         /// The array containing the actual nodes
-        std::vector<AdjMap> nodes;
+        std::vector<AdjMap> edge_map;
         
         /// Number of edges.
         size_t no_edges = 0;
@@ -54,12 +54,12 @@ namespace Geometry {
         
         /// Clear the graph
         void clear() {
-            nodes.clear();
+            edge_map.clear();
             no_edges = 0;
         }
         
         /// Return number of nodes
-        size_t no_nodes() const {return nodes.size();}
+        size_t no_nodes() const {return edge_map.size();}
         
         /// Return whether the node is valid (i.e. in the graph)
         bool valid_node(NodeID n) const { return n < no_nodes();}
@@ -68,24 +68,38 @@ namespace Geometry {
         bool valid_edge(EdgeID e) const { return e < no_edges;}
         
         /// Returns true if the graph contains no nodes, false otherwise
-        bool empty() const {return nodes.empty();}
+        bool empty() const {return edge_map.empty();}
         
         /// The range returned can be used in range based for loops over all node ids
-        const Util::Range node_ids() const { return Util::Range(0,nodes.size());}
+        const Util::Range node_ids() const { return Util::Range(0,edge_map.size());}
         
         /// Add a node to the graph
         NodeID add_node() {
-            NodeID id = nodes.size();
-            nodes.push_back(AdjMap());
+            NodeID id = edge_map.size();
+            edge_map.push_back(AdjMap());
             return id;
         }
         
+        /// Remove all outgoing edges and all edges from other nodes to this node.
+        void isolate_node(NodeID n0)
+        {
+            // Remove all edges connecting neighboring nodes back to n0
+            for(auto& edge: edge_map[n0])
+                edge_map[edge.first].erase(n0);
+            // Remove the outgoing aspect of all edges
+            edge_map[n0].clear();
+        }
+        
+        /** move src node to dst and update all edges to reflect the change.
+            if merge is true, the existing edges in the destination node are
+            kept, otherwise it is first isolated. */
+        void reassign_node_id(NodeID n_src, NodeID n_dst, bool merge);
         
         /// Find an edge in the graph given two nodes. Returns InvalidEdgeID if no such edge found.
         EdgeID find_edge(NodeID n0, NodeID n1) const
         {
             if(valid_node(n0)) {
-                for(auto p: nodes[n0])
+                for(auto p: edge_map[n0])
                     if(p.first == n1)
                         return p.second;
             }
@@ -97,20 +111,41 @@ namespace Geometry {
         EdgeID connect_nodes(NodeID n0, NodeID n1)
         {
             if(valid_node(n0) && valid_node(n1) &&
-               find_edge(n0, n1) == InvalidNodeID) {
+               find_edge(n0, n1) == InvalidEdgeID) {
                 size_t id = no_edges++;
-                nodes[n0][n1] = id;
-                nodes[n1][n0] = id;
+                edge_map[n0][n1] = id;
+                edge_map[n1][n0] = id;
                 return id;
             }
             return InvalidEdgeID;
         }
         
-        /// Return the adjacency map for a given node
-        AdjMap neighbors(NodeID n) const {return nodes[n];}
+        /// Return the NodeIDs of nodes adjacent to a given node
+        std::vector<NodeID> neighbors(NodeID n) const {
+            std::vector<NodeID> nbrs(edge_map[n].size());
+            int i=0;
+            for(auto edge : edge_map[n])
+                nbrs[i++] = edge.first;
+            return nbrs;
+        }
+        
+        /// Return the edges - map from NodeID to EdgeID of the current node.
+        AdjMap edges(NodeID n) const {
+            return edge_map[n];
+        }
+        
+        /// Return a vector of shared neighbors.
+        std::vector<NodeID> shared_neighbors(AMGraph::NodeID n0, AMGraph::NodeID n1) {
+            auto nbrs0 = neighbors(n0);
+            auto nbrs1 = neighbors(n1);
+            std::vector<AMGraph::NodeID> nbr_isect;
+            set_intersection(begin(nbrs0), end(nbrs0), begin(nbrs1), end(nbrs1), back_inserter(nbr_isect));
+            return nbr_isect;
+        };
+
         
         /// Return the number of edges incident on a given node.
-        size_t valence(NodeID n) const { return nodes[n].size(); }
+        size_t valence(NodeID n) const { return edge_map[n].size(); }
         
     };
     
@@ -140,12 +175,6 @@ namespace Geometry {
             node_color.clear();
         }
         
-        /// Add a node, initializing position to (0,0,0)
-        NodeID add_node()
-        {
-            return add_node(CGLA::Vec3d(0));
-        }
-        
         /// Add a node at arbitrary 3D position
         NodeID add_node(const CGLA::Vec3d& p)
         {
@@ -153,6 +182,12 @@ namespace Geometry {
             pos[n] = p;
             node_color[n] = CGLA::Vec3f(0);
             return n;
+        }
+        
+        /// Isolate the node and set its position to NAN -- effectively removing it
+        void remove_node(NodeID n) {
+            isolate_node(n);
+            pos[n] = CGLA::Vec3d(CGLA::CGLA_NAN);
         }
         
         
@@ -164,6 +199,16 @@ namespace Geometry {
                 edge_color[e] = CGLA::Vec3f(0);
             return e;
         }
+     
+        /** Merge two nodes, the first is removed and the second inherits all connections,
+            the new position becomes the average. */
+        void merge_nodes(NodeID n0, NodeID n1) {
+            CGLA::Vec3d p_new = 0.5*(pos[n0]+pos[n1]);
+            
+            reassign_node_id(n0, n1, true);
+            pos[n1] = p_new;
+            pos[n0] = CGLA::Vec3d(CGLA::CGLA_NAN);
+        }
         
         /// Compute sqr distance between two nodes - not necessarily connected.
         double sqr_dist(NodeID n0, NodeID n1) const {
@@ -173,13 +218,29 @@ namespace Geometry {
                 return CGLA::CGLA_NAN;
         }
         
+        /// Compute the average edge length
+        double average_edge_length() const {
+            int i=0;
+            double sum_len = 0;
+            for(auto n: node_ids())
+                for(auto nn: neighbors(n))
+                    if(n<nn)
+                    {
+                        sum_len += sqrt(sqr_dist(n, nn));
+                        ++i;
+                    }
+            return sum_len / i;
+        }
+        
     };
     
-    /// Merges all nodes of g within a distance of thresh and returns the resulting graph
-    AMGraph3D merge_coincident_nodes(const AMGraph3D& g, double thresh = 1e-12);
+    /** Merges all nodes of g within a distance of thresh and returns the resulting graph. 
+        Also remove removed nodes and edges from data structure. */
+    AMGraph3D clean_graph(const AMGraph3D& g, double thresh = 1e-12);
     
     /** Computes the minimum spanning tree of the argument using Prim's algorithm and returns
      the resulting graph. */
-    AMGraph3D minimum_spanning_tree(const AMGraph3D&);
+    AMGraph3D minimum_spanning_tree(const AMGraph3D&,
+                                    AMGraph::NodeID root = AMGraph::InvalidNodeID);
 }
 #endif /* Graph_h */

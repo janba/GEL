@@ -225,7 +225,7 @@ namespace GLGraphics
         glEnd();
         glBegin(GL_LINES);
         for(auto n: graph.node_ids())
-            for(auto e: graph.neighbors(n))
+            for(auto e: graph.edges(n))
             {
                 glColor3fv(graph.edge_color[e.second].get());
                 glVertex3dv(graph.pos[n].get());
