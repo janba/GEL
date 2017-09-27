@@ -215,7 +215,7 @@ namespace Geometry {
             if(valid_node(n0) && valid_node(n1))
                 return CGLA::sqr_length(pos[n0]-pos[n1]);
             else
-                return CGLA::CGLA_NAN;
+                return  CGLA::CGLA_NAN;
         }
         
         /// Compute the average edge length

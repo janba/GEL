@@ -1711,6 +1711,15 @@ namespace HMesh
         return w.face() == InvalidFaceID || w.opp().face() == InvalidFaceID;
     }
     
+    bool closed(const Manifold& m)
+    {
+        for(auto h: m.halfedges())
+            if(m.walker(h).face() == InvalidFaceID)
+                return false;
+        return true;
+    }
+
+    
     double length(const Manifold& m, HalfEdgeID h)
     {
         Walker w = m.walker(h);

@@ -35,11 +35,11 @@ namespace GLGraphics {
         view_ctrl.set_eye_dist(2*bsphere_radius);
     }
     
-    bool VisObj::reload(string _file)
+    bool VisObj::reload(string _file, bool safe)
     {
         if(_file != "") file = _file;
         mani.clear();
-        if(!load(file, mani))
+        if(!load(file, mani, safe))
             return false;
         refit();
         return true;

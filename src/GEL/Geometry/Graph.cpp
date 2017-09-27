@@ -66,7 +66,7 @@ namespace Geometry {
         for(auto n: g.node_ids())
         {
             bool erased = false;
-            if(g.pos[n] == Vec3d(CGLA_NAN))
+            if(isnan(g.pos[n][0]))
             {
                 node_map[n] = AMGraph::InvalidNodeID;
                 erased = true;
@@ -143,7 +143,6 @@ namespace Geometry {
         
         for(auto n: g.node_ids())
             gn.add_node(g.pos[n]);
-        
         priority_queue<PrimPQElem> pq;
         for(auto nn: g.neighbors(root))
         {

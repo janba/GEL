@@ -63,6 +63,7 @@ namespace GLGraphics {
             {'r', "reflection render mode"},
             {'t', "toon render mode"},
             {'g', "glazed render mode"},
+            {'x', "ghst render mode"},
             {'a', "ambient occlusion render mode"},
             {'c', "color field render mode"},
             {'s', "scalar field render mode"},
@@ -981,6 +982,8 @@ namespace GLGraphics {
         void console_reload(MeshEditor* me, const std::vector<std::string> & args)
         {
             string file_name = console_arg(args, 0, me->active_visobj().get_file_name());
+            bool safe = console_arg(args, 1, true);
+            
             if(wantshelp(args))
             {
                 me->printf("usage:  load <file>");
@@ -990,7 +993,7 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
 
-            if(me->reload_active_from_file(file_name))
+            if(me->reload_active_from_file(file_name, safe))
                 me->printf("Loaded %s", file_name.c_str());
             else
                 me->printf("failed to load: %s", file_name.c_str());
@@ -1548,6 +1551,7 @@ namespace GLGraphics {
                 case 'r':
                 case 't':
                 case 'g':
+                case 'x':
                 case 'a':
                 case 'c':
                 case 's':
@@ -1637,7 +1641,7 @@ namespace GLGraphics {
         if(theConsole.listen_commands()) {
             double t = tim.get_secs();
             printf("%f seconds",t);
-            post_create_display_list();
+// Takes too long: post_create_display_list();
             return true;
         }
         return false;
@@ -2102,9 +2106,9 @@ namespace GLGraphics {
         return false;
     }
 
-    bool MeshEditor::reload_active_from_file(const std::string& str)
+    bool MeshEditor::reload_active_from_file(const std::string& str, bool safe)
     {
-        if(active_visobj().reload(str)) {
+        if(active_visobj().reload(str, safe)) {
             active_visobj().post_create_display_list();
             return true;
         }

@@ -64,6 +64,9 @@ namespace Geometry
         
         /// Return the inverse scale: ratio of object to voxel size.
         double inv_scale() const {return 1.0/scale;}
+
+        /// Return the scale: ratio of voxel size to object size.
+        double get_scale() const {return scale;}
         
         
         /// Printout information about the transformation

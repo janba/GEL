@@ -67,7 +67,7 @@ namespace HMesh
     
     
     void volume_polygonize(const XForm& xform, const Geometry::RGrid<float>& grid,
-                           HMesh::Manifold& mani, float tau)
+                           HMesh::Manifold& mani, float tau, bool make_triangles)
     {
         mani.clear();
         vector<Vec3d> quad_vertices;
@@ -83,7 +83,9 @@ namespace HMesh
                    &indices[0]);
         
         stitch_more(mani, 1e-5);
-        shortest_edge_triangulate(mani);
+        
+        if(make_triangles)
+            shortest_edge_triangulate(mani);
         
         float avg_edge_len=0;
         for(HalfEdgeIDIterator h = mani.halfedges_begin(); h != mani.halfedges_end();++h)

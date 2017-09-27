@@ -23,6 +23,19 @@ namespace HMesh
             lsum += length(m, h);
         return lsum / m.no_halfedges();
     }
+    
+    float median_edge_length(const Manifold& m)
+    {
+        vector<double> lengths;
+        for(auto h : m.halfedges()) {
+            auto w = m.walker(h);
+            if(h == w.hmin())
+                lengths.push_back(sqr_length(m.pos(w.vertex())-m.pos(w.opp().vertex())));
+        }
+        nth_element(begin(lengths), begin(lengths)+lengths.size()/2, end(lengths));
+        return sqrt(lengths[lengths.size()/2]);
+    }
+
 
     int refine_edges(Manifold& m, float t)
     {

@@ -193,22 +193,25 @@ namespace GLGraphics
     
     void draw(const Manifold& m, bool per_vertex_norms)
     {
-        for(FaceIDIterator f = m.faces_begin(); f != m.faces_end(); ++f){
+        auto send_vertex = [&](VertexID v) {
+            if(per_vertex_norms)
+                glNormal3dv(normal(m, v).get());
+            glVertex3dv(m.pos(v).get());
+        };
+        glBegin(GL_TRIANGLES);
+        for(auto f: m.faces()){
             if(!per_vertex_norms)
-                glNormal3dv(normal(m, *f).get());
-            if(no_edges(m, *f)== 3)
-                glBegin(GL_TRIANGLES);
-            else
-                glBegin(GL_POLYGON);
-            
-            for(Walker w = m.walker(*f); !w.full_circle(); w = w.circulate_face_ccw()){
-                Vec3d n = normal(m, w.vertex());
-                if(per_vertex_norms)
-                    glNormal3dv(n.get());
-                glVertex3dv(m.pos(w.vertex()).get());
+                glNormal3dv(normal(m, f).get());
+            Walker w0 = m.walker(f);
+            Walker w = w0.next();
+            int N = no_edges(m, f)-2;
+            for(int i=0; i<N; ++i, w = w.next()){
+                send_vertex(w0.vertex());
+                send_vertex(w.vertex());
+                send_vertex(w.next().vertex());
             }
-            glEnd();
         }
+        glEnd();
     }
     
     void draw(const Geometry::AMGraph3D& graph)

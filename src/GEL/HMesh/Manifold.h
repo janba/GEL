@@ -346,6 +346,9 @@ namespace HMesh
     /// Returns true if the halfedge is a boundary halfedge.
     bool boundary(const Manifold& m, HalfEdgeID h);
 
+    /// Returns true if the mesh is closed, i.e. has no boundary.
+    bool closed(const Manifold& m);
+
     /// Return the geometric length of a halfedge.
     double length(const Manifold& m, HalfEdgeID h);
 
