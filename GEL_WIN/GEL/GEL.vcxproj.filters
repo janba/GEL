@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="CGLA">
-      <UniqueIdentifier>{de4f1554-014c-4eed-845c-b8f3dae47e58}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Geometry">
       <UniqueIdentifier>{34b90c75-5c01-45aa-aa8a-3c5ff572a78d}</UniqueIdentifier>
     </Filter>
@@ -18,12 +15,6 @@
     </Filter>
     <Filter Include="Util">
       <UniqueIdentifier>{85c5cfa4-7416-4465-88bc-c85e56501ddd}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CGLA\Source Files">
-      <UniqueIdentifier>{0c81e667-d981-411c-87ca-414c2553e1d5}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="CGLA\Header Files">
-      <UniqueIdentifier>{cf73972f-bffa-4f82-857d-1e49089af90b}</UniqueIdentifier>
     </Filter>
     <Filter Include="Geometry\Header Files">
       <UniqueIdentifier>{942fa398-2c5a-4d45-b59c-f5e8c4280a46}</UniqueIdentifier>
@@ -54,6 +45,15 @@
     </Filter>
     <Filter Include="Util\Source Files">
       <UniqueIdentifier>{0db160e1-8a77-4f52-9da1-e074cf8195c7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CGLA">
+      <UniqueIdentifier>{de4f1554-014c-4eed-845c-b8f3dae47e58}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CGLA\Source Files">
+      <UniqueIdentifier>{0c81e667-d981-411c-87ca-414c2553e1d5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CGLA\Header Files">
+      <UniqueIdentifier>{cf73972f-bffa-4f82-857d-1e49089af90b}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
