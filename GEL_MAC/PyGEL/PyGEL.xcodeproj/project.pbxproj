@@ -1,0 +1,318 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 48;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BD27CE6C1F837284002F0FAE /* I3DTree.h in Headers */ = {isa = PBXBuildFile; fileRef = BD27CE6A1F837284002F0FAE /* I3DTree.h */; };
+		BD27CE6D1F837284002F0FAE /* I3DTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD27CE6B1F837284002F0FAE /* I3DTree.cpp */; };
+		BD4883711F82D44C00EC04F0 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD4883701F82D44C00EC04F0 /* GEL.framework */; };
+		BD9100F21F84D0C9003AF93E /* IntVector.h in Headers */ = {isa = PBXBuildFile; fileRef = BD9100EE1F84D0C8003AF93E /* IntVector.h */; };
+		BD9100F31F84D0C9003AF93E /* Vec3dVector.h in Headers */ = {isa = PBXBuildFile; fileRef = BD9100EF1F84D0C8003AF93E /* Vec3dVector.h */; };
+		BD9100F41F84D0C9003AF93E /* Vec3dVector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD9100F01F84D0C8003AF93E /* Vec3dVector.cpp */; };
+		BD9100F51F84D0C9003AF93E /* IntVector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD9100F11F84D0C8003AF93E /* IntVector.cpp */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		BD27CE6A1F837284002F0FAE /* I3DTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = I3DTree.h; path = ../../src/PyGEL/I3DTree.h; sourceTree = "<group>"; };
+		BD27CE6B1F837284002F0FAE /* I3DTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = I3DTree.cpp; path = ../../src/PyGEL/I3DTree.cpp; sourceTree = "<group>"; };
+		BD48834F1F82CBB200EC04F0 /* libPyGEL.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libPyGEL.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD4883701F82D44C00EC04F0 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-essvayrgsrjsqfasrgpeytfafkwo/Build/Products/Release/GEL.framework"; sourceTree = "<group>"; };
+		BD9100ED1F84D072003AF93E /* PyGEL.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = PyGEL.py; path = ../../src/PyGEL/PyGEL.py; sourceTree = "<group>"; };
+		BD9100EE1F84D0C8003AF93E /* IntVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IntVector.h; path = ../../src/PyGEL/IntVector.h; sourceTree = "<group>"; };
+		BD9100EF1F84D0C8003AF93E /* Vec3dVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vec3dVector.h; path = ../../src/PyGEL/Vec3dVector.h; sourceTree = "<group>"; };
+		BD9100F01F84D0C8003AF93E /* Vec3dVector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vec3dVector.cpp; path = ../../src/PyGEL/Vec3dVector.cpp; sourceTree = "<group>"; };
+		BD9100F11F84D0C8003AF93E /* IntVector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IntVector.cpp; path = ../../src/PyGEL/IntVector.cpp; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BD48834C1F82CBB200EC04F0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD4883711F82D44C00EC04F0 /* GEL.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BD27CE6E1F83729E002F0FAE /* PyGEL */ = {
+			isa = PBXGroup;
+			children = (
+				BD9100F11F84D0C8003AF93E /* IntVector.cpp */,
+				BD9100EE1F84D0C8003AF93E /* IntVector.h */,
+				BD9100F01F84D0C8003AF93E /* Vec3dVector.cpp */,
+				BD9100EF1F84D0C8003AF93E /* Vec3dVector.h */,
+				BD9100ED1F84D072003AF93E /* PyGEL.py */,
+				BD27CE6B1F837284002F0FAE /* I3DTree.cpp */,
+				BD27CE6A1F837284002F0FAE /* I3DTree.h */,
+			);
+			name = PyGEL;
+			sourceTree = "<group>";
+		};
+		BD4883461F82CBB200EC04F0 = {
+			isa = PBXGroup;
+			children = (
+				BD27CE6E1F83729E002F0FAE /* PyGEL */,
+				BD4883501F82CBB200EC04F0 /* Products */,
+				BD48836E1F82D35B00EC04F0 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		BD4883501F82CBB200EC04F0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BD48834F1F82CBB200EC04F0 /* libPyGEL.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BD48836E1F82D35B00EC04F0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				BD4883701F82D44C00EC04F0 /* GEL.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		BD48834D1F82CBB200EC04F0 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD9100F31F84D0C9003AF93E /* Vec3dVector.h in Headers */,
+				BD27CE6C1F837284002F0FAE /* I3DTree.h in Headers */,
+				BD9100F21F84D0C9003AF93E /* IntVector.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		BD48834E1F82CBB200EC04F0 /* PyGEL */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BD48835A1F82CBB200EC04F0 /* Build configuration list for PBXNativeTarget "PyGEL" */;
+			buildPhases = (
+				BD48834B1F82CBB200EC04F0 /* Sources */,
+				BD48834C1F82CBB200EC04F0 /* Frameworks */,
+				BD48834D1F82CBB200EC04F0 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PyGEL;
+			productName = PyGEL;
+			productReference = BD48834F1F82CBB200EC04F0 /* libPyGEL.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BD4883471F82CBB200EC04F0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0900;
+				ORGANIZATIONNAME = "Jakob Andreas Bærentzen";
+				TargetAttributes = {
+					BD48834E1F82CBB200EC04F0 = {
+						CreatedOnToolsVersion = 9.0;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = BD48834A1F82CBB200EC04F0 /* Build configuration list for PBXProject "PyGEL" */;
+			compatibilityVersion = "Xcode 8.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = BD4883461F82CBB200EC04F0;
+			productRefGroup = BD4883501F82CBB200EC04F0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BD48834E1F82CBB200EC04F0 /* PyGEL */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BD48834B1F82CBB200EC04F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD9100F51F84D0C9003AF93E /* IntVector.cpp in Sources */,
+				BD9100F41F84D0C9003AF93E /* Vec3dVector.cpp in Sources */,
+				BD27CE6D1F837284002F0FAE /* I3DTree.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BD4883581F82CBB200EC04F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		BD4883591F82CBB200EC04F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		BD48835B1F82CBB200EC04F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = "/Users/janba/Library/Developer/Xcode/DerivedData/GEL-essvayrgsrjsqfasrgpeytfafkwo/Build/Products/Release";
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_ENABLE_CPP_RTTI = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		BD48835C1F82CBB200EC04F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = "/Users/janba/Library/Developer/Xcode/DerivedData/GEL-essvayrgsrjsqfasrgpeytfafkwo/Build/Products/Release";
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_ENABLE_CPP_RTTI = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BD48834A1F82CBB200EC04F0 /* Build configuration list for PBXProject "PyGEL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BD4883581F82CBB200EC04F0 /* Debug */,
+				BD4883591F82CBB200EC04F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BD48835A1F82CBB200EC04F0 /* Build configuration list for PBXNativeTarget "PyGEL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BD48835B1F82CBB200EC04F0 /* Debug */,
+				BD48835C1F82CBB200EC04F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BD4883471F82CBB200EC04F0 /* Project object */;
+}
