@@ -145,7 +145,7 @@ namespace GLGraphics
 	template<typename T>
     void draw_triangles_in_wireframe(T& m, bool per_vertex_norms, const CGLA::Vec3f& line_color)
 	{
-		static SinglePassWireframeRenderer swr;
+        SinglePassWireframeRenderer swr;
 		swr.enable(line_color);
 		draw(m, per_vertex_norms);
 		swr.disable();
@@ -213,6 +213,23 @@ namespace GLGraphics
         }
         glEnd();
     }
+    
+//    void draw(const Manifold& m, bool per_vertex_norms)
+//    {
+//        auto send_vertex = [&](VertexID v) {
+//            if(per_vertex_norms)
+//                glNormal3dv(normal(m, v).get());
+//            glVertex3dv(m.pos(v).get());
+//        };
+//        for(auto f: m.faces()){
+//            glBegin(GL_POLYGON);
+//            if(!per_vertex_norms)
+//                glNormal3dv(normal(m, f).get());
+//            circulate_face_ccw(m,f,send_vertex);
+//            glEnd();
+//        }
+//    }
+
     
     void draw(const Geometry::AMGraph3D& graph)
     {

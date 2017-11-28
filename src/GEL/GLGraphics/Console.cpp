@@ -75,7 +75,7 @@ Console::Console() : m_history_index(0), m_caret(0),
 Console::~Console()
 {
     save_history();
-    _unlink(addr.c_str());
+    unlink(addr.c_str());
 }
 
 //----------------------------------------------------------------------------

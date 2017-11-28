@@ -15,7 +15,12 @@ Vec3dVector* Vec3dVector_new(size_t s) {
     return new Vec3dVector(s);
 }
 
-double* Vec3dVector_get(Vec3dVector* self, int idx) {
+size_t Vec3dVector_size(Vec3dVector* self) {
+    return self->size();
+}
+
+
+double* Vec3dVector_get(Vec3dVector* self, size_t idx) {
     return (*self)[idx].get();
 }
 

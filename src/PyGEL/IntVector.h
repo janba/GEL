@@ -11,11 +11,12 @@
 
 #include <vector>
 
-using IntVector = std::vector<int>;
+using IntVector = std::vector<size_t>;
 
 extern "C" {
     IntVector* IntVector_new(size_t s);
-    int IntVector_get(IntVector* self, int idx);
+    size_t IntVector_get(IntVector* self, size_t size_t);
+    size_t IntVector_size(IntVector* self);
     void IntVector_delete(IntVector* self);
 }
 #endif /* IntVector_hpp */

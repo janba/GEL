@@ -17,18 +17,18 @@
 #include "IntVector.h"
 #include "Vec3dVector.h"
 
-template class Geometry::KDTree<CGLA::Vec3d, int>;
-using I3DTree = Geometry::KDTree<CGLA::Vec3d, int>;
+template class Geometry::KDTree<CGLA::Vec3d, size_t>;
+using I3DTree = Geometry::KDTree<CGLA::Vec3d, size_t>;
 
 extern "C" {
     I3DTree* I3DTree_new();
     void I3DTree_delete(I3DTree* self);
-    void I3DTree_insert(I3DTree* tree, double x, double y, double z, int v);
+    void I3DTree_insert(I3DTree* tree, double x, double y, double z, size_t v);
     void I3DTree_build(I3DTree* tree);
-    int I3DTree_closest_point(I3DTree* tree, double x, double y, double z, double r,
-                              CGLA::Vec3d* key, int* val);
-    int I3DTree_in_sphere(I3DTree* tree, double x, double y, double z, double r,
-                          Vec3dVector* keys, IntVector* vals);
+    size_t I3DTree_closest_point(I3DTree* tree, double x, double y, double z, double r,
+                                    CGLA::Vec3d* key, size_t* val);
+    size_t I3DTree_in_sphere(I3DTree* tree, double x, double y, double z, double r,
+                             Vec3dVector* keys, IntVector* vals);
 }
 
 #endif /* PyGEL_h */

@@ -21,7 +21,7 @@ void I3DTree_delete(I3DTree* self) {
     delete self;
 }
 
-void I3DTree_insert(I3DTree* tree, double x, double y, double z, int v) {
+void I3DTree_insert(I3DTree* tree, double x, double y, double z, size_t v) {
     tree->insert(CGLA::Vec3d(x,y,z), v);
 }
 
@@ -29,15 +29,15 @@ void I3DTree_build(I3DTree* tree) {
     tree->build();
 }
 
-int I3DTree_closest_point(I3DTree* tree, double x, double y, double z, double r,
-                          CGLA::Vec3d* key, int* val) {
+size_t I3DTree_closest_point(I3DTree* tree, double x, double y, double z, double r,
+                             CGLA::Vec3d* key, size_t* val) {
     CGLA::Vec3d p(x,y,z);
     if(tree->closest_point(p, r, *key, *val))
         return 1;
     return 0;
 }
 
-int I3DTree_in_sphere(I3DTree* tree, double x, double y, double z, double r,
-                      Vec3dVector* keys, IntVector* vals) {
+size_t I3DTree_in_sphere(I3DTree* tree, double x, double y, double z, double r,
+                         Vec3dVector* keys, IntVector* vals) {
     return tree->in_sphere(Vec3d(x,y,z), r, *keys, *vals);
 }

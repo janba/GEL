@@ -16,7 +16,8 @@ using Vec3dVector = std::vector<CGLA::Vec3d>;
 
 extern "C" {
     Vec3dVector* Vec3dVector_new(size_t s);
-    double* Vec3dVector_get(Vec3dVector* self, int idx);
+    double* Vec3dVector_get(Vec3dVector* self, size_t idx);
+    size_t Vec3dVector_size(Vec3dVector* self);
     void Vec3dVector_delete(Vec3dVector* self);
 }
 #endif /* Vec3dVector_hpp */
