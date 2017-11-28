@@ -80,6 +80,12 @@ lib.Manifold_copy.argtypes = (c_void_p,)
 lib.Manifold_delete.argtypes = (c_void_p,)
 lib.Manifold_positions.restype = c_size_t
 lib.Manifold_positions.argtypes = (c_void_p, POINTER(POINTER(c_double)))
+lib.Manifold_no_allocated_vertices.restype = c_size_t
+lib.Manifold_no_allocated_vertices.argtypes = (c_void_p,)
+lib.Manifold_no_allocated_faces.restype = c_size_t
+lib.Manifold_no_allocated_faces.argtypes = (c_void_p,)
+lib.Manifold_no_allocated_halfedges.restype = c_size_t
+lib.Manifold_no_allocated_halfedges.argtypes = (c_void_p,)
 lib.Manifold_vertices.restype = c_size_t
 lib.Manifold_vertices.argtypes = (c_void_p, c_void_p)
 lib.Manifold_faces.restype = c_size_t
@@ -165,6 +171,12 @@ class Manifold:
         pos = POINTER(c_double)()
         n = lib.Manifold_positions(self.obj, byref(pos))
         return np.ctypeslib.as_array(pos,(n,3))
+    def no_allocated_vertices(self):
+        return lib.Manifold_no_allocated_vertices(self.obj)
+    def no_allocated_faces(self):
+        return lib.Manifold_no_allocated_faces(self.obj)
+    def no_allocated_halfedges(self):
+        return lib.Manifold_no_allocated_halfedges(self.obj)
     def vertices(self):
         verts = IntVector()
         n = lib.Manifold_vertices(self.obj, verts.obj)
@@ -293,316 +305,25 @@ def obj_load(fn):
 
 lib.GLManifoldViewer_new.restype = c_void_p
 lib.GLManifoldViewer_delete.argtypes = (c_void_p,)
-lib.GLManifoldViewer_display.argtypes = (c_void_p,c_void_p,c_char,c_bool, POINTER(c_float*3), POINTER(c_double),c_bool)
+lib.GLManifoldViewer_display.argtypes = (c_void_p,c_void_p,c_char,c_bool, POINTER(c_float*3), POINTER(c_double),c_bool,c_bool)
+lib.GLManifoldViewer_get_annotation_points.restype = c_size_t
+lib.GLManifoldViewer_get_annotation_points.argtypes = (c_void_p, POINTER(POINTER(c_double)))
+lib.GLManifoldViewer_event_loop.argtypes = (c_bool,)
 class GLManifoldViewer:
     def __init__(self):
         self.obj = lib.GLManifoldViewer_new()
     def __del__(self):
         lib.GLManifoldViewer_delete(self.obj)
-    def display(self, m, mode='w', smooth=True, bg_col=[0.3,0.3,0.3],data=None, once=False):
+    def display(self, m, mode='w', smooth=True, bg_col=[0.3,0.3,0.3], data=None, reset_view=False, once=False):
         data_ct = np.array(data,dtype=c_double).ctypes
         data_a = data_ct.data_as(POINTER(c_double))
         bg_col_ct = np.array(bg_col,dtype=c_float).ctypes
         bg_col_a = bg_col_ct.data_as(POINTER(c_float*3))
-        lib.GLManifoldViewer_display(self.obj,m.obj,c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,once)
-
-
-def test_I3DTree():
-    t = I3DTree()
-    t.insert([1,1,1],1)
-    t.insert([2,2,2],2)
-    t.insert([2,1,2],3)
-    t.insert([1,2,1],4)
-    t.insert([1,1,2],5)
-    t.insert([2,1,1],6)
-    t.build()
-
-    print("Found point: " , t.closest_point([1.2,1.9,0.9],0.4))
-
-    (K,V) = t.in_sphere([1.2,1.9,0.9],1.5)
-
-    for k,v in zip(K,V):
-        print(k, v)
-
-def laplacian_smooth(m, max_iter=1):
-    pos = m.positions()
-    for iter in range(0,max_iter):
-        old_pos = pos[:,:]
-        for v0 in m.vertices():
-            p0 = old_pos[v0]
-            avg_p = [.0,.0,.0]
-            w_sum = 0
-            for vi in m.circulate_vertex(v0,'v'):
-                avg_p += old_pos[vi]
-                w_sum += 1.0
-            pos[v0] = avg_p / w_sum
-
-def dual(m):
-    pos = m.positions()
-    m2 = Manifold()
-    for v in m.vertices():
-        pts = []
-        for f in m.circulate_vertex(v,'f'):
-            avg_p = [.0,.0,.0]
-            w_sum = 0
-            for vf in m.circulate_face(f, 'v'):
-                avg_p += pos[vf]
-                w_sum += 1
-            pts += [avg_p/w_sum]
-        m2.add_face(pts)
-    stitch(m2)
-    return m2
-
-def test_GLManifoldViewer():
-    m = obj_load("/Users/janba/Teaching/02580/pyigl-experiments/bunnygtest.obj")
-    m2 = dual(m)
-    pos = m.positions()
-    viewer = GLManifoldViewer()
-    vfield = pos[:,:]
-    viewer.display(m,'l',smooth=True,data=vfield,bg_col=[0.9,0.3,0.3])
-
-    sfield = pos[:,1]
-    viewer.display(m,'s',smooth=True,data=sfield)
-    viewer.display(m,'g',smooth=True)
-    viewer.display(m,'n',smooth=False)
-
-    viewer.display(m,'i',smooth=True,data=sfield)
-    laplacian_smooth(m,10)
-    viewer.display(m,'i',smooth=True,data=sfield)
-
-    viewer.display(m2,'w',smooth=True,data=sfield)
-
-def average_edge_length(m):
-    hedges = m.halfedges()
-    lsum = 0
-    for h in hedges:
-        lsum += m.edge_length(h)
-    return lsum / len(hedges)
-
-def delaunay_edge(m,h):
-    if m.is_halfedge_at_boundary(h):
-        return True
-    pos = m.positions()
-    mat = np.ones((4,4))
-    i = 0
-    for v in m.circulate_face(m.incident_face(h)):
-        mat[i,:] = [pos[v,0],pos[v,1],pos[v,0]**2 + pos[v,1]**2,1]
-        i += 1
-    v = m.incident_vertex(m.next_halfedge(m.opposite_halfedge(h)))
-    mat[3,:] = [pos[v,0],pos[v,1],pos[v,0]**2 + pos[v,1]**2,1]
-    return True if np.linalg.det(mat)<1e-300 else False
-
-def fractal_terrain():
-    m = Manifold()
-    m.add_face([[0.,0.,0.],[1.,0.,0.],[0.,1.,0.]])
-    m.add_face([[1.,1.,0.],[0.,1.,0.],[1.,0.,0.]])
-    stitch(m)
-    for iter in range(0,5):
-        for f in m.faces():
-            v_new = m.split_face_by_vertex(f)
-            m.positions()[v_new,2] += 0.3 * 0.5**iter * random.random()
-        for h in m.halfedges():
-            if not delaunay_edge(m,h):
-                m.flip_edge(h)
-
-    # Test remove_edge
-    avg_len = average_edge_length(m)
-    for h in m.halfedges():
-        if m.halfedge_in_use(h):
-            if m.edge_length(h)>2.0 * avg_len:
-                m.remove_edge(h)
-
-    Pmin,Pmax = bbox(m)
-    print("Bbox corners ", Pmin[:], Pmax[:])
-    C,r = bsphere(m)
-    print("Center =", C[:]," rad = ", r)
-    return m
-
-def test_Manifold_class():
-
-    m = fractal_terrain()
-    m_backup = Manifold(m)
-    viewer = GLManifoldViewer()
-    viewer.display(m,'w',smooth=False)
-
-    # Test Manifold_merge_faces
-    for h in m.halfedges():
-        if m.halfedge_in_use(h) and random.random() > 0.9:
-            m.merge_faces(h)
-    viewer.display(m,'w',smooth=False)
-
-    m = Manifold(m_backup)
-
-    # Test remove_vertex
-    for v in m.vertices():
-        if random.random() > 0.95:
-            m.remove_vertex(v)
-    viewer.display(m,'w',smooth=False)
-    # do cleanup validate that the shape of positions array shrinks
-    print(m.positions().shape)
-    m.cleanup()
-    print(m.positions().shape)
-    # Test remove_face
-    for f in m.faces():
-        if random.random() > 0.95:
-            m.remove_face(f)
-    viewer.display(m,'w',smooth=False)
-    # Test validity
-    print("valid : ", valid(m))
-    # Test closed
-    print("closed : ", closed(m))
-    for h in m.halfedges():
-        if not m.face_in_use(m.incident_face(h)):
-            m.close_hole(h)
-    print("closed : ", closed(m))
-    viewer.display(m,'w',smooth=False)
-
-    m = Manifold(m_backup)
-
-    # Test Manifold collapse_edge
-    for h in m.halfedges():
-        if m.halfedge_in_use(h) and random.random() > 0.9:
-            m.collapse_edge(h)
-    viewer.display(m,'w',smooth=False)
-
-def make_tet():
-    verts = [[ 0.0000000e+0, 2.00000000, 0.0000000e+0],
-     [0.0000000e+0 ,-0.66666000 ,1.88561800],
-     [-1.63299400, -0.66666600, -0.94281000],
-     [1.63299400, -0.66666600, -0.94281000]]
-    m = Manifold()
-    m.add_face([verts[0],verts[2],verts[1]])
-    m.add_face([verts[0],verts[3],verts[2]])
-    m.add_face([verts[1],verts[3],verts[0]])
-    m.add_face([verts[2],verts[3],verts[1]])
-    stitch(m)
-    m.cleanup()
-    return m
-
-def make_grid(Ni,Nj,scale=1.0):
-    m = Manifold()
-    for i in range(0,Ni):
-        for j in range(0,Nj):
-            x = float(i)*scale
-            y = float(j)*scale
-            m.add_face([[x,y,.0],[x+scale,y,.0],[x+scale,y+scale,.0],[x,y+scale,.0]])
-    stitch(m)
-    m.cleanup()
-    return m
-
-def test_dynamics():
-    mass = 1.0
-    k = 1.0
-    dt = 0.5
-    m = make_grid(30,20)
-    V = m.vertices()
-    pos = m.positions()
-    H = m.halfedges()
-    NH = len(H)
-    NV = len(V)
-
-    F_ext = np.zeros((NV,3))
-
-    load_vertices = []
-    support_vertices = []
-    for v in V:
-        if norm(pos[v]-[3.0,0.0,0.0])<1e-10:
-            load_vertices += [v]
-        if pos[v,0]<1e-10:
-            support_vertices += [v]
-
-
-    rest_length = np.zeros(NH)
-    for h in m.halfedges():
-        rest_length[h] = m.edge_length(h)
-    viewer = GLManifoldViewer()
-    velocity = np.zeros((NV,3))
-
-    for v in load_vertices:
-        F_ext[v] = [0,-0.005,0]
-
-
-    for iter in range(0,10000):
-        for v in V:
-            F = np.copy(F_ext[v])
-            # if v in load_vertices:
-            #     F = [.0,-1,.0]#F_ext[v]
-            for h in m.circulate_vertex(v,mode='h'):
-                vn = m.incident_vertex(h)
-                l = m.edge_length(h)
-                rl = rest_length[h]
-                d = (pos[vn]-pos[v])/l
-                F += k*(l-rl)*d
-            velocity[v] = 0.9 * velocity[v] + dt * F/mass
-        for v in V:
-            if v not in support_vertices:
-                pos[v] += dt * velocity[v]
-#            print(pos[0,:], pos[1,:], pos[2,:], pos[3,:])
-        viewer.display(m,'w',once=True)
-
-
-class SphereVolume:
-    def __init__(self,_center,_radius):
-        self.center = _center
-        self.radius = _radius
-    def eval(self,p):
-        return norm(p-self.center) - self.radius
-    def grad(self,p):
-        v = p - self.center
-        return v / norm(v)
-
-class XForm:
-    def __init__(self,Plow,Phigh,dims):
-        self.dims = np.array(dims)
-        self.Plow = np.array(Plow)
-        self.Phigh = np.array(Phigh)
-        self.scaling = (self.Phigh - self.Plow) / self.dims
-        self.inv_scaling = self.dims / (self.Phigh - self.Plow)
-    def map(self,pi):
-        return self.scaling * np.array(pi) + self.Plow
-    def inv_map(self,p):
-        return floor(np.array(p-Plow) * self.inv_scaling)
-
-
-cube_faces = np.array([[[0,-0.5,-0.5],[0,0.5,-0.5],[0,0.5,0.5],[0,-0.5,0.5]],
-    [[0, 0.5,-0.5],[0,-0.5,-0.5],[0,-0.5,0.5],[0,0.5,0.5]],
-    [[ 0.5,0, -0.5],[-0.5,0, -0.5],[-0.5,0, 0.5],[0.5,0, 0.5]],
-    [[-0.5,0, -0.5],[0.5,0, -0.5],[0.5,0, 0.5],[-0.5,0, 0.5]],
-    [[-0.5,-0.5,0],[0.5,-0.5,0],[0.5,0.5,0],[-0.5,0.5,0]],
-    [[ 0.5,-0.5,0],[-0.5,-0.5,0],[-0.5,0.5,0],[0.5,0.5,0]]])
-
-neighbours = np.array([[1.,0.,0.],[-1.,0.,0.],[0.,1.,0.],[0.,-1.,0.],[0.,0.,1.],[0.,0.,-1.]])
-
-def polygonize_volume(vol,xform,tau):
-    m = Manifold()
-    for pi in np.ndindex(tuple(xform.dims)):
-        if vol.eval(xform.map(pi)) < tau:
-            for l in range(0,6):
-                nbr = neighbours[l]
-                p_nbr = xform.map(pi+nbr)
-                if vol.eval(p_nbr) >= tau:
-                    m.add_face(cube_faces[l]+pi+0.5*nbr)
-    stitch(m)
-    m.cleanup()
-    pos = m.positions()
-    for v in m.vertices():
-        p = xform.map(pos[v])
-        for _ in range(0,3):
-            g = vol.grad(p)
-            p -= vol.eval(p) * g / np.dot(g,g)
-        pos[v] = p
-
-    return m
-
-def test_volume_polygonize():
-    vol = SphereVolume([0.,0.5,0.],1.4)
-    xform = XForm([-1.5,-1.5,-1.5],[1.5,1.5,1.5],[16,16,16])
-    m = polygonize_volume(vol, xform, 0)
-    viewer = GLManifoldViewer()
-    viewer.display(m,'w')
-
-#test_volume_polygonize()
-#test_dynamics()
-#test_Manifold_class()
-test_GLManifoldViewer()
-#test_I3DTree()
+        lib.GLManifoldViewer_display(self.obj,m.obj,c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
+    def annotation_points(self):
+        pos = POINTER(c_double)()
+        n = lib.GLManifoldViewer_get_annotation_points(self.obj, byref(pos))
+        return np.ctypeslib.as_array(pos,(n,3))
+    @staticmethod
+    def event_loop():
+        lib.GLManifoldViewer_event_loop(False)
