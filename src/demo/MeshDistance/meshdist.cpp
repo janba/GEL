@@ -59,13 +59,13 @@ template<class BBTree>
 class DistCompCache
 {
 	BBTree *T;
-	float old_d;
-	Vec3i old_p;
+	mutable float old_d;
+	mutable Vec3i old_p;
 public:
     
 	DistCompCache(BBTree* _T): T(_T), old_p(-99999) {}
     
-	void operator()(const CGLA::Vec3i& pi, float& vox_val)
+	void operator()(const CGLA::Vec3i& pi, float& vox_val) const
 	{
 		Vec3f p(pi);
  		if(sqr_length(pi-old_p)==1)
@@ -86,7 +86,7 @@ public:
     
 	DistComp(BBTree* _T): T(_T) {}
     
-	void operator()(const CGLA::Vec3i& pi, float& vox_val)
+	void operator()(const CGLA::Vec3i& pi, float& vox_val) const
 	{
 		Vec3d p(pi);
 		vox_val =  T->compute_signed_distance(p);
