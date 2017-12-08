@@ -47,8 +47,8 @@ namespace
 	}
     
 	bool do_ray_tests = false;
-	bool do_obb = true;
-	bool do_aabb = false;
+	bool do_obb = false;
+	bool do_aabb = true;
 	bool flip_normals = false;
     
 }
