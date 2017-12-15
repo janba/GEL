@@ -4,6 +4,8 @@ import numpy as np
 import random
 from copy import copy
 from numpy.linalg import norm
+import sys, os
+pathname = os.path.dirname(sys.argv[0])
 lib = cdll.LoadLibrary("libPyGEL.dylib")
 
 lib.IntVector_new.restype = c_void_p
@@ -38,6 +40,8 @@ class Vec3dVector:
         lib.Vec3dVector_delete(self.obj)
     def __len__(self):
         return int(lib.Vec3dVector_size(self.obj))
+    def __getitem__(self,key):
+        return lib.Vec3dVector_get(self.obj,key)
     def __iter__(self):
         n = lib.Vec3dVector_size(self.obj)
         for i in range(0,n):
@@ -158,6 +162,12 @@ lib.perimeter.argtypes = (c_void_p, c_size_t)
 lib.centre.argtypes = (c_void_p, c_size_t, POINTER(c_double*3))
 
 class Manifold:
+    """ The Manifold class represents a halfedge based mesh.
+    Since meshes based on the halfedge representation must be manifold (although
+    exceptions could be made) the class is thus named. Manifold contains many
+    functions for mesh manipulation and associated the position attribute
+    with vertices.
+    """
     def __init__(self,orig=None):
         if orig == None:
             self.obj = lib.Manifold_new()
@@ -166,6 +176,10 @@ class Manifold:
     def __del__(self):
         lib.Manifold_delete(self.obj)
     def add_face(self,pts):
+        """ Add a face to the Manifold.
+        This function takes a list of points as argument and creates a face
+        in the mesh with those points as vertices.
+        """
         lib.Manifold_add_face(self.obj, len(pts), np.array(pts))
     def positions(self):
         pos = POINTER(c_double)()
@@ -303,6 +317,111 @@ def obj_load(fn):
     lib.obj_load(s, m.obj)
     return m
 
+lib.off_load.argtypes = (c_char_p, c_void_p)
+def off_load(fn):
+    m = Manifold()
+    s = c_char_p(fn.encode('utf-8'))
+    lib.off_load(s, m.obj)
+    return m
+
+lib.ply_load.argtypes = (c_char_p, c_void_p)
+def ply_load(fn):
+    m = Manifold()
+    s = c_char_p(fn.encode('utf-8'))
+    lib.ply_load(s, m.obj)
+    return m
+
+lib.x3d_load.argtypes = (c_char_p, c_void_p)
+def x3d_load(fn):
+    m = Manifold()
+    s = c_char_p(fn.encode('utf-8'))
+    lib.x3d_load(s, m.obj)
+    return m
+
+lib.remove_caps.argtypes = (c_void_p, c_float)
+def remove_caps(m, thresh=2.9):
+    lib.remove_caps(m.obj,thresh)
+
+lib.remove_needles.argtypes = (c_void_p, c_float, c_bool)
+def remove_needles(m, thresh=0.05, average_positions=False):
+    abs_thresh = thresh * average_edge_length(m)
+    lib.remove_needles(m.obj,abs_thresh, average_positions)
+
+lib.close_holes.argtypes = (c_void_p,)
+def close_holes(m):
+    lib.close_holes(m.obj)
+
+lib.flip_orientation.argtypes = (c_void_p,)
+def flip_orientation(m):
+    lib.flip_orientation(m.obj)
+
+lib.minimize_curvature.argtypes = (c_void_p,c_bool)
+def minimize_curvature(m,anneal=False):
+    lib.minimize_curvature(m.obj, anneal)
+
+lib.maximize_min_angle.argtypes = (c_void_p,c_float,c_bool)
+def maximize_min_angle(m,dihedral_thresh=0.95,anneal=False):
+    lib.maximize_min_angle(m.obj,dihedral_thresh,anneal)
+
+lib.optimize_valency.argtypes = (c_void_p,c_bool)
+def optimize_valency(m,anneal=False):
+    lib.optimize_valency(m.obj, anneal)
+
+lib.randomize_mesh.argtypes = (c_void_p,c_int)
+def randomize_mesh(m,max_iter=1):
+    lib.randomize_mesh(m.obj, max_iter)
+
+lib.quadric_simplify.argtypes = (c_void_p,c_double,c_double,c_bool)
+def quadric_simplify(m,keep_fraction,singular_thresh=1e-4,optimal_positions=True):
+    lib.quadric_simplify(m.obj, keep_fraction, singular_thresh,optimal_positions)
+
+lib.average_edge_length.argtypes = (c_void_p,)
+lib.average_edge_length.restype = c_float
+def average_edge_length(m,max_iter=1):
+    return lib.average_edge_length(m.obj)
+
+lib.median_edge_length.argtypes = (c_void_p,)
+lib.median_edge_length.restype = c_float
+def median_edge_length(m,max_iter=1):
+    return lib.median_edge_length(m.obj)
+
+lib.refine_edges.argtypes = (c_void_p,c_float)
+lib.refine_edges.restype = c_int
+def refine_edges(m,threshold):
+    return lib.refine_edges(m.obj, threshold)
+
+lib.cc_split.argtypes = (c_void_p,)
+def cc_split(m):
+    lib.cc_split(m.obj)
+
+lib.loop_split.argtypes = (c_void_p,)
+def loop_split(m):
+    lib.loop_split(m.obj)
+
+lib.root3_subdivide.argtypes = (c_void_p,)
+def root3_subdivide(m):
+    lib.root3_subdivide(m.obj)
+
+lib.rootCC_subdivide.argtypes = (c_void_p,)
+def rootCC_subdivide(m):
+    lib.rootCC_subdivide(m.obj)
+
+lib.butterfly_subdivide.argtypes = (c_void_p,)
+def butterfly_subdivide(m):
+    lib.butterfly_subdivide(m.obj)
+
+lib.cc_smooth.argtypes = (c_void_p,)
+def cc_smooth(m):
+    lib.cc_smooth(m.obj)
+
+lib.loop_smooth.argtypes = (c_void_p,)
+def loop_smooth(m):
+    lib.loop_smooth(m.obj)
+
+lib.shortest_edge_triangulate.argtypes = (c_void_p,)
+def triangulate(m):
+    lib.shortest_edge_triangulate(m.obj)
+
 lib.GLManifoldViewer_new.restype = c_void_p
 lib.GLManifoldViewer_delete.argtypes = (c_void_p,)
 lib.GLManifoldViewer_display.argtypes = (c_void_p,c_void_p,c_char,c_bool, POINTER(c_float*3), POINTER(c_double),c_bool,c_bool)
@@ -327,3 +446,19 @@ class GLManifoldViewer:
     @staticmethod
     def event_loop():
         lib.GLManifoldViewer_event_loop(False)
+
+    # MeshDistance* MeshDistance_new(HMesh::Manifold* m);
+
+lib.MeshDistance_new.restype = c_void_p
+lib.MeshDistance_new.argtypes = (c_void_p,)
+lib.MeshDistance_signed_distance.restype = c_float
+lib.MeshDistance_signed_distance.argtypes = (c_void_p,POINTER(c_float*3),c_float)
+lib.MeshDistance_delete.argtypes = (c_void_p,)
+class MeshDistance:
+    def __init__(self,m):
+        self.obj = lib.MeshDistance_new(m.obj)
+    def __del__(self):
+        lib.MeshDistance_delete(self.obj)
+    def signed_distance(self,p,upper=1e30):
+        p_ct = np.array(p,dtype=c_float).ctypes.data_as(POINTER(c_float*3))
+        return lib.MeshDistance_signed_distance(self.obj,p_ct,upper)

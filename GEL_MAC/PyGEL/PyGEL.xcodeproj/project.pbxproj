@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BD0F23E21F8EB72D008584F5 /* Manifold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD0F23E01F8EB72D008584F5 /* Manifold.cpp */; };
-		BD0F23E31F8EB72D008584F5 /* Manifold.h in Headers */ = {isa = PBXBuildFile; fileRef = BD0F23E11F8EB72D008584F5 /* Manifold.h */; };
 		BD27CE6C1F837284002F0FAE /* I3DTree.h in Headers */ = {isa = PBXBuildFile; fileRef = BD27CE6A1F837284002F0FAE /* I3DTree.h */; };
 		BD27CE6D1F837284002F0FAE /* I3DTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD27CE6B1F837284002F0FAE /* I3DTree.cpp */; };
 		BD9100F21F84D0C9003AF93E /* IntVector.h in Headers */ = {isa = PBXBuildFile; fileRef = BD9100EE1F84D0C8003AF93E /* IntVector.h */; };
@@ -22,11 +20,13 @@
 		BD9D57821FAE7C5700788326 /* hmesh_functions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD9D57801FAE7C5700788326 /* hmesh_functions.cpp */; };
 		BD9D57831FAE7C5700788326 /* hmesh_functions.h in Headers */ = {isa = PBXBuildFile; fileRef = BD9D57811FAE7C5700788326 /* hmesh_functions.h */; };
 		BDF6DD671FAA859D00222B34 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDF6DD661FAA859D00222B34 /* GEL.framework */; };
+		BDF6F9671FE1D182005568F0 /* MeshDistance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDF6F9651FE1D182005568F0 /* MeshDistance.cpp */; };
+		BDF6F9681FE1D182005568F0 /* MeshDistance.h in Headers */ = {isa = PBXBuildFile; fileRef = BDF6F9661FE1D182005568F0 /* MeshDistance.h */; };
+		BDFE55591FE47EA400062448 /* Manifold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDFE55571FE47EA400062448 /* Manifold.cpp */; };
+		BDFE555A1FE47EA400062448 /* Manifold.h in Headers */ = {isa = PBXBuildFile; fileRef = BDFE55581FE47EA400062448 /* Manifold.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
-		BD0F23E01F8EB72D008584F5 /* Manifold.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Manifold.cpp; sourceTree = "<group>"; };
-		BD0F23E11F8EB72D008584F5 /* Manifold.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Manifold.h; sourceTree = "<group>"; };
 		BD27CE6A1F837284002F0FAE /* I3DTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = I3DTree.h; path = ../../src/PyGEL/I3DTree.h; sourceTree = "<group>"; };
 		BD27CE6B1F837284002F0FAE /* I3DTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = I3DTree.cpp; path = ../../src/PyGEL/I3DTree.cpp; sourceTree = "<group>"; };
 		BD48834F1F82CBB200EC04F0 /* libPyGEL.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libPyGEL.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -42,6 +42,10 @@
 		BD9D57801FAE7C5700788326 /* hmesh_functions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = hmesh_functions.cpp; path = ../../src/PyGEL/hmesh_functions.cpp; sourceTree = "<group>"; };
 		BD9D57811FAE7C5700788326 /* hmesh_functions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = hmesh_functions.h; path = ../../src/PyGEL/hmesh_functions.h; sourceTree = "<group>"; };
 		BDF6DD661FAA859D00222B34 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-essvayrgsrjsqfasrgpeytfafkwo/Build/Products/Release/GEL.framework"; sourceTree = "<group>"; };
+		BDF6F9651FE1D182005568F0 /* MeshDistance.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = MeshDistance.cpp; path = ../../src/PyGEL/MeshDistance.cpp; sourceTree = "<group>"; };
+		BDF6F9661FE1D182005568F0 /* MeshDistance.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MeshDistance.h; path = ../../src/PyGEL/MeshDistance.h; sourceTree = "<group>"; };
+		BDFE55571FE47EA400062448 /* Manifold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Manifold.cpp; path = ../../src/PyGEL/Manifold.cpp; sourceTree = "<group>"; };
+		BDFE55581FE47EA400062448 /* Manifold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Manifold.h; path = ../../src/PyGEL/Manifold.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -61,6 +65,8 @@
 		BD27CE6E1F83729E002F0FAE /* PyGEL */ = {
 			isa = PBXGroup;
 			children = (
+				BDFE55571FE47EA400062448 /* Manifold.cpp */,
+				BDFE55581FE47EA400062448 /* Manifold.h */,
 				BD9100FF1F883CE3003AF93E /* Viewer.cpp */,
 				BD9100FE1F883CE3003AF93E /* Viewer.h */,
 				BD9100F11F84D0C8003AF93E /* IntVector.cpp */,
@@ -70,10 +76,10 @@
 				BD9100ED1F84D072003AF93E /* PyGEL.py */,
 				BD27CE6B1F837284002F0FAE /* I3DTree.cpp */,
 				BD27CE6A1F837284002F0FAE /* I3DTree.h */,
-				BD0F23E01F8EB72D008584F5 /* Manifold.cpp */,
-				BD0F23E11F8EB72D008584F5 /* Manifold.h */,
 				BD9D57801FAE7C5700788326 /* hmesh_functions.cpp */,
 				BD9D57811FAE7C5700788326 /* hmesh_functions.h */,
+				BDF6F9651FE1D182005568F0 /* MeshDistance.cpp */,
+				BDF6F9661FE1D182005568F0 /* MeshDistance.h */,
 			);
 			name = PyGEL;
 			sourceTree = "<group>";
@@ -115,7 +121,8 @@
 				BD9101001F883CE3003AF93E /* Viewer.h in Headers */,
 				BD9100F31F84D0C9003AF93E /* Vec3dVector.h in Headers */,
 				BD9D57831FAE7C5700788326 /* hmesh_functions.h in Headers */,
-				BD0F23E31F8EB72D008584F5 /* Manifold.h in Headers */,
+				BDFE555A1FE47EA400062448 /* Manifold.h in Headers */,
+				BDF6F9681FE1D182005568F0 /* MeshDistance.h in Headers */,
 				BD27CE6C1F837284002F0FAE /* I3DTree.h in Headers */,
 				BD9100F21F84D0C9003AF93E /* IntVector.h in Headers */,
 			);
@@ -180,10 +187,11 @@
 			files = (
 				BD9100F51F84D0C9003AF93E /* IntVector.cpp in Sources */,
 				BD9101011F883CE3003AF93E /* Viewer.cpp in Sources */,
-				BD0F23E21F8EB72D008584F5 /* Manifold.cpp in Sources */,
 				BD9100F41F84D0C9003AF93E /* Vec3dVector.cpp in Sources */,
+				BDFE55591FE47EA400062448 /* Manifold.cpp in Sources */,
 				BD27CE6D1F837284002F0FAE /* I3DTree.cpp in Sources */,
 				BD9D57821FAE7C5700788326 /* hmesh_functions.cpp in Sources */,
+				BDF6F9671FE1D182005568F0 /* MeshDistance.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

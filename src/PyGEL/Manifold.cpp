@@ -257,23 +257,3 @@ void centre(const Manifold* m_ptr, size_t _f, CGLA::Vec3d* c) {
     *c = centre(*m_ptr,FaceID(_f));
 }
 
-bool valid(const Manifold* m_ptr) {
-    return valid(*m_ptr);
-}
-bool closed(const Manifold* m_ptr) {
-    return closed(*m_ptr);
-}
-
-void bbox(const Manifold* m_ptr, CGLA::Vec3d* pmin, CGLA::Vec3d* pmax) {
-    bbox(*m_ptr, *pmin, *pmax);
-}
-void bsphere(const Manifold* m_ptr, CGLA::Vec3d* c, double* _r) {
-    float r;
-    bsphere(*m_ptr, *c, r);
-    *_r = r;
-}
-
-void stitch_mesh(HMesh::Manifold* m_ptr, double rad) {
-    HMesh::stitch_mesh(*m_ptr, rad);
-}
-

@@ -63,7 +63,6 @@ extern "C" {
     size_t Walker_incident_vertex(HMesh::Manifold* m_ptr, size_t h);
     
 // External functions
-    void stitch_mesh(HMesh::Manifold* m_ptr, double rad);
     
     bool is_halfedge_at_boundary(const HMesh::Manifold* m_ptr, size_t _h);
     bool is_vertex_at_boundary(const HMesh::Manifold* m_ptr, size_t _v);
@@ -79,14 +78,7 @@ extern "C" {
     double area(const HMesh::Manifold* m_ptr, size_t _f);
     double perimeter(const HMesh::Manifold* m_ptr, size_t _f);
     void centre(const HMesh::Manifold* m_ptr, size_t _f, CGLA::Vec3d*);
-    
-    bool valid(const HMesh::Manifold* m_ptr);
-    bool closed(const HMesh::Manifold* m_ptr);
-    
-    void bbox(const HMesh::Manifold* m_ptr, CGLA::Vec3d* pmin, CGLA::Vec3d* pmax);
-    void bsphere(const HMesh::Manifold* m_ptr, CGLA::Vec3d* c, double* r);
-
-    
+        
 }
 
 #endif /* Manifold_hpp */
