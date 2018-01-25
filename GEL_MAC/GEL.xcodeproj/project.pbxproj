@@ -669,6 +669,7 @@
 		0DA7DC5F1CEBA687009FD206 /* graph_algorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph_algorithm.h; sourceTree = "<group>"; };
 		0DA848C3193D02520067DA3B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DD53BE91ABB69C50074B704 /* ls_solve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ls_solve.h; sourceTree = "<group>"; };
+		BDAC7CAA201885F600197925 /* Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serialization.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -816,6 +817,7 @@
 				0D52EB56197D18C1002C7150 /* string_utils.cpp */,
 				0D52EB59197D18C1002C7150 /* XmlParser.cpp */,
 				0D52EBB7197D196D002C7150 /* header */,
+				BDAC7CAA201885F600197925 /* Serialization.h */,
 			);
 			name = Util;
 			path = ../../src/GEL/Util;

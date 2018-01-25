@@ -24,6 +24,11 @@ extern "C" {
     bool off_load(char*, HMesh::Manifold* m_ptr);
     bool ply_load(char*, HMesh::Manifold* m_ptr);
     bool x3d_load(char*, HMesh::Manifold* m_ptr);
+    
+    bool obj_save(char*, HMesh::Manifold* m_ptr);
+    bool off_save(char*, HMesh::Manifold* m_ptr);
+    bool x3d_save(char*, HMesh::Manifold* m_ptr);
+
         
     void remove_caps(HMesh::Manifold* m_ptr, float thresh);
     

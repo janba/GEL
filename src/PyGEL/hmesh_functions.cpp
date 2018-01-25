@@ -49,6 +49,20 @@ bool x3d_load(char* fn, HMesh::Manifold* m_ptr) {
     return x3d_load(string(fn), *m_ptr);
 }
 
+
+bool obj_save(char* fn, HMesh::Manifold* m_ptr) {
+    return obj_save(string(fn), *m_ptr);
+}
+
+bool off_save(char* fn, HMesh::Manifold* m_ptr) {
+    return off_save(string(fn), *m_ptr);
+
+}
+bool x3d_save(char* fn, HMesh::Manifold* m_ptr) {
+    return x3d_save(string(fn), *m_ptr);
+}
+
+
 void remove_caps(HMesh::Manifold* m_ptr, float thresh) {
     remove_caps(*m_ptr, thresh);
 }

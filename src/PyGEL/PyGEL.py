@@ -479,6 +479,24 @@ def stitch(m, rad=1e-30):
     would introduce a non-manifold situation."""
     lib_py_gel.stitch_mesh(m.obj,rad)
 
+lib_py_gel.obj_save.argtypes = (ct.c_char_p, ct.c_void_p)
+def obj_save(fn, m):
+    """ Save Manifold to Wavefront obj file. """
+    s = ct.c_char_p(fn.encode('utf-8'))
+    lib_py_gel.obj_save(s, m.obj)
+
+lib_py_gel.off_save.argtypes = (ct.c_char_p, ct.c_void_p)
+def off_save(fn, m):
+    """ Save Manifold to OFF file. """
+    s = ct.c_char_p(fn.encode('utf-8'))
+    lib_py_gel.off_save(s, m.obj)
+
+lib_py_gel.x3d_save.argtypes = (ct.c_char_p, ct.c_void_p)
+def x3d_save(fn, m):
+    """ Save Manifold to X3D file. """
+    s = ct.c_char_p(fn.encode('utf-8'))
+    lib_py_gel.x3d_save(s, m.obj)
+
 lib_py_gel.obj_load.argtypes = (ct.c_char_p, ct.c_void_p)
 def obj_load(fn):
     """ Load Manifold from Wavefront obj file. """
