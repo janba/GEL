@@ -20,9 +20,13 @@ or otherwise manipulate general polygon meshes.
 import ctypes as ct
 import numpy as np
 from numpy.linalg import norm
+import os
+
+def get_script_path():
+    return os.path.dirname(__file__)
 
 # Load PyGEL the Python GEL bridge library
-lib_py_gel = ct.cdll.LoadLibrary("libPyGEL.dylib")
+lib_py_gel = ct.cdll.LoadLibrary(get_script_path() + "/libPyGEL.dylib")
 
 lib_py_gel.IntVector_new.restype = ct.c_void_p
 lib_py_gel.IntVector_get.argtypes = (ct.c_void_p, ct.c_size_t)

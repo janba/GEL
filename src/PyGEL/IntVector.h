@@ -9,14 +9,20 @@
 #ifndef IntVector_hpp
 #define IntVector_hpp
 
+#ifdef __APPLE__
+#define DLLEXPORT __attribute__ ((visibility ("default")))
+#else
+#define DLLEXPORT __declspec(dllexport)
+#endif
+
 #include <vector>
 
 using IntVector = std::vector<size_t>;
 
 extern "C" {
-    IntVector* IntVector_new(size_t s);
-    size_t IntVector_get(IntVector* self, size_t size_t);
-    size_t IntVector_size(IntVector* self);
-    void IntVector_delete(IntVector* self);
+    DLLEXPORT IntVector* IntVector_new(size_t s);
+    DLLEXPORT size_t IntVector_get(IntVector* self, size_t size_t);
+    DLLEXPORT size_t IntVector_size(IntVector* self);
+    DLLEXPORT void IntVector_delete(IntVector* self);
 }
 #endif /* IntVector_hpp */

@@ -9,15 +9,21 @@
 #ifndef Vec3dVector_hpp
 #define Vec3dVector_hpp
 
+#ifdef __APPLE__
+#define DLLEXPORT __attribute__ ((visibility ("default")))
+#else
+#define DLLEXPORT __declspec(dllexport)
+#endif
+
 #include <GEL/CGLA/Vec3d.h>
 #include <vector>
 
 using Vec3dVector = std::vector<CGLA::Vec3d>;
 
 extern "C" {
-    Vec3dVector* Vec3dVector_new(size_t s);
-    double* Vec3dVector_get(Vec3dVector* self, size_t idx);
-    size_t Vec3dVector_size(Vec3dVector* self);
-    void Vec3dVector_delete(Vec3dVector* self);
+    DLLEXPORT Vec3dVector* Vec3dVector_new(size_t s);
+    DLLEXPORT double* Vec3dVector_get(Vec3dVector* self, size_t idx);
+    DLLEXPORT size_t Vec3dVector_size(Vec3dVector* self);
+    DLLEXPORT void Vec3dVector_delete(Vec3dVector* self);
 }
 #endif /* Vec3dVector_hpp */

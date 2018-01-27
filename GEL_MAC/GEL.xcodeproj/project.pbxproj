@@ -669,6 +669,7 @@
 		0DA7DC5F1CEBA687009FD206 /* graph_algorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph_algorithm.h; sourceTree = "<group>"; };
 		0DA848C3193D02520067DA3B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DD53BE91ABB69C50074B704 /* ls_solve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ls_solve.h; sourceTree = "<group>"; };
+		BD4E9FA8201CB17B0029AEA2 /* GEL copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GEL copy-Info.plist"; path = "/Users/janba/GEL/GEL_MAC/GEL copy-Info.plist"; sourceTree = "<absolute>"; };
 		BDAC7CAA201885F600197925 /* Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serialization.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -1012,6 +1013,7 @@
 				0D85999C193D01B6009DB071 /* GEL */,
 				0D859995193D01B6009DB071 /* Frameworks */,
 				0D859994193D01B6009DB071 /* Products */,
+				BD4E9FA8201CB17B0029AEA2 /* GEL copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};

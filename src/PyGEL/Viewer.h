@@ -8,6 +8,13 @@
 
 #ifndef Viewer_hpp
 #define Viewer_hpp
+
+#ifdef __APPLE__
+#define DLLEXPORT __attribute__ ((visibility ("default")))
+#else
+#define DLLEXPORT __declspec(dllexport)
+#endif
+
 #include <GEL/HMesh/Manifold.h>
 
 class GLManifoldViewer {
@@ -77,11 +84,11 @@ public:
 };
 
 extern "C" {
-    GLManifoldViewer* GLManifoldViewer_new();
+    DLLEXPORT GLManifoldViewer* GLManifoldViewer_new();
     
-    void GLManifoldViewer_event_loop(bool once);
+    DLLEXPORT void GLManifoldViewer_event_loop(bool once);
     
-    void GLManifoldViewer_display(GLManifoldViewer* self,
+    DLLEXPORT void GLManifoldViewer_display(GLManifoldViewer* self,
                                   HMesh::Manifold* m,
                                   char mode,
                                   bool smooth_shading,
@@ -90,9 +97,9 @@ extern "C" {
                                   bool reset_view,
                                   bool once);
     
-    void GLManifoldViewer_delete(GLManifoldViewer*);
+    DLLEXPORT void GLManifoldViewer_delete(GLManifoldViewer*);
     
-    size_t GLManifoldViewer_get_annotation_points(GLManifoldViewer* self, double** data);
+    DLLEXPORT size_t GLManifoldViewer_get_annotation_points(GLManifoldViewer* self, double** data);
 
 }
 
