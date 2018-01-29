@@ -216,7 +216,7 @@ void GLManifoldViewer::display() {
             if(!clicked_existing) {
                 size_t cap = size_t(-1);
                 for(size_t i = 0;i<annotation_points.size();++i)
-                    if(isnan(annotation_points[i][0])) {
+                    if(CGLA::isnan(annotation_points[i][0])) {
                         cap = i;
                         break;
                     }

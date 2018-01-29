@@ -9,7 +9,7 @@
 #ifndef Vec3dVector_hpp
 #define Vec3dVector_hpp
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__linux__)
 #define DLLEXPORT __attribute__ ((visibility ("default")))
 #else
 #define DLLEXPORT __declspec(dllexport)

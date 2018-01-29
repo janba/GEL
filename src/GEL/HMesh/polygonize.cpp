@@ -99,9 +99,9 @@ namespace HMesh
             for(auto v: mani.vertices())
                 if(mani.in_use(v)) {
                     Vec3d p = mani.pos(v);
-                    if(!isnan(p[0]))
+                    if(!CGLA::isnan(p[0]))
                         imp.push_to_surface(p,0,avg_edge_len*0.5);
-                    if(isnan(p[0])) {
+                    if(CGLA::isnan(p[0])) {
                         mani.remove_vertex(v);
                     }
                     else

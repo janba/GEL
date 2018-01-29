@@ -3,7 +3,7 @@
 import os, glob
 from fabricate import *
 
-flags = ['-c', '-std=c++11', '-w', '-I../src/GEL']
+flags = ['-c', '-std=c++11', '-w', '-I../src/GEL', '-DNOT_HAVE_SA_LEN']
 build_dir = 'build'
 target = 'libGEL.a'
 dirs = ['../src/GEL/CGLA', '../src/GEL/GLGraphics','../src/GEL/Geometry','../src/GEL/HMesh','../src/GEL/Util']
