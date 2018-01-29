@@ -13,6 +13,7 @@
 #include "../GLGraphics/Console.h"
 #include "../GL/glew.h"
 #include <cstdarg>
+#include <cstdio>
 #include <set>
 #include <iostream> //cerr
 #include <iterator> //back_inserter
@@ -22,7 +23,6 @@
 
 #ifdef _MSC_VER
 #include <winsock.h>
-#include <stdio.h>
 #else
 #include <unistd.h>
 #include <sys/socket.h>
@@ -75,7 +75,7 @@ Console::Console() : m_history_index(0), m_caret(0),
 Console::~Console()
 {
     save_history();
-    unlink(addr.c_str());
+    remove(addr.c_str());
 }
 
 //----------------------------------------------------------------------------

@@ -30,7 +30,8 @@
 		BD27CE6A1F837284002F0FAE /* I3DTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = I3DTree.h; path = ../../src/PyGEL/I3DTree.h; sourceTree = "<group>"; };
 		BD27CE6B1F837284002F0FAE /* I3DTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = I3DTree.cpp; path = ../../src/PyGEL/I3DTree.cpp; sourceTree = "<group>"; };
 		BD48834F1F82CBB200EC04F0 /* libPyGEL.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libPyGEL.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
-		BD9100ED1F84D072003AF93E /* PyGEL.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = PyGEL.py; path = ../../src/PyGEL/PyGEL.py; sourceTree = "<group>"; };
+		BD4E9FA9201D29340029AEA2 /* gel.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = gel.py; path = ../../src/PyGEL/gel.py; sourceTree = "<group>"; };
+		BD4E9FAA201D29340029AEA2 /* js.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = js.py; path = ../../src/PyGEL/js.py; sourceTree = "<group>"; };
 		BD9100EE1F84D0C8003AF93E /* IntVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IntVector.h; path = ../../src/PyGEL/IntVector.h; sourceTree = "<group>"; };
 		BD9100EF1F84D0C8003AF93E /* Vec3dVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vec3dVector.h; path = ../../src/PyGEL/Vec3dVector.h; sourceTree = "<group>"; };
 		BD9100F01F84D0C8003AF93E /* Vec3dVector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vec3dVector.cpp; path = ../../src/PyGEL/Vec3dVector.cpp; sourceTree = "<group>"; };
@@ -65,6 +66,8 @@
 		BD27CE6E1F83729E002F0FAE /* PyGEL */ = {
 			isa = PBXGroup;
 			children = (
+				BD4E9FA9201D29340029AEA2 /* gel.py */,
+				BD4E9FAA201D29340029AEA2 /* js.py */,
 				BDFE55571FE47EA400062448 /* Manifold.cpp */,
 				BDFE55581FE47EA400062448 /* Manifold.h */,
 				BD9100FF1F883CE3003AF93E /* Viewer.cpp */,
@@ -73,7 +76,6 @@
 				BD9100EE1F84D0C8003AF93E /* IntVector.h */,
 				BD9100F01F84D0C8003AF93E /* Vec3dVector.cpp */,
 				BD9100EF1F84D0C8003AF93E /* Vec3dVector.h */,
-				BD9100ED1F84D072003AF93E /* PyGEL.py */,
 				BD27CE6B1F837284002F0FAE /* I3DTree.cpp */,
 				BD27CE6A1F837284002F0FAE /* I3DTree.h */,
 				BD9D57801FAE7C5700788326 /* hmesh_functions.cpp */,

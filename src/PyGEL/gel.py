@@ -1,4 +1,4 @@
-""" PyGEL is a collection of classes and functions that expose features in the
+""" PyGEL.gel is a collection of classes and functions that expose features in the
 GEL library. The primary purpose of PyGEL (and GEL) is to be useful for geometry
 processing tasks. Especially tasks that involve 3D polygonal meshes.
 
@@ -21,12 +21,20 @@ import ctypes as ct
 import numpy as np
 from numpy.linalg import norm
 import os
+from sys import platform
 
 def get_script_path():
     return os.path.dirname(__file__)
 
+def get_lib_name():
+    if platform == "darwin":
+        return "libPyGEL.dylib"
+    if platform == "win32":
+        return "libPyGEL.dll"
+    return "libPyGEL.so"
+
 # Load PyGEL the Python GEL bridge library
-lib_py_gel = ct.cdll.LoadLibrary(get_script_path() + "/libPyGEL.dylib")
+lib_py_gel = ct.cdll.LoadLibrary(get_script_path() + "/" + get_lib_name())
 
 lib_py_gel.IntVector_new.restype = ct.c_void_p
 lib_py_gel.IntVector_get.argtypes = (ct.c_void_p, ct.c_size_t)
@@ -723,6 +731,8 @@ class GLManifoldViewer:
         so any changes made to the points will be reflected in the viewer. """
         pos = ct.POINTER(ct.c_double)()
         n = lib_py_gel.GLManifoldViewer_get_annotation_points(self.obj, ct.byref(pos))
+        if n == 0:
+            return None
         return np.ctypeslib.as_array(pos,(n,3))
     @staticmethod
     def event_loop():

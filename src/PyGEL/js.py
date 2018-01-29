@@ -1,17 +1,18 @@
-#from pythreejs import *
-#from IPython.display import display
-#from ipywidgets import HTML, Text
-#from traitlets import link, dlink
+""" PyGEL.js is a module with a single function, display, that provides functionality for displaying a mesh
+    Manifold as an interactive 3D model in a Jupyter Notebook """
 import PyGEL as pgl
 from numpy import array
 import plotly.offline as py
 import plotly.graph_objs as go
-py.init_notebook_mode(connected=True)
+py.init_notebook_mode(connected=False)
 
-def display_js(m,wireframe=True,smooth=True,data=None):
-#    pmin,pmax = pgl.bbox(m)
-#    aspect = list(pmax-pmin)
-#    aspect /= aspect[0]
+def display(m,wireframe=True,smooth=True,data=None):
+    """ The display function shows an interactive presentation of the Manifold, m, inside
+        a Jupyter Notebook. wireframe=True means that a wireframe view of the mesh is
+        superimposed on the 3D model. If smooth=True, the mesh is rendered with vertex
+        normals. Otherwise, the mesh is rendered with face normals. If data=None, the
+        mesh is shown in a light grey color. If data contains an array of scalar values
+        per vertex, these are mapped to colors used to color the mesh."""
     xyz = array([ p for p in m.positions()])
     ijk = array([[ idx for idx in m.circulate_face(f,'v')] for f in m.faces()])
     mesh = go.Mesh3d(x=xyz[:,0],y=xyz[:,1],z=xyz[:,2],
