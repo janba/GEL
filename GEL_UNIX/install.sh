@@ -1,5 +1,5 @@
 python buildGEL.py
-sudo cp -p build/libGEL.a /usr/local/lib
+sudo cp -p build/libGEL.so /usr/local/lib
 cd ../src/GEL
 sudo mkdir -p /usr/local/include/GEL
 find . -name "*.h" -type f | xargs -I {} sudo cp --parents {} /usr/local/include/GEL

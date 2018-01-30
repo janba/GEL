@@ -3,15 +3,14 @@
 import os, glob
 from fabricate import *
 
-flags = ['-c', '-std=c++11', '-w', '-I../src/GEL', '-DNOT_HAVE_SA_LEN']
+flags = ['-std=c++11', '-I../src/GEL', '-DNOT_HAVE_SA_LEN', '-c', '-fPIC']
 build_dir = 'build'
-target = 'libGEL.a'
+target = 'libGEL.so'
 dirs = ['../src/GEL/CGLA', '../src/GEL/GLGraphics','../src/GEL/Geometry','../src/GEL/HMesh','../src/GEL/Util']
 sources = []
 for dir in dirs:
-    for file in glob.glob(dir + '/*.cpp'):
-        base_file_name, ext = os.path.splitext(file)
-        sources.append(base_file_name)
+    for file in glob.glob(dir + '/*.c*'):
+        sources.append(file)
 
 def build():
     if not os.path.exists(build_dir):
@@ -24,12 +23,16 @@ def oname(build_dir, filename):
 
 def compile():
     for source in sources:
-        run('g++', flags, source+'.cpp', '-o', oname(build_dir, source+'.o'))
+        base, ext = os.path.splitext(source)
+        run('gcc', flags, source, '-o', oname(build_dir, base+'.o'))
 
 def link():
-    objects = [oname(build_dir, s+'.o') for s in sources]
+    objects = []
+    for source in sources:
+        base, ext = os.path.splitext(source)
+        objects.append(oname(build_dir, base+'.o'))
     after()
-    run('ar', '-cr', oname(build_dir, target), objects)
+    run('gcc', '-shared', '-o', oname(build_dir, target), objects)
 
 def clean():
     autoclean()
