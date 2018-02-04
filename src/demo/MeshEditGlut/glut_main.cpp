@@ -162,7 +162,7 @@ void keyboard(unsigned char key, int x, int y)
 void init_glut(int argc, char** argv)
 {
     glutInitDisplayMode(GLUT_RGBA|GLUT_DOUBLE|GLUT_DEPTH|GLUT_ALPHA);
-    // TODO glutInitWindowSize(WINX, WINY);
+    glutInitWindowSize(800, 800);
     glutInit(&argc, argv);
     glutCreateWindow("MeshEdit");
     glutDisplayFunc(display);

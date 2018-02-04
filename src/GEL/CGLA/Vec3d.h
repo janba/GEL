@@ -8,8 +8,8 @@
  * @brief 3D double vector class.
  */
 
-#ifndef __CGLA_VEC3D_H__
-#define __CGLA_VEC3D_H__
+#ifndef __CGLA_VEC3D_fdsfa_H__
+#define __CGLA_VEC3D_fdsfa_H__
 
 #include "ArithVec3Float.h"
 #include "Vec3i.h"
@@ -18,7 +18,7 @@
 
 
 namespace CGLA {
-
+    
 	/** \brief A 3D double vector. 
 
 	Useful for high precision arithmetic. */

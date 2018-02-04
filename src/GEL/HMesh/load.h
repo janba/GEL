@@ -21,7 +21,7 @@ namespace HMesh
     class Manifold;
     
     /// Load a geometry file. This could be a PLY, OBJ, X3D, or OFF file
-    bool load(const std::string&, Manifold& m);
+    bool load(const std::string&, Manifold&, bool safe=true);
     
     /** \brief Safely build a manifold.
      The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),

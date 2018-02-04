@@ -35,11 +35,11 @@ namespace GLGraphics {
         view_ctrl.set_eye_dist(2*bsphere_radius);
     }
     
-    bool VisObj::reload(string _file)
+    bool VisObj::reload(string _file, bool safe)
     {
         if(_file != "") file = _file;
         mani.clear();
-        if(!load(file, mani))
+        if(!load(file, mani, safe))
             return false;
         refit();
         return true;
@@ -176,7 +176,7 @@ namespace GLGraphics {
             VertexAttributeVector<Vec3d> min_curv_direction;
             VertexAttributeVector<Vec3d> max_curv_direction;
             string _line_direction = line_direction;
-            VertexAttributeVector<Vec3d>& lines = (_line_direction == "min") ? min_curv_direction : max_curv_direction;
+                VertexAttributeVector<Vec3d>& lines = (_line_direction == "min") ? min_curv_direction : max_curv_direction;
             VertexAttributeVector<Vec2d> curvature;
             
             if(string(method) == "tensors")

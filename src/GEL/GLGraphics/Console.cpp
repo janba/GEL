@@ -14,18 +14,22 @@
 #include "../GL/glew.h"
 #include <cstdarg>
 #include <cstring> //std::memcpy
+#include <cstdio>
 #include <set>
 #include <iostream> //cerr
 #include <iterator> //back_inserter
 #include <fstream>
 #include <utility> //min
+#include <algorithm>
+
+#ifdef _MSC_VER
+#include <winsock.h>
+#else
 #include <unistd.h>
 #include <sys/socket.h>
 #include <sys/fcntl.h>
+#endif
 
-//#define NOMINMAX
-//#include <windows.h>
-#include <algorithm>
 
 #include "../GLGraphics/stb_image.h"
 #include "../GLGraphics/stb_image_write.h"
@@ -72,7 +76,7 @@ Console::Console() : m_history_index(0), m_caret(0),
 Console::~Console()
 {
     save_history();
-    unlink(addr.c_str());
+    remove(addr.c_str());
 }
 
 //----------------------------------------------------------------------------
@@ -603,7 +607,8 @@ std::vector<std::string> Console::parse_cmdline(const char* buffer) const
 //----------------------------------------------------------------------------
 
 void Console::open_socket() {
-    
+	// Windows support for this must come later:
+#ifndef _MSC_VER
     // Create a socket with a local domain and a duplex stream type
     sck = socket(PF_LOCAL, SOCK_STREAM, 0);
 
@@ -641,6 +646,8 @@ void Console::open_socket() {
     // Send a greeting to the other end!
     std::string message = "MeshEdit socket connection\n\n";
     send(sck_conn, message.c_str(), message.length(), 0);
+#endif
+
 }
 
 bool Console::listen_commands() {

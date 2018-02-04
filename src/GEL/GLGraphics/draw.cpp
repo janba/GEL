@@ -145,7 +145,7 @@ namespace GLGraphics
 	template<typename T>
     void draw_triangles_in_wireframe(T& m, bool per_vertex_norms, const CGLA::Vec3f& line_color)
 	{
-		static SinglePassWireframeRenderer swr;
+        SinglePassWireframeRenderer swr;
 		swr.enable(line_color);
 		draw(m, per_vertex_norms);
 		swr.disable();
@@ -193,23 +193,43 @@ namespace GLGraphics
     
     void draw(const Manifold& m, bool per_vertex_norms)
     {
-        for(FaceIDIterator f = m.faces_begin(); f != m.faces_end(); ++f){
+        auto send_vertex = [&](VertexID v) {
+            if(per_vertex_norms)
+                glNormal3dv(normal(m, v).get());
+            glVertex3dv(m.pos(v).get());
+        };
+        glBegin(GL_TRIANGLES);
+        for(auto f: m.faces()){
             if(!per_vertex_norms)
-                glNormal3dv(normal(m, *f).get());
-            if(no_edges(m, *f)== 3)
-                glBegin(GL_TRIANGLES);
-            else
-                glBegin(GL_POLYGON);
-            
-            for(Walker w = m.walker(*f); !w.full_circle(); w = w.circulate_face_ccw()){
-                Vec3d n = normal(m, w.vertex());
-                if(per_vertex_norms)
-                    glNormal3dv(n.get());
-                glVertex3dv(m.pos(w.vertex()).get());
+                glNormal3dv(normal(m, f).get());
+            Walker w0 = m.walker(f);
+            Walker w = w0.next();
+            int N = no_edges(m, f)-2;
+            for(int i=0; i<N; ++i, w = w.next()){
+                send_vertex(w0.vertex());
+                send_vertex(w.vertex());
+                send_vertex(w.next().vertex());
             }
-            glEnd();
         }
+        glEnd();
     }
+    
+//    void draw(const Manifold& m, bool per_vertex_norms)
+//    {
+//        auto send_vertex = [&](VertexID v) {
+//            if(per_vertex_norms)
+//                glNormal3dv(normal(m, v).get());
+//            glVertex3dv(m.pos(v).get());
+//        };
+//        for(auto f: m.faces()){
+//            glBegin(GL_POLYGON);
+//            if(!per_vertex_norms)
+//                glNormal3dv(normal(m, f).get());
+//            circulate_face_ccw(m,f,send_vertex);
+//            glEnd();
+//        }
+//    }
+
     
     void draw(const Geometry::AMGraph3D& graph)
     {
@@ -225,7 +245,7 @@ namespace GLGraphics
         glEnd();
         glBegin(GL_LINES);
         for(auto n: graph.node_ids())
-            for(auto e: graph.neighbors(n))
+            for(auto e: graph.edges(n))
             {
                 glColor3fv(graph.edge_color[e.second].get());
                 glVertex3dv(graph.pos[n].get());

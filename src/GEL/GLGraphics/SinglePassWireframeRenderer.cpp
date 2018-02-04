@@ -86,36 +86,30 @@ namespace
 namespace GLGraphics
 {
 	
-	SinglePassWireframeRenderer::SinglePassWireframeRenderer()
-	{		
-		static bool was_here = false;
-		if(!was_here)
-		{
-			was_here = true;
-			// Create s	haders directly from file
-			static GLuint vs = create_glsl_shader(GL_VERTEX_SHADER, vp);
-			static GLuint gs = create_glsl_shader(GL_GEOMETRY_SHADER_EXT, gp);
-			static GLuint fs = create_glsl_shader(GL_FRAGMENT_SHADER, fp);
-			
-			// Create the program
-			static GLuint _prog = glCreateProgram();
-			prog = _prog;
-			
-			// Attach all shaders
-			if(vs) glAttachShader(prog, vs);
-			if(gs) glAttachShader(prog, gs);
-			if(fs) glAttachShader(prog, fs);
-			
-			// Specify input and output for the geometry shader. Note that this must be
-			// done before linking the program.
-			glProgramParameteriEXT(prog,GL_GEOMETRY_INPUT_TYPE_EXT,GL_TRIANGLES);
-			glProgramParameteriEXT(prog,GL_GEOMETRY_VERTICES_OUT_EXT,3);
-			glProgramParameteriEXT(prog,GL_GEOMETRY_OUTPUT_TYPE_EXT,GL_TRIANGLE_STRIP);
-			
-			// Link the program object and print out the info log
-			glLinkProgram(prog);
-		}
-	}
+    SinglePassWireframeRenderer::SinglePassWireframeRenderer()
+    {
+        // Create s	haders directly from file
+        GLuint vs = create_glsl_shader(GL_VERTEX_SHADER, vp);
+        GLuint gs = create_glsl_shader(GL_GEOMETRY_SHADER_EXT, gp);
+        GLuint fs = create_glsl_shader(GL_FRAGMENT_SHADER, fp);
+        
+        // Create the program
+        prog = glCreateProgram();
+        
+        // Attach all shaders
+        if(vs) glAttachShader(prog, vs);
+        if(gs) glAttachShader(prog, gs);
+        if(fs) glAttachShader(prog, fs);
+        
+        // Specify input and output for the geometry shader. Note that this must be
+        // done before linking the program.
+        glProgramParameteriEXT(prog,GL_GEOMETRY_INPUT_TYPE_EXT,GL_TRIANGLES);
+        glProgramParameteriEXT(prog,GL_GEOMETRY_VERTICES_OUT_EXT,3);
+        glProgramParameteriEXT(prog,GL_GEOMETRY_OUTPUT_TYPE_EXT,GL_TRIANGLE_STRIP);
+        
+        // Link the program object and print out the info log
+        glLinkProgram(prog);
+    }
 	
 	bool SinglePassWireframeRenderer::enable(const CGLA::Vec3f& line_col)
 	{

@@ -1,0 +1,366 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 48;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BD27CE6C1F837284002F0FAE /* I3DTree.h in Headers */ = {isa = PBXBuildFile; fileRef = BD27CE6A1F837284002F0FAE /* I3DTree.h */; };
+		BD27CE6D1F837284002F0FAE /* I3DTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD27CE6B1F837284002F0FAE /* I3DTree.cpp */; };
+		BD9100F21F84D0C9003AF93E /* IntVector.h in Headers */ = {isa = PBXBuildFile; fileRef = BD9100EE1F84D0C8003AF93E /* IntVector.h */; };
+		BD9100F31F84D0C9003AF93E /* Vec3dVector.h in Headers */ = {isa = PBXBuildFile; fileRef = BD9100EF1F84D0C8003AF93E /* Vec3dVector.h */; };
+		BD9100F41F84D0C9003AF93E /* Vec3dVector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD9100F01F84D0C8003AF93E /* Vec3dVector.cpp */; };
+		BD9100F51F84D0C9003AF93E /* IntVector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD9100F11F84D0C8003AF93E /* IntVector.cpp */; };
+		BD9100FB1F880C41003AF93E /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD9100FA1F880C41003AF93E /* OpenGL.framework */; };
+		BD9100FD1F880C7B003AF93E /* libglfw.3.2.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BD9100FC1F880C7B003AF93E /* libglfw.3.2.dylib */; };
+		BD9101001F883CE3003AF93E /* Viewer.h in Headers */ = {isa = PBXBuildFile; fileRef = BD9100FE1F883CE3003AF93E /* Viewer.h */; };
+		BD9101011F883CE3003AF93E /* Viewer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD9100FF1F883CE3003AF93E /* Viewer.cpp */; };
+		BD9D57821FAE7C5700788326 /* hmesh_functions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD9D57801FAE7C5700788326 /* hmesh_functions.cpp */; };
+		BD9D57831FAE7C5700788326 /* hmesh_functions.h in Headers */ = {isa = PBXBuildFile; fileRef = BD9D57811FAE7C5700788326 /* hmesh_functions.h */; };
+		BDF6DD671FAA859D00222B34 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDF6DD661FAA859D00222B34 /* GEL.framework */; };
+		BDF6F9671FE1D182005568F0 /* MeshDistance.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDF6F9651FE1D182005568F0 /* MeshDistance.cpp */; };
+		BDF6F9681FE1D182005568F0 /* MeshDistance.h in Headers */ = {isa = PBXBuildFile; fileRef = BDF6F9661FE1D182005568F0 /* MeshDistance.h */; };
+		BDFE55591FE47EA400062448 /* Manifold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDFE55571FE47EA400062448 /* Manifold.cpp */; };
+		BDFE555A1FE47EA400062448 /* Manifold.h in Headers */ = {isa = PBXBuildFile; fileRef = BDFE55581FE47EA400062448 /* Manifold.h */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		BD27CE6A1F837284002F0FAE /* I3DTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = I3DTree.h; path = ../../src/PyGEL/I3DTree.h; sourceTree = "<group>"; };
+		BD27CE6B1F837284002F0FAE /* I3DTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = I3DTree.cpp; path = ../../src/PyGEL/I3DTree.cpp; sourceTree = "<group>"; };
+		BD48834F1F82CBB200EC04F0 /* libPyGEL.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libPyGEL.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
+		BD4E9FA9201D29340029AEA2 /* gel.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = gel.py; path = ../../src/PyGEL/gel.py; sourceTree = "<group>"; };
+		BD4E9FAA201D29340029AEA2 /* js.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = js.py; path = ../../src/PyGEL/js.py; sourceTree = "<group>"; };
+		BD9100EE1F84D0C8003AF93E /* IntVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IntVector.h; path = ../../src/PyGEL/IntVector.h; sourceTree = "<group>"; };
+		BD9100EF1F84D0C8003AF93E /* Vec3dVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vec3dVector.h; path = ../../src/PyGEL/Vec3dVector.h; sourceTree = "<group>"; };
+		BD9100F01F84D0C8003AF93E /* Vec3dVector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vec3dVector.cpp; path = ../../src/PyGEL/Vec3dVector.cpp; sourceTree = "<group>"; };
+		BD9100F11F84D0C8003AF93E /* IntVector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = IntVector.cpp; path = ../../src/PyGEL/IntVector.cpp; sourceTree = "<group>"; };
+		BD9100FA1F880C41003AF93E /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
+		BD9100FC1F880C7B003AF93E /* libglfw.3.2.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.3.2.dylib; path = ../../../../../opt/local/lib/libglfw.3.2.dylib; sourceTree = "<group>"; };
+		BD9100FE1F883CE3003AF93E /* Viewer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Viewer.h; path = ../../src/PyGEL/Viewer.h; sourceTree = "<group>"; };
+		BD9100FF1F883CE3003AF93E /* Viewer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Viewer.cpp; path = ../../src/PyGEL/Viewer.cpp; sourceTree = "<group>"; };
+		BD9D57801FAE7C5700788326 /* hmesh_functions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = hmesh_functions.cpp; path = ../../src/PyGEL/hmesh_functions.cpp; sourceTree = "<group>"; };
+		BD9D57811FAE7C5700788326 /* hmesh_functions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = hmesh_functions.h; path = ../../src/PyGEL/hmesh_functions.h; sourceTree = "<group>"; };
+		BDF6DD661FAA859D00222B34 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-essvayrgsrjsqfasrgpeytfafkwo/Build/Products/Release/GEL.framework"; sourceTree = "<group>"; };
+		BDF6F9651FE1D182005568F0 /* MeshDistance.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = MeshDistance.cpp; path = ../../src/PyGEL/MeshDistance.cpp; sourceTree = "<group>"; };
+		BDF6F9661FE1D182005568F0 /* MeshDistance.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MeshDistance.h; path = ../../src/PyGEL/MeshDistance.h; sourceTree = "<group>"; };
+		BDFE55571FE47EA400062448 /* Manifold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Manifold.cpp; path = ../../src/PyGEL/Manifold.cpp; sourceTree = "<group>"; };
+		BDFE55581FE47EA400062448 /* Manifold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Manifold.h; path = ../../src/PyGEL/Manifold.h; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BD48834C1F82CBB200EC04F0 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD9100FB1F880C41003AF93E /* OpenGL.framework in Frameworks */,
+				BDF6DD671FAA859D00222B34 /* GEL.framework in Frameworks */,
+				BD9100FD1F880C7B003AF93E /* libglfw.3.2.dylib in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BD27CE6E1F83729E002F0FAE /* PyGEL */ = {
+			isa = PBXGroup;
+			children = (
+				BD4E9FA9201D29340029AEA2 /* gel.py */,
+				BD4E9FAA201D29340029AEA2 /* js.py */,
+				BDFE55571FE47EA400062448 /* Manifold.cpp */,
+				BDFE55581FE47EA400062448 /* Manifold.h */,
+				BD9100FF1F883CE3003AF93E /* Viewer.cpp */,
+				BD9100FE1F883CE3003AF93E /* Viewer.h */,
+				BD9100F11F84D0C8003AF93E /* IntVector.cpp */,
+				BD9100EE1F84D0C8003AF93E /* IntVector.h */,
+				BD9100F01F84D0C8003AF93E /* Vec3dVector.cpp */,
+				BD9100EF1F84D0C8003AF93E /* Vec3dVector.h */,
+				BD27CE6B1F837284002F0FAE /* I3DTree.cpp */,
+				BD27CE6A1F837284002F0FAE /* I3DTree.h */,
+				BD9D57801FAE7C5700788326 /* hmesh_functions.cpp */,
+				BD9D57811FAE7C5700788326 /* hmesh_functions.h */,
+				BDF6F9651FE1D182005568F0 /* MeshDistance.cpp */,
+				BDF6F9661FE1D182005568F0 /* MeshDistance.h */,
+			);
+			name = PyGEL;
+			sourceTree = "<group>";
+		};
+		BD4883461F82CBB200EC04F0 = {
+			isa = PBXGroup;
+			children = (
+				BD27CE6E1F83729E002F0FAE /* PyGEL */,
+				BD4883501F82CBB200EC04F0 /* Products */,
+				BD48836E1F82D35B00EC04F0 /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		BD4883501F82CBB200EC04F0 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BD48834F1F82CBB200EC04F0 /* libPyGEL.dylib */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		BD48836E1F82D35B00EC04F0 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				BDF6DD661FAA859D00222B34 /* GEL.framework */,
+				BD9100FC1F880C7B003AF93E /* libglfw.3.2.dylib */,
+				BD9100FA1F880C41003AF93E /* OpenGL.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXHeadersBuildPhase section */
+		BD48834D1F82CBB200EC04F0 /* Headers */ = {
+			isa = PBXHeadersBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD9101001F883CE3003AF93E /* Viewer.h in Headers */,
+				BD9100F31F84D0C9003AF93E /* Vec3dVector.h in Headers */,
+				BD9D57831FAE7C5700788326 /* hmesh_functions.h in Headers */,
+				BDFE555A1FE47EA400062448 /* Manifold.h in Headers */,
+				BDF6F9681FE1D182005568F0 /* MeshDistance.h in Headers */,
+				BD27CE6C1F837284002F0FAE /* I3DTree.h in Headers */,
+				BD9100F21F84D0C9003AF93E /* IntVector.h in Headers */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXHeadersBuildPhase section */
+
+/* Begin PBXNativeTarget section */
+		BD48834E1F82CBB200EC04F0 /* PyGEL */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BD48835A1F82CBB200EC04F0 /* Build configuration list for PBXNativeTarget "PyGEL" */;
+			buildPhases = (
+				BD48834B1F82CBB200EC04F0 /* Sources */,
+				BD48834C1F82CBB200EC04F0 /* Frameworks */,
+				BD48834D1F82CBB200EC04F0 /* Headers */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = PyGEL;
+			productName = PyGEL;
+			productReference = BD48834F1F82CBB200EC04F0 /* libPyGEL.dylib */;
+			productType = "com.apple.product-type.library.dynamic";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BD4883471F82CBB200EC04F0 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0900;
+				ORGANIZATIONNAME = "Jakob Andreas Bærentzen";
+				TargetAttributes = {
+					BD48834E1F82CBB200EC04F0 = {
+						CreatedOnToolsVersion = 9.0;
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = BD48834A1F82CBB200EC04F0 /* Build configuration list for PBXProject "PyGEL" */;
+			compatibilityVersion = "Xcode 8.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = BD4883461F82CBB200EC04F0;
+			productRefGroup = BD4883501F82CBB200EC04F0 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BD48834E1F82CBB200EC04F0 /* PyGEL */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BD48834B1F82CBB200EC04F0 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BD9100F51F84D0C9003AF93E /* IntVector.cpp in Sources */,
+				BD9101011F883CE3003AF93E /* Viewer.cpp in Sources */,
+				BD9100F41F84D0C9003AF93E /* Vec3dVector.cpp in Sources */,
+				BDFE55591FE47EA400062448 /* Manifold.cpp in Sources */,
+				BD27CE6D1F837284002F0FAE /* I3DTree.cpp in Sources */,
+				BD9D57821FAE7C5700788326 /* hmesh_functions.cpp in Sources */,
+				BDF6F9671FE1D182005568F0 /* MeshDistance.cpp in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BD4883581F82CBB200EC04F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_ENABLE_DEBUG_INFO = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		BD4883591F82CBB200EC04F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_IDENTITY = "-";
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.12;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		BD48835B1F82CBB200EC04F0 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = "/Users/janba/Library/Developer/Xcode/DerivedData/GEL-essvayrgsrjsqfasrgpeytfafkwo/Build/Products/Release";
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_ENABLE_CPP_RTTI = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				HEADER_SEARCH_PATHS = /opt/local/include;
+				LIBRARY_SEARCH_PATHS = /opt/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		BD48835C1F82CBB200EC04F0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				DYLIB_COMPATIBILITY_VERSION = 1;
+				DYLIB_CURRENT_VERSION = 1;
+				EXECUTABLE_PREFIX = lib;
+				FRAMEWORK_SEARCH_PATHS = "/Users/janba/Library/Developer/Xcode/DerivedData/GEL-essvayrgsrjsqfasrgpeytfafkwo/Build/Products/Release";
+				GCC_ENABLE_CPP_EXCEPTIONS = YES;
+				GCC_ENABLE_CPP_RTTI = YES;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
+				HEADER_SEARCH_PATHS = /opt/local/include;
+				LIBRARY_SEARCH_PATHS = /opt/local/lib;
+				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BD48834A1F82CBB200EC04F0 /* Build configuration list for PBXProject "PyGEL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BD4883581F82CBB200EC04F0 /* Debug */,
+				BD4883591F82CBB200EC04F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BD48835A1F82CBB200EC04F0 /* Build configuration list for PBXNativeTarget "PyGEL" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BD48835B1F82CBB200EC04F0 /* Debug */,
+				BD48835C1F82CBB200EC04F0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = BD4883471F82CBB200EC04F0 /* Project object */;
+}

@@ -22,7 +22,7 @@ namespace HMesh
                     std::vector<CGLA::Vec3d>& quad_vertices, float tau=0);
     
     void volume_polygonize(const Geometry::XForm& xform, const Geometry::RGrid<float>& grid,
-                           HMesh::Manifold& mani, float tau);
+                           HMesh::Manifold& mani, float tau, bool make_triangles=true );
 }
 
 #endif /* defined(__PointReconstruction__polygonize__) */

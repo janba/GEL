@@ -19,10 +19,14 @@ namespace HMesh
     /// Return the average edge length
     float average_edge_length(const Manifold& m);
 
+    /// Return the median edge length. A bit more involved to compute, more robust.
+    float median_edge_length(const Manifold& m);
+
     /** Split all edges in mesh passed as first argument which are longer
     than the threshold (second arg) length. A split edge
     results in a new vertex of valence two.*/
     int refine_edges(Manifold& m, float t);
+    
 }
 
 #endif

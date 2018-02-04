@@ -175,25 +175,25 @@
 		0D52EC15197D1DC6002C7150 /* glew.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAEC197D18C1002C7150 /* glew.h */; };
 		0D52EC16197D1DC6002C7150 /* glxew.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAED197D18C1002C7150 /* glxew.h */; };
 		0D52EC17197D1DC6002C7150 /* wglew.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAEE197D18C1002C7150 /* wglew.h */; };
-		0D52EC18197D1DE3002C7150 /* Console.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAF1197D18C1002C7150 /* Console.h */; };
-		0D52EC19197D1DE3002C7150 /* draw.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAF3197D18C1002C7150 /* draw.h */; };
-		0D52EC1A197D1DE3002C7150 /* glsl_shader.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAF5197D18C1002C7150 /* glsl_shader.h */; };
-		0D52EC1B197D1DE3002C7150 /* GLViewController.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAF7197D18C1002C7150 /* GLViewController.h */; };
-		0D52EC1C197D1DE3002C7150 /* IDBufferWireFrameRenderer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAF9197D18C1002C7150 /* IDBufferWireFrameRenderer.h */; };
-		0D52EC1D197D1DE3002C7150 /* image_DXT.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAFB197D18C1002C7150 /* image_DXT.h */; };
-		0D52EC1E197D1DE3002C7150 /* image_helper.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAFD197D18C1002C7150 /* image_helper.h */; };
-		0D52EC1F197D1DE3002C7150 /* ManifoldRenderer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAFF197D18C1002C7150 /* ManifoldRenderer.h */; };
-		0D52EC20197D1DE3002C7150 /* MeshEditor.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB01197D18C1002C7150 /* MeshEditor.h */; };
-		0D52EC21197D1DE3002C7150 /* QuatTrackBall.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB03197D18C1002C7150 /* QuatTrackBall.h */; };
-		0D52EC22197D1DE3002C7150 /* ShadowBuffer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB05197D18C1002C7150 /* ShadowBuffer.h */; };
-		0D52EC23197D1DE3002C7150 /* SimpleTrackBall.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB07197D18C1002C7150 /* SimpleTrackBall.h */; };
-		0D52EC24197D1DE3002C7150 /* SinglePassWireframeRenderer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB09197D18C1002C7150 /* SinglePassWireframeRenderer.h */; };
-		0D52EC25197D1DE3002C7150 /* SOIL.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB0B197D18C1002C7150 /* SOIL.h */; };
-		0D52EC26197D1DE3002C7150 /* stb_image.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB0D197D18C1002C7150 /* stb_image.h */; };
-		0D52EC27197D1DE3002C7150 /* stb_image_write.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB0F197D18C1002C7150 /* stb_image_write.h */; };
-		0D52EC28197D1DE3002C7150 /* stbi_DDS_aug.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB10197D18C1002C7150 /* stbi_DDS_aug.h */; };
-		0D52EC29197D1DE3002C7150 /* stbi_DDS_aug_c.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB11197D18C1002C7150 /* stbi_DDS_aug_c.h */; };
-		0D52EC2A197D1DE3002C7150 /* VisObj.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB13197D18C1002C7150 /* VisObj.h */; };
+		0D52EC18197D1DE3002C7150 /* Console.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EAF1197D18C1002C7150 /* Console.h */; };
+		0D52EC19197D1DE3002C7150 /* draw.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EAF3197D18C1002C7150 /* draw.h */; };
+		0D52EC1A197D1DE3002C7150 /* glsl_shader.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EAF5197D18C1002C7150 /* glsl_shader.h */; };
+		0D52EC1B197D1DE3002C7150 /* GLViewController.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EAF7197D18C1002C7150 /* GLViewController.h */; };
+		0D52EC1C197D1DE3002C7150 /* IDBufferWireFrameRenderer.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EAF9197D18C1002C7150 /* IDBufferWireFrameRenderer.h */; };
+		0D52EC1D197D1DE3002C7150 /* image_DXT.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EAFB197D18C1002C7150 /* image_DXT.h */; };
+		0D52EC1E197D1DE3002C7150 /* image_helper.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EAFD197D18C1002C7150 /* image_helper.h */; };
+		0D52EC1F197D1DE3002C7150 /* ManifoldRenderer.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EAFF197D18C1002C7150 /* ManifoldRenderer.h */; };
+		0D52EC20197D1DE3002C7150 /* MeshEditor.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EB01197D18C1002C7150 /* MeshEditor.h */; };
+		0D52EC21197D1DE3002C7150 /* QuatTrackBall.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EB03197D18C1002C7150 /* QuatTrackBall.h */; };
+		0D52EC22197D1DE3002C7150 /* ShadowBuffer.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EB05197D18C1002C7150 /* ShadowBuffer.h */; };
+		0D52EC23197D1DE3002C7150 /* SimpleTrackBall.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EB07197D18C1002C7150 /* SimpleTrackBall.h */; };
+		0D52EC24197D1DE3002C7150 /* SinglePassWireframeRenderer.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EB09197D18C1002C7150 /* SinglePassWireframeRenderer.h */; };
+		0D52EC25197D1DE3002C7150 /* SOIL.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EB0B197D18C1002C7150 /* SOIL.h */; };
+		0D52EC26197D1DE3002C7150 /* stb_image.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EB0D197D18C1002C7150 /* stb_image.h */; };
+		0D52EC27197D1DE3002C7150 /* stb_image_write.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EB0F197D18C1002C7150 /* stb_image_write.h */; };
+		0D52EC28197D1DE3002C7150 /* stbi_DDS_aug.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EB10197D18C1002C7150 /* stbi_DDS_aug.h */; };
+		0D52EC29197D1DE3002C7150 /* stbi_DDS_aug_c.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EB11197D18C1002C7150 /* stbi_DDS_aug_c.h */; };
+		0D52EC2A197D1DE3002C7150 /* VisObj.h in Copy Files */ = {isa = PBXBuildFile; fileRef = 0D52EB13197D18C1002C7150 /* VisObj.h */; };
 		0D52EC2B197D1DF3002C7150 /* AttributeVector.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB15197D18C1002C7150 /* AttributeVector.h */; };
 		0D52EC2C197D1DF3002C7150 /* cleanup.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB17197D18C1002C7150 /* cleanup.h */; };
 		0D52EC2D197D1DF3002C7150 /* ConnectivityKernel.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EB19197D18C1002C7150 /* ConnectivityKernel.h */; };
@@ -351,32 +351,33 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0DA84929193D05300067DA3B /* CopyFiles */ = {
+		0DA84929193D05300067DA3B /* Copy Files */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
 			dstPath = ../Headers/GLGraphics;
 			dstSubfolderSpec = 7;
 			files = (
-				0D52EC18197D1DE3002C7150 /* Console.h in CopyFiles */,
-				0D52EC19197D1DE3002C7150 /* draw.h in CopyFiles */,
-				0D52EC1A197D1DE3002C7150 /* glsl_shader.h in CopyFiles */,
-				0D52EC1B197D1DE3002C7150 /* GLViewController.h in CopyFiles */,
-				0D52EC1C197D1DE3002C7150 /* IDBufferWireFrameRenderer.h in CopyFiles */,
-				0D52EC1D197D1DE3002C7150 /* image_DXT.h in CopyFiles */,
-				0D52EC1E197D1DE3002C7150 /* image_helper.h in CopyFiles */,
-				0D52EC1F197D1DE3002C7150 /* ManifoldRenderer.h in CopyFiles */,
-				0D52EC20197D1DE3002C7150 /* MeshEditor.h in CopyFiles */,
-				0D52EC21197D1DE3002C7150 /* QuatTrackBall.h in CopyFiles */,
-				0D52EC22197D1DE3002C7150 /* ShadowBuffer.h in CopyFiles */,
-				0D52EC23197D1DE3002C7150 /* SimpleTrackBall.h in CopyFiles */,
-				0D52EC24197D1DE3002C7150 /* SinglePassWireframeRenderer.h in CopyFiles */,
-				0D52EC25197D1DE3002C7150 /* SOIL.h in CopyFiles */,
-				0D52EC26197D1DE3002C7150 /* stb_image.h in CopyFiles */,
-				0D52EC27197D1DE3002C7150 /* stb_image_write.h in CopyFiles */,
-				0D52EC28197D1DE3002C7150 /* stbi_DDS_aug.h in CopyFiles */,
-				0D52EC29197D1DE3002C7150 /* stbi_DDS_aug_c.h in CopyFiles */,
-				0D52EC2A197D1DE3002C7150 /* VisObj.h in CopyFiles */,
+				0D52EC18197D1DE3002C7150 /* Console.h in Copy Files */,
+				0D52EC19197D1DE3002C7150 /* draw.h in Copy Files */,
+				0D52EC1A197D1DE3002C7150 /* glsl_shader.h in Copy Files */,
+				0D52EC1B197D1DE3002C7150 /* GLViewController.h in Copy Files */,
+				0D52EC1C197D1DE3002C7150 /* IDBufferWireFrameRenderer.h in Copy Files */,
+				0D52EC1D197D1DE3002C7150 /* image_DXT.h in Copy Files */,
+				0D52EC1E197D1DE3002C7150 /* image_helper.h in Copy Files */,
+				0D52EC1F197D1DE3002C7150 /* ManifoldRenderer.h in Copy Files */,
+				0D52EC20197D1DE3002C7150 /* MeshEditor.h in Copy Files */,
+				0D52EC21197D1DE3002C7150 /* QuatTrackBall.h in Copy Files */,
+				0D52EC22197D1DE3002C7150 /* ShadowBuffer.h in Copy Files */,
+				0D52EC23197D1DE3002C7150 /* SimpleTrackBall.h in Copy Files */,
+				0D52EC24197D1DE3002C7150 /* SinglePassWireframeRenderer.h in Copy Files */,
+				0D52EC25197D1DE3002C7150 /* SOIL.h in Copy Files */,
+				0D52EC26197D1DE3002C7150 /* stb_image.h in Copy Files */,
+				0D52EC27197D1DE3002C7150 /* stb_image_write.h in Copy Files */,
+				0D52EC28197D1DE3002C7150 /* stbi_DDS_aug.h in Copy Files */,
+				0D52EC29197D1DE3002C7150 /* stbi_DDS_aug_c.h in Copy Files */,
+				0D52EC2A197D1DE3002C7150 /* VisObj.h in Copy Files */,
 			);
+			name = "Copy Files";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		0DA8493D193D05650067DA3B /* CopyFiles */ = {
@@ -668,6 +669,8 @@
 		0DA7DC5F1CEBA687009FD206 /* graph_algorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph_algorithm.h; sourceTree = "<group>"; };
 		0DA848C3193D02520067DA3B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DD53BE91ABB69C50074B704 /* ls_solve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ls_solve.h; sourceTree = "<group>"; };
+		BD4E9FA8201CB17B0029AEA2 /* GEL copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GEL copy-Info.plist"; path = "/Users/janba/GEL/GEL_MAC/GEL copy-Info.plist"; sourceTree = "<absolute>"; };
+		BDAC7CAA201885F600197925 /* Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serialization.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -815,6 +818,7 @@
 				0D52EB56197D18C1002C7150 /* string_utils.cpp */,
 				0D52EB59197D18C1002C7150 /* XmlParser.cpp */,
 				0D52EBB7197D196D002C7150 /* header */,
+				BDAC7CAA201885F600197925 /* Serialization.h */,
 			);
 			name = Util;
 			path = ../../src/GEL/Util;
@@ -1009,6 +1013,7 @@
 				0D85999C193D01B6009DB071 /* GEL */,
 				0D859995193D01B6009DB071 /* Frameworks */,
 				0D859994193D01B6009DB071 /* Products */,
+				BD4E9FA8201CB17B0029AEA2 /* GEL copy-Info.plist */,
 			);
 			sourceTree = "<group>";
 		};
@@ -1077,7 +1082,7 @@
 				0DA848D1193D04760067DA3B /* CopyFiles */,
 				0DA84900193D04E70067DA3B /* CopyFiles */,
 				0DA84925193D05100067DA3B /* CopyFiles */,
-				0DA84929193D05300067DA3B /* CopyFiles */,
+				0DA84929193D05300067DA3B /* Copy Files */,
 				0DA8493D193D05650067DA3B /* CopyFiles */,
 				0DA8495E193D05DE0067DA3B /* CopyFiles */,
 				0DA8498D193D070F0067DA3B /* ShellScript */,
@@ -1347,6 +1352,7 @@
 					../src/GEL,
 				);
 				INFOPLIST_FILE = "GEL/GEL-Info.plist";
+				LD_DYLIB_INSTALL_NAME = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "DTU-Compute.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = framework;
@@ -1370,6 +1376,7 @@
 					../src/GEL,
 				);
 				INFOPLIST_FILE = "GEL/GEL-Info.plist";
+				LD_DYLIB_INSTALL_NAME = "";
 				PRODUCT_BUNDLE_IDENTIFIER = "DTU-Compute.${PRODUCT_NAME:rfc1034identifier}";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				WRAPPER_EXTENSION = framework;
