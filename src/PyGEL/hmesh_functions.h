@@ -9,7 +9,7 @@
 #ifndef hmesh_functions_hpp
 #define hmesh_functions_hpp
 
-#ifdef __APPLE__
+#if defined(__APPLE__) || defined(__linux__)
 #define DLLEXPORT __attribute__ ((visibility ("default")))
 #else
 #define DLLEXPORT __declspec(dllexport)
