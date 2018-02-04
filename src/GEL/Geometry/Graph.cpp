@@ -66,7 +66,7 @@ namespace Geometry {
         for(auto n: g.node_ids())
         {
             bool erased = false;
-            if(isnan(g.pos[n][0]))
+            if(std::isnan(g.pos[n][0]))
             {
                 node_map[n] = AMGraph::InvalidNodeID;
                 erased = true;
