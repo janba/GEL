@@ -1748,7 +1748,7 @@ namespace GLGraphics {
             auto& col_map = active_visobj().get_color_field_attrib_vector();
             
             /// This is inelegant, but we need to know if the damn thing is initialized.
-            if(isnan(col_map[*m.vertices().begin()][0])) {
+            if(CGLA::isnan(col_map[*m.vertices().begin()][0])) {
                 cout << "col_map.size " << col_map.size() << endl;
                 for(auto vid: m.vertices())
                     col_map[vid] = Vec3d(0);
