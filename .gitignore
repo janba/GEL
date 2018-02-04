@@ -21,3 +21,19 @@ GEL_WIN/Debug/*
 GEL_WIN/Release/*
 !GEL_WIN/Debug/clapackDB.lib
 !GEL_WIN/Release/clapack.lib
+
+# buildsystem files
+.idea/
+build/
+cmake-build-debug/
+GEL_UNIX/.deps
+GEL_UNIX/fabricate.pyc
+
+# documentation files
+doc/intro.aux
+doc/intro.idx
+doc/intro.out
+doc/intro.pdf
+doc/intro.synctex.gz
+doc/intro.toc
+

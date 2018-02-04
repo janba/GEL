@@ -115,7 +115,7 @@ namespace GLGraphics {
                 me->printf("This function aligns current mesh with src");
                 me->printf("In practice the GLViewController of src is copied to current mesh.");
                 me->printf("The argument is mandatory and must correspond to a valide mesh entry.");
-                me->printf("Note that results might be unexpexted if the meshes are not on the same scale");
+                me->printf("Note that results might be unexpected if the meshes are not on the same scale");
             }
             
             int dest = 0;
@@ -1748,7 +1748,7 @@ namespace GLGraphics {
             auto& col_map = active_visobj().get_color_field_attrib_vector();
             
             /// This is inelegant, but we need to know if the damn thing is initialized.
-            if(CGLA::isnan(col_map[*m.vertices().begin()][0])) {
+            if(std::isnan(col_map[*m.vertices().begin()][0])) {
                 cout << "col_map.size " << col_map.size() << endl;
                 for(auto vid: m.vertices())
                     col_map[vid] = Vec3d(0);

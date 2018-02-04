@@ -99,15 +99,13 @@ namespace HMesh
             for(auto v: mani.vertices())
                 if(mani.in_use(v)) {
                     Vec3d p = mani.pos(v);
-                    if(!CGLA::isnan(p[0]))
+                    if(!std::isnan(p[0]))
                         imp.push_to_surface(p,0,avg_edge_len*0.5);
-                    if(CGLA::isnan(p[0])) {
+                    if(std::isnan(p[0]))
                         mani.remove_vertex(v);
-                    }
                     else
                         mani.pos(v) = p;
             }
-
         }
         mani.cleanup();
         cout << "Produced " << mani.no_faces() << " faces " << endl;

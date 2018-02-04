@@ -13,6 +13,7 @@
 #include "../GLGraphics/Console.h"
 #include "../GL/glew.h"
 #include <cstdarg>
+#include <cstring> //std::memcpy
 #include <cstdio>
 #include <cstring>
 #include <set>
