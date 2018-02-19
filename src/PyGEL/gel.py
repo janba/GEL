@@ -447,7 +447,9 @@ class Manifold:
         return lib_py_gel.perimeter(self.obj, fid)
     def centre(self, fid):
         """ Returns the centre of a face. """
-        return lib_py_gel.centre(self, fid)
+        v = (ct.c_double*3)()
+        lib_py_gel.centre(self.obj, fid, ct.byref(v))
+        return v
 
 lib_py_gel.valid.restype = ct.c_bool
 lib_py_gel.valid.argtypes = (ct.c_void_p,)
@@ -676,6 +678,7 @@ lib_py_gel.GLManifoldViewer_delete.argtypes = (ct.c_void_p,)
 lib_py_gel.GLManifoldViewer_display.argtypes = (ct.c_void_p,ct.c_void_p,ct.c_char,ct.c_bool, ct.POINTER(ct.c_float*3), ct.POINTER(ct.c_double),ct.c_bool,ct.c_bool)
 lib_py_gel.GLManifoldViewer_get_annotation_points.restype = ct.c_size_t
 lib_py_gel.GLManifoldViewer_get_annotation_points.argtypes = (ct.c_void_p, ct.POINTER(ct.POINTER(ct.c_double)))
+lib_py_gel.GLManifoldViewer_set_annotation_points.argtypes = (ct.c_void_p, ct.c_int, ct.POINTER(ct.c_double))
 lib_py_gel.GLManifoldViewer_event_loop.argtypes = (ct.c_bool,)
 class GLManifoldViewer:
     """ An OpenGL Viewer for Manifolds. Having created an instance of this
@@ -734,6 +737,11 @@ class GLManifoldViewer:
         if n == 0:
             return None
         return np.ctypeslib.as_array(pos,(n,3))
+    def set_annotation_points(self, pts):
+        n = int(np.size(pts)/3)
+        pts_ct = np.array(pts,dtype=ct.c_double).ctypes
+        pts_a = pts_ct.data_as(ct.POINTER(ct.c_double))
+        lib_py_gel.GLManifoldViewer_set_annotation_points(self.obj, n, pts_a)
     @staticmethod
     def event_loop():
         """ Explicit call to the event loop. This function enters the event loop.

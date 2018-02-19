@@ -31,6 +31,8 @@ public:
     GLManifoldViewer();
     ~GLManifoldViewer();
     
+    bool was_initialized() const {return glv != 0;}
+    
     void display_init(HMesh::Manifold& m,
                  char mode,
                  bool smooth_shading,
@@ -80,6 +82,11 @@ public:
     std::vector<CGLA::Vec3d>& get_annotation_points() {
         return annotation_points;
     }
+    
+    void set_annotation_points(const std::vector<CGLA::Vec3d>& pts) {
+        active_annotation = pts.size()>0 ? true : false;
+        annotation_points = pts;
+    }
 
 };
 
@@ -100,6 +107,8 @@ extern "C" {
     DLLEXPORT void GLManifoldViewer_delete(GLManifoldViewer*);
     
     DLLEXPORT size_t GLManifoldViewer_get_annotation_points(GLManifoldViewer* self, double** data);
+
+    DLLEXPORT void GLManifoldViewer_set_annotation_points(GLManifoldViewer* self, int n, double* data);
 
 }
 

@@ -116,6 +116,8 @@ void draw_colored_ball(const Vec3d& p, float r, const Vec3f& col) {
 }
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
+    if(wv_map[window]->was_initialized() == false) return;
+
     if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
         wv_map[window]->set_escaping_true();
     if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
@@ -126,6 +128,8 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
 
 void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 {
+    if(wv_map[window]->was_initialized() == false) return;
+
     int W,H;
     glfwGetWindowSize(window, &W, &H);
     wv_map[window]->mouse_pos = Vec2i(xpos, H-ypos);
@@ -134,6 +138,8 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 
 void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
+    if(wv_map[window]->was_initialized() == false) return;
+
     if(action == GLFW_PRESS) {
         if(button == GLFW_MOUSE_BUTTON_LEFT )
             wv_map[window]->grab_ball(ROTATE_ACTION);
@@ -160,7 +166,7 @@ void GLManifoldViewer::display_init(Manifold& m,
                                     bool reset_view) {
     glfwMakeContextCurrent(window);
     glEnable(GL_DEPTH_TEST);
-    
+
     const Vec3f& c = *_bg_color;
     glClearColor(c[0],c[1],c[2],1.0);
     Vec3d ctr;
@@ -175,12 +181,11 @@ void GLManifoldViewer::display_init(Manifold& m,
     if(renderer != 0)
         delete renderer;
     renderer = render_factory(mode, m, smooth_shading, _attrib_vec);
-    
+
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetKeyCallback(window, key_callback);
     glfwPostEmptyEvent();
-    
 }
 
 Vec3f new_color(const Vec3f& oc) {
@@ -195,7 +200,7 @@ void GLManifoldViewer::display() {
     glv->set_gl_modelview();
     glv->reset_projection();
     renderer->draw();
-    
+
     double rad = 0.01*glv->get_eye_dist();
     if(do_pick) {
         float depth;
@@ -245,8 +250,10 @@ GLManifoldViewer::GLManifoldViewer() {
     window = glfwCreateWindow(1024, 800, "PyGEL", NULL, NULL);
     wv_map[window] = this;
 
-    if (!window)
+    if (!window) {
         glfwTerminate();
+        cout << "Terminating" << endl;
+    }
     glfwMakeContextCurrent(window);
     glewInit();
 }
@@ -288,7 +295,8 @@ void GLManifoldViewer_event_loop(bool once) {
         glfwWaitEvents();
         for(auto WV : wv_map) {
             auto viewer = WV.second;
-            viewer->display();
+            if(viewer->was_initialized())
+                viewer->display();
             if(viewer->get_escaping())
                 return;
         }
@@ -318,4 +326,12 @@ size_t GLManifoldViewer_get_annotation_points(GLManifoldViewer* self, double** d
     *data = reinterpret_cast<double*>(&ap[0]);
     return N;
 }
+
+void GLManifoldViewer_set_annotation_points(GLManifoldViewer* self, int n, double* data) {
+    vector<Vec3d> pts(n);
+    for(int i = 0; i<n;++i)
+        pts[i] = Vec3d(data[3*i], data[3*i+1], data[3*i+2]);
+    self->set_annotation_points(pts);
+}
+
 

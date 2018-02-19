@@ -4,7 +4,7 @@ import os
 import glob
 from fabricate import *
 
-flags = ['-std=c++11', '-I../src/GEL', '-DNOT_HAVE_SA_LEN', '-fPIC']
+flags = ['-std=c++11', '-I../src/GEL', '-fPIC']
 build_dir = 'build/GEL'
 target = 'libGEL.so'
 dirs = ['../src/GEL/CGLA', '../src/GEL/GLGraphics', '../src/GEL/Geometry', '../src/GEL/HMesh', '../src/GEL/Util']
@@ -21,7 +21,7 @@ def build():
     compile()
     link()
 
- 
+
 def oname(build_dir, filename):
     return os.path.join(build_dir, os.path.basename(filename))
 

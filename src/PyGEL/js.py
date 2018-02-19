@@ -4,7 +4,7 @@ from PyGEL import gel
 from numpy import array
 import plotly.offline as py
 import plotly.graph_objs as go
-py.init_notebook_mode(connected=False)
+py.init_notebook_mode(connected=True)
 
 def display(m,wireframe=True,smooth=True,data=None):
     """ The display function shows an interactive presentation of the Manifold, m, inside
