@@ -580,6 +580,17 @@ def minimize_curvature(m,anneal=False):
     minimization, except that we weight by edge length. """
     lib_py_gel.minimize_curvature(m.obj, anneal)
 
+lib_py_gel.minimize_dihedral_angle.argtypes = (ct.c_void_p, ct.c_int, ct.c_bool, ct.c_bool, ct.c_double)
+def minimize_dihedral_angle(m,max_iter=10000, anneal=False, alpha=False, gamma=4.0):
+    """ Minimizes dihedral angles.
+        Arguments:
+        max_iter is the maximum number of iterations for simulated annealing.
+        anneal tells us the code whether to apply simulated annealing
+        alpha=False means that we use the cosine of angles rather than true angles (faster)
+        gamma is the power to which the angles are raised."""
+    lib_py_gel.minimize_dihedral_angle(m.obj, max_iter, anneal,alpha,ct.c_double(gamma))
+
+
 lib_py_gel.maximize_min_angle.argtypes = (ct.c_void_p,ct.c_float,ct.c_bool)
 def maximize_min_angle(m,dihedral_thresh=0.95,anneal=False):
     """ Maximizes the minimum angle of triangles. Makes the mesh more Delaunay."""

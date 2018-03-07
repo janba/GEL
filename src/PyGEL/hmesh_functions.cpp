@@ -83,6 +83,11 @@ void minimize_curvature(HMesh::Manifold* m_ptr, bool anneal) {
     minimize_curvature(*m_ptr, anneal);
 }
 
+void minimize_dihedral_angle(HMesh::Manifold* m_ptr, int max_iter, bool anneal, bool alpha, double gamma) {
+    minimize_dihedral_angle(*m_ptr, max_iter, anneal, alpha, gamma);
+}
+
+
 void maximize_min_angle(HMesh::Manifold* m_ptr, float thresh, bool anneal) {
     maximize_min_angle(*m_ptr, thresh, anneal);
 }

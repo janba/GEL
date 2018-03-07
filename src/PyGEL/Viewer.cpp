@@ -7,7 +7,6 @@
 //
 
 #include <map>
-#include <unistd.h>
 #include <GEL/GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <GEL/HMesh/HMesh.h>

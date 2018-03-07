@@ -46,6 +46,8 @@ extern "C" {
     
     DLLEXPORT void minimize_curvature(HMesh::Manifold* m_ptr, bool anneal=false);
     
+    DLLEXPORT void minimize_dihedral_angle(HMesh::Manifold* m_ptr, int max_iter=10000, bool anneal=false, bool alpha=false, double gamma=4.0);
+    
     DLLEXPORT void maximize_min_angle(HMesh::Manifold* m_ptr, float thresh, bool anneal=false);
     
     DLLEXPORT void optimize_valency(HMesh::Manifold* m_ptr, bool anneal=false);
