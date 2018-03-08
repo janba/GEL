@@ -32,3 +32,9 @@ add_library(GEL SHARED ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MSH_SRC_LIST} ${GLG_SR
 target_link_libraries(GEL Threads::Threads OpenGL::GLU OpenGL::GL GLEW::GLEW ${COCOA_LIBRARY})
 
 add_subdirectory(./src/demo)
+
+include_directories(./src)
+aux_source_directory(./src/PyGEL PYG_SRC_LIST)
+add_library(PyGEL SHARED ${PYG_SRC_LIST})
+target_link_libraries(PyGEL GEL)
+
