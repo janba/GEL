@@ -4,6 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
+#include <sstream>
 #include <fstream>
 #include "load.h"
 #include "obj_load.h"
@@ -17,6 +18,24 @@ namespace HMesh
 {
     using std::string;
     
+    void right_trim(std::string& str) {
+        while(isspace(str.back()))
+        str.pop_back();
+    }
+    
+    istream& get_multi_line(istream& is, string& buf) {
+        getline(is,buf);
+        right_trim(buf);
+        while(buf.back() == '\\') {
+            buf.pop_back();
+            string continuation;
+            getline(is, continuation);
+            right_trim(continuation);
+            buf += continuation;
+        }
+        return is;
+    }
+    
     bool obj_load(const string& filename, Manifold& m, bool safe)
     {
         ifstream obj_file(filename.data());
@@ -27,100 +46,48 @@ namespace HMesh
             vector<Vec3d> vertices;
             vector<int> faces;
             vector<int> indices;
-            
-            while(obj_file >> buf)
+            while(get_multi_line(obj_file,buf))
             {
-                switch(buf[0])
-                {
-                    case 'v': // v, vn, vt
-                    {
-                        if(buf == "v")
-                        {
-                            Vec3d v_geo;
-                            obj_file >> v_geo;
-                            vertices.push_back(v_geo);
-                        }
-                        else if(buf == "vn")
-                        {
-                            Vec3d v_norm;
-                            obj_file >> v_norm;
-                        }
-                        else if(buf == "vt")
-                        {
-                            Vec3d v_tex;
-                            obj_file >> v_tex[0] >> v_tex[1];
-                            v_tex[2]=1;
-                        }
+                istringstream iss(move(buf));
+                string code;
+                if(iss>>code) {
+                    if(code == "v") {
+                        Vec3d v;
+                        iss >> v;
+                        vertices.push_back(v);
                     }
-                        break;
-                    case 'f':
-                    {
-                        char line[1024];
-                        
-                        vector<int> v_indices;
-                        vector<int> t_indices;
-                        vector<int> n_indices;
-                        
-                        obj_file.getline(line, 1022);
-                        char* pch = strtok(line, " \t");
+                    else if (code == "f") {
+                        string str;
                         int ctr = 0;
-                        while(pch != 0)
-                        {
+                        while(iss>>str) {
                             int v,t,n;
-                            if(sscanf(pch, "%d/%d/%d", &v, &t, &n)==3)
-                            {
+                            if(sscanf(str.c_str(), "%d/%d/%d", &v, &t, &n)==3 ||
+                               sscanf(str.c_str(), "%d//%d", &v, &n)==2 ||
+                               sscanf(str.c_str(), "%d/%d", &v, &t)==2 ||
+                               sscanf(str.c_str(), "%d", &v)==1) {
                                 indices.push_back(v>0?v-1:vertices.size()+v);
                                 ++ctr;
                             }
-                            else if(sscanf(pch, "%d//%d", &v, &n)==2)
-                            {
-                                indices.push_back(v>0?v-1:vertices.size()+v);
-                                ++ctr;
-                            }
-                            else if(sscanf(pch, "%d/%d", &v, &t)==2)
-                            {
-                                indices.push_back(v>0?v-1:vertices.size()+v);
-                                ++ctr;
-                            }
-                            else if(sscanf(pch, "%d", &v)==1)
-                            {
-                                indices.push_back(v>0?v-1:vertices.size()+v);
-                                ++ctr;
-                            }
-                            pch = strtok(0, " \t");
                         }
                         faces.push_back(ctr);
                     }
-                        break;
-                    case 'm':
-                        obj_file >> buf;
-                        break;
-                    case 'u':
-                        obj_file >> buf;
-                        break;
-                    case '#':
-                    default:
-                        obj_file.ignore(1024, '\n');
-                        break;
                 }
             }
-            cout << "Loaded " << vertices.size() << " vertices and " << faces.size() << " faces"<< endl;
+            cout << "Loaded " << filename << " : " << vertices.size() << " vertices and "
+            << faces.size() << " faces"<< endl;
             m.clear();
             
-            if (safe)
-                safe_build(m, vertices.size(),
-                           reinterpret_cast<double*>(&vertices[0]),
-                           faces.size(),
-                           &faces[0],
-                           &indices[0]);
-            else
-                m.build(
-                        vertices.size(),
-                        reinterpret_cast<double*>(&vertices[0]),
-                        faces.size(),
-                        &faces[0],
-                        &indices[0]);
-
+            if (safe)  safe_build(m, vertices.size(),
+                                  reinterpret_cast<double*>(&vertices[0]),
+                                  faces.size(),
+                                  &faces[0],
+                                  &indices[0]);
+            else m.build(vertices.size(),
+                         reinterpret_cast<double*>(&vertices[0]),
+                         faces.size(),
+                         &faces[0],
+                         &indices[0]);
+            
             return true;
         }
         return false;
