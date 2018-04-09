@@ -41,8 +41,9 @@ namespace HMesh
     void stitch_more(Manifold& m, double rad);
 
     /** \brief This function replaces holes by faces.
-     It is really a simple function that just finds all loops of edges next to missing faces. */
-    void close_holes(Manifold& m);
+     It is really a simple function that just finds all loops of edges next to missing faces.
+     You can specify, max_size, the maximum hole size to close. */
+    void close_holes(Manifold& m, int max_size=100);
     
     /** \brief Flip the orientation of a mesh.
      After calling this function, normals will point the other way and clockwise becomes 

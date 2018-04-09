@@ -12,6 +12,7 @@
 #include <iterator>
 
 #include "../Geometry/TriMesh.h"
+#include "../GLGraphics/ManifoldRenderer.h"
 
 namespace HMesh
 {
@@ -468,7 +469,7 @@ namespace HMesh
         return vn;
     }
     
-    size_t link_intersection(const Manifold& m, VertexID v0, VertexID v1, vector<VertexID>& lisect)
+    VertexSet link_intersection(const Manifold& m, VertexID v0, VertexID v1)
     {
         // get the one-ring of v0
         vector<VertexID> link0;
@@ -487,12 +488,13 @@ namespace HMesh
         sort(link1.begin(), link1.end());
 		
         // get the intersection of the shared vertices from both rings
-        std::back_insert_iterator<vector<VertexID> > lii(lisect);
+        
+        VertexSet vset;
         set_intersection(link0.begin(), link0.end(),
 						 link1.begin(), link1.end(),
-						 lii);
+						 inserter(vset,vset.begin()));
         
-        return lisect.size();
+        return vset;
     }
     
     bool Manifold::stitch_boundary_edges(HalfEdgeID h0, HalfEdgeID h1)
@@ -511,12 +513,6 @@ namespace HMesh
             VertexID v1b = kernel.vert(h1);
             VertexID v1a = kernel.vert(kernel.opp(h0));
             
-            // Case below implies that h0 and h1 are the same edge with different ID
-            // That should not happen.
-//            if((v0a == v0b && v1a == v1b)) {
-//                cout << "bubbelub" << endl;
-//                return false;
-//            }
             //If the vertices are already connected, welding them together will be awkward.
             if(connected(*this, v0a, v0b))
                 return false;
@@ -524,52 +520,42 @@ namespace HMesh
                 return false;
             
             
-//            if(v0b != v0a)
-//            {
-//                
-//                // Check the link intersection v0a and v0b are welded together
-//                // if they share a neighbouring vertex, it will appear twice in the combined
-//                // one ring unless it v1a and v1a==v1b
-//                vector<VertexID> lisect;
-//                if(link_intersection(*this, v0a, v0b, lisect))
-//                {
-//                    vector<VertexID>::iterator iter;
-//                    
-//                    if(v1a == v1b)
-//                    {
-//                        iter = find(lisect.begin(), lisect.end(), v1a);
-//                        if(iter != lisect.end())
-//                            lisect.erase(iter);
-//                    }
-//                    iter = find(lisect.begin(), lisect.end(), kernel.vert(kernel.next(h0)));
-//                    if(iter != lisect.end())
-//                        lisect.erase(iter);
-//                    if(lisect.size() > 0)
-//                        return false;
-//                }
-//            }
-//            
-//            if(v1a != v1b)
-//            {
-//                // Check the same for the other endpoints.
-//                vector<VertexID> lisect;
-//                if(link_intersection(*this, v1a, v1b, lisect))
-//                {
-//                    vector<VertexID>::iterator iter;
-//                    
-//                    if(v0a == v0b)
-//                    {
-//                        iter = find(lisect.begin(), lisect.end(), v0a);
-//                        if(iter != lisect.end())
-//                            lisect.erase(iter);
-//                    }
-//                    iter = find(lisect.begin(), lisect.end(), kernel.vert(kernel.next(h1)));
-//                    if(iter != lisect.end())
-//                        lisect.erase(iter);
-//                    if(lisect.size() > 0)
-//                        return false;
-//                }
-//            }
+            if(v0b != v0a)
+            {
+                if(v1a != v1b && ( connected(*this, v0a, v1b) || connected(*this, v0b, v1a)))
+                   return false;
+                if(v1a == v1b && kernel.next(kernel.opp(kernel.next(h0o))) == h1o)
+                    return false;
+                // Check the link intersection v0a and v0b are welded together
+                // if they share a neighbouring vertex, it will appear twice in the combined
+                // one ring unless it v1a and v1a==v1b
+                VertexSet lisect = link_intersection(*this, v0a, v0b);
+                if(!lisect.empty())
+                {
+                    if(v1a == v1b)
+                        lisect.erase(v1a);
+                    lisect.erase(kernel.vert(kernel.next(h0)));
+                    if(lisect.size() > 0)
+                        return false;
+                }
+            }
+            
+            if(v1a != v1b)
+            {
+                if(v0a == v0b && kernel.next(kernel.opp(kernel.next(h1o))) == h0o)
+                    return false;
+                
+                // Check the same for the other endpoints.
+                VertexSet lisect = link_intersection(*this, v1a, v1b);
+                if(!lisect.empty())
+                {
+                    if(v0a == v0b)
+                        lisect.erase(v0a);
+                    lisect.erase(kernel.vert(kernel.next(h1)));
+                    if(lisect.size() > 0)
+                        return false;
+                }
+            }
             
             
             if(v0b != v0a)
@@ -1110,50 +1096,36 @@ namespace HMesh
         kernel.set_opp(h1, h0);
     }
     
-    void Manifold::merge(Manifold& m2) {
-        if(!(m2.no_vertices() == m2.allocated_vertices() &&
-             m2.no_halfedges() == m2.allocated_halfedges() &&
-             m2.no_faces() == m2.allocated_faces() ))
-            m2.cleanup();
-        if(!(no_vertices() == allocated_vertices() &&
-             no_halfedges() == allocated_halfedges() &&
-             no_faces() == allocated_faces() ))
-            cleanup();
+    void Manifold::merge(const Manifold& mergee) {
+        map<FaceID,FaceID> fmap;
+        map<HalfEdgeID,HalfEdgeID> hmap;
+        map<VertexID,VertexID> vmap;
         
-        const int NV = no_vertices();
-        const int NH = no_halfedges();
-        const int NF = no_faces();
-        
-        function<VertexID(VertexID)> map_vid = [NV](VertexID v) -> VertexID {
-            return VertexID(v.get_index() + NV);
-        };
-        function<HalfEdgeID(HalfEdgeID)> map_hid = [NH](HalfEdgeID h) -> HalfEdgeID {
-            return HalfEdgeID(h.get_index() + NH);
-        };
-        function<FaceID(FaceID)> map_fid = [NF](FaceID f) -> FaceID {
-            return FaceID(f.get_index() + NF);
-        };
-        
-        for (auto v : m2.vertices()) {
-            VertexID v_new = kernel.add_vertex();
-            kernel.set_out(v_new, map_hid(m2.kernel.out(v)));
-            pos(v_new) = m2.pos(v);
+        for(auto v: mergee.vertices())
+            vmap[v] = kernel.add_vertex();
+        for(auto h: mergee.halfedges())
+            hmap[h] = kernel.add_halfedge();
+        for(auto f: mergee.faces())
+            fmap[f] = kernel.add_face();
+ 
+        for(auto f: mergee.faces()) {
+            auto w = mergee.walker(f);
+            if (w.face() == InvalidFaceID)
+                kernel.set_last(fmap[f], InvalidHalfEdgeID);
+            else
+                kernel.set_last(fmap[f], hmap[w.halfedge()]);
         }
         
-        for (auto h : m2.halfedges()) {
-            HalfEdgeID h_new = kernel.add_halfedge();
-            kernel.set_opp(h_new, map_hid(m2.kernel.opp(h)));
-            kernel.set_next(h_new, map_hid(m2.kernel.next(h)));
-            kernel.set_prev(h_new, map_hid(m2.kernel.prev(h)));
-            kernel.set_face(h_new, map_fid(m2.kernel.face(h)));
-            kernel.set_vert(h_new, map_vid(m2.kernel.vert(h)));
+        for(auto h: mergee.halfedges()) {
+            
         }
         
-        for (auto f : m2.faces()) {
-            FaceID f_new = kernel.add_face();
-            kernel.set_last(f_new, map_hid(m2.kernel.last(f)));
+        for(auto v: mergee.vertices()) {
+            pos(vmap[v]) = mergee.pos(v);
+            kernel.set_out(vmap[v], hmap[mergee.kernel.out(v)]);
         }
-    }
+        
+     }
 
     
     void Manifold::ensure_boundary_consistency(VertexID v)
@@ -1291,25 +1263,27 @@ namespace HMesh
      ***************************************************/
     bool valid(const Manifold& m)
     {
+        bool valid = true;
+        
         // Verify components of halfedges
         for(HalfEdgeIDIterator h = m.halfedges_begin(); h != m.halfedges_end(); ++h){
             Walker j = m.walker(*h);
             
             if(j.vertex() == InvalidVertexID){
                 cout << "Halfedge lacks vert" << endl;
-                return false;
+                valid = false;
             }
             if(j.next().halfedge() == InvalidHalfEdgeID){
                 cout << "Halfedge lacks next" << endl;
-                return false;
+                valid = false;
             }
             if(j.prev().halfedge() == InvalidHalfEdgeID){
                 cout << "Halfedge lacks prev" << endl;
-                return false;
+                valid = false;
             }
             if(j.opp().halfedge() == InvalidHalfEdgeID){
                 cout << "Halfedge lacks opp" << endl;
-                return false;
+                valid = false;
             }
             
         }
@@ -1322,49 +1296,46 @@ namespace HMesh
                 // test halfedges around v
                 if(j.halfedge() == InvalidHalfEdgeID){
                     cout << "Vertex circulation produced invalid halfedge" << endl;
-                    return false;
+                    valid = false;
+                    break;
                 }
                 VertexID ring_v = j.vertex();
                 if(!m.in_use(ring_v))
                 {
-                    cout << "Invalid vertex in one-ring of vertex" << endl;
-                    return false;
+                    cout << "Invalid vertex: " << ring_v << " in one-ring of vertex" << endl;
+                    valid = false;
+                    break;
                 }
                 
                 // test one-ring for multiple occurences of vertex
                 if(find(link.begin(), link.end(), ring_v) != link.end()){
                     cout << "Vertex appears two times in one-ring of vertex" << endl;
-                    return false;
+                    valid = false;
+                    GLGraphics::DebugRenderer::vertex_colors[*v] = Vec3f(1,0,0);
+                    break;
                 }
                 link.push_back(ring_v);
                 
                 // test for infinite loop around vertex
                 if(static_cast<size_t>(j.no_steps()) > m.no_vertices()){
                     cout << "Vertex loop CW contains more vertices than manifold" << endl;
-                    return false;
+                    valid = false;
+                    break;
                 }
             }
             
             for(Walker j = m.walker(*v); !j.full_circle(); j = j.circulate_vertex_ccw()) {
                 if(static_cast<size_t>(j.no_steps()) > m.no_vertices()){
                     cout << "Vertex loop CCW contains more vertices than manifold" << endl;
-                    return false;
+                    valid = false;
+                    break;
                 }
             }
             
-            // test one_ring size for boundary consistency
-            if(link.size() <= 2){
-                Walker j = m.walker(*v);
-                
-                if(j.face() != InvalidFaceID && j.opp().face() != InvalidFaceID)
-                {
-                    if(link.size()==1)
-                        cout << "Vertex contains only a single incident edge" << endl;
-                    //
-                    //                    cout << "Vertex contains only " << link.size() <<" incident edges" << endl;
-                }
-                else
-                    cout << "Boundary vertex contains only " << link.size() <<" incident edges" << endl;
+            if(link.size()==1) {
+                cout << "Vertex contains only a single incident edge" << endl;
+                GLGraphics::DebugRenderer::vertex_colors[*v] = Vec3f(0,1,0);
+                valid = false;
             }
         }
         // verify components of faces
@@ -1376,21 +1347,22 @@ namespace HMesh
                 // test that all halfedges in faces bind properly to their face
                 if(j.face() != *f){
                     cout << "Face is inconsistent, halfedge is not bound to face" << endl;
-                    return false;
+                    valid = false;
+                    break;
                 }
             }
             // test faces for valid geometrical properties
             if(j.no_steps() < 3){
                 cout << "Face contains less than 3 edges" << endl;
-                return false;
+                valid = false;
             }
             // test for infinite loop around face
             if(j.no_steps() > m.no_halfedges() * 0.5f){
                 cout << "Face loop contains more halfedges than manifold" << endl;
-                return false;
+                valid = false;
             }
         }
-        return true;
+        return valid;
     }
     
     void bbox(const Manifold& m, Manifold::Vec& pmin, Manifold::Vec& pmax)

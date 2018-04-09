@@ -26,6 +26,8 @@ namespace HMesh
         return p / n - m.pos(v);
     }
     
+    CGLA::Vec3d cot_laplacian(const Manifold& m, VertexID v);
+    
     /// Simple laplacian smoothing with an optional weight.
     void laplacian_smooth(HMesh::Manifold& m, float t=1.0f, int iter=1);
 

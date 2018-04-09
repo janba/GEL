@@ -306,10 +306,21 @@ namespace HMesh
 
     
     
-    void close_holes(Manifold& m)
+    void close_holes(Manifold& m, int max_size)
     {
-        for(HalfEdgeIDIterator h =  m.halfedges_begin(); h != m.halfedges_end(); ++h){
-            m.close_hole(*h);
+        for (auto h: m.halfedges()) {
+            Walker w = m.walker(h);
+            if(w.face() == InvalidFaceID)
+            {
+                auto h0 = w.halfedge();
+                int cnt = 0;
+                do {
+                    ++cnt;
+                    w = w.next();
+                } while(w.halfedge() != h0 && cnt < max_size);
+                if(cnt < max_size)
+                    m.close_hole(h0);
+            }
         }
     }
     

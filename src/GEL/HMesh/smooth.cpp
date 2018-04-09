@@ -100,23 +100,25 @@ namespace HMesh
     {
         CGLA::Vec3d p(0);
         Vec3d vertex = m.pos(v);
-        double w_sum=0;
+        double w_sum=0.0;
         circulate_vertex_ccw(m, v, [&](Walker wv){
             Vec3d nbr(m.pos(wv.vertex()));
             Vec3d left(m.pos(wv.next().vertex()));
             Vec3d right(m.pos(wv.opp().prev().opp().vertex()));
             
-            double d_left = dot(normalize(nbr-left),
-                                normalize(vertex-left));
-            double d_right = dot(normalize(nbr-right),
-                                 normalize(vertex-right));
+            double d_left = dot(cond_normalize(nbr-left),
+                                cond_normalize(vertex-left));
+            double d_right = dot(cond_normalize(nbr-right),
+                                 cond_normalize(vertex-right));
             double a_left  = acos(min(1.0, max(-1.0, d_left)));
             double a_right = acos(min(1.0, max(-1.0, d_right)));
             
-            double w = max(0.0,1.0/tan(a_left) + 1.0/tan(a_right));
+            double w = sin(a_left + a_right) / (1e-10+sin(a_left)*sin(a_right));
             p += w * nbr;
             w_sum += w;
         });
+        if(w_sum<1e-20 || isnan(p[0])  || isnan(p[1]) || isnan(p[2]))
+            return Vec3d(0);
         return p / w_sum - m.pos(v);
     }
     

@@ -708,7 +708,7 @@ namespace GLGraphics {
                 
                 return;
             }
-            double r = 0.001;
+            double r = 1e-30;
             
             if(args.size() > 0){
                 istringstream a0(args[0]);
@@ -966,6 +966,8 @@ namespace GLGraphics {
         
         void console_close_holes(MeshEditor* me, const std::vector<std::string> & args)
         {
+            int max_size = console_arg(args, 0, 100);
+
             if(wantshelp(args))
             {
                 me->printf("usage: cleanup.close_holes");
@@ -975,7 +977,7 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
             
-            close_holes(me->active_mesh());
+            close_holes(me->active_mesh(), max_size);
             return;
         }
         

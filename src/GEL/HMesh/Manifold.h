@@ -80,7 +80,7 @@ namespace HMesh
         void build(const Geometry::TriMesh& mesh);
 
         /// Merge present Manifold with argument.
-        void merge(Manifold& m2);
+        void merge(const Manifold& m2);
 
         
         /** Add a face to the Manifold.
