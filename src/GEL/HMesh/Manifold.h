@@ -291,9 +291,6 @@ namespace HMesh
 
         /// Auxiliary function called from collapse
         void remove_face_if_degenerate(HalfEdgeID h);
-
-        /// Ensure boundary consistency.
-        void ensure_boundary_consistency(VertexID v);
     };
 
     /** \brief Verify Manifold Integrity

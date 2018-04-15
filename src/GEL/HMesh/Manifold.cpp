@@ -8,7 +8,7 @@
 
 #include <iostream>
 #include <vector>
-#include <unordered_map>
+#include <map>
 #include <iterator>
 
 #include "../Geometry/TriMesh.h"
@@ -21,56 +21,26 @@ namespace HMesh
     using namespace Geometry;
     using namespace CGLA;
 	
-    namespace
+    struct Edge
     {
-        /************************************************************
-		 * Edgekeys and Edges for halfedge identification during build
-		 ************************************************************/
-        class EdgeKey
-        {
-        public:
-            EdgeKey(VertexID va, VertexID vb)
-            {
-                if(va < vb){
-                    v0 = va;
-                    v1 = vb;
-                }
-                else{
-                    v0 = vb;
-                    v1 = va;
-                }
-            }
-			
-            bool operator<(const EdgeKey& k2) const
-            {
-                if(v0 < k2.v0){
+        HalfEdgeID h0 = InvalidHalfEdgeID;
+        HalfEdgeID h1 = InvalidHalfEdgeID;
+        int count = 0;
+        bool insert_half_edge(HalfEdgeID h) {
+            switch(count) {
+                case 0:
+                    h0 = h;
+                    ++count;
                     return true;
-                }
-                else if( k2.v0 < v0){
-                    return false;
-                }
-                else{
-                    return v1 < k2.v1;
-                }
+                case 1:
+                    h1 = h;
+                    ++count;
+                    return true;
             }
-            
-            bool operator==(const EdgeKey& k2) const {return k2.v0 == v0 && k2.v1==v1;}
-            
-            size_t hash() const {return v0.get_index()*3125*49+v1.get_index()*3125+7;}
-        private:
-            VertexID v0;
-            VertexID v1;
-        };
-		
-        struct Edge
-        {
-            HalfEdgeID h0;
-            HalfEdgeID h1;
-            int count;
-            Edge() : count(0){}
-        };
-    }
-	
+            return false;
+        }
+    };
+
     /*********************************************
 	 * Public functions
 	 *********************************************/
@@ -277,13 +247,12 @@ namespace HMesh
         // verify that remaining faces haven't become degenerate because of collapse
         remove_face_if_degenerate(hn);
         remove_face_if_degenerate(hon);
-		
-        // verify that v is sane after collapse
-        ensure_boundary_consistency(hv);
     }
 	
     FaceID Manifold::split_face_by_edge(FaceID f, VertexID v0, VertexID v1)
     {
+        assert(f != InvalidFaceID);
+
 		if(connected(*this, v0, v1))
             return InvalidFaceID;
         
@@ -294,20 +263,21 @@ namespace HMesh
             ++steps;
             he = kernel.next(he);
         }
-		
+        
         // make sure this is not a triangle
         assert(steps > 3);
         // make sure we are not trying to connect a vertex to itself
         assert(v0 != v1);
 		
 		HalfEdgeID h0 = kernel.out(v0);
-		for(Walker w = walker(v0); !w.full_circle(); w = w.circulate_vertex_cw()){
+        Walker w = walker(v0);
+        int steps_v = 0;
+		for(; !w.full_circle(); w = w.circulate_vertex_ccw(), ++ steps_v){
 			if(w.face() == f){
 				h0 = w.halfedge();
 				break;
 			}
 		}
-		assert(kernel.face(h0) != InvalidFaceID);
         assert(kernel.face(h0) == f);
 		
         // the halfedge belonging to f, going out from v0, is denoted h. Move along h until we hit v1.
@@ -354,7 +324,7 @@ namespace HMesh
         assert(kernel.face(kernel.next(hb)) == f2);
         assert(kernel.face(kernel.next(kernel.next(hb))) == f2);
         assert(kernel.face(hb) == f2);
-		
+        
         // return handle to newly created face
         return f2;
     }
@@ -460,11 +430,6 @@ namespace HMesh
         // update new edge with faces from existing edge
         kernel.set_face(hn, kernel.face(h));
         kernel.set_face(hno, kernel.face(ho));
-		
-        //if split occurs on a boundary, consistency must be ensured.
-        ensure_boundary_consistency(vn);
-        ensure_boundary_consistency(v);
-        ensure_boundary_consistency(vo);
 		
         return vn;
     }
@@ -607,9 +572,6 @@ namespace HMesh
             
             kernel.set_out(v1a, h1o);
             kernel.set_out(v0a, h0o);
-            
-            ensure_boundary_consistency(v1a);
-            ensure_boundary_consistency(v0a);
             
             return true;
         }
@@ -762,9 +724,6 @@ namespace HMesh
             kernel.set_face(hx, f);
             hx = kernel.next(hx);
         }
-        
-        ensure_boundary_consistency(v);
-        ensure_boundary_consistency(vo);
         
         kernel.remove_halfedge(h);
         kernel.remove_halfedge(ho);
@@ -962,11 +921,6 @@ namespace HMesh
             kernel.set_out(hv, hn);
         if(kernel.out(hov) == h)
             kernel.set_out(hov, hon);
-        
-        //
-        //        // if the flip occurs next to a boundary, ensure the boundary consistency
-        //        ensure_boundary_consistency(hv);
-        //        ensure_boundary_consistency(hov);
     }
     
     
@@ -975,113 +929,38 @@ namespace HMesh
      **********************************************/
     
     template<typename size_type, typename float_type, typename int_type>
-    void Manifold::build_template(  size_type no_vertices,
+    void Manifold::build_template(size_type no_vertices,
                                   const float_type* vertvec,
                                   size_type no_faces,
                                   const int_type* facevec,
                                   const int_type* indices)
     {
-        vector<VertexID> vids(no_vertices);
-        
-        // create vertices corresponding to positions stored in vertvec
-        for(size_t i=0;i<no_vertices;++i)
-        {
-            const float_type* v0 = &vertvec[i*3];
-            pos(vids[i] = kernel.add_vertex()) = Manifold::Vec(v0[0], v0[1], v0[2]);
+        map<pair<int_type, int_type>, Edge> edge_map;
+        auto make_key = [](int_type a, int_type b) { return make_pair(min(a,b), max(a,b));};
+        clear();
+        size_type N = 0;
+        for (size_type i = 0;i< no_faces; ++i) {
+            size_type no_verts_in_face = facevec[i];
+            vector<Vec> verts(no_verts_in_face);
+            for(size_type j = 0; j < no_verts_in_face; ++j)
+                verts[j] = Vec(vertvec[3*indices[N+j]+0],
+                               vertvec[3*indices[N+j]+1],
+                               vertvec[3*indices[N+j]+2]);
+            FaceID f = add_face(verts);
+            size_type j = 0;
+            circulate_face_ccw(*this, f, [&](Walker w){
+                HalfEdgeID h = w.next().opp().halfedge();
+                auto ek = make_key(indices[N+j], indices[N+(j+1)%no_verts_in_face]);
+                Edge& edg = edge_map[ek];
+                if(!edg.insert_half_edge(h))
+                    cout << "Warning: building mesh from non-manifold index face set" << endl;
+                ++j;
+            });
+            N += no_verts_in_face;
         }
-        
-        auto hash_fun = [](const EdgeKey& k) {return k.hash();};
-        //map over the created edges - needed to preserve edge uniqueness
-		typedef unordered_map<EdgeKey, Edge, function<size_t(const EdgeKey&)>> EdgeMap;
-        EdgeMap edge_map(no_vertices+no_faces,hash_fun);
-        
-        // counter that jumps between faces in indices vector
-        int_type n  = 0;
-        
-        // create faces correspponding to faces stored in facevec
-        for(size_type i = 0; i < no_faces; ++i){
-            //amount of vertices in current face
-            size_type N = facevec[i];
-            vector<HalfEdgeID> fh;
-            
-            //each face indice results corresponds to 1 edge, 2 halfedges
-            for(size_type j = 0; j < N; ++j){
-                // ensure indice integrity
-                
-                assert(static_cast<size_type>(indices[j + n]) < no_vertices);
-                assert(static_cast<size_type>(indices[(j + 1) % N + n]) < no_vertices);
-                
-                
-                // each iteration uses two indices from the face
-                VertexID v0 = vids[static_cast<size_type>(indices[j + n])];
-                VertexID v1 = vids[static_cast<size_type>(indices[(j + 1) % N + n])];
-                
-                // create key and search map for edge
-                EdgeKey ek(v0, v1);
-                typename EdgeMap::iterator em_iter = edge_map.find(ek);
-                
-                // if current edge has not been created
-                if(em_iter == edge_map.end() || em_iter->second.count == 2){
-
-                    // create edge for map
-                    Edge e;
-                    e.h0 = kernel.add_halfedge();
-                    e.h1 = kernel.add_halfedge();
-                    e.count = 1;
-                    
-                    // glue operation: 1 edge = 2 glued halfedges
-                    glue(e.h0, e.h1);
-                    
-                    // update vertices with their outgoing halfedges
-                    kernel.set_out(v0, e.h0);
-                    kernel.set_out(v1, e.h1);
-                    
-                    // update halfedges with the vertices they point to
-                    kernel.set_vert(e.h0, v1);
-                    kernel.set_vert(e.h1, v0);
-                    
-                    // update map
-                    edge_map[ek] = e;
-                    
-                    // update vector of halfedges belonging to current face
-                    fh.push_back(e.h0);
-                }
-                else{
-                    // update current face with halfedge from edge
-                    fh.push_back(em_iter->second.h1);
-                    // asserting that a halfedge is visited exactly twice;
-                    // once for each face on either side of the edge.
-                    em_iter->second.count++;
-                }
-            }
-            
-            FaceID fid = kernel.add_face();
-            for(size_type j = 0; j < N; ++j){
-                // update halfedge with face
-                kernel.set_face(fh[j], fid);
-                
-                // link operation: link two halfedges in the same face
-                link(fh[j], fh[(j + 1) % N]);
-            }
-            //update face with the first halfedge created
-            kernel.set_last(fid, fh[0]);
-            
-            // step to first index of next face
-            n += N;
-        }
-        
-        // test for unused vertices
-        for(VertexIDIterator v = vertices_begin(); v != vertices_end(); ++v){
-            assert( (*v) != InvalidVertexID);
-            if(kernel.out(*v) == InvalidHalfEdgeID)
-                kernel.remove_vertex(*v);
-        }
-        
-        // boundary check while avoiding unused vertices
-        for(VertexIDIterator v = vertices_begin(); v != vertices_end(); ++v){
-            if((*v) != InvalidVertexID && in_use(*v))
-                ensure_boundary_consistency(*v);
-        }
+        for (const auto& edg : edge_map)
+            if(edg.second.count == 2)
+                stitch_boundary_edges(edg.second.h0, edg.second.h1);
     }
     
     
@@ -1109,52 +988,30 @@ namespace HMesh
             fmap[f] = kernel.add_face();
  
         for(auto f: mergee.faces()) {
-            auto w = mergee.walker(f);
-            if (w.face() == InvalidFaceID)
-                kernel.set_last(fmap[f], InvalidHalfEdgeID);
-            else
-                kernel.set_last(fmap[f], hmap[w.halfedge()]);
+            auto f_new = fmap[f];
+            kernel.set_last(f_new, hmap[mergee.kernel.last(f)]);
         }
         
         for(auto h: mergee.halfedges()) {
-            
+            auto h_new = hmap[h];
+            kernel.set_opp(h_new, hmap[mergee.kernel.opp(h)]);
+            kernel.set_next(h_new, hmap[mergee.kernel.next(h)]);
+            kernel.set_prev(h_new, hmap[mergee.kernel.prev(h)]);
+            kernel.set_vert(h_new, vmap[mergee.kernel.vert(h)]);
+            FaceID f = mergee.kernel.face(h);
+            if (f == InvalidFaceID)
+                kernel.set_face(h_new, InvalidFaceID);
+            else
+                kernel.set_face(h_new, fmap[f]);
         }
         
         for(auto v: mergee.vertices()) {
-            pos(vmap[v]) = mergee.pos(v);
-            kernel.set_out(vmap[v], hmap[mergee.kernel.out(v)]);
+            auto v_new = vmap[v];
+            pos(v_new) = mergee.pos(v);
+            kernel.set_out(v_new, hmap[mergee.kernel.out(v)]);
         }
-        
      }
 
-    
-    void Manifold::ensure_boundary_consistency(VertexID v)
-    {
-        // boundary consistency check by performing two vertex circulations
-        HalfEdgeID h = kernel.out(v);
-        HalfEdgeID last = h;
-        
-        int c = 0;
-        // step 1: circle through edges pointing away from vertex until reaching a null face
-        while(kernel.face(h) != InvalidFaceID){
-            h = kernel.opp(kernel.prev(h));
-            if(h == last || ++c == 1e6) // We came full circle - vertex not boundary - return.
-                return;
-        }
-        // null face encountered, we update our vertex with half edge index and prepare for step 2
-        kernel.set_out(v, h);
-        HalfEdgeID ho = kernel.opp(h);
-        
-        // step 2: circle through edges pointing towards vertex until reaching a null face
-        while(kernel.face(ho) != InvalidFaceID){
-            ho = kernel.opp(kernel.next(ho));
-        }
-        // null face encountered again, we update our edge with vertex index
-        kernel.set_vert(ho, v);
-        
-        // remaining step is to make the in and out going edges link to each other
-        link(ho, h);
-    }
     void Manifold::remove_face_if_degenerate(HalfEdgeID h)
     {
         // face is degenerate if there is only two halfedges in face loop
@@ -1184,10 +1041,6 @@ namespace HMesh
             // remove the two invalid halfedges and the invalid face loop
             kernel.remove_halfedge(h);
             kernel.remove_halfedge(hn);
-            
-            // verify that v and vn is sane after removing the degenerate face
-            ensure_boundary_consistency(hv);
-            ensure_boundary_consistency(hnv);
         }
     }
     
@@ -1452,7 +1305,7 @@ namespace HMesh
                          faces1.begin(), faces1.end(),
                          fii);
         if(fisect.size() > 0) {
-            cout << "precond_collapse failed: same face in both 1-rings" << endl;
+            cout << "precond_collapse failed: same face " << fisect[0] << " in both 1-rings" << endl;
             return false;
         }
         
@@ -1504,15 +1357,15 @@ namespace HMesh
             return false;
         }
         
-        // tetrahedon test (see 4)
-        if(k == 2 && (link0.size() + link1.size() == 6))
-        {
-            cout << "precond_collapse failed: tet test" << endl;
-            return false;
-        }
+//        // tetrahedon test (see 4)
+//        if(k == 2 && (link0.size() + link1.size() == 6))
+//        {
+//            cout << "precond_collapse failed: tet test" << endl;
+//            return false;
+//        }
         
         // test that we do not merge holes (see 6)
-        if(boundary(m, v0) && boundary(m, v1) && hew.face() != InvalidFaceID && hew.opp().face() != InvalidFaceID)
+        if(boundary(m, v0) && boundary(m, v1) && !boundary(m, h))
         {
             cout << "precond_collapse failed: would merge holes" << endl;
             return false;

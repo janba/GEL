@@ -225,19 +225,15 @@ namespace HMesh
         do{
             // For every face.
             work = 0;
-            for(FaceIDIterator f = m.faces_begin(); f != m.faces_end(); ++f){
+            for (auto f: m.faces()) {
                 // Create a vector of vertices.
                 vector<VertexID> verts;
-                for(Walker w = m.walker(*f); !w.full_circle(); w = w.circulate_face_ccw())
-				{
-					FaceID fa = w.face();
-					FaceID fb = *f;
-					assert(fa==fb);
-                    verts.push_back(w.vertex());
-				}
+                int no_edges = circulate_face_ccw(m, f, [&verts](VertexID vn){
+                    verts.push_back(vn);
+                });
                 // If there are just three we are done.
-                if(verts.size() == 3) continue;
-
+                if(no_edges == 3) continue;
+                
                 // Find vertex pairs that may be connected.
                 vector<pair<int,int> > vpairs;
                 const int N = verts.size();
@@ -247,36 +243,27 @@ namespace HMesh
                             vpairs.push_back(pair<int,int>(i, j));
                     }
                 }
-                if(vpairs.empty()){
-                    cout << "Warning: could not triangulate a face." 
-                        << "Probably a vertex appears more than one time in other vertex's one-ring" << endl;
-                    continue;
-                }
-
-                /* For all vertex pairs, find the edge lengths. Combine the
-                vertices forming the shortest edge. */
-
-                float min_len=FLT_MAX;
-                int min_k = -1;
-                for(size_t k = 0; k < vpairs.size(); ++k){
-                    int i = vpairs[k].first;
-                    int j = vpairs[k].second;
-                    float len = sqr_length(m.pos(verts[i]) - m.pos(verts[j]));
-
-                    if(len<min_len){
-                        min_len = len;
-                        min_k = k;
+                if(! vpairs.empty()){
+                    /* For all vertex pairs, find the edge lengths. Combine the
+                     vertices forming the shortest edge. */
+                    int i = vpairs[0].first;
+                    int j = vpairs[0].second;
+                    double min_len=sqr_length(m.pos(verts[i]) - m.pos(verts[j]));
+                    int min_k = 0;
+                    for(size_t k = 1; k < vpairs.size(); ++k) {
+                        i = vpairs[k].first;
+                        j = vpairs[k].second;
+                        double len = sqr_length(m.pos(verts[i]) - m.pos(verts[j]));
+                        if(len<min_len) {
+                            min_len = len;
+                            min_k = k;
+                        }
                     }
+                    i = vpairs[min_k].first;
+                    j = vpairs[min_k].second;
+                    m.split_face_by_edge(f, verts[i], verts[j]);
+                    ++work;
                 }
-                assert(min_k != -1);
-
-                {
-                    // Split faces along edge whose midpoint is closest to isovalue
-                    int i = vpairs[min_k].first;
-                    int j = vpairs[min_k].second;
-                    m.split_face_by_edge(*f, verts[i], verts[j]);
-                }
-                ++work;
 
             }
         }

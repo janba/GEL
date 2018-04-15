@@ -427,7 +427,7 @@ class Manifold:
         """ Returns vertex normal (angle weighted) """
         n = (ct.c_double*3)()
         lib_py_gel.vertex_normal(self.obj, vid, ct.byref(n))
-        return np.array(n[0],n[1],n[2])
+        return np.array([n[0],n[1],n[2]])
     def connected(self, v0, v1):
         """ Returns true if the two argument vertices are in each other's one-rings."""
         return lib_py_gel.connected(self.obj,v0,v1)
@@ -440,7 +440,7 @@ class Manifold:
         vertices of the face. """
         n = (ct.c_double*3)()
         lib_py_gel.face_normal(self.obj, fid, ct.byref(n))
-        return np.array(n[0],n[1],n[2])
+        return np.array([n[0],n[1],n[2]])
     def area(self, fid):
         """ Returns the area of a face. """
         return lib_py_gel.area(self.obj, fid)

@@ -205,20 +205,20 @@ namespace HMesh
 
         KDTree<Vec3d, VertexID> vtree;
         
-        for(VertexIDIterator vid = m.vertices_begin(); vid != m.vertices_end(); ++vid)
-            if(boundary(m, *vid))
-                vtree.insert(m.pos(*vid), *vid);
+        for(auto v : m.vertices())
+            if(boundary(m, v))
+                vtree.insert(m.pos(v), v);
         vtree.build();
         
         VertexAttributeVector<int> cluster_id(m.allocated_vertices(),-1);
         
         int cluster_ctr=0;
-        for(VertexIDIterator vid = m.vertices_begin(); vid != m.vertices_end(); ++vid)
-            if(boundary(m, *vid) && cluster_id[*vid] == -1)
+        for(auto v: m.vertices())
+            if(boundary(m, v) && cluster_id[v] == -1)
             {
                 vector<Vec3d> keys;
                 vector<VertexID> vals;
-                int n = vtree.in_sphere(m.pos(*vid), rad, keys, vals);
+                int n = vtree.in_sphere(m.pos(v), rad, keys, vals);
                 
                 for(int i=0;i<n;++i)
                     cluster_id[vals[i]] = cluster_ctr;
@@ -239,9 +239,8 @@ namespace HMesh
                 clustered_halfedges[cluster_id[v]].push_back(h);
         }
         int unstitched=0;
-        for(HalfEdgeIDIterator hid = m.halfedges_begin(); hid != m.halfedges_end(); ++hid)
+        for(auto h0 : m.halfedges())
         {
-            HalfEdgeID h0 = *hid;
             Walker w = m.walker(h0);
             if(w.face() == InvalidFaceID)
             {
@@ -249,6 +248,11 @@ namespace HMesh
                 VertexID v1 = w.vertex();
                 
                 int cid = cluster_id[v1];
+                int cid0 = cluster_id[v0];
+                if(cid0 == cid) {
+                    cout << "Warning: edge endpoints in same cluster while stitching, ignoring " << endl;
+                    continue;
+                }
                 vector<HalfEdgeID>& stitch_candidates = clustered_halfedges[cid];
                 size_t i=0;
                 for(;i<stitch_candidates.size(); ++i)
