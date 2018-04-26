@@ -762,12 +762,14 @@ class GLManifoldViewer:
         window."""
         lib_py_gel.GLManifoldViewer_event_loop(False)
 
-    # MeshDistance* MeshDistance_new(HMesh::Manifold* m);
 
 lib_py_gel.MeshDistance_new.restype = ct.c_void_p
 lib_py_gel.MeshDistance_new.argtypes = (ct.c_void_p,)
 lib_py_gel.MeshDistance_signed_distance.restype = ct.c_float
 lib_py_gel.MeshDistance_signed_distance.argtypes = (ct.c_void_p,ct.POINTER(ct.c_float*3),ct.c_float)
+lib_py_gel.MeshDistance_ray_inside_test.restype = ct.c_bool
+lib_py_gel.MeshDistance_ray_inside_test.argtypes = (ct.c_void_p,ct.POINTER(ct.c_float*3),ct.c_int)
+
 lib_py_gel.MeshDistance_delete.argtypes = (ct.c_void_p,)
 class MeshDistance:
     """ This class allows you to compute the distance from any point in space to
@@ -784,3 +786,9 @@ class MeshDistance:
         interest. """
         p_ct = np.array(p,dtype=ct.c_float).ctypes.data_as(ct.POINTER(ct.c_float*3))
         return lib_py_gel.MeshDistance_signed_distance(self.obj,p_ct,upper)
+    def ray_inside_test(self,p,no_rays=3):
+        """Check whether a point is inside or outside the stored by casting rays.
+        Effectively, this is the sign of the distance. In some cases casting (multiple)
+        ray is more robust than using the sign computed locally. """
+        p_ct = np.array(p,dtype=ct.c_float).ctypes.data_as(ct.POINTER(ct.c_float*3))
+        return lib_py_gel.MeshDistance_ray_inside_test(self.obj,p_ct,no_rays)

@@ -107,7 +107,7 @@ size_t Manifold_circulate_face(HMesh::Manifold* self, size_t _f, char mode, IntV
                 nbrs->push_back(w.vertex().get_index());
                 break;
             case 'f':
-                nbrs->push_back(w.face().get_index());
+                nbrs->push_back(w.opp().face().get_index());
                 break;
             case 'h':
                 nbrs->push_back(w.halfedge().get_index());

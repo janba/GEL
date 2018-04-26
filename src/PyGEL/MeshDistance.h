@@ -24,6 +24,7 @@ public:
     MeshDistance(HMesh::Manifold* m);
     
     float signed_distance(const CGLA::Vec3f& p, float upper);
+    bool ray_inside_test(const CGLA::Vec3f& p, int no_rays);
 };
 
 extern "C" {
@@ -31,8 +32,14 @@ extern "C" {
     DLLEXPORT void MeshDistance_delete(MeshDistance*);
     
     DLLEXPORT float MeshDistance_signed_distance(MeshDistance* self,
-                          const CGLA::Vec3f* p,
-                          float upper);
+                                                 const CGLA::Vec3f* p,
+                                                 float upper);
+
+    DLLEXPORT bool MeshDistance_ray_inside_test(MeshDistance* self,
+                                                 const CGLA::Vec3f* p,
+                                                 int no_rays);
+
+    
 }
 
 #endif /* MeshDistance_hpp */
