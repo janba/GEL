@@ -120,6 +120,13 @@ namespace Geometry {
             return InvalidEdgeID;
         }
         
+        void disconnect_nodes(NodeID n0, NodeID n1) {
+            if(valid_node(n0) && valid_node(n1)) {
+                edge_map[n0].erase(n1);
+                edge_map[n1].erase(n0);
+            }
+        }
+        
         /// Return the NodeIDs of nodes adjacent to a given node
         std::vector<NodeID> neighbors(NodeID n) const {
             std::vector<NodeID> nbrs(edge_map[n].size());

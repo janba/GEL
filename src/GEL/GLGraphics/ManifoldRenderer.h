@@ -218,9 +218,9 @@ namespace GLGraphics {
                                   double min_val,
                                   double max_val,
                                   float gamma = 2.2,
-                                  int use_stripes=0,
+                                  int use_stripes=1,
                                   int color_signed=0,
-                                  int use_shading=0);
+                                  int use_shading=1);
 	};
     
     /** Render a scalar field. Positive scalars are mapped to blue and negative to red.

@@ -82,9 +82,10 @@ namespace HMesh
         /// cleanup unused items from the vector, given by remap from associated container
         void cleanup(const std::map<ITEMID, ITEMID>& remap) {
             std::vector<ITEM> new_items(remap.size());
-            for(typename std::map<ITEMID, ITEMID>::const_iterator it = remap.begin(); it != remap.end(); ++it){
-                assert(it->second.index < remap.size());
-                new_items[it->second.index] = items[it->first.index];
+            for(const auto& mapping : remap){
+                assert(mapping.second.index < remap.size());
+                if(mapping.first.index < items.size())
+                    new_items[mapping.second.index] = items[mapping.first.index];
             }
             std::swap(items, new_items);
         }

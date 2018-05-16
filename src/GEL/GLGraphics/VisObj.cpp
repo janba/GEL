@@ -126,8 +126,8 @@ namespace GLGraphics {
         
         string short_name = display_method.substr(0,3);
         
-        static Console::variable<int> use_shading(0);
-        static Console::variable<int> use_stripes(0);
+        static Console::variable<int> use_shading(1);
+        static Console::variable<int> use_stripes(1);
         static Console::variable<int> color_sign(0);
         if(short_name=="mea"||short_name=="gau"||short_name=="sca")
         {
