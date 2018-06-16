@@ -499,7 +499,7 @@ namespace GLGraphics
     "		\n"
     "       if(color_signed==1) {\n"
     "		  float s_norm = s/max(abs(scalar_max),abs(scalar_min));\n"
-    "		  gl_FragColor = s_norm*vec4(1,0,-1,0);\n"
+    "		  gl_FragColor = normalize(s_norm*vec4(1,0,-1,0) + (1.0-abs(s_norm))*vec4(1,1,1,0));\n"
     "         if(use_stripes==1) gl_FragColor -= vec4(.3,.3,.3,0)*stripe(s_norm);"
     "       } else {\n"
     "		  float s_norm = (s-scalar_min)/(scalar_max-scalar_min);\n"
