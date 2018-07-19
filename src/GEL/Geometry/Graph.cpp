@@ -104,78 +104,60 @@ namespace Geometry {
     }
     
     
-    struct PrimPQElem {
-        double priority;
-        AMGraph::NodeID node;
-        AMGraph::NodeID parent;
-        
-        PrimPQElem(double _priority, AMGraph::NodeID _node, AMGraph::NodeID _parent):
-        priority(_priority), node(_node), parent(_parent) {}
-    };
-    
-    bool operator<(const PrimPQElem& p0, const PrimPQElem& p1)
-    {
-        return p0.priority < p1.priority;
+    void BreadthFirstSearch::init(AMGraph::NodeID n) {
+        if(pq.empty()) {
+            pq = priority_queue<PrimPQElem>();
+            pq.push(PrimPQElem(-0.0, n, AMGraph::InvalidNodeID));
+
+            dist = Util::AttribVec<AMGraph::NodeID, double> (g_ptr->no_nodes(), DBL_MAX);
+            dist[n] = 0.0;
+
+            visited.clear();
+            front.clear();
+        }
     }
     
-    AMGraph3D minimum_spanning_tree(const AMGraph3D& g, AMGraph::NodeID root)
-    {
-        if(root == AMGraph::InvalidNodeID) {
-            
-            Vec3d mean(0);
-            for(auto n: g.node_ids())
-                mean += g.pos[n];
-            mean /= g.no_nodes();
-            
-            double min_d = numeric_limits<double>::max();
-            for(auto n: g.node_ids())
-            {
-                double d = sqr_length(g.pos[n] - mean);
-                if(d<min_d)
-                {
-                    min_d = d;
-                    root = n;
-                }
-            }
-        }
-        
-        AMGraph3D gn, gn2;
-        
-        for(auto n: g.node_ids())
-            gn.add_node(g.pos[n]);
-        priority_queue<PrimPQElem> pq;
-        for(auto nn: g.neighbors(root))
-        {
-            double d = sqrt(g.sqr_dist(nn,root));
-            pq.push(PrimPQElem(-d, nn, root));
-        }
-        
-        Vec3d aggregate_pos(0);
-        int cntr=0;
-        vector<bool> visited(g.no_nodes(), false);
-        while(!pq.empty())
-        {
-            auto dn = - pq.top().priority;
-            auto n = pq.top().node;
-            auto p = pq.top().parent;
+    bool BreadthFirstSearch::step() {
+        bool did_visit = false;
+        while(!pq.empty() && !did_visit) {
+            last = pq.top();
+            auto n = last.node;
+            front.erase(n);
             pq.pop();
-            aggregate_pos += gn.pos[n];
-            cntr += 1;
-            gn2.add_node(aggregate_pos/cntr);
-            if(!visited[n]) {
-                visited[n] = true;
-                gn.connect_nodes(n, p);
-                
-                for(auto m: g.neighbors(n))
-                {
-                    if(!visited[m])
-                    {
-                        double d = dn + sqrt(g.sqr_dist(n,m));
+            if(last.priority == -dist[n]) {
+                visited.insert(n);
+                did_visit = true;
+                for(auto m: g_ptr->neighbors(n)) {
+                    double d = sqrt(g_ptr->sqr_dist(n,m)) - last.priority;
+                    if(d < dist[m]) {
+                        dist[m] = d;
+                        pred[m] = n;
                         pq.push(PrimPQElem(-d, m, n));
+                        front.insert(m);
                     }
                 }
             }
         }
+        return did_visit;
+    }
+
+    
+    AMGraph3D minimum_spanning_tree(const AMGraph3D& g, AMGraph::NodeID root)
+    {
+        if(root == AMGraph::InvalidNodeID)
+            root = 0;
+        
+        AMGraph3D gn;
+        for(auto n: g.node_ids())
+            gn.add_node(g.pos[n]);
+
+        BreadthFirstSearch bfs(g);
+        bfs.init(root);
+        while(bfs.step()) {
+            auto last = bfs.get_last();
+            gn.connect_nodes(last.node, last.parent);
+        }
+        
         return gn;
     }
     

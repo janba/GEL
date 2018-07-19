@@ -16,12 +16,14 @@ namespace HMesh {
     struct DijkstraOutput {
         VertexAttributeVector<double> dist;
         VertexAttributeVector<VertexID> pred;
-        
+        VertexSet leaves;
         DijkstraOutput(int n):
         dist(n, DBL_MAX), pred(n, InvalidVertexID) {}
     };
     
     DijkstraOutput Dijkstra(const Manifold& m, VertexID source, VertexSet region = VertexSet());
+    VertexAttributeVector<int> backpropagate_subtree_sizes(const Manifold& m,
+                                                           const DijkstraOutput&);
 }
 
 
