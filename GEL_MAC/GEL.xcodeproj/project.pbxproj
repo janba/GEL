@@ -234,6 +234,10 @@
 		0DD3C0BF1B7C983300C02626 /* CGLA.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D57306D1ABB570900F33E40 /* CGLA.h */; };
 		0DD3C0C01B7C983800C02626 /* ls_solve.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DD53BE91ABB69C50074B704 /* ls_solve.h */; };
 		0DE1F9071B35B9210012ACF9 /* HMesh.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D2378ED1ABB593200874F06 /* HMesh.h */; };
+		BD4ACED2214A5C88004EEC2F /* jrs_triangle.c in Sources */ = {isa = PBXBuildFile; fileRef = BD4ACED1214A5C88004EEC2F /* jrs_triangle.c */; };
+		BD4ACED6214A6010004EEC2F /* Delaunay_triangulate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD4ACED4214A6010004EEC2F /* Delaunay_triangulate.cpp */; };
+		BD4ACED8214A76B2004EEC2F /* jrs_triangle.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BD4ACED3214A5F03004EEC2F /* jrs_triangle.h */; };
+		BD4ACED9214A76D6004EEC2F /* Delaunay_triangulate.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BD4ACED7214A605E004EEC2F /* Delaunay_triangulate.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -299,6 +303,7 @@
 			dstPath = ../Headers/Geometry;
 			dstSubfolderSpec = 7;
 			files = (
+				BD4ACED8214A76B2004EEC2F /* jrs_triangle.h in CopyFiles */,
 				0D1028351C74CC9E00250431 /* Graph.h in CopyFiles */,
 				0D52EBF1197D1DB9002C7150 /* AABox.h in CopyFiles */,
 				0D52EBF2197D1DB9002C7150 /* AncestorGrid.h in CopyFiles */,
@@ -386,6 +391,7 @@
 			dstPath = ../Headers/HMesh;
 			dstSubfolderSpec = 7;
 			files = (
+				BD4ACED9214A76D6004EEC2F /* Delaunay_triangulate.h in CopyFiles */,
 				0DA7DC611CEBAC0C009FD206 /* graph_algorithm.h in CopyFiles */,
 				0DE1F9071B35B9210012ACF9 /* HMesh.h in CopyFiles */,
 				0D52EC2B197D1DF3002C7150 /* AttributeVector.h in CopyFiles */,
@@ -669,6 +675,10 @@
 		0DA7DC5F1CEBA687009FD206 /* graph_algorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph_algorithm.h; sourceTree = "<group>"; };
 		0DA848C3193D02520067DA3B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DD53BE91ABB69C50074B704 /* ls_solve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ls_solve.h; sourceTree = "<group>"; };
+		BD4ACED1214A5C88004EEC2F /* jrs_triangle.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jrs_triangle.c; sourceTree = "<group>"; };
+		BD4ACED3214A5F03004EEC2F /* jrs_triangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jrs_triangle.h; sourceTree = "<group>"; };
+		BD4ACED4214A6010004EEC2F /* Delaunay_triangulate.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Delaunay_triangulate.cpp; sourceTree = "<group>"; };
+		BD4ACED7214A605E004EEC2F /* Delaunay_triangulate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Delaunay_triangulate.h; sourceTree = "<group>"; };
 		BD4E9FA8201CB17B0029AEA2 /* GEL copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GEL copy-Info.plist"; path = "/Users/janba/GEL/GEL_MAC/GEL copy-Info.plist"; sourceTree = "<absolute>"; };
 		BDAC7CAA201885F600197925 /* Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serialization.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -713,6 +723,7 @@
 		0D52EAAC197D18C1002C7150 /* Geometry */ = {
 			isa = PBXGroup;
 			children = (
+				BD4ACED1214A5C88004EEC2F /* jrs_triangle.c */,
 				0D52EAD9197D18C1002C7150 /* rply.c */,
 				0D52EAAD197D18C1002C7150 /* AABox.cpp */,
 				0D52EAB0197D18C1002C7150 /* BBox.cpp */,
@@ -787,6 +798,7 @@
 				0D52EB16197D18C1002C7150 /* cleanup.cpp */,
 				0D52EB18197D18C1002C7150 /* ConnectivityKernel.cpp */,
 				0D52EB1A197D18C1002C7150 /* curvature.cpp */,
+				BD4ACED4214A6010004EEC2F /* Delaunay_triangulate.cpp */,
 				0D52EB1C197D18C1002C7150 /* dual.cpp */,
 				0D52EB25197D18C1002C7150 /* load.cpp */,
 				0D52EB27197D18C1002C7150 /* Manifold.cpp */,
@@ -881,6 +893,7 @@
 		0D52EBB2197D1901002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				BD4ACED3214A5F03004EEC2F /* jrs_triangle.h */,
 				0D52EAAE197D18C1002C7150 /* AABox.h */,
 				0D52EAAF197D18C1002C7150 /* AncestorGrid.h */,
 				0D52EAB1197D18C1002C7150 /* BBox.h */,
@@ -961,6 +974,7 @@
 		0D52EBB5197D1930002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				BD4ACED7214A605E004EEC2F /* Delaunay_triangulate.h */,
 				0DA7DC5F1CEBA687009FD206 /* graph_algorithm.h */,
 				0D2378ED1ABB593200874F06 /* HMesh.h */,
 				0D52EB15197D18C1002C7150 /* AttributeVector.h */,
@@ -1102,7 +1116,7 @@
 		0D85998A193D01B6009DB071 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0730;
+				LastUpgradeCheck = 0940;
 				ORGANIZATIONNAME = "J. Andreas Bærentzen";
 			};
 			buildConfigurationList = 0D85998D193D01B6009DB071 /* Build configuration list for PBXProject "GEL" */;
@@ -1182,7 +1196,9 @@
 				0D52EB76197D18C1002C7150 /* load_raw.cpp in Sources */,
 				0D6583DB1C1871DF005C966A /* Graph.cpp in Sources */,
 				0D52EB94197D18C1002C7150 /* VisObj.cpp in Sources */,
+				BD4ACED6214A6010004EEC2F /* Delaunay_triangulate.cpp in Sources */,
 				0D52EB9D197D18C1002C7150 /* mesh_optimization.cpp in Sources */,
+				BD4ACED2214A5C88004EEC2F /* jrs_triangle.c in Sources */,
 				0D52EB6A197D18C1002C7150 /* AABox.cpp in Sources */,
 				0D52EB78197D18C1002C7150 /* OBox.cpp in Sources */,
 				0D52EB69197D18C1002C7150 /* Vec3i.cpp in Sources */,
@@ -1262,19 +1278,32 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -1306,19 +1335,32 @@
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = NO;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;

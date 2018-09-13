@@ -126,7 +126,10 @@ class I3DTree:
         n = lib_py_gel.I3DTree_in_sphere(self.obj, p[0],p[1],p[2],r,keys.obj,vals.obj)
         return (keys,vals)
 
-
+lib_py_gel.Manifold_from_triangles.argtypes = (ct.c_size_t,ct.c_size_t, np.ctypeslib.ndpointer(ct.c_double), np.ctypeslib.ndpointer(ct.c_int))
+lib_py_gel.Manifold_from_triangles.restype = ct.c_void_p
+lib_py_gel.Manifold_from_points.argtypes = (ct.c_size_t,np.ctypeslib.ndpointer(ct.c_double), np.ctypeslib.ndpointer(ct.c_double),np.ctypeslib.ndpointer(ct.c_double))
+lib_py_gel.Manifold_from_points.restype = ct.c_void_p
 lib_py_gel.Manifold_new.restype = ct.c_void_p
 lib_py_gel.Manifold_copy.restype = ct.c_void_p
 lib_py_gel.Manifold_copy.argtypes = (ct.c_void_p,)
@@ -181,6 +184,8 @@ lib_py_gel.Manifold_cleanup.argtypes = (ct.c_void_p,)
 
 lib_py_gel.Walker_next_halfedge.restype = ct.c_size_t
 lib_py_gel.Walker_next_halfedge.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.Walker_prev_halfedge.restype = ct.c_size_t
+lib_py_gel.Walker_prev_halfedge.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.Walker_opposite_halfedge.restype = ct.c_size_t
 lib_py_gel.Walker_opposite_halfedge.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.Walker_incident_face.restype = ct.c_size_t
@@ -220,6 +225,16 @@ class Manifold:
             self.obj = lib_py_gel.Manifold_new()
         else:
             self.obj = lib_py_gel.Manifold_copy(orig.obj)
+    @classmethod
+    def from_triangles(cls,vertices, faces):
+        m = cls()
+        m.obj = lib_py_gel.Manifold_from_triangles(len(vertices),len(faces),np.array(vertices,dtype=np.float64), np.array(faces,dtype=ct.c_int))
+        return m
+    @classmethod
+    def from_points(cls,pts,xaxis=np.array([1,0,0]),yaxis=np.array([0,1,0])):
+        m = cls()
+        m.obj = lib_py_gel.Manifold_from_points(len(pts),np.array(pts,dtype=np.float64), np.array(xaxis,dtype=np.float64), np.array(yaxis,dtype=np.float64))
+        return m
     def __del__(self):
         lib_py_gel.Manifold_delete(self.obj)
     def add_face(self,pts):
@@ -287,6 +302,9 @@ class Manifold:
     def next_halfedge(self,hid):
         """ Returns next halfedge to the one passed as argument. """
         return lib_py_gel.Walker_next_halfedge(self.obj, hid)
+    def prev_halfedge(self,hid):
+        """ Returns previous halfedge to the one passed as argument. """
+        return lib_py_gel.Walker_prev_halfedge(self.obj, hid)
     def opposite_halfedge(self,hid):
         """ Returns opposite halfedge to the one passed as argument. """
         return lib_py_gel.Walker_opposite_halfedge(self.obj, hid)

@@ -23,7 +23,11 @@ extern "C" {
     
 //    Manifold class methods
     DLLEXPORT HMesh::Manifold* Manifold_new();
-    
+
+    DLLEXPORT HMesh::Manifold* Manifold_from_triangles(int NV, int NF, double* vertices, int* faces);
+
+    DLLEXPORT HMesh::Manifold* Manifold_from_points(int N, double* pts, double* X_axis, double* Y_axis);
+
     DLLEXPORT HMesh::Manifold* Manifold_copy(HMesh::Manifold* self);
 
     DLLEXPORT void Manifold_delete(HMesh::Manifold* self);
@@ -64,6 +68,7 @@ extern "C" {
 //  New functions that rely on walker
     
     DLLEXPORT size_t Walker_next_halfedge(HMesh::Manifold* m_ptr, size_t h);
+    DLLEXPORT size_t Walker_prev_halfedge(HMesh::Manifold* m_ptr, size_t h);
     DLLEXPORT size_t Walker_opposite_halfedge(HMesh::Manifold* m_ptr, size_t h);
     DLLEXPORT size_t Walker_incident_face(HMesh::Manifold* m_ptr, size_t h);
     DLLEXPORT size_t Walker_incident_vertex(HMesh::Manifold* m_ptr, size_t h);

@@ -208,13 +208,13 @@
 /*   recommend double precision unless you want to generate a mesh for which */
 /*   you do not have enough memory.                                          */
 
-/* #define SINGLE */
-
-#ifdef SINGLE
-#define REAL float
-#else /* not SINGLE */
-#define REAL double
-#endif /* not SINGLE */
+///* #define SINGLE */
+//
+//#ifdef SINGLE
+//#define REAL float
+//#else /* not SINGLE */
+//#define REAL double
+//#endif /* not SINGLE */
 
 /* If yours is not a Unix system, define the NO_TIMER compiler switch to     */
 /*   remove the Unix-specific timing code.                                   */
@@ -313,7 +313,7 @@
 /*   compiler is smarter, feel free to replace the "int" with "void".        */
 /*   Not that it matters.                                                    */
 
-#define VOID int
+#define VOID void
 
 /* Two constants for algorithms based on random sampling.  Both constants    */
 /*   have been chosen empirically to optimize their respective algorithms.   */
@@ -355,7 +355,7 @@
 #include <fpu_control.h>
 #endif /* LINUX */
 #ifdef TRILIBRARY
-#include "triangle.h"
+#include "jrs_triangle.h"
 #endif /* TRILIBRARY */
 
 /* A few forward declarations.                                               */
@@ -15664,9 +15664,11 @@ struct behavior *b;
 /*                                                                           */
 /*****************************************************************************/
 
+#warning "Triangulate PERHAPS being defined"
 #ifdef TRILIBRARY
 
 #ifdef ANSI_DECLARATORS
+#warning "Triangulate being defined"
 void triangulate(char *triswitches, struct triangulateio *in,
                  struct triangulateio *out, struct triangulateio *vorout)
 #else /* not ANSI_DECLARATORS */
