@@ -12,7 +12,6 @@
 #include <iterator>
 
 #include "../Geometry/TriMesh.h"
-#include "../GLGraphics/ManifoldRenderer.h"
 
 namespace HMesh
 {
@@ -1164,7 +1163,6 @@ namespace HMesh
                 if(find(link.begin(), link.end(), ring_v) != link.end()){
                     cout << "Vertex appears two times in one-ring of vertex" << endl;
                     valid = false;
-                    GLGraphics::DebugRenderer::vertex_colors[*v] = Vec3f(1,0,0);
                     break;
                 }
                 link.push_back(ring_v);
@@ -1187,7 +1185,6 @@ namespace HMesh
             
             if(link.size()==1) {
                 cout << "Vertex contains only a single incident edge" << endl;
-                GLGraphics::DebugRenderer::vertex_colors[*v] = Vec3f(0,1,0);
                 valid = false;
             }
         }
