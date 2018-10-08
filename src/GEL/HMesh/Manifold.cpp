@@ -464,8 +464,10 @@ namespace HMesh
     bool Manifold::stitch_boundary_edges(HalfEdgeID h0, HalfEdgeID h1)
     {
         // Cannot stitch an edge with itself
-        if(h0 == h1)
+        if(h0 == h1) {
+            cout << "Trying to stitch an edge with itself" << endl;
             return false;
+        }
         
         // Only stitch a pair of boundary edges.
         if(kernel.face(h0) == InvalidFaceID && kernel.face(h1) == InvalidFaceID)
@@ -478,47 +480,25 @@ namespace HMesh
             VertexID v1a = kernel.vert(kernel.opp(h0));
             
             //If the vertices are already connected, welding them together will be awkward.
-            if(connected(*this, v0a, v0b))
+            if(connected(*this, v0a, v0b)){
+                cout << "0 end points are distinct but connected" << endl;
                 return false;
-            if(connected(*this, v1a, v1b))
+            }
+            if(connected(*this, v1a, v1b)){
+                cout << "1 end points are distinct but connected" << endl;
                 return false;
-            
-            
-            if(v0b != v0a)
-            {
-                if(v1a != v1b && ( connected(*this, v0a, v1b) || connected(*this, v0b, v1a)))
-                   return false;
-                if(v1a == v1b && kernel.next(kernel.opp(kernel.next(h0o))) == h1o)
-                    return false;
-                // Check the link intersection v0a and v0b are welded together
-                // if they share a neighbouring vertex, it will appear twice in the combined
-                // one ring unless it v1a and v1a==v1b
-                VertexSet lisect = link_intersection(*this, v0a, v0b);
-                if(!lisect.empty())
-                {
-                    if(v1a == v1b)
-                        lisect.erase(v1a);
-                    lisect.erase(kernel.vert(kernel.next(h0)));
-                    if(lisect.size() > 0)
-                        return false;
-                }
             }
             
-            if(v1a != v1b)
-            {
-                if(v0a == v0b && kernel.next(kernel.opp(kernel.next(h1o))) == h0o)
-                    return false;
-                
-                // Check the same for the other endpoints.
-                VertexSet lisect = link_intersection(*this, v1a, v1b);
-                if(!lisect.empty())
-                {
-                    if(v0a == v0b)
-                        lisect.erase(v0a);
-                    lisect.erase(kernel.vert(kernel.next(h1)));
-                    if(lisect.size() > 0)
-                        return false;
-                }
+            // This check ensures that we do not create a valency 1 vertex by welding
+            // two edges whose opposite edges have the property that second one is the next
+            // edge of the first one or vice versa.
+            if(v1a == v1b && kernel.next(h0o) == h1o){
+                cout << "Would have created val 1 vertex" << endl;
+                return false;
+            }
+            if(v0a == v0b && kernel.next(h1o) == h0o){
+                cout << "Would have created val 1 vertex" << endl;
+                return false;
             }
             
             
@@ -574,6 +554,7 @@ namespace HMesh
             
             return true;
         }
+        cout << "Trying to stitch non-boundary edges" << endl;
         return false;
     }
     
