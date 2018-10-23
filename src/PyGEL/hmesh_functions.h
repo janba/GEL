@@ -18,7 +18,7 @@
 #include <GEL/HMesh/HMesh.h>
 
 extern "C" {
-    DLLEXPORT void stitch_mesh(HMesh::Manifold* m_ptr, double rad);
+    DLLEXPORT int stitch_mesh(HMesh::Manifold* m_ptr, double rad);
     
     DLLEXPORT bool valid(const HMesh::Manifold* m_ptr);
     DLLEXPORT bool closed(const HMesh::Manifold* m_ptr);
@@ -40,7 +40,7 @@ extern "C" {
     
     DLLEXPORT void remove_needles(HMesh::Manifold* m_ptr, float thresh, bool averagePositions = false);
 
-    DLLEXPORT void close_holes(HMesh::Manifold* m_ptr);
+    DLLEXPORT void close_holes(HMesh::Manifold* m_ptr, int max_size);
     
     DLLEXPORT void flip_orientation(HMesh::Manifold* m_ptr);
     

@@ -504,6 +504,7 @@ def bsphere(m):
     return (c,r)
 
 lib_py_gel.stitch_mesh.argtypes = (ct.c_void_p,ct.c_double)
+lib_py_gel.stitch_mesh.restype = ct.c_int
 def stitch(m, rad=1e-30):
     """ Stitch together edges whose endpoints coincide geometrically. This
     function allows you to create a mesh as a bunch of faces and then stitch
@@ -511,7 +512,7 @@ def stitch(m, rad=1e-30):
     spatial data structure to find out which vertices coincide. The return value
     is the number of edges that could not be stitched. Often this is because it
     would introduce a non-manifold situation."""
-    lib_py_gel.stitch_mesh(m.obj,rad)
+    return lib_py_gel.stitch_mesh(m.obj,rad)
 
 lib_py_gel.obj_save.argtypes = (ct.c_char_p, ct.c_void_p)
 def obj_save(fn, m):
@@ -582,11 +583,11 @@ def remove_needles(m, thresh=0.05, average_positions=False):
     abs_thresh = thresh * average_edge_length(m)
     lib_py_gel.remove_needles(m.obj,abs_thresh, average_positions)
 
-lib_py_gel.close_holes.argtypes = (ct.c_void_p,)
-def close_holes(m):
+lib_py_gel.close_holes.argtypes = (ct.c_void_p,ct.c_int)
+def close_holes(m, max_size=100):
     """  This function replaces holes by faces. It is really a simple function
     that just finds all loops of edges next to missing faces. """
-    lib_py_gel.close_holes(m.obj)
+    lib_py_gel.close_holes(m.obj, max_size)
 
 lib_py_gel.flip_orientation.argtypes = (ct.c_void_p,)
 def flip_orientation(m):

@@ -29,8 +29,8 @@ void bsphere(const Manifold* m_ptr, CGLA::Vec3d* c, double* _r) {
     *_r = r;
 }
 
-void stitch_mesh(HMesh::Manifold* m_ptr, double rad) {
-    HMesh::stitch_mesh(*m_ptr, rad);
+int stitch_mesh(HMesh::Manifold* m_ptr, double rad) {
+    return HMesh::stitch_mesh(*m_ptr, rad);
 }
 
 bool obj_load(char* fn, HMesh::Manifold* m_ptr) {
@@ -71,8 +71,8 @@ void remove_needles(HMesh::Manifold* m_ptr, float thresh, bool averagePositions)
     remove_needles(*m_ptr, thresh, averagePositions);
 }
 
-void close_holes(HMesh::Manifold* m_ptr) {
-    close_holes(*m_ptr);
+void close_holes(HMesh::Manifold* m_ptr, int max_size) {
+    close_holes(*m_ptr, max_size);
 }
 
 void flip_orientation(HMesh::Manifold* m_ptr) {
