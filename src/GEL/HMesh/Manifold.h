@@ -194,6 +194,8 @@ namespace HMesh
          Two boundary halfedges can be stitched together. This can be used to build a complex mesh
          from a bunch of simple faces. */
         bool stitch_boundary_edges(HalfEdgeID h0, HalfEdgeID h1);
+        
+        bool merge_boundary_vertices(VertexID v0, VertexID v1);
 
         /** \brief Merges two faces into a single polygon. 
         The first face is f. The second face is adjacent to f along the halfedge h. 

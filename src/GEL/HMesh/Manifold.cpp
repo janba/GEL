@@ -558,6 +558,34 @@ namespace HMesh
         return false;
     }
     
+    bool Manifold::merge_boundary_vertices(VertexID v0, VertexID v1) {
+        auto find_hi_ho = [this](VertexID v, HalfEdgeID& hi, HalfEdgeID& ho) -> bool {
+            int sanity_count = 0;
+            circulate_vertex_ccw(*this, v, [&](Walker w) {
+                if(w.face() == InvalidFaceID) {
+                    ho = w.halfedge();
+                    sanity_count += 1;
+                }
+                if(w.opp().face() == InvalidFaceID)
+                    hi = w.opp().halfedge();
+            });
+            return sanity_count == 1;
+        };
+        HalfEdgeID h0i, h0o, h1i, h1o;
+        
+        if (find_hi_ho(v0, h0i, h0o) && find_hi_ho(v1, h1i, h1o)){
+            link(h0i, h1o);
+            link(h1i, h0o);
+            kernel.set_vert(h1i, v0);
+            kernel.set_vert(kernel.opp(h1o), v0);
+            kernel.remove_vertex(v1);
+            cout << "MERGING" << endl;
+            return true;
+        }
+        return false;
+    }
+
+    
     
     
     FaceID Manifold::merge_one_ring(VertexID v)

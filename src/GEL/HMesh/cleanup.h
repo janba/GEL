@@ -58,7 +58,7 @@ namespace HMesh
      Thus, not only the vertex but also incident faces are removed. */
     int remove_duplicates(Manifold& m, double rad);
 
-    
+    void merge_coincident_boundary_vertices(Manifold& m, double rad=1e-30);
 }
 
 #endif

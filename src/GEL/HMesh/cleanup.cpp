@@ -349,4 +349,33 @@ namespace HMesh
         m.build(vertices.size(), vertices[0].get(), faces.size(), &faces[0], &indices[0]);
     }
     
+    
+    void merge_coincident_boundary_vertices(Manifold& m, double rad) {
+ 
+        KDTree<Vec3d, VertexID> vertex_tree;
+        for(auto v: m.vertices())
+            if (boundary(m, v))
+                vertex_tree.insert(m.pos(v), v);
+        vertex_tree.build();
+
+        for(auto v: m.vertices())
+            if (boundary(m, v))
+            {
+                double d = rad;
+                vector<Vec3d> keys;
+                vector<VertexID> vals;
+                int n = vertex_tree.in_sphere(m.pos(v), d, keys, vals);
+                if(n>2)
+                {
+                    cout << "Ambiguity: " << n << " vertices in the same spot" << endl;
+                    continue;
+                }
+                if(n==2)
+                {
+                    VertexID v0 = vals[0];
+                    VertexID v1 = vals[1];
+                    m.merge_boundary_vertices(v0, v1);
+                }
+            }
+    }
 }
