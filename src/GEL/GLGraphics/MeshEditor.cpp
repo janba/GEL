@@ -1027,10 +1027,17 @@ namespace GLGraphics {
                 me->printf("Tests validity of Manifold");
                 return;
             }
-            if(valid(me->active_mesh()))
+            VertexSet vs;
+            HalfEdgeSet hs;
+            FaceSet fs;
+            if(find_invalid_entities(me->active_mesh(), vs, hs, fs))
                 me->printf("Mesh is valid");
-            else
+            else {
                 me->printf("Mesh is invalid - check console output");
+                me->get_vertex_selection() = vs;
+                me->get_halfedge_selection() = hs;
+                me->get_face_selection() = fs;
+            }
             return;
         }
         

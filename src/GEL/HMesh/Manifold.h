@@ -299,6 +299,8 @@ namespace HMesh
     Performs a series of tests to check that this is a valid manifold.
     This function is not rigorously constructed but seems to catch all problems so far. 
     The function returns true if the mesh is valid and false otherwise. */
+    bool find_invalid_entities(const Manifold& m, VertexSet& vs, HalfEdgeSet& hs, FaceSet& fs);
+
     bool valid(const Manifold& m);
 
     /// Calculate the bounding box of the manifold

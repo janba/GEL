@@ -573,13 +573,46 @@ namespace HMesh
         };
         HalfEdgeID h0i, h0o, h1i, h1o;
         
+        vector<VertexID> r0;
+        circulate_vertex_ccw(*this, v0, [&](VertexID v){r0.push_back(v); cout  << v << ",";});
+        cout << endl;
+        vector<VertexID> r1;
+        circulate_vertex_ccw(*this, v1, [&](VertexID v){r1.push_back(v); cout  << v << ",";});
+        cout << endl;
+
+        if(find(begin(r0),end(r0),v1) != end(r0)) {
+            cout << "Oops " << v1  << " in 1-ring of " << v0;
+            return false;
+        }
+        if(find(begin(r1),end(r1),v0) != end(r1)) {
+            cout << "Oops " << v0  << " in 1-ring of " << v1;
+            return false;
+        }
+        
+        sort(begin(r0), end(r0));
+        sort(begin(r1), end(r1));
+        vector<VertexID> risect;
+        set_intersection(begin(r0), end(r0), begin(r1), end(r1), back_inserter(risect));
+        if(!risect.empty())
+        {
+            cout << "One rings overlap" << endl;
+            return false;
+        }
+
         if (find_hi_ho(v0, h0i, h0o) && find_hi_ho(v1, h1i, h1o)){
             link(h0i, h1o);
             link(h1i, h0o);
             kernel.set_vert(h1i, v0);
             kernel.set_vert(kernel.opp(h1o), v0);
+            HalfEdgeID h0 = kernel.opp(kernel.out(v0));
+            HalfEdgeID h = h0;
+            do {
+                kernel.set_vert(h, v0);
+                h = kernel.opp(kernel.next(h));
+            }
+            while( h != h0);
             kernel.remove_vertex(v1);
-            cout << "MERGING" << endl;
+            cout << "MERGING " << v0 << " and " << v1 << ", halfedge: " << h0i << "," << h0o << "," << h1i << "," << h1o << endl;
             return true;
         }
         return false;
@@ -1122,42 +1155,51 @@ namespace HMesh
     /***************************************************
      * Namespace functions
      ***************************************************/
-    bool valid(const Manifold& m)
+
+    bool find_invalid_entities(const Manifold& m, VertexSet& vs, HalfEdgeSet& hs, FaceSet& fs)
     {
         bool valid = true;
+        vs.clear();
+        hs.clear();
+        fs.clear();
         
         // Verify components of halfedges
-        for(HalfEdgeIDIterator h = m.halfedges_begin(); h != m.halfedges_end(); ++h){
-            Walker j = m.walker(*h);
+        for(HalfEdgeID h : m.halfedges()){
+            Walker j = m.walker(h);
             
             if(j.vertex() == InvalidVertexID){
                 cout << "Halfedge lacks vert" << endl;
+                hs.insert(h);
                 valid = false;
             }
             if(j.next().halfedge() == InvalidHalfEdgeID){
                 cout << "Halfedge lacks next" << endl;
+                hs.insert(h);
                 valid = false;
             }
             if(j.prev().halfedge() == InvalidHalfEdgeID){
                 cout << "Halfedge lacks prev" << endl;
+                hs.insert(h);
                 valid = false;
             }
             if(j.opp().halfedge() == InvalidHalfEdgeID){
                 cout << "Halfedge lacks opp" << endl;
+                hs.insert(h);
                 valid = false;
             }
             
         }
         // Verify components of vertices
-        for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){
+        for(VertexID v : m.vertices()){
             vector<VertexID> link;
             
             // circulate the halfedges of vertex
-            for(Walker j = m.walker(*v); !j.full_circle(); j = j.circulate_vertex_cw()){
+            for(Walker j = m.walker(v); !j.full_circle(); j = j.circulate_vertex_cw()){
                 // test halfedges around v
                 if(j.halfedge() == InvalidHalfEdgeID){
                     cout << "Vertex circulation produced invalid halfedge" << endl;
                     valid = false;
+                    vs.insert(v);
                     break;
                 }
                 VertexID ring_v = j.vertex();
@@ -1165,6 +1207,7 @@ namespace HMesh
                 {
                     cout << "Invalid vertex: " << ring_v << " in one-ring of vertex" << endl;
                     valid = false;
+                    vs.insert(v);
                     break;
                 }
                 
@@ -1172,6 +1215,7 @@ namespace HMesh
                 if(find(link.begin(), link.end(), ring_v) != link.end()){
                     cout << "Vertex appears two times in one-ring of vertex" << endl;
                     valid = false;
+                    vs.insert(v);
                     break;
                 }
                 link.push_back(ring_v);
@@ -1180,47 +1224,62 @@ namespace HMesh
                 if(static_cast<size_t>(j.no_steps()) > m.no_vertices()){
                     cout << "Vertex loop CW contains more vertices than manifold" << endl;
                     valid = false;
+                    vs.insert(v);
                     break;
                 }
             }
             
-            for(Walker j = m.walker(*v); !j.full_circle(); j = j.circulate_vertex_ccw()) {
+            for(Walker j = m.walker(v); !j.full_circle(); j = j.circulate_vertex_ccw()) {
                 if(static_cast<size_t>(j.no_steps()) > m.no_vertices()){
                     cout << "Vertex loop CCW contains more vertices than manifold" << endl;
                     valid = false;
+                    vs.insert(v);
                     break;
                 }
             }
             
             if(link.size()==1) {
                 cout << "Vertex contains only a single incident edge" << endl;
+                vs.insert(v);
                 valid = false;
             }
         }
         // verify components of faces
-        for(FaceIDIterator f = m.faces_begin(); f != m.faces_end(); ++f){
+        for(FaceID f : m.faces()){
             // count edges on face
-            Walker j = m.walker(*f);
+            Walker j = m.walker(f);
             
             for(; !j.full_circle(); j = j.circulate_face_cw()){
                 // test that all halfedges in faces bind properly to their face
-                if(j.face() != *f){
+                if(j.face() != f){
                     cout << "Face is inconsistent, halfedge is not bound to face" << endl;
                     valid = false;
+                    fs.insert(f);
                     break;
                 }
             }
             // test faces for valid geometrical properties
             if(j.no_steps() < 3){
                 cout << "Face contains less than 3 edges" << endl;
+                fs.insert(f);
                 valid = false;
             }
             // test for infinite loop around face
             if(j.no_steps() > m.no_halfedges() * 0.5f){
                 cout << "Face loop contains more halfedges than manifold" << endl;
+                fs.insert(f);
                 valid = false;
             }
         }
+        return valid;
+    }
+    
+    bool valid(const Manifold& m)
+    {
+        VertexSet vs;
+        HalfEdgeSet hs;
+        FaceSet fs;
+        find_invalid_entities(m, vs, hs, fs);
         return valid;
     }
     
