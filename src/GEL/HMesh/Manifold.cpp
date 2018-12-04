@@ -575,10 +575,8 @@ namespace HMesh
         
         vector<VertexID> r0;
         circulate_vertex_ccw(*this, v0, [&](VertexID v){r0.push_back(v); cout  << v << ",";});
-        cout << endl;
         vector<VertexID> r1;
         circulate_vertex_ccw(*this, v1, [&](VertexID v){r1.push_back(v); cout  << v << ",";});
-        cout << endl;
 
         if(find(begin(r0),end(r0),v1) != end(r0)) {
             cout << "Oops " << v1  << " in 1-ring of " << v0;
@@ -612,7 +610,7 @@ namespace HMesh
             }
             while( h != h0);
             kernel.remove_vertex(v1);
-            cout << "MERGING " << v0 << " and " << v1 << ", halfedge: " << h0i << "," << h0o << "," << h1i << "," << h1o << endl;
+//            cout << "MERGING " << v0 << " and " << v1 << ", halfedge: " << h0i << "," << h0o << "," << h1i << "," << h1o << endl;
             return true;
         }
         return false;
