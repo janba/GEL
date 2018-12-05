@@ -724,30 +724,6 @@ namespace GLGraphics {
             return;
         }
         
-        void console_remove_duplicates(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(wantshelp(args)) {
-                me->printf("usage: cleanup.remove_duplicates <rad>");
-                me->printf("Removes duplicate vertices and incident faces");
-                
-                return;
-            }
-            double r = 0.001;
-            
-            if(args.size() > 0){
-                istringstream a0(args[0]);
-                a0 >> r;
-            }
-            
-            me->save_active_mesh();
-            Manifold& m = me->active_mesh();
-            Vec3d c;
-            float rad;
-            bsphere(m, c, rad);
-            remove_duplicates(me->active_mesh(), r * rad);
-            return;
-        }
-        
         void console_compact(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)) {
@@ -2033,7 +2009,6 @@ namespace GLGraphics {
         register_console_function("add_mesh", console_add_mesh,"");
         
         register_console_function("cleanup.stitch", console_stitch,"");
-        register_console_function("cleanup.remove_duplicates", console_remove_duplicates,"");
         register_console_function("cleanup.remove_val2", console_remove_val2, "");
         register_console_function("cleanup.flip_orientation", console_flip_orientation,"");
         register_console_function("cleanup.remove_caps", console_remove_caps,"");

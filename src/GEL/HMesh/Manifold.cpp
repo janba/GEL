@@ -612,7 +612,7 @@ namespace HMesh
             }
             while( h != h0);
             kernel.remove_vertex(v1);
-            cout << "MERGING " << v0 << " and " << v1 << ", halfedge: " << h0i << "," << h0o << "," << h1i << "," << h1o << endl;
+//            cout << "MERGING " << v0 << " and " << v1 << ", halfedge: " << h0i << "," << h0o << "," << h1i << "," << h1o << endl;
             return true;
         }
         return false;

@@ -169,37 +169,7 @@ namespace HMesh
         while(did_work);
     }
     
-    int remove_duplicates(Manifold& m, double rad)
-    {
-        KDTree<Vec3d, VertexID> vtree;
-        
-        for(VertexID v: m.vertices())
-                vtree.insert(m.pos(v), v);
-        vtree.build();
-        
-        VertexAttributeVector<int> vertex_dup(m.allocated_vertices(),0);
-        vector<vector<HalfEdgeID> > clustered_halfedges;
-
-        int cnt = 0;
-        for(VertexID v: m.vertices())
-            {
-                vector<Vec3d> keys;
-                vector<VertexID> vals;
-                int n = vtree.in_sphere(m.pos(v), rad, keys, vals);
-                
-                if(n>1) {
-                    sort(vals.begin(), vals.end());
-                    
-                    auto v2remove = vals.begin();
-                    for(v2remove++; v2remove != vals.end(); v2remove++) {
-                        m.remove_vertex(*v2remove);
-                        ++cnt;
-                    }
-                }
-            }
-        return  cnt;
-    }
-    
+ 
     
     VertexAttributeVector<int> cluster_vertices(Manifold& m, double rad) {
 
