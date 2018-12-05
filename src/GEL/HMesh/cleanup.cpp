@@ -12,8 +12,6 @@
 #include "../Geometry/QEM.h"
 #include "../Geometry/KDTree.h"
 
-#include "../GLGraphics/ManifoldRenderer.h"
-
 #include "Manifold.h"
 
 namespace HMesh
