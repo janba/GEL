@@ -575,10 +575,8 @@ namespace HMesh
         
         vector<VertexID> r0;
         circulate_vertex_ccw(*this, v0, [&](VertexID v){r0.push_back(v); cout  << v << ",";});
-        cout << endl;
         vector<VertexID> r1;
         circulate_vertex_ccw(*this, v1, [&](VertexID v){r1.push_back(v); cout  << v << ",";});
-        cout << endl;
 
         if(find(begin(r0),end(r0),v1) != end(r0)) {
             cout << "Oops " << v1  << " in 1-ring of " << v0;

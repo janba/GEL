@@ -12,6 +12,8 @@
 #include "../Geometry/QEM.h"
 #include "../Geometry/KDTree.h"
 
+#include "../GLGraphics/ManifoldRenderer.h"
+
 #include "Manifold.h"
 
 namespace HMesh
@@ -291,8 +293,9 @@ namespace HMesh
                 do {
                     ++cnt;
                     w = w.next();
-                } while(w.halfedge() != h0 && cnt < max_size);
-                if(cnt < max_size)
+                }
+                while(w.halfedge() != h0 && cnt < max_size + 1);
+                if(cnt <= max_size)
                     m.close_hole(h0);
             }
         }
@@ -337,7 +340,10 @@ namespace HMesh
                 int n = vertex_tree.in_sphere(m.pos(v), d, keys, vals);
                 if(n>2)
                 {
-                    cout << "Ambiguity: " << n << " vertices in the same spot" << endl;
+                    cout << "Ambiguity: " << n << " vertices in the same spot: ";
+                    for (int i=0;i<n;++i)
+                        cout << vals[i] << " ";
+                    cout << endl;
                     continue;
                 }
                 if(n==2)
