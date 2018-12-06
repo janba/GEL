@@ -44,6 +44,8 @@ extern "C" {
     
     DLLEXPORT void flip_orientation(HMesh::Manifold* m_ptr);
     
+    DLLEXPORT void merge_coincident_boundary_vertices(HMesh::Manifold* m_ptr, double rad=1e-30);
+    
     DLLEXPORT void minimize_curvature(HMesh::Manifold* m_ptr, bool anneal=false);
     
     DLLEXPORT void minimize_dihedral_angle(HMesh::Manifold* m_ptr, int max_iter=10000, bool anneal=false, bool alpha=false, double gamma=4.0);

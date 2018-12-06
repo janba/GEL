@@ -595,6 +595,13 @@ def flip_orientation(m):
     will point the other way and clockwise becomes counter clockwise """
     lib_py_gel.flip_orientation(m.obj)
 
+lib_py_gel.flip_orientation.argtypes = (ct.c_void_p, ct.c_double)
+def merge_coincident_boundary_vertices(m, rad = 1.0e-30):
+    """  Merg vertices that are boundary vertices and coincident.
+        However, if one belongs to the other's one ring or the onr
+        rings share a vertex, they will not be merged. """
+    lib_py_gel.merge_coincident_boundary_vertices(m.obj, rad)
+
 lib_py_gel.minimize_curvature.argtypes = (ct.c_void_p,ct.c_bool)
 def minimize_curvature(m,anneal=False):
     """ Minimizes mean curvature. This is really the same as dihedral angle

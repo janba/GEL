@@ -79,6 +79,11 @@ void flip_orientation(HMesh::Manifold* m_ptr) {
     flip_orientation(*m_ptr);
 }
 
+void merge_coincident_boundary_vertices(HMesh::Manifold* m_ptr, double rad) {
+    merge_coincident_boundary_vertices(*m_ptr, rad);
+}
+
+
 void minimize_curvature(HMesh::Manifold* m_ptr, bool anneal) {
     minimize_curvature(*m_ptr, anneal);
 }
