@@ -29,12 +29,12 @@ namespace HMesh
                 vertices_as_doubles[idx] = Vec3d(mesh.geometry.vertex(idx));
             
             std::vector<int> faces(mesh.geometry.no_faces(),3);
-            
-            safe_build(m, static_cast<size_t>(mesh.geometry.no_vertices()),
-                       reinterpret_cast<const double*>(&vertices_as_doubles[0]),
-                       static_cast<size_t>(mesh.geometry.no_faces()),
-                       static_cast<const int*>(&faces[0]),
-                       reinterpret_cast<const int*>(&mesh.geometry.face(0)));
+
+            build(m, static_cast<size_t>(mesh.geometry.no_vertices()),
+                    reinterpret_cast<const double*>(&vertices_as_doubles[0]),
+                    static_cast<size_t>(mesh.geometry.no_faces()),
+                    static_cast<const int*>(&faces[0]),
+                    reinterpret_cast<const int*>(&mesh.geometry.face(0)));
             return true;
         }
         return false;

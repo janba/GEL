@@ -317,7 +317,7 @@ namespace HMesh
             }));
         }
         m.clear();
-        m.build(vertices.size(), vertices[0].get(), faces.size(), &faces[0], &indices[0]);
+        build(m, vertices.size(), vertices[0].get(), faces.size(), &faces[0], &indices[0]);
     }
     
     

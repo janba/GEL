@@ -41,32 +41,4 @@ namespace HMesh
         }
         return false;
     }
-    
-    
-     void safe_build(Manifold& m, size_t no_vertices,
-                              const double* vertvec,
-                              size_t no_faces,
-                              const int* facevec,
-                              const int* indices)
-    {
-        int k=0;
-        VertexAttributeVector<int> cluster_id;
-        for(int i=0;i<no_faces;++i) {
-            vector<Vec3d> pts(facevec[i]);
-            for(int j=0;j<facevec[i]; ++j) {
-                const double* v = &vertvec[3*indices[j+k]];
-                pts[j] = Vec3d(v[0],v[1],v[2]);
-            }
-            FaceID f = m.add_face(pts);
-            int j=0;
-            circulate_face_ccw(m, f, (std::function<void(VertexID)>)[&](VertexID v){
-                cluster_id[v] = indices[j+k];
-                ++j;
-            });
-            k += facevec[i];
-        }
-        stitch_mesh(m, cluster_id);
-        m.cleanup();
-    }
-
 }

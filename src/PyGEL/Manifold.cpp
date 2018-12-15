@@ -26,7 +26,7 @@ Manifold* Manifold_new()
 Manifold* Manifold_from_triangles(int NV, int NF, double* vertices, int* faces) {
     Manifold* m_ptr = new Manifold();
     vector<int> face_valencies(NF,3);
-    m_ptr->build(NV, vertices, NF, &face_valencies[0], faces);
+    build(*m_ptr, NV, vertices, NF, &face_valencies[0], faces);
     return m_ptr;
     
 }

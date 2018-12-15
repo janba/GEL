@@ -35,9 +35,9 @@ def display(m,wireframe=True,smooth=True,data=None):
         xyze = array(xyze)
         trace1=go.Scatter3d(x=xyze[:,0],y=xyze[:,1],z=xyze[:,2],
                    mode='lines',
-                   line=go.Line(color='rgb(125,0,0)', width=1),
+                   line=dict(color='rgb(125,0,0)', width=1),
                    hoverinfo='none')
         mesh_data += [trace1]
-    lyt = go.Layout(scene=go.Scene(aspectmode='data'))
+    lyt = go.Layout(width=850,height=500)
     fig = go.Figure(data=mesh_data,layout=lyt)
     py.iplot(fig)

@@ -76,7 +76,7 @@ namespace HMesh
         vector<int> faces(quad_vertices.size()/4,4);
         for(int i=0;i<quad_vertices.size();++i)
             indices.push_back(i);
-        mani.build(quad_vertices.size(),
+        build(mani, quad_vertices.size(),
                    quad_vertices[0].get(),
                    faces.size(),
                    &faces[0],

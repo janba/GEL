@@ -77,16 +77,11 @@ namespace HMesh
             << faces.size() << " faces"<< endl;
             m.clear();
             
-            if (safe)  safe_build(m, vertices.size(),
-                                  reinterpret_cast<double*>(&vertices[0]),
-                                  faces.size(),
-                                  &faces[0],
-                                  &indices[0]);
-            else m.build(vertices.size(),
-                         reinterpret_cast<double*>(&vertices[0]),
-                         faces.size(),
-                         &faces[0],
-                         &indices[0]);
+            build(m, vertices.size(),
+                  reinterpret_cast<double*>(&vertices[0]),
+                  faces.size(),
+                  &faces[0],
+                  &indices[0]);
             
             return true;
         }

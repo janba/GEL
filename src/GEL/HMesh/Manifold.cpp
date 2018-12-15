@@ -4,14 +4,14 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 #include <iterator>
-#include "Manifold.h"
-
 #include <iostream>
 #include <vector>
 #include <map>
 #include <iterator>
 
 #include "../Geometry/TriMesh.h"
+#include "Manifold.h"
+#include "cleanup.h"
 
 namespace HMesh
 {
@@ -20,61 +20,20 @@ namespace HMesh
     using namespace Geometry;
     using namespace CGLA;
 	
-    struct Edge
-    {
-        HalfEdgeID h0 = InvalidHalfEdgeID;
-        HalfEdgeID h1 = InvalidHalfEdgeID;
-        int count = 0;
-        bool insert_half_edge(HalfEdgeID h) {
-            switch(count) {
-                case 0:
-                    h0 = h;
-                    ++count;
-                    return true;
-                case 1:
-                    h1 = h;
-                    ++count;
-                    return true;
-            }
-            return false;
-        }
-    };
 
     /*********************************************
 	 * Public functions
 	 *********************************************/
-    void Manifold::build(const TriMesh& mesh)
-    {
-        // A vector of 3's - used to tell build how many indices each face consists of
-        vector<int> faces(mesh.geometry.no_faces(), 3);
-		
-        build_template( static_cast<size_t>(mesh.geometry.no_vertices()),
-					   reinterpret_cast<const float*>(&mesh.geometry.vertex(0)),
-					   static_cast<size_t>(faces.size()),
-					   static_cast<const int*>(&faces[0]),
-					   reinterpret_cast<const int*>(&mesh.geometry.face(0)));
-    }
-    
-    void Manifold::build(   size_t no_vertices,
-						 const float* vertvec,
-						 size_t no_faces,
-						 const int* facevec,
-						 const int* indices)
-    {
-        build_template(no_vertices, vertvec, no_faces, facevec, indices);
-    }
-    
-    void Manifold::build(   size_t no_vertices,
-						 const double* vertvec,
-						 size_t no_faces,
-						 const int* facevec,
-						 const int* indices)
-    {
-        build_template(no_vertices, vertvec, no_faces, facevec, indices);
-    }
     
     FaceID Manifold::add_face(std::vector<Manifold::Vec> points)
     {
+        struct Edge
+        {
+            HalfEdgeID h0 = InvalidHalfEdgeID;
+            HalfEdgeID h1 = InvalidHalfEdgeID;
+            int count;
+        };
+
         int N = points.size();
         vector<VertexID> vertices(N);
         for(size_t i=0;i<points.size(); ++i) {
@@ -967,41 +926,7 @@ namespace HMesh
      * Private functions
      **********************************************/
     
-    template<typename size_type, typename float_type, typename int_type>
-    void Manifold::build_template(size_type no_vertices,
-                                  const float_type* vertvec,
-                                  size_type no_faces,
-                                  const int_type* facevec,
-                                  const int_type* indices)
-    {
-        map<pair<int_type, int_type>, Edge> edge_map;
-        auto make_key = [](int_type a, int_type b) { return make_pair(min(a,b), max(a,b));};
-        clear();
-        size_type N = 0;
-        for (size_type i = 0;i< no_faces; ++i) {
-            size_type no_verts_in_face = facevec[i];
-            vector<Vec> verts(no_verts_in_face);
-            for(size_type j = 0; j < no_verts_in_face; ++j)
-                verts[j] = Vec(vertvec[3*indices[N+j]+0],
-                               vertvec[3*indices[N+j]+1],
-                               vertvec[3*indices[N+j]+2]);
-            FaceID f = add_face(verts);
-            size_type j = 0;
-            circulate_face_ccw(*this, f, [&](Walker w){
-                HalfEdgeID h = w.next().opp().halfedge();
-                auto ek = make_key(indices[N+j], indices[N+(j+1)%no_verts_in_face]);
-                Edge& edg = edge_map[ek];
-                if(!edg.insert_half_edge(h))
-                    cout << "Warning: building mesh from non-manifold index face set" << endl;
-                ++j;
-            });
-            N += no_verts_in_face;
-        }
-        for (const auto& edg : edge_map)
-            if(edg.second.count == 2)
-                stitch_boundary_edges(edg.second.h0, edg.second.h1);
-    }
-    
+
     
     void Manifold::link(HalfEdgeID h0, HalfEdgeID h1)
     {
@@ -1154,6 +1079,65 @@ namespace HMesh
      * Namespace functions
      ***************************************************/
 
+    
+    template<typename size_type, typename float_type, typename int_type>
+    void build_template(Manifold& m, size_type no_vertices,
+                                  const float_type* vertvec,
+                                  size_type no_faces,
+                                  const int_type* facevec,
+                                  const int_type* indices)
+    {
+        int k=0;
+        VertexAttributeVector<int> cluster_id;
+        for(int i=0;i<no_faces;++i) {
+            vector<Vec3d> pts(facevec[i]);
+            for(int j=0;j<facevec[i]; ++j) {
+                const float_type* v = &vertvec[3*indices[j+k]];
+                pts[j] = Vec3d(v[0],v[1],v[2]);
+            }
+            FaceID f = m.add_face(pts);
+            int j=0;
+            circulate_face_ccw(m, f, (std::function<void(VertexID)>)[&](VertexID v){
+                cluster_id[v] = indices[j+k];
+                ++j;
+            });
+            k += facevec[i];
+        }
+        stitch_mesh(m, cluster_id);
+        m.cleanup();
+    }
+    
+    void build(Manifold& m, const TriMesh& mesh)
+    {
+        // A vector of 3's - used to tell build how many indices each face consists of
+        vector<int> faces(mesh.geometry.no_faces(), 3);
+        
+        build_template(m, static_cast<size_t>(mesh.geometry.no_vertices()),
+                       reinterpret_cast<const float*>(&mesh.geometry.vertex(0)),
+                       static_cast<size_t>(faces.size()),
+                       static_cast<const int*>(&faces[0]),
+                       reinterpret_cast<const int*>(&mesh.geometry.face(0)));
+    }
+    
+    void build(Manifold& m, size_t no_vertices,
+                         const float* vertvec,
+                         size_t no_faces,
+                         const int* facevec,
+                         const int* indices)
+    {
+        build_template(m, no_vertices, vertvec, no_faces, facevec, indices);
+    }
+    
+    void build(Manifold& m, size_t no_vertices,
+                         const double* vertvec,
+                         size_t no_faces,
+                         const int* facevec,
+                         const int* indices)
+    {
+        build_template(m, no_vertices, vertvec, no_faces, facevec, indices);
+    }
+
+    
     bool find_invalid_entities(const Manifold& m, VertexSet& vs, HalfEdgeSet& hs, FaceSet& fs)
     {
         bool valid = true;
