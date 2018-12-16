@@ -595,7 +595,7 @@ def flip_orientation(m):
     will point the other way and clockwise becomes counter clockwise """
     lib_py_gel.flip_orientation(m.obj)
 
-lib_py_gel.flip_orientation.argtypes = (ct.c_void_p, ct.c_double)
+lib_py_gel.merge_coincident_boundary_vertices.argtypes = (ct.c_void_p, ct.c_double)
 def merge_coincident_boundary_vertices(m, rad = 1.0e-30):
     """  Merg vertices that are boundary vertices and coincident.
         However, if one belongs to the other's one ring or the onr
