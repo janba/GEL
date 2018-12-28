@@ -24,6 +24,8 @@ namespace HMesh
 
     /// Naive triangulation by connecting to center point.
     void triangulate_by_vertex_face_split(Manifold& m);
+    
+    int shortest_edge_triangulate(Manifold& m, FaceID f);
 
     /// Triangulate by connecting the points forming the shortest edge.
     void shortest_edge_triangulate(Manifold& m);

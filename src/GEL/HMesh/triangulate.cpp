@@ -218,6 +218,58 @@ namespace HMesh
         }
 
     }
+    
+    FaceID shortest_edge_split(Manifold& m, FaceID f) {
+        // Create a vector of vertices.
+        vector<VertexID> verts;
+        int no_edges = circulate_face_ccw(m, f, [&verts](VertexID vn){
+            verts.push_back(vn);
+        });
+        // If there are just three we are done.
+        if(no_edges == 3) return InvalidFaceID;
+        
+        using VP = pair<int,int>;
+        // Find vertex pairs that may be connected.
+        vector<VP> vpairs;
+        const int N = verts.size();
+        for(int i = 0; i < N - 2; ++i){
+            for(int j = i + 2; j < N; ++j){
+                if(verts[i] != verts[j] && !connected(m, verts[i], verts[j]))
+                    vpairs.push_back(pair<int,int>(i, j));
+            }
+        }
+        if(! vpairs.empty()){
+            /* For all vertex pairs, find the edge lengths. Combine the
+             vertices forming the shortest edge. */
+            auto mei = min_element(begin(vpairs), end(vpairs), [&](const VP& a, const  VP& b) {
+                double lena = sqr_length(m.pos(verts[a.first]) - m.pos(verts[a.second]));
+                double lenb = sqr_length(m.pos(verts[b.first]) - m.pos(verts[b.second]));
+                return lena < lenb;
+            });
+            int i = mei->first;
+            int j = mei->second;
+            FaceID f_new = m.split_face_by_edge(f, verts[i], verts[j]);
+            return f_new;
+        }
+        return InvalidFaceID;
+    }
+
+    int shortest_edge_triangulate(Manifold& m, FaceID f) {
+        queue<FaceID> fq;
+        fq.push(f);
+        int work = 0;
+        while(!fq.empty()) {
+            FaceID f = fq.front();
+            fq.pop();
+            FaceID fn = shortest_edge_split(m, f);
+            if (fn != InvalidFaceID) {
+                fq.push(f);
+                fq.push(fn);
+                ++work;
+            }
+        }
+        return work;
+    }
 
     void shortest_edge_triangulate(Manifold& m)
     {
@@ -226,45 +278,7 @@ namespace HMesh
             // For every face.
             work = 0;
             for (auto f: m.faces()) {
-                // Create a vector of vertices.
-                vector<VertexID> verts;
-                int no_edges = circulate_face_ccw(m, f, [&verts](VertexID vn){
-                    verts.push_back(vn);
-                });
-                // If there are just three we are done.
-                if(no_edges == 3) continue;
-                
-                // Find vertex pairs that may be connected.
-                vector<pair<int,int> > vpairs;
-                const int N = verts.size();
-                for(int i = 0; i < N - 2; ++i){
-                    for(int j = i + 2; j < N; ++j){
-                        if(verts[i] != verts[j] && !connected(m, verts[i], verts[j]))
-                            vpairs.push_back(pair<int,int>(i, j));
-                    }
-                }
-                if(! vpairs.empty()){
-                    /* For all vertex pairs, find the edge lengths. Combine the
-                     vertices forming the shortest edge. */
-                    int i = vpairs[0].first;
-                    int j = vpairs[0].second;
-                    double min_len=sqr_length(m.pos(verts[i]) - m.pos(verts[j]));
-                    int min_k = 0;
-                    for(size_t k = 1; k < vpairs.size(); ++k) {
-                        i = vpairs[k].first;
-                        j = vpairs[k].second;
-                        double len = sqr_length(m.pos(verts[i]) - m.pos(verts[j]));
-                        if(len<min_len) {
-                            min_len = len;
-                            min_k = k;
-                        }
-                    }
-                    i = vpairs[min_k].first;
-                    j = vpairs[min_k].second;
-                    m.split_face_by_edge(f, verts[i], verts[j]);
-                    ++work;
-                }
-
+                work += shortest_edge_triangulate(m, f);
             }
         }
         while(work);
