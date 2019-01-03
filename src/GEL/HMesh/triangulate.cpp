@@ -218,7 +218,36 @@ namespace HMesh
         }
 
     }
-    
+    FaceID clip_ear(HMesh::Manifold& m, FaceID f) {
+        int N = no_edges(m, f);
+        if(N<4)
+            return InvalidFaceID;
+        
+        Vec3d norm = normal(m,f);
+        
+        double max_proj_area = -1e300;
+        HalfEdgeID h_max = InvalidHalfEdgeID;
+        circulate_face_ccw(m,f,[&](Walker w){
+            Vec3d p = m.pos(w.vertex());
+            Vec3d pp = m.pos(w.opp().vertex());
+            Vec3d pn = m.pos(w.next().vertex());
+            double proj_area = dot(norm, cross(pn-p,pp-p));
+            if (proj_area > max_proj_area)
+            {
+                max_proj_area = proj_area;
+                h_max=w.halfedge();
+            }
+        });
+        if(h_max != InvalidHalfEdgeID)
+        {
+            Walker w = m.walker(h_max);
+            FaceID f_new = m.split_face_by_edge(f, w.opp().vertex(), w.next().vertex()  );
+//            cout << "doing" << endl;
+            return f_new;
+        }
+        return InvalidFaceID;
+    }
+
     FaceID shortest_edge_split(Manifold& m, FaceID f) {
         // Create a vector of vertices.
         vector<VertexID> verts;
@@ -261,7 +290,7 @@ namespace HMesh
         while(!fq.empty()) {
             FaceID f = fq.front();
             fq.pop();
-            FaceID fn = shortest_edge_split(m, f);
+            FaceID fn = clip_ear(m, f);
             if (fn != InvalidFaceID) {
                 fq.push(f);
                 fq.push(fn);
