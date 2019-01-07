@@ -85,7 +85,7 @@ namespace HMesh
         stitch_more(mani, 1e-5);
         
         if(make_triangles)
-            shortest_edge_triangulate(mani);
+            triangulate(mani);
         
         float avg_edge_len=0;
         for(HalfEdgeIDIterator h = mani.halfedges_begin(); h != mani.halfedges_end();++h)

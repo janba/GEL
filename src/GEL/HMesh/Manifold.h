@@ -367,6 +367,9 @@ namespace HMesh
     /// Compute the vertex normal. This function computes the angle weighted sum of incident face normals.
     Manifold::Vec normal(const Manifold& m, VertexID v);
 
+    /// Compute the vertex normal but multiplied by the area of the face. This is more efficient if both area and normal are needed.
+    Manifold::Vec area_normal(const Manifold& m, FaceID f);
+
     /// Returns true if the two argument vertices are in each other's one-rings.
     bool connected(const Manifold& m, VertexID v0, VertexID v1);
 
