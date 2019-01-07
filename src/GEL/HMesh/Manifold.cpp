@@ -1534,12 +1534,8 @@ namespace HMesh
         }));
         
         Manifold::Vec norm(0);
-        for(int i=0;i<k;++i)
-        {
-            norm[0] += (v[i][1]-v[(i+1)%k][1])*(v[i][2]+v[(i+1)%k][2]);
-            norm[1] += (v[i][2]-v[(i+1)%k][2])*(v[i][0]+v[(i+1)%k][0]);
-            norm[2] += (v[i][0]-v[(i+1)%k][0])*(v[i][1]+v[(i+1)%k][1]);
-        }
+        for(int i=1;i<k-1;++i)
+            norm += cross(v[i]-v[0], v[(i+1)%k]-v[0]);
         float l = sqr_length(norm);
         if(l>0.0f)
             norm /= sqrt(l);
