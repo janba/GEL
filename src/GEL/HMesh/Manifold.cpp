@@ -1261,8 +1261,7 @@ namespace HMesh
         VertexSet vs;
         HalfEdgeSet hs;
         FaceSet fs;
-        find_invalid_entities(m, vs, hs, fs);
-        return valid;
+        return find_invalid_entities(m, vs, hs, fs);
     }
     
     void bbox(const Manifold& m, Manifold::Vec& pmin, Manifold::Vec& pmax)
@@ -1525,22 +1524,28 @@ namespace HMesh
         return circulate_face_ccw(m, f, static_cast<std::function<void(Walker&)>>([](Walker& w){}));
     }
     
+    Manifold::Vec area_normal(const Manifold& m, FaceID f)
+    {
+        using Vec = Manifold::Vec;
+        vector<Vec> v;
+        Vec c(0.0);
+        int k= circulate_face_ccw(m, f, static_cast<std::function<void(VertexID)>>([&](VertexID vid) {
+            Vec p = m.pos(vid);
+            c += p;
+            v.push_back(p);
+        }));
+        c /= k;
+        Manifold::Vec norm(0);
+        for(int i=0;i<k;++i)
+            norm += cross(v[i]-c,v[(i+1)%k]-c);
+        return 0.5 * norm;
+    }
+    
     Manifold::Vec normal(const Manifold& m, FaceID f)
     {
-        vector<Manifold::Vec> v;
-        
-        int k= circulate_face_ccw(m, f, static_cast<std::function<void(VertexID)>>([&](VertexID vid) {
-            v.push_back(m.pos(vid));
-        }));
-        
-        Manifold::Vec norm(0);
-        for(int i=1;i<k-1;++i)
-            norm += cross(v[i]-v[0], v[(i+1)%k]-v[0]);
-        float l = sqr_length(norm);
-        if(l>0.0f)
-            norm /= sqrt(l);
-        return norm;
+        return cond_normalize(area_normal(m, f));
     }
+
     
     
     double area(const Manifold& m, FaceID fid)

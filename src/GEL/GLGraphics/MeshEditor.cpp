@@ -428,7 +428,7 @@ namespace GLGraphics {
             auto sel = me->get_face_selection();
             for(auto f: sel)
                 if(m.in_use(f))
-                    triangulate_face_by_edge_split(m, f);
+                    triangulate(m, f);
         }
         
         void console_bridge_faces(MeshEditor* me, const std::vector<std::string> & args)
@@ -632,22 +632,6 @@ namespace GLGraphics {
             float avg_length = average_edge_length(me->active_mesh());
             
             refine_edges(me->active_mesh(), thresh * avg_length);
-            
-            return;
-            
-        }
-        
-        void console_refine_faces(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(wantshelp(args)) {
-                me->printf("usage: refine.split_faces ");
-                me->printf("usage:  Takes no arguments. Inserts a vertex at the centre of each face.");
-                
-                return;
-            }
-            me->save_active_mesh();
-            
-            triangulate_by_vertex_face_split(me->active_mesh());
             
             return;
             
@@ -1373,7 +1357,7 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
             
-            shortest_edge_triangulate(me->active_mesh());
+            triangulate(me->active_mesh(), SHORTEST_EDGE);
             me->active_mesh().cleanup();
             valid(me->active_mesh());
             return;
@@ -2019,7 +2003,6 @@ namespace GLGraphics {
         register_console_function("triangulate", console_triangulate,"");
         register_console_function("dual", console_dual,"");
         register_console_function("refine.split_edges", console_refine_edges,"");
-        register_console_function("refine.split_faces", console_refine_faces,"");
         
         register_console_function("subdivide.catmull_clark", console_cc_subdivide,"");
         register_console_function("subdivide.rootcc", console_root_cc_subdivide,"");

@@ -569,14 +569,14 @@ namespace HMesh
 
             if(counter[elem.h].isRemovedFromQueue) // if item already has been processed continue
                 continue;
-
             counter[elem.h].isRemovedFromQueue = true;
 
-            if(counter[elem.h].touched != elem.time) {
-                if (efun.delta_energy(m, elem.h) >= 0) {
-                    continue;
-                }
-            }
+            if(counter[elem.h].touched != elem.time)
+                continue;
+            
+            if (efun.delta_energy(m, elem.h) >= -0.001)
+                continue;
+
             if(!precond_flip_edge(m, elem.h))
                 continue;
 
@@ -748,7 +748,7 @@ namespace HMesh
             for(int i=0;i<long_edges.size(); ++i)
                 if(m.in_use(long_edges[i]))
                     m.split_edge(long_edges[i]);
-            shortest_edge_triangulate(m);
+            triangulate(m);
             
             for(int i=0;i<short_edges.size(); ++i)
                 if(m.in_use(short_edges[i]) && precond_collapse_edge(m, short_edges[i]))
