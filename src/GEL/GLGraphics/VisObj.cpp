@@ -9,15 +9,15 @@
 
 #include "VisObj.h"
 
-#include <GLGraphics/Console.h>
-#include <HMesh/Manifold.h>
-#include <HMesh/AttributeVector.h>
-#include <HMesh/load.h>
-#include <HMesh/curvature.h>
+#include "Console.h"
+#include "../HMesh/Manifold.h"
+#include "../HMesh/AttributeVector.h"
+#include "../HMesh/load.h"
+#include "../HMesh/curvature.h"
 
-#include <CGLA/Mat3x3d.h>
-#include <CGLA/Vec3d.h>
-#include <CGLA/Vec4d.h>
+#include "../CGLA/Mat3x3d.h"
+#include "../CGLA/Vec3d.h"
+#include "../CGLA/Vec4d.h"
 
 using namespace std;
 using namespace CGLA;

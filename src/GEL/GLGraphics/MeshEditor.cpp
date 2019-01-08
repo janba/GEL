@@ -22,15 +22,15 @@
 #include <queue>
 #include <algorithm>
 
-#include <GLGraphics/Console.h>
-#include <GLGraphics/glsl_shader.h>
-#include <GLGraphics/ShadowBuffer.h>
+#include "../GLGraphics/Console.h"
+#include "../GLGraphics/glsl_shader.h"
+#include "../GLGraphics/ShadowBuffer.h"
 
-#include <CGLA/CGLA.h>
+#include "../CGLA/CGLA.h"
 
-#include <HMesh/HMesh.h>
+#include "../HMesh/HMesh.h"
 
-#include <Util/Timer.h>
+#include "../Util/Timer.h""../
 
 #include "VisObj.h"
 

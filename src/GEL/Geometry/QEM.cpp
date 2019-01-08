@@ -7,7 +7,7 @@
 #include <iostream>
 
 #include "QEM.h"
-#include <CGLA/eigensolution.h>
+#include "../CGLA/eigensolution.h"
 
 using namespace CGLA;
 using namespace std;

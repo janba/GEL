@@ -11,17 +11,20 @@ pkg_search_module(GLFW REQUIRED glfw3)
 
 if (APPLE)
 FIND_LIBRARY(COCOA_LIBRARY Cocoa)
+add_compile_definitions(GL_SILENCE_DEPRECATION)
+include_directories(./src/)
 endif (APPLE)
 
 if (UNIX)
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -lpthread -Wall")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread -Wall")
+	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -lpthread")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -lpthread")
 endif (UNIX)
+
 if(WIN32)
+	include_directories(./src/GEL)
     # TODO for Windows
 endif()
 
-include_directories(./src/GEL)
 include_directories(./src/GEL/GL/include)
 
 aux_source_directory(./src/GEL/CGLA CGLA_SRC_LIST)
