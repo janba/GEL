@@ -9,6 +9,7 @@
 #include <iostream>
 #include <string>
 #include <GEL/HMesh/HMesh.h>
+#include <GEL/HMesh/Delaunay_triangulate.h>
 #include "IntVector.h"
 #include "Manifold.h"
 
@@ -21,6 +22,25 @@ Manifold* Manifold_new()
     Manifold* m_ptr = new Manifold();
     return m_ptr;
 }
+
+Manifold* Manifold_from_triangles(int NV, int NF, double* vertices, int* faces) {
+    Manifold* m_ptr = new Manifold();
+    vector<int> face_valencies(NF,3);
+    build(*m_ptr, NV, vertices, NF, &face_valencies[0], faces);
+    return m_ptr;
+    
+}
+
+Manifold* Manifold_from_points(int N, double* pts, double* _X_axis, double* _Y_axis) {
+    vector<Vec3d> pts3d(N);
+    memcpy(pts3d.data(), pts, N * 3 * sizeof(double));
+    Vec3d X_axis(_X_axis[0],_X_axis[1],_X_axis[2]);
+    Vec3d Y_axis(_Y_axis[0],_Y_axis[1],_Y_axis[2]);
+    Manifold* m_ptr = new Manifold(Delaunay_triangulate(pts3d, X_axis, Y_axis));
+    return m_ptr;
+}
+
+
 
 HMesh::Manifold* Manifold_copy(HMesh::Manifold* self)
 {
@@ -200,6 +220,13 @@ size_t Walker_next_halfedge(HMesh::Manifold* m_ptr, size_t _h) {
     Walker w = (*m_ptr).walker(HalfEdgeID(_h));
     return w.next().halfedge().get_index();
 }
+
+size_t Walker_prev_halfedge(HMesh::Manifold* m_ptr, size_t _h) {
+    Walker w = (*m_ptr).walker(HalfEdgeID(_h));
+    return w.prev().halfedge().get_index();
+}
+
+
 size_t Walker_opposite_halfedge(HMesh::Manifold* m_ptr, size_t _h) {
     Walker w = (*m_ptr).walker(HalfEdgeID(_h));
     return w.opp().halfedge().get_index();

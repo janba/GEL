@@ -46,46 +46,14 @@ namespace HMesh
         /// Default constructor
         Manifold();
 
-        /** \brief Build a manifold. 
-         The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
-         the number of faces (no_faces), a pointer to an array of float values (vert_vec) and an array
-         of indices (indices).
-         Note that each vertex is three floating point numbers. The indices vector is one long list of
-         all vertex indices. Note also that this function call assumes that the mesh is manifold. Failing
-         that the results are undefined but usually a crash due to a failed assertion. 
-         Finally, we should consider the option to build a manifold with single precision floating point
-         values deprecated. Hence, safe_build exists only as double precision.
-         */
-        void build( size_t no_vertices,
-                    const float* vertvec,
-                    size_t no_faces,
-                    const int* facevec,
-                    const int* indices);
-
-        /** \brief Build a manifold.
-         The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
-         the number of faces (no_faces), a pointer to an array of double values (vert_vec) and an array
-         of indices (indices).
-         Note that each vertex is three double precision floating point numbers. 
-         The indices vector is one long list of all vertex indices. Note also that this function
-         assumes that the mesh is manifold. Failing that the results are undefined but usually a 
-         crash due to a failed assertion. */
-        void build( size_t no_vertices,
-                   const double* vertvec,
-                   size_t no_faces,
-                   const int* facevec,
-                   const int* indices);
-
-        /// Build a manifold from a TriMesh
-        void build(const Geometry::TriMesh& mesh);
-
         /// Merge present Manifold with argument.
         void merge(const Manifold& m2);
 
         
         /** Add a face to the Manifold.
-         This function is provided a vector of points in space and transforms it into a single 
-         polygonal face calling build. It is purely for convenience. */
+         This function is provided a vector of points in space and produces a single
+         polygonal face.
+         */
         FaceID add_face(std::vector<Manifold::Vec> points);
 
         /** Removes a face from the Manifold. If it is an interior face it is simply replaces
@@ -194,6 +162,8 @@ namespace HMesh
          Two boundary halfedges can be stitched together. This can be used to build a complex mesh
          from a bunch of simple faces. */
         bool stitch_boundary_edges(HalfEdgeID h0, HalfEdgeID h1);
+        
+        bool merge_boundary_vertices(VertexID v0, VertexID v1);
 
         /** \brief Merges two faces into a single polygon. 
         The first face is f. The second face is adjacent to f along the halfedge h. 
@@ -292,11 +262,47 @@ namespace HMesh
         /// Auxiliary function called from collapse
         void remove_face_if_degenerate(HalfEdgeID h);
     };
+    
+    /** \brief Build a manifold.
+     The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
+     the number of faces (no_faces), a pointer to an array of float values (vert_vec) and an array
+     of indices (indices).
+     Note that each vertex is three floating point numbers. The indices vector is one long list of
+     all vertex indices. Note also that this function call assumes that the mesh is manifold. Failing
+     that the results are undefined but usually a crash due to a failed assertion.
+     Finally, we should consider the option to build a manifold with single precision floating point
+     values deprecated. Hence, safe_build exists only as double precision.
+     */
+    void build(Manifold& m, size_t no_vertices,
+               const float* vertvec,
+               size_t no_faces,
+               const int* facevec,
+               const int* indices);
+    
+    /** \brief Build a manifold.
+     The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
+     the number of faces (no_faces), a pointer to an array of double values (vert_vec) and an array
+     of indices (indices).
+     Note that each vertex is three double precision floating point numbers.
+     The indices vector is one long list of all vertex indices. Note also that this function
+     assumes that the mesh is manifold. Failing that the results are undefined but usually a
+     crash due to a failed assertion. */
+    void build(Manifold& m, size_t no_vertices,
+               const double* vertvec,
+               size_t no_faces,
+               const int* facevec,
+               const int* indices);
+    
+    /// Build a manifold from a TriMesh
+    void build(Manifold& m, const Geometry::TriMesh& mesh);
+
 
     /** \brief Verify Manifold Integrity
     Performs a series of tests to check that this is a valid manifold.
     This function is not rigorously constructed but seems to catch all problems so far. 
     The function returns true if the mesh is valid and false otherwise. */
+    bool find_invalid_entities(const Manifold& m, VertexSet& vs, HalfEdgeSet& hs, FaceSet& fs);
+
     bool valid(const Manifold& m);
 
     /// Calculate the bounding box of the manifold
@@ -360,6 +366,9 @@ namespace HMesh
 
     /// Compute the vertex normal. This function computes the angle weighted sum of incident face normals.
     Manifold::Vec normal(const Manifold& m, VertexID v);
+
+    /// Compute the vertex normal but multiplied by the area of the face. This is more efficient if both area and normal are needed.
+    Manifold::Vec area_normal(const Manifold& m, FaceID f);
 
     /// Returns true if the two argument vertices are in each other's one-rings.
     bool connected(const Manifold& m, VertexID v0, VertexID v1);

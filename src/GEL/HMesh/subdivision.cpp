@@ -102,7 +102,7 @@ namespace HMesh
         }
 
         m_out.clear();
-        m_out.build(npsize, reinterpret_cast<double*>(&new_points[0]), faces.size(), &faces[0], &indices[0]);
+        build(m_out, npsize, reinterpret_cast<double*>(&new_points[0]), faces.size(), &faces[0], &indices[0]);
     }
     
     void root3_subdivide(Manifold& m_in, Manifold& m)

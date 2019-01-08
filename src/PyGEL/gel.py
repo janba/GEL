@@ -126,7 +126,10 @@ class I3DTree:
         n = lib_py_gel.I3DTree_in_sphere(self.obj, p[0],p[1],p[2],r,keys.obj,vals.obj)
         return (keys,vals)
 
-
+lib_py_gel.Manifold_from_triangles.argtypes = (ct.c_size_t,ct.c_size_t, np.ctypeslib.ndpointer(ct.c_double), np.ctypeslib.ndpointer(ct.c_int))
+lib_py_gel.Manifold_from_triangles.restype = ct.c_void_p
+lib_py_gel.Manifold_from_points.argtypes = (ct.c_size_t,np.ctypeslib.ndpointer(ct.c_double), np.ctypeslib.ndpointer(ct.c_double),np.ctypeslib.ndpointer(ct.c_double))
+lib_py_gel.Manifold_from_points.restype = ct.c_void_p
 lib_py_gel.Manifold_new.restype = ct.c_void_p
 lib_py_gel.Manifold_copy.restype = ct.c_void_p
 lib_py_gel.Manifold_copy.argtypes = (ct.c_void_p,)
@@ -181,6 +184,8 @@ lib_py_gel.Manifold_cleanup.argtypes = (ct.c_void_p,)
 
 lib_py_gel.Walker_next_halfedge.restype = ct.c_size_t
 lib_py_gel.Walker_next_halfedge.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.Walker_prev_halfedge.restype = ct.c_size_t
+lib_py_gel.Walker_prev_halfedge.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.Walker_opposite_halfedge.restype = ct.c_size_t
 lib_py_gel.Walker_opposite_halfedge.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.Walker_incident_face.restype = ct.c_size_t
@@ -220,6 +225,16 @@ class Manifold:
             self.obj = lib_py_gel.Manifold_new()
         else:
             self.obj = lib_py_gel.Manifold_copy(orig.obj)
+    @classmethod
+    def from_triangles(cls,vertices, faces):
+        m = cls()
+        m.obj = lib_py_gel.Manifold_from_triangles(len(vertices),len(faces),np.array(vertices,dtype=np.float64), np.array(faces,dtype=ct.c_int))
+        return m
+    @classmethod
+    def from_points(cls,pts,xaxis=np.array([1,0,0]),yaxis=np.array([0,1,0])):
+        m = cls()
+        m.obj = lib_py_gel.Manifold_from_points(len(pts),np.array(pts,dtype=np.float64), np.array(xaxis,dtype=np.float64), np.array(yaxis,dtype=np.float64))
+        return m
     def __del__(self):
         lib_py_gel.Manifold_delete(self.obj)
     def add_face(self,pts):
@@ -287,6 +302,9 @@ class Manifold:
     def next_halfedge(self,hid):
         """ Returns next halfedge to the one passed as argument. """
         return lib_py_gel.Walker_next_halfedge(self.obj, hid)
+    def prev_halfedge(self,hid):
+        """ Returns previous halfedge to the one passed as argument. """
+        return lib_py_gel.Walker_prev_halfedge(self.obj, hid)
     def opposite_halfedge(self,hid):
         """ Returns opposite halfedge to the one passed as argument. """
         return lib_py_gel.Walker_opposite_halfedge(self.obj, hid)
@@ -486,6 +504,7 @@ def bsphere(m):
     return (c,r)
 
 lib_py_gel.stitch_mesh.argtypes = (ct.c_void_p,ct.c_double)
+lib_py_gel.stitch_mesh.restype = ct.c_int
 def stitch(m, rad=1e-30):
     """ Stitch together edges whose endpoints coincide geometrically. This
     function allows you to create a mesh as a bunch of faces and then stitch
@@ -493,7 +512,7 @@ def stitch(m, rad=1e-30):
     spatial data structure to find out which vertices coincide. The return value
     is the number of edges that could not be stitched. Often this is because it
     would introduce a non-manifold situation."""
-    lib_py_gel.stitch_mesh(m.obj,rad)
+    return lib_py_gel.stitch_mesh(m.obj,rad)
 
 lib_py_gel.obj_save.argtypes = (ct.c_char_p, ct.c_void_p)
 def obj_save(fn, m):
@@ -564,17 +583,24 @@ def remove_needles(m, thresh=0.05, average_positions=False):
     abs_thresh = thresh * average_edge_length(m)
     lib_py_gel.remove_needles(m.obj,abs_thresh, average_positions)
 
-lib_py_gel.close_holes.argtypes = (ct.c_void_p,)
-def close_holes(m):
+lib_py_gel.close_holes.argtypes = (ct.c_void_p,ct.c_int)
+def close_holes(m, max_size=100):
     """  This function replaces holes by faces. It is really a simple function
     that just finds all loops of edges next to missing faces. """
-    lib_py_gel.close_holes(m.obj)
+    lib_py_gel.close_holes(m.obj, max_size)
 
 lib_py_gel.flip_orientation.argtypes = (ct.c_void_p,)
 def flip_orientation(m):
     """  Flip the orientation of a mesh. After calling this function, normals
     will point the other way and clockwise becomes counter clockwise """
     lib_py_gel.flip_orientation(m.obj)
+
+lib_py_gel.merge_coincident_boundary_vertices.argtypes = (ct.c_void_p, ct.c_double)
+def merge_coincident_boundary_vertices(m, rad = 1.0e-30):
+    """  Merg vertices that are boundary vertices and coincident.
+        However, if one belongs to the other's one ring or the onr
+        rings share a vertex, they will not be merged. """
+    lib_py_gel.merge_coincident_boundary_vertices(m.obj, rad)
 
 lib_py_gel.minimize_curvature.argtypes = (ct.c_void_p,ct.c_bool)
 def minimize_curvature(m,anneal=False):
@@ -686,82 +712,84 @@ def triangulate(m):
     splitting a polygon into smaller polygons. """
     lib_py_gel.shortest_edge_triangulate(m.obj)
 
-lib_py_gel.GLManifoldViewer_new.restype = ct.c_void_p
-lib_py_gel.GLManifoldViewer_delete.argtypes = (ct.c_void_p,)
-lib_py_gel.GLManifoldViewer_display.argtypes = (ct.c_void_p,ct.c_void_p,ct.c_char,ct.c_bool, ct.POINTER(ct.c_float*3), ct.POINTER(ct.c_double),ct.c_bool,ct.c_bool)
-lib_py_gel.GLManifoldViewer_get_annotation_points.restype = ct.c_size_t
-lib_py_gel.GLManifoldViewer_get_annotation_points.argtypes = (ct.c_void_p, ct.POINTER(ct.POINTER(ct.c_double)))
-lib_py_gel.GLManifoldViewer_set_annotation_points.argtypes = (ct.c_void_p, ct.c_int, ct.POINTER(ct.c_double))
-lib_py_gel.GLManifoldViewer_event_loop.argtypes = (ct.c_bool,)
-class GLManifoldViewer:
-    """ An OpenGL Viewer for Manifolds. Having created an instance of this
-    class, call display to show a mesh. The display function is flexible,
-    allowing several types of interactive visualization. Each instance of this
-    class corresponds to a single window, but you can have several
-    GLManifoldViewer and hence also several windows showing different
-    visualizations. """
-    def __init__(self):
-        self.obj = lib_py_gel.GLManifoldViewer_new()
-    def __del__(self):
-        lib_py_gel.GLManifoldViewer_delete(self.obj)
-    def display(self, m, mode='w', smooth=True, bg_col=[0.3,0.3,0.3], data=None, reset_view=False, once=False):
-        """ Display a mesh
+try:
+    lib_py_gel.GLManifoldViewer_new.restype = ct.c_void_p
+    lib_py_gel.GLManifoldViewer_delete.argtypes = (ct.c_void_p,)
+    lib_py_gel.GLManifoldViewer_display.argtypes = (ct.c_void_p,ct.c_void_p,ct.c_char,ct.c_bool, ct.POINTER(ct.c_float*3), ct.POINTER(ct.c_double),ct.c_bool,ct.c_bool)
+    lib_py_gel.GLManifoldViewer_get_annotation_points.restype = ct.c_size_t
+    lib_py_gel.GLManifoldViewer_get_annotation_points.argtypes = (ct.c_void_p, ct.POINTER(ct.POINTER(ct.c_double)))
+    lib_py_gel.GLManifoldViewer_set_annotation_points.argtypes = (ct.c_void_p, ct.c_int, ct.POINTER(ct.c_double))
+    lib_py_gel.GLManifoldViewer_event_loop.argtypes = (ct.c_bool,)
+    class GLManifoldViewer:
+        """ An OpenGL Viewer for Manifolds. Having created an instance of this
+        class, call display to show a mesh. The display function is flexible,
+        allowing several types of interactive visualization. Each instance of this
+        class corresponds to a single window, but you can have several
+        GLManifoldViewer and hence also several windows showing different
+        visualizations. """
+        def __init__(self):
+            self.obj = lib_py_gel.GLManifoldViewer_new()
+        def __del__(self):
+            lib_py_gel.GLManifoldViewer_delete(self.obj)
+        def display(self, m, mode='w', smooth=True, bg_col=[0.3,0.3,0.3], data=None, reset_view=False, once=False):
+            """ Display a mesh
 
-        Args:
-        ---
-        - m : the Manifold mesh we are visualizing.
-        - mode : a single character that determines how the mesh is visualized:
-            'w' - wireframe,
-            'i' - isophote,
-            'g' - glazed (try it and see),
-            's' - scalar field,
-            'l' - line field,
-            'n' - normal.
-        - smooth : if True we use vertex normals. Otherwise, face normals.
-        - bg_col : background color.
-        - data : per vertex data for visualization. scalar or vector field.
-        - reset_view : if False view is as left in the previous display call. If
-            True, the view is reset to the default.
-        - once : if True we immediately exit the event loop and return. However,
-            the window stays and if the event loop is called from this or any
-            other viewer, the window will still be responsive.
+            Args:
+            ---
+            - m : the Manifold mesh we are visualizing.
+            - mode : a single character that determines how the mesh is visualized:
+                'w' - wireframe,
+                'i' - isophote,
+                'g' - glazed (try it and see),
+                's' - scalar field,
+                'l' - line field,
+                'n' - normal.
+            - smooth : if True we use vertex normals. Otherwise, face normals.
+            - bg_col : background color.
+            - data : per vertex data for visualization. scalar or vector field.
+            - reset_view : if False view is as left in the previous display call. If
+                True, the view is reset to the default.
+            - once : if True we immediately exit the event loop and return. However,
+                the window stays and if the event loop is called from this or any
+                other viewer, the window will still be responsive.
 
-        Interactive controls:
-        ---
-        When a viewer window is displayed on the screen, you can naviagate with
-        the mouse: Left mouse button rotates, right mouse button is used for
-        zooming and (if shift is pressed) for panning. If you hold control, any
-        mouse button will pick a point on the 3D model. Up to 19 of these points
-        have unique colors.  If you pick an already placed annotation point it
-        will be removed and can now be placed elsewhere. Hit space bar to clear
-        the annotation points. Hitting ESC exits the event loop causing control
-        to return to the script.
-        """
-        data_ct = np.array(data,dtype=ct.c_double).ctypes
-        data_a = data_ct.data_as(ct.POINTER(ct.c_double))
-        bg_col_ct = np.array(bg_col,dtype=ct.c_float).ctypes
-        bg_col_a = bg_col_ct.data_as(ct.POINTER(ct.c_float*3))
-        lib_py_gel.GLManifoldViewer_display(self.obj,m.obj,ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
-    def annotation_points(self):
-        """ Retrieve a vector of annotation points. This vector is not a copy,
-        so any changes made to the points will be reflected in the viewer. """
-        pos = ct.POINTER(ct.c_double)()
-        n = lib_py_gel.GLManifoldViewer_get_annotation_points(self.obj, ct.byref(pos))
-        if n == 0:
-            return None
-        return np.ctypeslib.as_array(pos,(n,3))
-    def set_annotation_points(self, pts):
-        n = int(np.size(pts)/3)
-        pts_ct = np.array(pts,dtype=ct.c_double).ctypes
-        pts_a = pts_ct.data_as(ct.POINTER(ct.c_double))
-        lib_py_gel.GLManifoldViewer_set_annotation_points(self.obj, n, pts_a)
-    @staticmethod
-    def event_loop():
-        """ Explicit call to the event loop. This function enters the event loop.
-        Call it if you want to turn on interactivity in the currently displayed
-        window."""
-        lib_py_gel.GLManifoldViewer_event_loop(False)
-
+            Interactive controls:
+            ---
+            When a viewer window is displayed on the screen, you can naviagate with
+            the mouse: Left mouse button rotates, right mouse button is used for
+            zooming and (if shift is pressed) for panning. If you hold control, any
+            mouse button will pick a point on the 3D model. Up to 19 of these points
+            have unique colors.  If you pick an already placed annotation point it
+            will be removed and can now be placed elsewhere. Hit space bar to clear
+            the annotation points. Hitting ESC exits the event loop causing control
+            to return to the script.
+            """
+            data_ct = np.array(data,dtype=ct.c_double).ctypes
+            data_a = data_ct.data_as(ct.POINTER(ct.c_double))
+            bg_col_ct = np.array(bg_col,dtype=ct.c_float).ctypes
+            bg_col_a = bg_col_ct.data_as(ct.POINTER(ct.c_float*3))
+            lib_py_gel.GLManifoldViewer_display(self.obj,m.obj,ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
+        def annotation_points(self):
+            """ Retrieve a vector of annotation points. This vector is not a copy,
+            so any changes made to the points will be reflected in the viewer. """
+            pos = ct.POINTER(ct.c_double)()
+            n = lib_py_gel.GLManifoldViewer_get_annotation_points(self.obj, ct.byref(pos))
+            if n == 0:
+                return None
+            return np.ctypeslib.as_array(pos,(n,3))
+        def set_annotation_points(self, pts):
+            n = int(np.size(pts)/3)
+            pts_ct = np.array(pts,dtype=ct.c_double).ctypes
+            pts_a = pts_ct.data_as(ct.POINTER(ct.c_double))
+            lib_py_gel.GLManifoldViewer_set_annotation_points(self.obj, n, pts_a)
+        @staticmethod
+        def event_loop():
+            """ Explicit call to the event loop. This function enters the event loop.
+            Call it if you want to turn on interactivity in the currently displayed
+            window."""
+            lib_py_gel.GLManifoldViewer_event_loop(False)
+except AttributeError:
+    pass
 
 lib_py_gel.MeshDistance_new.restype = ct.c_void_p
 lib_py_gel.MeshDistance_new.argtypes = (ct.c_void_p,)

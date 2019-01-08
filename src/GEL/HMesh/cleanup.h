@@ -53,12 +53,9 @@ namespace HMesh
     /** Remove valence two vertices. */
     void remove_valence_two_vertices(Manifold & m);
 
-    /** remove duplicate vertices along with incident faces.
-        This function calls remove vertex on all vertices but the first which share a given position.
-     Thus, not only the vertex but also incident faces are removed. */
-    int remove_duplicates(Manifold& m, double rad);
-
-    
+    /** This function merges pairs of boundary vertices, provided there are exactly two such vertices
+     at a given point in space, that they are not in each others' one ring and  that the one rings are disjoint. */
+    void merge_coincident_boundary_vertices(Manifold& m, double rad=1e-30);
 }
 
 #endif

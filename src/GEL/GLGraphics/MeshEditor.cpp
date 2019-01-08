@@ -428,7 +428,7 @@ namespace GLGraphics {
             auto sel = me->get_face_selection();
             for(auto f: sel)
                 if(m.in_use(f))
-                    triangulate_face_by_edge_split(m, f);
+                    triangulate(m, f);
         }
         
         void console_bridge_faces(MeshEditor* me, const std::vector<std::string> & args)
@@ -637,22 +637,6 @@ namespace GLGraphics {
             
         }
         
-        void console_refine_faces(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(wantshelp(args)) {
-                me->printf("usage: refine.split_faces ");
-                me->printf("usage:  Takes no arguments. Inserts a vertex at the centre of each face.");
-                
-                return;
-            }
-            me->save_active_mesh();
-            
-            triangulate_by_vertex_face_split(me->active_mesh());
-            
-            return;
-            
-        }
-        
         void console_cc_subdivide(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)) {
@@ -721,30 +705,6 @@ namespace GLGraphics {
             float rad;
             bsphere(m, c, rad);
             stitch_mesh(me->active_mesh(), r * rad);
-            return;
-        }
-        
-        void console_remove_duplicates(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(wantshelp(args)) {
-                me->printf("usage: cleanup.remove_duplicates <rad>");
-                me->printf("Removes duplicate vertices and incident faces");
-                
-                return;
-            }
-            double r = 0.001;
-            
-            if(args.size() > 0){
-                istringstream a0(args[0]);
-                a0 >> r;
-            }
-            
-            me->save_active_mesh();
-            Manifold& m = me->active_mesh();
-            Vec3d c;
-            float rad;
-            bsphere(m, c, rad);
-            remove_duplicates(me->active_mesh(), r * rad);
             return;
         }
         
@@ -1027,10 +987,17 @@ namespace GLGraphics {
                 me->printf("Tests validity of Manifold");
                 return;
             }
-            if(valid(me->active_mesh()))
+            VertexSet vs;
+            HalfEdgeSet hs;
+            FaceSet fs;
+            if(find_invalid_entities(me->active_mesh(), vs, hs, fs))
                 me->printf("Mesh is valid");
-            else
+            else {
                 me->printf("Mesh is invalid - check console output");
+                me->get_vertex_selection() = vs;
+                me->get_halfedge_selection() = hs;
+                me->get_face_selection() = fs;
+            }
             return;
         }
         
@@ -1390,7 +1357,7 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
             
-            shortest_edge_triangulate(me->active_mesh());
+            triangulate(me->active_mesh(), SHORTEST_EDGE);
             me->active_mesh().cleanup();
             valid(me->active_mesh());
             return;
@@ -2026,7 +1993,6 @@ namespace GLGraphics {
         register_console_function("add_mesh", console_add_mesh,"");
         
         register_console_function("cleanup.stitch", console_stitch,"");
-        register_console_function("cleanup.remove_duplicates", console_remove_duplicates,"");
         register_console_function("cleanup.remove_val2", console_remove_val2, "");
         register_console_function("cleanup.flip_orientation", console_flip_orientation,"");
         register_console_function("cleanup.remove_caps", console_remove_caps,"");
@@ -2037,7 +2003,6 @@ namespace GLGraphics {
         register_console_function("triangulate", console_triangulate,"");
         register_console_function("dual", console_dual,"");
         register_console_function("refine.split_edges", console_refine_edges,"");
-        register_console_function("refine.split_faces", console_refine_faces,"");
         
         register_console_function("subdivide.catmull_clark", console_cc_subdivide,"");
         register_console_function("subdivide.rootcc", console_root_cc_subdivide,"");

@@ -47,7 +47,7 @@ namespace HMesh
         m.clear();
         
         // And build
-        safe_build(m, vertices.size(),
+        build(m, vertices.size(),
                 reinterpret_cast<double*>(&vertices[0]),
                 faces.size(),
                 &faces[0],

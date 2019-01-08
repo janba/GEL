@@ -84,4 +84,17 @@ int main()
 		{
 			cout << keys[i] << (keys[i]-p0).length() << " - " << vals[i] << endl;
 		}
+    
+    cout << "\n5 closest" << endl;
+    auto vec = tree.m_closest(5, p0, 1.95);
+    for (auto e: vec) {
+        cout << sqrt(e.d) << e.k << ", " << e.v << endl;
+    }
+    
+    cout << "\n45 closest" << endl;
+    vec = tree.m_closest(45, p0, 1.95);
+    for (auto e: vec) {
+        cout << sqrt(e.d) << e.k << ", " << e.v << endl;
+    }
+
 }

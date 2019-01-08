@@ -108,11 +108,11 @@ namespace HMesh
         
         cout << "vertices " << vertices.size() << endl;
 
-        safe_build(m, vertices.size()/3,
-                   reinterpret_cast<double*>(&vertices[0]),
-                   faces.size(),
-                   &faces[0],
-                   &indices[0]);
+        build(m, vertices.size()/3,
+                reinterpret_cast<double*>(&vertices[0]),
+                faces.size(),
+                &faces[0],
+                &indices[0]);
         
         cout << " Loading took " << tim.get_secs() << endl;
         return true;

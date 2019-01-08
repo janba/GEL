@@ -4,15 +4,14 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 #include <iterator>
-#include "Manifold.h"
-
 #include <iostream>
 #include <vector>
 #include <map>
 #include <iterator>
 
 #include "../Geometry/TriMesh.h"
-#include "../GLGraphics/ManifoldRenderer.h"
+#include "Manifold.h"
+#include "cleanup.h"
 
 namespace HMesh
 {
@@ -21,61 +20,20 @@ namespace HMesh
     using namespace Geometry;
     using namespace CGLA;
 	
-    struct Edge
-    {
-        HalfEdgeID h0 = InvalidHalfEdgeID;
-        HalfEdgeID h1 = InvalidHalfEdgeID;
-        int count = 0;
-        bool insert_half_edge(HalfEdgeID h) {
-            switch(count) {
-                case 0:
-                    h0 = h;
-                    ++count;
-                    return true;
-                case 1:
-                    h1 = h;
-                    ++count;
-                    return true;
-            }
-            return false;
-        }
-    };
 
     /*********************************************
 	 * Public functions
 	 *********************************************/
-    void Manifold::build(const TriMesh& mesh)
-    {
-        // A vector of 3's - used to tell build how many indices each face consists of
-        vector<int> faces(mesh.geometry.no_faces(), 3);
-		
-        build_template( static_cast<size_t>(mesh.geometry.no_vertices()),
-					   reinterpret_cast<const float*>(&mesh.geometry.vertex(0)),
-					   static_cast<size_t>(faces.size()),
-					   static_cast<const int*>(&faces[0]),
-					   reinterpret_cast<const int*>(&mesh.geometry.face(0)));
-    }
-    
-    void Manifold::build(   size_t no_vertices,
-						 const float* vertvec,
-						 size_t no_faces,
-						 const int* facevec,
-						 const int* indices)
-    {
-        build_template(no_vertices, vertvec, no_faces, facevec, indices);
-    }
-    
-    void Manifold::build(   size_t no_vertices,
-						 const double* vertvec,
-						 size_t no_faces,
-						 const int* facevec,
-						 const int* indices)
-    {
-        build_template(no_vertices, vertvec, no_faces, facevec, indices);
-    }
     
     FaceID Manifold::add_face(std::vector<Manifold::Vec> points)
     {
+        struct Edge
+        {
+            HalfEdgeID h0 = InvalidHalfEdgeID;
+            HalfEdgeID h1 = InvalidHalfEdgeID;
+            int count;
+        };
+
         int N = points.size();
         vector<VertexID> vertices(N);
         for(size_t i=0;i<points.size(); ++i) {
@@ -465,8 +423,10 @@ namespace HMesh
     bool Manifold::stitch_boundary_edges(HalfEdgeID h0, HalfEdgeID h1)
     {
         // Cannot stitch an edge with itself
-        if(h0 == h1)
+        if(h0 == h1) {
+            cout << "Trying to stitch an edge with itself" << endl;
             return false;
+        }
         
         // Only stitch a pair of boundary edges.
         if(kernel.face(h0) == InvalidFaceID && kernel.face(h1) == InvalidFaceID)
@@ -479,47 +439,25 @@ namespace HMesh
             VertexID v1a = kernel.vert(kernel.opp(h0));
             
             //If the vertices are already connected, welding them together will be awkward.
-            if(connected(*this, v0a, v0b))
+            if(connected(*this, v0a, v0b)){
+                cout << "0 end points are distinct but connected" << endl;
                 return false;
-            if(connected(*this, v1a, v1b))
+            }
+            if(connected(*this, v1a, v1b)){
+                cout << "1 end points are distinct but connected" << endl;
                 return false;
-            
-            
-            if(v0b != v0a)
-            {
-                if(v1a != v1b && ( connected(*this, v0a, v1b) || connected(*this, v0b, v1a)))
-                   return false;
-                if(v1a == v1b && kernel.next(kernel.opp(kernel.next(h0o))) == h1o)
-                    return false;
-                // Check the link intersection v0a and v0b are welded together
-                // if they share a neighbouring vertex, it will appear twice in the combined
-                // one ring unless it v1a and v1a==v1b
-                VertexSet lisect = link_intersection(*this, v0a, v0b);
-                if(!lisect.empty())
-                {
-                    if(v1a == v1b)
-                        lisect.erase(v1a);
-                    lisect.erase(kernel.vert(kernel.next(h0)));
-                    if(lisect.size() > 0)
-                        return false;
-                }
             }
             
-            if(v1a != v1b)
-            {
-                if(v0a == v0b && kernel.next(kernel.opp(kernel.next(h1o))) == h0o)
-                    return false;
-                
-                // Check the same for the other endpoints.
-                VertexSet lisect = link_intersection(*this, v1a, v1b);
-                if(!lisect.empty())
-                {
-                    if(v0a == v0b)
-                        lisect.erase(v0a);
-                    lisect.erase(kernel.vert(kernel.next(h1)));
-                    if(lisect.size() > 0)
-                        return false;
-                }
+            // This check ensures that we do not create a valency 1 vertex by welding
+            // two edges whose opposite edges have the property that second one is the next
+            // edge of the first one or vice versa.
+            if(v1a == v1b && kernel.next(h0o) == h1o){
+                cout << "Would have created val 1 vertex" << endl;
+                return false;
+            }
+            if(v0a == v0b && kernel.next(h1o) == h0o){
+                cout << "Would have created val 1 vertex" << endl;
+                return false;
             }
             
             
@@ -575,8 +513,68 @@ namespace HMesh
             
             return true;
         }
+        cout << "Trying to stitch non-boundary edges" << endl;
         return false;
     }
+    
+    bool Manifold::merge_boundary_vertices(VertexID v0, VertexID v1) {
+        auto find_hi_ho = [this](VertexID v, HalfEdgeID& hi, HalfEdgeID& ho) -> bool {
+            int sanity_count = 0;
+            circulate_vertex_ccw(*this, v, [&](Walker w) {
+                if(w.face() == InvalidFaceID) {
+                    ho = w.halfedge();
+                    sanity_count += 1;
+                }
+                if(w.opp().face() == InvalidFaceID)
+                    hi = w.opp().halfedge();
+            });
+            return sanity_count == 1;
+        };
+        HalfEdgeID h0i, h0o, h1i, h1o;
+        
+        vector<VertexID> r0;
+        circulate_vertex_ccw(*this, v0, [&](VertexID v){r0.push_back(v); cout  << v << ",";});
+        vector<VertexID> r1;
+        circulate_vertex_ccw(*this, v1, [&](VertexID v){r1.push_back(v); cout  << v << ",";});
+
+        if(find(begin(r0),end(r0),v1) != end(r0)) {
+            cout << "Oops " << v1  << " in 1-ring of " << v0;
+            return false;
+        }
+        if(find(begin(r1),end(r1),v0) != end(r1)) {
+            cout << "Oops " << v0  << " in 1-ring of " << v1;
+            return false;
+        }
+        
+        sort(begin(r0), end(r0));
+        sort(begin(r1), end(r1));
+        vector<VertexID> risect;
+        set_intersection(begin(r0), end(r0), begin(r1), end(r1), back_inserter(risect));
+        if(!risect.empty())
+        {
+            cout << "One rings overlap" << endl;
+            return false;
+        }
+
+        if (find_hi_ho(v0, h0i, h0o) && find_hi_ho(v1, h1i, h1o)){
+            link(h0i, h1o);
+            link(h1i, h0o);
+            kernel.set_vert(h1i, v0);
+            kernel.set_vert(kernel.opp(h1o), v0);
+            HalfEdgeID h0 = kernel.opp(kernel.out(v0));
+            HalfEdgeID h = h0;
+            do {
+                kernel.set_vert(h, v0);
+                h = kernel.opp(kernel.next(h));
+            }
+            while( h != h0);
+            kernel.remove_vertex(v1);
+//            cout << "MERGING " << v0 << " and " << v1 << ", halfedge: " << h0i << "," << h0o << "," << h1i << "," << h1o << endl;
+            return true;
+        }
+        return false;
+    }
+
     
     
     
@@ -928,41 +926,7 @@ namespace HMesh
      * Private functions
      **********************************************/
     
-    template<typename size_type, typename float_type, typename int_type>
-    void Manifold::build_template(size_type no_vertices,
-                                  const float_type* vertvec,
-                                  size_type no_faces,
-                                  const int_type* facevec,
-                                  const int_type* indices)
-    {
-        map<pair<int_type, int_type>, Edge> edge_map;
-        auto make_key = [](int_type a, int_type b) { return make_pair(min(a,b), max(a,b));};
-        clear();
-        size_type N = 0;
-        for (size_type i = 0;i< no_faces; ++i) {
-            size_type no_verts_in_face = facevec[i];
-            vector<Vec> verts(no_verts_in_face);
-            for(size_type j = 0; j < no_verts_in_face; ++j)
-                verts[j] = Vec(vertvec[3*indices[N+j]+0],
-                               vertvec[3*indices[N+j]+1],
-                               vertvec[3*indices[N+j]+2]);
-            FaceID f = add_face(verts);
-            size_type j = 0;
-            circulate_face_ccw(*this, f, [&](Walker w){
-                HalfEdgeID h = w.next().opp().halfedge();
-                auto ek = make_key(indices[N+j], indices[N+(j+1)%no_verts_in_face]);
-                Edge& edg = edge_map[ek];
-                if(!edg.insert_half_edge(h))
-                    cout << "Warning: building mesh from non-manifold index face set" << endl;
-                ++j;
-            });
-            N += no_verts_in_face;
-        }
-        for (const auto& edg : edge_map)
-            if(edg.second.count == 2)
-                stitch_boundary_edges(edg.second.h0, edg.second.h1);
-    }
-    
+
     
     void Manifold::link(HalfEdgeID h0, HalfEdgeID h1)
     {
@@ -1114,42 +1078,110 @@ namespace HMesh
     /***************************************************
      * Namespace functions
      ***************************************************/
-    bool valid(const Manifold& m)
+
+    
+    template<typename size_type, typename float_type, typename int_type>
+    void build_template(Manifold& m, size_type no_vertices,
+                                  const float_type* vertvec,
+                                  size_type no_faces,
+                                  const int_type* facevec,
+                                  const int_type* indices)
+    {
+        int k=0;
+        VertexAttributeVector<int> cluster_id;
+        for(int i=0;i<no_faces;++i) {
+            vector<Vec3d> pts(facevec[i]);
+            for(int j=0;j<facevec[i]; ++j) {
+                const float_type* v = &vertvec[3*indices[j+k]];
+                pts[j] = Vec3d(v[0],v[1],v[2]);
+            }
+            FaceID f = m.add_face(pts);
+            int j=0;
+            circulate_face_ccw(m, f, (std::function<void(VertexID)>)[&](VertexID v){
+                cluster_id[v] = indices[j+k];
+                ++j;
+            });
+            k += facevec[i];
+        }
+        stitch_mesh(m, cluster_id);
+        m.cleanup();
+    }
+    
+    void build(Manifold& m, const TriMesh& mesh)
+    {
+        // A vector of 3's - used to tell build how many indices each face consists of
+        vector<int> faces(mesh.geometry.no_faces(), 3);
+        
+        build_template(m, static_cast<size_t>(mesh.geometry.no_vertices()),
+                       reinterpret_cast<const float*>(&mesh.geometry.vertex(0)),
+                       static_cast<size_t>(faces.size()),
+                       static_cast<const int*>(&faces[0]),
+                       reinterpret_cast<const int*>(&mesh.geometry.face(0)));
+    }
+    
+    void build(Manifold& m, size_t no_vertices,
+                         const float* vertvec,
+                         size_t no_faces,
+                         const int* facevec,
+                         const int* indices)
+    {
+        build_template(m, no_vertices, vertvec, no_faces, facevec, indices);
+    }
+    
+    void build(Manifold& m, size_t no_vertices,
+                         const double* vertvec,
+                         size_t no_faces,
+                         const int* facevec,
+                         const int* indices)
+    {
+        build_template(m, no_vertices, vertvec, no_faces, facevec, indices);
+    }
+
+    
+    bool find_invalid_entities(const Manifold& m, VertexSet& vs, HalfEdgeSet& hs, FaceSet& fs)
     {
         bool valid = true;
+        vs.clear();
+        hs.clear();
+        fs.clear();
         
         // Verify components of halfedges
-        for(HalfEdgeIDIterator h = m.halfedges_begin(); h != m.halfedges_end(); ++h){
-            Walker j = m.walker(*h);
+        for(HalfEdgeID h : m.halfedges()){
+            Walker j = m.walker(h);
             
             if(j.vertex() == InvalidVertexID){
                 cout << "Halfedge lacks vert" << endl;
+                hs.insert(h);
                 valid = false;
             }
             if(j.next().halfedge() == InvalidHalfEdgeID){
                 cout << "Halfedge lacks next" << endl;
+                hs.insert(h);
                 valid = false;
             }
             if(j.prev().halfedge() == InvalidHalfEdgeID){
                 cout << "Halfedge lacks prev" << endl;
+                hs.insert(h);
                 valid = false;
             }
             if(j.opp().halfedge() == InvalidHalfEdgeID){
                 cout << "Halfedge lacks opp" << endl;
+                hs.insert(h);
                 valid = false;
             }
             
         }
         // Verify components of vertices
-        for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){
+        for(VertexID v : m.vertices()){
             vector<VertexID> link;
             
             // circulate the halfedges of vertex
-            for(Walker j = m.walker(*v); !j.full_circle(); j = j.circulate_vertex_cw()){
+            for(Walker j = m.walker(v); !j.full_circle(); j = j.circulate_vertex_cw()){
                 // test halfedges around v
                 if(j.halfedge() == InvalidHalfEdgeID){
                     cout << "Vertex circulation produced invalid halfedge" << endl;
                     valid = false;
+                    vs.insert(v);
                     break;
                 }
                 VertexID ring_v = j.vertex();
@@ -1157,6 +1189,7 @@ namespace HMesh
                 {
                     cout << "Invalid vertex: " << ring_v << " in one-ring of vertex" << endl;
                     valid = false;
+                    vs.insert(v);
                     break;
                 }
                 
@@ -1164,7 +1197,7 @@ namespace HMesh
                 if(find(link.begin(), link.end(), ring_v) != link.end()){
                     cout << "Vertex appears two times in one-ring of vertex" << endl;
                     valid = false;
-                    GLGraphics::DebugRenderer::vertex_colors[*v] = Vec3f(1,0,0);
+                    vs.insert(v);
                     break;
                 }
                 link.push_back(ring_v);
@@ -1173,49 +1206,62 @@ namespace HMesh
                 if(static_cast<size_t>(j.no_steps()) > m.no_vertices()){
                     cout << "Vertex loop CW contains more vertices than manifold" << endl;
                     valid = false;
+                    vs.insert(v);
                     break;
                 }
             }
             
-            for(Walker j = m.walker(*v); !j.full_circle(); j = j.circulate_vertex_ccw()) {
+            for(Walker j = m.walker(v); !j.full_circle(); j = j.circulate_vertex_ccw()) {
                 if(static_cast<size_t>(j.no_steps()) > m.no_vertices()){
                     cout << "Vertex loop CCW contains more vertices than manifold" << endl;
                     valid = false;
+                    vs.insert(v);
                     break;
                 }
             }
             
             if(link.size()==1) {
                 cout << "Vertex contains only a single incident edge" << endl;
-                GLGraphics::DebugRenderer::vertex_colors[*v] = Vec3f(0,1,0);
+                vs.insert(v);
                 valid = false;
             }
         }
         // verify components of faces
-        for(FaceIDIterator f = m.faces_begin(); f != m.faces_end(); ++f){
+        for(FaceID f : m.faces()){
             // count edges on face
-            Walker j = m.walker(*f);
+            Walker j = m.walker(f);
             
             for(; !j.full_circle(); j = j.circulate_face_cw()){
                 // test that all halfedges in faces bind properly to their face
-                if(j.face() != *f){
+                if(j.face() != f){
                     cout << "Face is inconsistent, halfedge is not bound to face" << endl;
                     valid = false;
+                    fs.insert(f);
                     break;
                 }
             }
             // test faces for valid geometrical properties
             if(j.no_steps() < 3){
                 cout << "Face contains less than 3 edges" << endl;
+                fs.insert(f);
                 valid = false;
             }
             // test for infinite loop around face
             if(j.no_steps() > m.no_halfedges() * 0.5f){
                 cout << "Face loop contains more halfedges than manifold" << endl;
+                fs.insert(f);
                 valid = false;
             }
         }
         return valid;
+    }
+    
+    bool valid(const Manifold& m)
+    {
+        VertexSet vs;
+        HalfEdgeSet hs;
+        FaceSet fs;
+        return find_invalid_entities(m, vs, hs, fs);
     }
     
     void bbox(const Manifold& m, Manifold::Vec& pmin, Manifold::Vec& pmax)
@@ -1478,26 +1524,28 @@ namespace HMesh
         return circulate_face_ccw(m, f, static_cast<std::function<void(Walker&)>>([](Walker& w){}));
     }
     
-    Manifold::Vec normal(const Manifold& m, FaceID f)
+    Manifold::Vec area_normal(const Manifold& m, FaceID f)
     {
-        vector<Manifold::Vec> v;
-        
+        using Vec = Manifold::Vec;
+        vector<Vec> v;
+        Vec c(0.0);
         int k= circulate_face_ccw(m, f, static_cast<std::function<void(VertexID)>>([&](VertexID vid) {
-            v.push_back(m.pos(vid));
+            Vec p = m.pos(vid);
+            c += p;
+            v.push_back(p);
         }));
-        
+        c /= k;
         Manifold::Vec norm(0);
         for(int i=0;i<k;++i)
-        {
-            norm[0] += (v[i][1]-v[(i+1)%k][1])*(v[i][2]+v[(i+1)%k][2]);
-            norm[1] += (v[i][2]-v[(i+1)%k][2])*(v[i][0]+v[(i+1)%k][0]);
-            norm[2] += (v[i][0]-v[(i+1)%k][0])*(v[i][1]+v[(i+1)%k][1]);
-        }
-        float l = sqr_length(norm);
-        if(l>0.0f)
-            norm /= sqrt(l);
-        return norm;
+            norm += cross(v[i]-c,v[(i+1)%k]-c);
+        return 0.5 * norm;
     }
+    
+    Manifold::Vec normal(const Manifold& m, FaceID f)
+    {
+        return cond_normalize(area_normal(m, f));
+    }
+
     
     
     double area(const Manifold& m, FaceID fid)

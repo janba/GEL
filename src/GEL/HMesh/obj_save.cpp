@@ -24,6 +24,7 @@ namespace HMesh
     bool obj_save(const string& filename, Manifold& m)
     {
         ofstream os(filename.data());
+        os.precision(20);
         if(os.bad())
             return false;
 

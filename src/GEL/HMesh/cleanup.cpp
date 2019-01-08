@@ -169,37 +169,7 @@ namespace HMesh
         while(did_work);
     }
     
-    int remove_duplicates(Manifold& m, double rad)
-    {
-        KDTree<Vec3d, VertexID> vtree;
-        
-        for(VertexID v: m.vertices())
-                vtree.insert(m.pos(v), v);
-        vtree.build();
-        
-        VertexAttributeVector<int> vertex_dup(m.allocated_vertices(),0);
-        vector<vector<HalfEdgeID> > clustered_halfedges;
-
-        int cnt = 0;
-        for(VertexID v: m.vertices())
-            {
-                vector<Vec3d> keys;
-                vector<VertexID> vals;
-                int n = vtree.in_sphere(m.pos(v), rad, keys, vals);
-                
-                if(n>1) {
-                    sort(vals.begin(), vals.end());
-                    
-                    auto v2remove = vals.begin();
-                    for(v2remove++; v2remove != vals.end(); v2remove++) {
-                        m.remove_vertex(*v2remove);
-                        ++cnt;
-                    }
-                }
-            }
-        return  cnt;
-    }
-    
+ 
     
     VertexAttributeVector<int> cluster_vertices(Manifold& m, double rad) {
 
@@ -321,8 +291,9 @@ namespace HMesh
                 do {
                     ++cnt;
                     w = w.next();
-                } while(w.halfedge() != h0 && cnt < max_size);
-                if(cnt < max_size)
+                }
+                while(w.halfedge() != h0 && cnt < max_size + 1);
+                if(cnt <= max_size)
                     m.close_hole(h0);
             }
         }
@@ -346,7 +317,39 @@ namespace HMesh
             }));
         }
         m.clear();
-        m.build(vertices.size(), vertices[0].get(), faces.size(), &faces[0], &indices[0]);
+        build(m, vertices.size(), vertices[0].get(), faces.size(), &faces[0], &indices[0]);
     }
     
+    
+    void merge_coincident_boundary_vertices(Manifold& m, double rad) {
+ 
+        KDTree<Vec3d, VertexID> vertex_tree;
+        for(auto v: m.vertices())
+            if (boundary(m, v))
+                vertex_tree.insert(m.pos(v), v);
+        vertex_tree.build();
+
+        for(auto v: m.vertices())
+            if (boundary(m, v))
+            {
+                double d = rad;
+                vector<Vec3d> keys;
+                vector<VertexID> vals;
+                int n = vertex_tree.in_sphere(m.pos(v), d, keys, vals);
+                if(n>2)
+                {
+                    cout << "Ambiguity: " << n << " vertices in the same spot: ";
+                    for (int i=0;i<n;++i)
+                        cout << vals[i] << " ";
+                    cout << endl;
+                    continue;
+                }
+                if(n==2)
+                {
+                    VertexID v0 = vals[0];
+                    VertexID v1 = vals[1];
+                    m.merge_boundary_vertices(v0, v1);
+                }
+            }
+    }
 }

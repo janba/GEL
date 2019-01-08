@@ -16,24 +16,14 @@
 
 namespace HMesh
 {
-    /// Naive division of polygons into triangles.
-    void triangulate_by_edge_face_split(Manifold& m);
+    enum TriangulationMethod { CLIP_EAR, SHORTEST_EDGE};
+    /** Triangulate by connected vertices on the face f.
+     The policy indicates if we do ear clip or shortest edge triangulation.
+     ear clip is safer, but shortest edge tends to never fail. */
+    int triangulate(Manifold& m, FaceID f, TriangulationMethod policy = CLIP_EAR);
 
-    /// Try to respect curvature to create a better triangulation.
-    void curvature_triangulate(Manifold& m);
-
-    /// Naive triangulation by connecting to center point.
-    void triangulate_by_vertex_face_split(Manifold& m);
-
-    /// Triangulate by connecting the points forming the shortest edge.
-    void shortest_edge_triangulate(Manifold& m);
-
-    /** \brief Triangulate a polygonal face by repeatedly calling split_face.
-    split_face_triangulate iteratively splits triangles off a polygon. 
-    The first triangle split off is the one connecting f.last().vert() and f.last().next().next().vert(). */
-    void triangulate_face_by_edge_split(Manifold& m, FaceID f);
-
-
+    /// Triangulate by connectin
+    void triangulate(Manifold& m, TriangulationMethod policy = CLIP_EAR);
 }
 
 #endif

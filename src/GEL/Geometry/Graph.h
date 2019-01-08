@@ -9,7 +9,9 @@
 #ifndef Graph_h
 #define Graph_h
 
+#include <queue>
 #include <map>
+#include <set>
 #include <vector>
 #include <limits>
 #include "../CGLA/Vec3d.h"
@@ -29,6 +31,9 @@ namespace Geometry {
         
         /// ID type for nodes
         using NodeID = size_t;
+        
+        /// Node Set type
+        using NodeSet = std::set<NodeID>;
         
         /// ID type for edges
         using EdgeID = size_t;
@@ -98,10 +103,10 @@ namespace Geometry {
         /// Find an edge in the graph given two nodes. Returns InvalidEdgeID if no such edge found.
         EdgeID find_edge(NodeID n0, NodeID n1) const
         {
-            if(valid_node(n0)) {
-                for(auto p: edge_map[n0])
-                    if(p.first == n1)
-                        return p.second;
+            if(valid_node(n0) && valid_node(n1)) {
+                auto it = edge_map[n0].find(n1);
+                if (it != edge_map[n0].end())
+                    return it->second;
             }
             return InvalidEdgeID;
         }
@@ -162,8 +167,7 @@ namespace Geometry {
      but it gives us a concrete 3D graph structure that has many applications. */
     class AMGraph3D: public AMGraph
     {
-    public:
-        
+    public:        
         /// position attribute for each node
         Util::AttribVec<AMGraph::NodeID, CGLA::Vec3d> pos;
         
@@ -239,6 +243,42 @@ namespace Geometry {
             return sum_len / i;
         }
         
+    };
+    
+    struct PrimPQElem {
+        double priority = 0;
+        AMGraph::NodeID node = AMGraph::InvalidNodeID;
+        AMGraph::NodeID parent = AMGraph::InvalidNodeID;
+        
+        PrimPQElem() {}
+        PrimPQElem(double _priority, AMGraph::NodeID _node, AMGraph::NodeID _parent):
+        priority(_priority), node(_node), parent(_parent) {}
+    };
+    
+    inline bool operator<(const PrimPQElem& p0, const PrimPQElem& p1)
+    {
+        return p0.priority < p1.priority;
+    }
+    
+    
+    class BreadthFirstSearch {
+        std::priority_queue<PrimPQElem> pq;
+        AMGraph::NodeSet visited, front;
+        Util::AttribVec<AMGraph::NodeID, double> dist;
+        Util::AttribVec<AMGraph::NodeID, AMGraph::NodeID> pred;
+        const AMGraph3D* g_ptr;
+        PrimPQElem last;
+        
+    public:
+
+        BreadthFirstSearch(const AMGraph3D& _g): g_ptr(&_g) {}
+        void init(AMGraph::NodeID);
+        bool step();
+        const PrimPQElem& get_last() const { return last; }
+        AMGraph::NodeSet get_front() const { return front; }
+        AMGraph::NodeSet get_interior() const { return visited; }
+        double get_dist(AMGraph::NodeID n) const { return dist[n];}
+        AMGraph::NodeID get_pred(AMGraph::NodeID n) const { return pred[n];}
     };
     
     /** Merges all nodes of g within a distance of thresh and returns the resulting graph. 
