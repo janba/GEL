@@ -152,7 +152,12 @@ void loop_smooth(HMesh::Manifold* m_ptr) {
 }
 
 void shortest_edge_triangulate(HMesh::Manifold* m_ptr) {
-    shortest_edge_triangulate(*m_ptr);
+    triangulate(*m_ptr, SHORTEST_EDGE);
 }
+
+void ear_clip_triangulate(HMesh::Manifold* m_ptr) {
+    triangulate(*m_ptr, CLIP_EAR);
+}
+
 
 

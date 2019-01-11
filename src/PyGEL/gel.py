@@ -706,11 +706,16 @@ def loop_smooth(m):
     subdivision. """
     lib_py_gel.loop_smooth(m.obj)
 
+lib_py_gel.ear_clip_triangulate.argtypes = (ct.c_void_p,)
 lib_py_gel.shortest_edge_triangulate.argtypes = (ct.c_void_p,)
-def triangulate(m):
+def triangulate(m, clip_ear=true):
     """ Turn a general polygonal mesh into a triangle mesh by repeatedly
-    splitting a polygon into smaller polygons. """
-    lib_py_gel.shortest_edge_triangulate(m.obj)
+        splitting a polygon into smaller polygons. """
+    if clip_ear:
+        lib_py_gel.ear_clip_triangulate(m.obj)
+    else:
+        lib_py_gel.shortest_edge_triangulate(m.obj)
+
 
 try:
     lib_py_gel.GLManifoldViewer_new.restype = ct.c_void_p
