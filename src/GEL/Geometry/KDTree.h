@@ -170,6 +170,7 @@ namespace Geometry
                             const ScalarType& dist,
                             std::vector<KeyT>& keys,
                             std::vector<ValT>& vals) const;
+        
         void m_closest_priv(int n,
                             const KeyType& p,
                             ScalarType& max_dist,
@@ -263,7 +264,6 @@ namespace Geometry
          of KDTreeRecords sorted in ascending distance order. This function is often significantly faster than simply
          finding all elements within a given radius using n_sphere and then sorting because once m elements have been
          found, the search radius can be narrowed. */
-        
         std::vector<KDTreeRecord<KeyT, ValT>> m_closest(int m, const KeyType& p, ScalarType dist) const {
             assert(is_built);
             std::vector<KDTreeRecord<KeyT,ValT>> nv;
