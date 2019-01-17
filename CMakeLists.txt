@@ -20,7 +20,7 @@ endif (UNIX)
 
 if(WIN32)
 	include_directories(./src/GEL)
-	add_compile_definitions(-DGLEW_STATIC)
+	add_definitions(-DGLEW_STATIC)
 endif()
 
 include_directories(./src/GEL/GL/include)
