@@ -652,6 +652,7 @@ void Console::open_socket() {
 }
 
 bool Console::listen_commands() {
+#ifndef _WIN32
     char buffer[1024];
     
     // First we peek and if a newline is found
@@ -676,6 +677,7 @@ bool Console::listen_commands() {
             execute(str.c_str());
             return true;
         }
+#endif
     return false;
 }
 
@@ -688,9 +690,11 @@ void Console::print(const char* buffer)
     auto add_to_buffer = [&](const std::string& s) {
         m_buffer.push_back(s);
         if(sck_conn != -1) {
+#ifndef _WIN32
             send(sck_conn, m_buffer.back().c_str(), m_buffer.back().length(), 0);
             const char nl = '\n';
             send(sck_conn, &nl, 1, 0);
+#endif
         }
     };
 
