@@ -13,7 +13,7 @@
 
 #include <regex>
 
-#include <GL/glew.h>
+#include "../GL/glew.h"
 #include <functional>
 #include "MeshEditor.h"
 #include <string>

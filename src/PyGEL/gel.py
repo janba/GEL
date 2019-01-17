@@ -708,7 +708,7 @@ def loop_smooth(m):
 
 lib_py_gel.ear_clip_triangulate.argtypes = (ct.c_void_p,)
 lib_py_gel.shortest_edge_triangulate.argtypes = (ct.c_void_p,)
-def triangulate(m, clip_ear=true):
+def triangulate(m, clip_ear=True):
     """ Turn a general polygonal mesh into a triangle mesh by repeatedly
         splitting a polygon into smaller polygons. """
     if clip_ear:

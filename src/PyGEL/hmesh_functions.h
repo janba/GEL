@@ -80,6 +80,8 @@ extern "C" {
 
     DLLEXPORT void shortest_edge_triangulate(HMesh::Manifold* m_ptr);
 
+    DLLEXPORT void ear_clip_triangulate(HMesh::Manifold* m_ptr);
+
 }
 
 #endif /* hmesh_functions_hpp */
