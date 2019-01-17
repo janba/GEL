@@ -48,7 +48,7 @@ aux_source_directory(./src/PyGEL PYG_SRC_LIST)
 
 if(WIN32)
 	add_library(PyGEL SHARED ${PYG_SRC_LIST})
-	target_link_libraries(PyGEL GEL libglfw3)
+	target_link_libraries(PyGEL GEL glfw3.lib)
 else()
 	add_library(PyGEL SHARED ${PYG_SRC_LIST})
 	target_link_libraries(PyGEL GEL glfw)

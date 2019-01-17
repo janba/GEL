@@ -15664,11 +15664,11 @@ struct behavior *b;
 /*                                                                           */
 /*****************************************************************************/
 
-#warning "Triangulate PERHAPS being defined"
+//#warning "Triangulate PERHAPS being defined"
 #ifdef TRILIBRARY
 
 #ifdef ANSI_DECLARATORS
-#warning "Triangulate being defined"
+//#warning "Triangulate being defined"
 void triangulate(char *triswitches, struct triangulateio *in,
                  struct triangulateio *out, struct triangulateio *vorout)
 #else /* not ANSI_DECLARATORS */

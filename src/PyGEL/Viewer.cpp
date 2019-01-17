@@ -213,7 +213,7 @@ void GLManifoldViewer::display() {
             bool clicked_existing = false;
             for(int i = 0;i<annotation_points.size();++i)
                 if(length(annotation_points[i]-picked_point)<rad) {
-                    annotation_points[i] = Vec3d(0.0/0.0);
+                    annotation_points[i] = Vec3d(std::nan(""));
                     clicked_existing = true;
                     break;
                 }
