@@ -3,13 +3,16 @@ cmake_minimum_required(VERSION 3.2)
 
 set(CMAKE_CXX_STANDARD 14)
 
+
 find_package (OpenGL)
 
 if (APPLE)
-find_package (glfw3 REQUIRED)
+	find_package (glfw3 REQUIRED)
 	FIND_LIBRARY(COCOA_LIBRARY Cocoa)
 	add_compile_definitions(GL_SILENCE_DEPRECATION)
 	include_directories(./src/)
+	SET(CMAKE_INSTALL_RPATH "@loader_path/")
+	SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
 endif (APPLE)
 
 if (UNIX)
@@ -32,13 +35,9 @@ aux_source_directory(./src/GEL/HMesh MSH_SRC_LIST)
 aux_source_directory(./src/GEL/GLGraphics GLG_SRC_LIST)
 aux_source_directory(./src/GEL/Util UTL_SRC_LIST)
 
-if(WIN32)
-	add_library(GEL STATIC ${GL_SRC_LIST} ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MSH_SRC_LIST} ${GLG_SRC_LIST} ${UTL_SRC_LIST})
-	target_link_libraries(GEL OpenGL::GLU OpenGL::GL ${COCOA_LIBRARY})
-else()
-	add_library(GEL SHARED ${GL_SRC_LIST} ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MSH_SRC_LIST} ${GLG_SRC_LIST} ${UTL_SRC_LIST})
-	target_link_libraries(GEL OpenGL::GLU OpenGL::GL ${COCOA_LIBRARY})
-endif()
+
+add_library(GEL STATIC ${GL_SRC_LIST} ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MSH_SRC_LIST} ${GLG_SRC_LIST} ${UTL_SRC_LIST})
+target_link_libraries(GEL OpenGL::GLU OpenGL::GL ${COCOA_LIBRARY})
 
 # not right now ...
 # add_subdirectory(./src/demo)

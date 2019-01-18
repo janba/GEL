@@ -168,8 +168,7 @@ namespace Geometry
         void in_sphere_priv(int n,
                             const KeyType& p,
                             const ScalarType& dist,
-                            std::vector<KeyT>& keys,
-                            std::vector<ValT>& vals) const;
+                            std::vector<int>& records) const;
         
         void m_closest_priv(int n,
                             const KeyType& p,
@@ -254,15 +253,23 @@ namespace Geometry
             if(nodes.size()>1)
             {
                 ScalarType max_sq_dist = CGLA::sqr(dist);
-                in_sphere_priv(1,p,max_sq_dist,keys,vals);
-                return keys.size();
+                std::vector<int> records;
+                in_sphere_priv(1,p,max_sq_dist,records);
+                int N = records.size();
+                keys.resize(N);
+                vals.resize(N);
+                for (int i=0;i<N;++i) {
+                    keys[i] = nodes[records[i]].key;
+                    vals[i] = nodes[records[i]].val;
+                }
+                return N;
             }
             return 0;
         }
         
         /** Find the m elements closest to p and within a distance dist. This function returns a vector
          of KDTreeRecords sorted in ascending distance order. This function is often significantly faster than simply
-         finding all elements within a given radius using n_sphere and then sorting because once m elements have been
+         finding all elements within a given radius using in_sphere and then sorting because once m elements have been
          found, the search radius can be narrowed. */
         std::vector<KDTreeRecord<KeyT, ValT>> m_closest(int m, const KeyType& p, ScalarType dist) const {
             assert(is_built);
@@ -397,16 +404,12 @@ namespace Geometry
     void KDTree<KeyT,ValT>::in_sphere_priv(int n,
                                            const KeyType& p,
                                            const ScalarType& dist,
-                                           std::vector<KeyT>& keys,
-                                           std::vector<ValT>& vals) const
+                                           std::vector<int>& records) const
     {
         ScalarType this_dist = nodes[n].dist(p);
         assert(n<nodes.size());
         if(this_dist<dist)
-        {
-            keys.push_back(nodes[n].key);
-            vals.push_back(nodes[n].val);
-        }
+            records.push_back(n);
         if(nodes[n].dsc != -1)
         {
             const int dsc         = nodes[n].dsc;
@@ -418,13 +421,13 @@ namespace Geometry
             {
                 int left_child = 2*n;
                 if(left_child < nodes.size())
-                    in_sphere_priv(left_child, p, dist, keys, vals);
+                    in_sphere_priv(left_child, p, dist, records);
             }
             if(!left_son||dsc_dist<dist)
             {
                 int right_child = 2*n+1;
                 if(right_child < nodes.size())
-                    in_sphere_priv(right_child, p, dist, keys, vals);
+                    in_sphere_priv(right_child, p, dist, records);
             }
         }
     }

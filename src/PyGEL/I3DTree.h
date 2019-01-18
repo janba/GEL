@@ -30,9 +30,12 @@ extern "C" {
     DLLEXPORT void I3DTree_insert(I3DTree* tree, double x, double y, double z, size_t v);
     DLLEXPORT void I3DTree_build(I3DTree* tree);
     DLLEXPORT size_t I3DTree_closest_point(I3DTree* tree, double x, double y, double z, double r,
-                                    CGLA::Vec3d* key, size_t* val);
+                                           CGLA::Vec3d* key, size_t* val);
     DLLEXPORT size_t I3DTree_in_sphere(I3DTree* tree, double x, double y, double z, double r,
-                             Vec3dVector* keys, IntVector* vals);
+                                       Vec3dVector* keys, IntVector* vals);
+    DLLEXPORT size_t I3DTree_m_closest_points(I3DTree* tree, double x, double y, double z, double r, int m,
+                                              CGLA::Vec3d* key, size_t* val);
+    
 }
 
 #endif /* PyGEL_h */
