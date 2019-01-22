@@ -34,7 +34,7 @@ int stitch_mesh(HMesh::Manifold* m_ptr, double rad) {
 }
 
 bool obj_load(char* fn, HMesh::Manifold* m_ptr) {
-    return obj_load(string(fn), *m_ptr, true);
+    return obj_load(string(fn), *m_ptr);
 }
 
 bool off_load(char* fn, HMesh::Manifold* m_ptr) {
