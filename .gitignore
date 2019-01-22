@@ -37,3 +37,8 @@ doc/intro.pdf
 doc/intro.synctex.gz
 doc/intro.toc
 
+# scikit-build files
+_skbuild/
+dist/
+src/PyGEL3D.egg-info/
+
