@@ -36,7 +36,7 @@ namespace HMesh
         return is;
     }
     
-    bool obj_load(const string& filename, Manifold& m, bool safe)
+    bool obj_load(const std::string& filename, Manifold& m, VertexAttributeVector<int>& orig_vertex_indices)
     {
         ifstream obj_file(filename.data());
         
@@ -88,4 +88,10 @@ namespace HMesh
         return false;
         
     }
+    
+    bool obj_load(const string& filename, Manifold& m) {
+        VertexAttributeVector<int> orig_vertex_indices;
+        return obj_load(filename, m, orig_vertex_indices);
+    }
+
 }

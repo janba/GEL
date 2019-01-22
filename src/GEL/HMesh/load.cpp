@@ -22,13 +22,13 @@ using namespace CGLA;
 namespace HMesh
 {
     using std::string;
-    bool load(const string& file_name, Manifold& mani, bool safe)
+    bool load(const string& file_name, Manifold& mani)
     {
         if(file_name.length()<5){
             return false;
         }
         if(file_name.substr(file_name.length()-4,file_name.length())==".obj"){
-            return obj_load(file_name, mani, safe);
+            return obj_load(file_name, mani);
         }
         else if(file_name.substr(file_name.length()-4,file_name.length())==".x3d"){
             return x3d_load(file_name, mani);

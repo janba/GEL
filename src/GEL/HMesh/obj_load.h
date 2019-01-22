@@ -13,10 +13,10 @@
 #define __HMESH_OBJLOAD__H__
 
 #include <string>
+#include "Manifold.h"
 
 namespace HMesh
 {
-    class Manifold;
     /** Load a Wavefront OBJ file. 
         The first argument is a string containing the file name (including path) 
      and the second is the Manifold into which the mesh is loaded. The third and
@@ -26,6 +26,7 @@ namespace HMesh
      If safe is false, the faces are loaded and stitched at the same time, and this
      procedure cannot handle non-manifold situations. */
      
-     bool obj_load(const std::string&, Manifold& m, bool safe=true);
+    bool obj_load(const std::string&, Manifold& m, VertexAttributeVector<int>& orig_vertex_indices);
+    bool obj_load(const std::string&, Manifold& m);
 }
 #endif

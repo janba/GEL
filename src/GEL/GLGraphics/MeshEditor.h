@@ -194,7 +194,7 @@ namespace GLGraphics {
         bool add_file(const std::string& str);
         
         /// Load the mesh given as argument to the current slot.
-        bool reload_active_from_file(const std::string& str, bool safe=true);
+        bool reload_active_from_file(const std::string& str);
         
         /// Load the mesh but without clearing, effectively combining it with existing mesh.
         bool add_to_active_from_file(const std::string& str);

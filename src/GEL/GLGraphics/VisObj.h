@@ -123,7 +123,7 @@ public:
     
     void refit();
     
-    bool reload(std::string _file, bool safe=true);
+    bool reload(std::string _file);
     
     bool add_mesh(std::string _file);
     

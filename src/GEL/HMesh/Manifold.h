@@ -247,7 +247,7 @@ namespace HMesh
 
         // private template for building the manifold from various types
         template<typename size_type, typename float_type, typename int_type>
-        void build_template(size_type no_vertices,
+        VertexAttributeVector<int_type> build_template(size_type no_vertices,
                             const float_type* vertvec,
                             size_type no_faces,
                             const int_type* facevec,
@@ -273,7 +273,7 @@ namespace HMesh
      Finally, we should consider the option to build a manifold with single precision floating point
      values deprecated. Hence, safe_build exists only as double precision.
      */
-    void build(Manifold& m, size_t no_vertices,
+    VertexAttributeVector<int> build(Manifold& m, size_t no_vertices,
                const float* vertvec,
                size_t no_faces,
                const int* facevec,
@@ -287,14 +287,14 @@ namespace HMesh
      The indices vector is one long list of all vertex indices. Note also that this function
      assumes that the mesh is manifold. Failing that the results are undefined but usually a
      crash due to a failed assertion. */
-    void build(Manifold& m, size_t no_vertices,
+    VertexAttributeVector<int> build(Manifold& m, size_t no_vertices,
                const double* vertvec,
                size_t no_faces,
                const int* facevec,
                const int* indices);
     
     /// Build a manifold from a TriMesh
-    void build(Manifold& m, const Geometry::TriMesh& mesh);
+    VertexAttributeVector<int> build(Manifold& m, const Geometry::TriMesh& mesh);
 
 
     /** \brief Verify Manifold Integrity

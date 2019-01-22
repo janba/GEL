@@ -1081,7 +1081,7 @@ namespace HMesh
 
     
     template<typename size_type, typename float_type, typename int_type>
-    void build_template(Manifold& m, size_type no_vertices,
+    VertexAttributeVector<int_type> build_template(Manifold& m, size_type no_vertices,
                                   const float_type* vertvec,
                                   size_type no_faces,
                                   const int_type* facevec,
@@ -1104,37 +1104,40 @@ namespace HMesh
             k += facevec[i];
         }
         stitch_mesh(m, cluster_id);
-        m.cleanup();
+        IDRemap remap;
+        m.cleanup(remap);
+        cluster_id.cleanup(remap.vmap);
+        return cluster_id;
     }
     
-    void build(Manifold& m, const TriMesh& mesh)
+    VertexAttributeVector<int> build(Manifold& m, const TriMesh& mesh)
     {
         // A vector of 3's - used to tell build how many indices each face consists of
         vector<int> faces(mesh.geometry.no_faces(), 3);
         
-        build_template(m, static_cast<size_t>(mesh.geometry.no_vertices()),
+        return build_template(m, static_cast<size_t>(mesh.geometry.no_vertices()),
                        reinterpret_cast<const float*>(&mesh.geometry.vertex(0)),
                        static_cast<size_t>(faces.size()),
                        static_cast<const int*>(&faces[0]),
                        reinterpret_cast<const int*>(&mesh.geometry.face(0)));
     }
     
-    void build(Manifold& m, size_t no_vertices,
+    VertexAttributeVector<int> build(Manifold& m, size_t no_vertices,
                          const float* vertvec,
                          size_t no_faces,
                          const int* facevec,
                          const int* indices)
     {
-        build_template(m, no_vertices, vertvec, no_faces, facevec, indices);
+        return build_template(m, no_vertices, vertvec, no_faces, facevec, indices);
     }
     
-    void build(Manifold& m, size_t no_vertices,
+    VertexAttributeVector<int> build(Manifold& m, size_t no_vertices,
                          const double* vertvec,
                          size_t no_faces,
                          const int* facevec,
                          const int* indices)
     {
-        build_template(m, no_vertices, vertvec, no_faces, facevec, indices);
+        return build_template(m, no_vertices, vertvec, no_faces, facevec, indices);
     }
 
     

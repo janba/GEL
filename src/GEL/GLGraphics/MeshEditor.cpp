@@ -944,7 +944,6 @@ namespace GLGraphics {
         void console_reload(MeshEditor* me, const std::vector<std::string> & args)
         {
             string file_name = console_arg(args, 0, me->active_visobj().get_file_name());
-            bool safe = console_arg(args, 1, true);
             
             if(wantshelp(args))
             {
@@ -955,7 +954,7 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
 
-            if(me->reload_active_from_file(file_name, safe))
+            if(me->reload_active_from_file(file_name))
                 me->printf("Loaded %s", file_name.c_str());
             else
                 me->printf("failed to load: %s", file_name.c_str());
@@ -2073,9 +2072,9 @@ namespace GLGraphics {
         return false;
     }
 
-    bool MeshEditor::reload_active_from_file(const std::string& str, bool safe)
+    bool MeshEditor::reload_active_from_file(const std::string& str)
     {
-        if(active_visobj().reload(str, safe)) {
+        if(active_visobj().reload(str)) {
             active_visobj().post_create_display_list();
             return true;
         }
