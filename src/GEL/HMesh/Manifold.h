@@ -266,7 +266,8 @@ namespace HMesh
     /** \brief Build a manifold.
      The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
      the number of faces (no_faces), a pointer to an array of float values (vert_vec) and an array
-     of indices (indices).
+     of indices (indices). The build function returns an attribute vector containing a mapping from
+     vertex ids to the original point indices.
      Note that each vertex is three floating point numbers. The indices vector is one long list of
      all vertex indices. Note also that this function call assumes that the mesh is manifold. Failing
      that the results are undefined but usually a crash due to a failed assertion.
@@ -282,7 +283,9 @@ namespace HMesh
     /** \brief Build a manifold.
      The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
      the number of faces (no_faces), a pointer to an array of double values (vert_vec) and an array
-     of indices (indices).
+     of indices (indices). The build function returns an attribute vector containing a mapping from
+     vertex ids to the original point indices.
+
      Note that each vertex is three double precision floating point numbers.
      The indices vector is one long list of all vertex indices. Note also that this function
      assumes that the mesh is manifold. Failing that the results are undefined but usually a

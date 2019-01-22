@@ -77,7 +77,7 @@ namespace HMesh
             << faces.size() << " faces"<< endl;
             m.clear();
             
-            build(m, vertices.size(),
+            orig_vertex_indices = build(m, vertices.size(),
                   reinterpret_cast<double*>(&vertices[0]),
                   faces.size(),
                   &faces[0],

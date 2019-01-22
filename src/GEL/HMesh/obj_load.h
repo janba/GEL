@@ -19,12 +19,9 @@ namespace HMesh
 {
     /** Load a Wavefront OBJ file. 
         The first argument is a string containing the file name (including path) 
-     and the second is the Manifold into which the mesh is loaded. The third and
-     final argument is a boolean which indicates whether safe loading is used. This 
-     argument defaults to true. Safe loading means that all the faces are loaded
-     individually and then stitched in a second pass. 
-     If safe is false, the faces are loaded and stitched at the same time, and this
-     procedure cannot handle non-manifold situations. */
+     and the second is the Manifold into which the mesh is loaded. The third argument
+     is an attribute vector containing the indices of the original
+    points.  */
      
     bool obj_load(const std::string&, Manifold& m, VertexAttributeVector<int>& orig_vertex_indices);
     bool obj_load(const std::string&, Manifold& m);
