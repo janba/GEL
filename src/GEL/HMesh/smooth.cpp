@@ -117,7 +117,7 @@ namespace HMesh
             p += w * nbr;
             w_sum += w;
         });
-        if(w_sum<1e-20 || isnan(p[0])  || isnan(p[1]) || isnan(p[2]))
+        if(w_sum<1e-20 || std::isnan(p[0])  || std::isnan(p[1]) || std::isnan(p[2]))
             return Vec3d(0);
         return p / w_sum - m.pos(v);
     }
