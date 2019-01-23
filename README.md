@@ -5,7 +5,7 @@ Functionality includes quadric based simplification, mesh optimization, distance
 and more. A linear algebra library for small vectors and matrices is also included as well as tools for visualizing meshes
 using OpenGL.
 
-PyGEL3D is a set of Python bindings for a subset of the features in GEL. In particular, PyGEL covers almost all the mesh features. In addition PyGEL has its own viewer based on OpenGL and PyGEL can be used from jupyter notebooks. In this case, it is possible to visualize meshes using a plotly widget. A significant benefit here is that when the notebook is exported to HTML, the 3D view comes along.
+PyGEL3D is a set of Python bindings for a subset of the features in GEL. In particular, PyGEL covers almost all the mesh features. In addition PyGEL has its own viewer based on OpenGL and PyGEL can be used from Jupyter notebooks. In this case, it is possible to visualize meshes using a plotly widget. A significant benefit here is that when the notebook is exported to HTML, the 3D view comes along.
 
 ## DOCUMENTATION
 Some installation instructions below. But for more documentation please see the doc directory. There is a doxygen script for creating a reference manual and a latex file intro.tex which explains the basics. Please doxygen or pdflatex your documentation. A license is also found in the intro document.
@@ -26,7 +26,7 @@ There is a basic CMakeLists.txt - it compiles the GEL library and the PyGEL libr
 #$> mkdir build; cd build; cmake ..; make -j8 ; cd ..
 ```
 ### Creating a PyGEL3D package and installing it
-to create a wheel package for PyGEL3D that works with Python 3, you can next issue the commands:
+to create a wheel package for PyGEL3D that works with Python 3, you can next issue the command
 ```
 #$> python3 setup.py bdist_wheel
 ```
