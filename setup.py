@@ -7,7 +7,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="PyGEL3D",
-    version="0.0.13",
+    version="0.0.14",
     author="Andreas Bærentzen",
     author_email="janba@dtu.dk",
     description="PyGEL 3D (Python Bindings for GEL) contains tools for polygonal mesh based geometry processing",
@@ -19,7 +19,7 @@ setuptools.setup(
 #    py_modules = ['gel','js'],
 #    packages=setuptools.find_packages(),
     install_requires = ['numpy','plotly'], 
-    data_files= [('share/lib',glob('build/*.dylib')+glob('build/*.so')+glob('build/*.dll'))],
+    data_files= [('share/lib',glob('build/*.dylib')+glob('build/*.so.*')+glob('build/*.dll'))],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: Microsoft :: Windows",
