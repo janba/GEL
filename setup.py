@@ -1,25 +1,27 @@
-from skbuild import setup
-from setuptools import find_packages
+import setuptools
+from glob import glob
+from setuptools import setup
 
 with open("README.md", "r") as fh:
     long_description = fh.read()
 
-setup(
+setuptools.setup(
     name="PyGEL3D",
-    version="0.1.0",
+    version="0.0.13",
     author="Andreas Bærentzen",
     author_email="janba@dtu.dk",
     description="PyGEL 3D (Python Bindings for GEL) contains tools for polygonal mesh based geometry processing",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="http://www2.compute.dtu.dk/projects/GEL/PyGEL/",
-    packages=['PyGEL'],
-    package_dir={'':'src'},
-    install_requires = ['numpy','plotly'],
+    package_dir = {'':'src/PyGEL'},
+    packages = ['PyGEL3D'],
+#    py_modules = ['gel','js'],
+#    packages=setuptools.find_packages(),
+    install_requires = ['numpy','plotly'], 
+    data_files= [('share/lib',glob('build/*.dylib')+glob('build/*.so')+glob('build/*.dll'))],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: Microsoft :: Windows",
         "Operating System :: MacOS"
-    ],
-    cmake_args=['-DOpenGL_GL_PREFERENCE=GLVND', '-DBUILD_SHARED_LIBS:BOOL=ON']
-)
+    ],)

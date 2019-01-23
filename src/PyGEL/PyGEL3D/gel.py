@@ -28,14 +28,13 @@ def get_script_path():
 
 def get_lib_name():
     if platform == "darwin":
-        return "libGEL.dylib", "libPyGEL.dylib"
+        return "libPyGEL.dylib"
     if platform == "win32":
-        return "GEL.dll", "PyGEL.dll"
-    return "libGEL.so", "libPyGEL.so"
+        return "PyGEL.dll"
+    return "libPyGEL.so"
 
 # Load PyGEL the Python GEL bridge library
-lib_gel = ct.cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), get_lib_name()[0]))
-lib_py_gel = ct.cdll.LoadLibrary(os.path.join(os.path.dirname(__file__), get_lib_name()[1]))
+lib_py_gel = ct.cdll.LoadLibrary(prefix + "/share/lib/" + get_lib_name())
 
 lib_py_gel.IntVector_new.restype = ct.c_void_p
 lib_py_gel.IntVector_get.argtypes = (ct.c_void_p, ct.c_size_t)

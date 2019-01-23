@@ -1,5 +1,9 @@
 ## INTRODUCTION
-GEL is a small library with a good support for 2,3,4 D vectors, simple linear system solving (via Lapack), Mesh representation of surfaces, and the volume representation. There are also several other things some of which pertain to simple user interfaces. For instance, GEL contains a console library.
+GEL is a C++ library of geometry processing tools intended for computer graphics applications. In particular, GEL
+contains a fairly mature half-edge based library, an efficient kD tree and data structures for volumetric data.
+Functionality includes quadric based simplification, mesh optimization, distance field computation, iso surface polygonization 
+and more. A linear algebra library for small vectors and matrices is also included as well as tools for visualizing meshes
+using OpenGL.
 
 ## DOCUMENTATION
 Some installation instructions below. But for more documentation please see the doc directory. There is a doxygen script for creating a reference manual and a latex file intro.tex which explains the basics. Please doxygen or pdflatex your documentation. A license is also found in the intro document.
