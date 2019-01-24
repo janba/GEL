@@ -17,6 +17,8 @@ if (Use_GLGraphics)
     endif (APPLE)
 endif (Use_GLGraphics)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 if (WIN32)
     include_directories(./src/GEL)
     add_definitions(-DGLEW_STATIC)
@@ -32,13 +34,14 @@ if (Use_GLGraphics)
     aux_source_directory(./src/GEL/GL GL_SRC_LIST)
     aux_source_directory(./src/GEL/GLGraphics GLG_SRC_LIST)
     add_library(GEL STATIC ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MSH_SRC_LIST} ${UTL_SRC_LIST} ${GL_SRC_LIST} ${GLG_SRC_LIST})
-    target_link_libraries(GEL Threads::Threads OpenGL::GLU OpenGL::GL ${COCOA_LIBRARY})
+    target_link_libraries(GEL Threads::Threads OpenGL ${COCOA_LIBRARY})
     # not right now ...
     # add_subdirectory(./src/demo)
 else (Use_GLGraphics)
     add_library(GEL STATIC ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MSH_SRC_LIST} ${UTL_SRC_LIST})
     target_link_libraries(GEL Threads::Threads)
 endif (Use_GLGraphics)
+
 
 include_directories(./src)
 aux_source_directory(./src/PyGEL PYG_SRC_LIST)
