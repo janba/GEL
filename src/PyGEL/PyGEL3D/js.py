@@ -3,6 +3,20 @@
 from PyGEL3D import gel
 from numpy import array
 import plotly.graph_objs as go
+import plotly.offline as py
+
+EXPORT_MODE = False
+
+def set_export_mode(_exp_mode=True):
+    """ Calling this function will set export mode to true. It is necessary
+    to do so if we use nbconvert to export a notebook containing interactive
+    plotly graphics to HTML. In other words, this function should not be called
+    in normal usage from within Jupyter but only when we export to HTML. It is
+    then called once in the beginning of the notebook."""
+    global EXPORT_MODE
+    EXPORT_MODE=_exp_mode
+    if EXPORT_MODE:
+        py.init_notebook_mode(connected=False)
 
 def display(m,wireframe=True,smooth=True,data=None):
     """ The display function shows an interactive presentation of the Manifold, m, inside
@@ -37,5 +51,8 @@ def display(m,wireframe=True,smooth=True,data=None):
                    hoverinfo='none')
         mesh_data += [trace1]
     lyt = go.Layout(width=850,height=600)
-    fig = go.FigureWidget(mesh_data,lyt)
-    return fig
+    if EXPORT_MODE:
+        py.iplot(dict(data=mesh_data,layout=lyt))
+    else:
+        return go.FigureWidget(mesh_data,lyt)
+
