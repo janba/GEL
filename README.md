@@ -18,7 +18,7 @@ An Visual Studio 2013 project has been created and is found in the GEL_WIN direc
 Look in the doc folder for installation of glut and glew
 
 ### Building on Linux
-The CMake files below work cross platform.
+The CMake files (see below) work cross platform.
 
 ### Building with CMake
 There is a basic CMakeLists.txt - it compiles the GEL library and the PyGEL library but not the demos.
