@@ -18,7 +18,6 @@ setuptools.setup(
     url="http://www2.compute.dtu.dk/projects/GEL/PyGEL/",
     packages = ['PyGEL3D'],
     package_dir = {'':'src/PyGEL'},
-    include_package_data=True,
     package_data = {'PyGEL3D':libs},
     install_requires = ['numpy','plotly'], 
     classifiers=[
