@@ -1,0 +1,4 @@
+include README.md
+include build/*.so*
+include build/*.dll
+include build/*.dylib

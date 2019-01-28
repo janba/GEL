@@ -34,7 +34,7 @@ def get_lib_name():
     return "libPyGEL.so"
 
 # Load PyGEL the Python GEL bridge library
-lib_py_gel = ct.cdll.LoadLibrary(prefix + "/share/lib/" + get_lib_name())
+lib_py_gel = ct.cdll.LoadLibrary(get_script_path() + "/build/" + get_lib_name())
 
 lib_py_gel.IntVector_new.restype = ct.c_void_p
 lib_py_gel.IntVector_get.argtypes = (ct.c_void_p, ct.c_size_t)
