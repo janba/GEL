@@ -1350,13 +1350,24 @@ namespace GLGraphics {
             if(wantshelp(args)) {
                 me->printf("usage:  triangulate");
                 me->printf("This function triangulates all non triangular faces of the mesh.");
-                me->printf("you may want to call it after hole closing. For a polygon it simply connects");
-                me->printf("the two closest vertices in a recursive manner until only triangles remain");
+                me->printf("Passing an argument starting with 's' will cause it to split polygons by");
+                me->printf("introducing the shortest possible edge. Any other character and it will clip ears.");
+                me->printf("You may want to call it after hole closing.");
                 return;
             }
-            me->save_active_mesh();
+            string method = args.empty() ? "S" : args[0];
+            for(auto& c:method)
+                c = toupper(c);
             
-            triangulate(me->active_mesh(), SHORTEST_EDGE);
+            me->save_active_mesh();
+            if(method[0] == 'S') {
+                me->printf("Triangulating by shortest edge splits...");
+                triangulate(me->active_mesh(), SHORTEST_EDGE);
+            }
+            else {
+                me->printf("Triangulating by ear clipping...");
+                triangulate(me->active_mesh(), CLIP_EAR);
+            }
             me->active_mesh().cleanup();
             valid(me->active_mesh());
             return;

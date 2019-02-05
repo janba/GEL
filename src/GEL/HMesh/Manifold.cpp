@@ -209,42 +209,36 @@ namespace HMesh
 	
     FaceID Manifold::split_face_by_edge(FaceID f, VertexID v0, VertexID v1)
     {
+        // make sure we are not trying to connect a vertex to itself
+        assert(v0 != v1);
         assert(f != InvalidFaceID);
 
 		if(connected(*this, v0, v1))
             return InvalidFaceID;
-        
-        HalfEdgeID he = kernel.last(f);
-        HalfEdgeID last = he;
-        int steps = 0;
-        while(he != last || steps == 0){
-            ++steps;
-            he = kernel.next(he);
-        }
-        
-        // make sure this is not a triangle
-        assert(steps > 3);
-        // make sure we are not trying to connect a vertex to itself
-        assert(v0 != v1);
-		
+        		
+        // Find the edge along f that emanates from v0
 		HalfEdgeID h0 = kernel.out(v0);
         Walker w = walker(v0);
-        int steps_v = 0;
-		for(; !w.full_circle(); w = w.circulate_vertex_ccw(), ++ steps_v){
+        for(int steps_v = 0;  !w.full_circle(); w = w.circulate_vertex_ccw(), ++ steps_v) {
 			if(w.face() == f){
 				h0 = w.halfedge();
 				break;
 			}
 		}
-        assert(kernel.face(h0) == f);
+        // If v0 is not a corner of f, we bail out
+        if(kernel.face(h0) != f) {
+            return InvalidFaceID;
+        }
 		
         // the halfedge belonging to f, going out from v0, is denoted h. Move along h until we hit v1.
         // now we have the halfedge which belongs to f and points to v1.
         HalfEdgeID h = h0;
-        while(kernel.vert(h) != v1){
+        while(kernel.vert(h) != v1) {
             h = kernel.next(h);
+            if (h == h0) { // Oops came full circle, bail out...
+                return InvalidFaceID;
+            }
         }
-        assert(h != h0);
 		
         // create a new halfedge ha which connects v1 and v0 closing the first loop.
         HalfEdgeID h1 = kernel.next(h);
@@ -1078,8 +1072,7 @@ namespace HMesh
     /***************************************************
      * Namespace functions
      ***************************************************/
-
-    
+        
     template<typename size_type, typename float_type, typename int_type>
     VertexAttributeVector<int_type> build_template(Manifold& m, size_type no_vertices,
                                   const float_type* vertvec,
