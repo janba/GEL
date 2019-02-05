@@ -21,7 +21,7 @@ Look in the doc folder for installation of glut and glew
 The CMake files (see below) work cross platform.
 
 ### Building with CMake
-There is a basic CMakeLists.txt - it compiles the GEL library and the PyGEL library but not the demos.
+There is a basic CMakeLists.txt - it compiles the GEL library and the PyGEL library but not the demos. You will need to have OpenGL and [GLFW3](https://www.glfw.org) installed. On windows CMake does not check for the presence of GLFW, but it should work if the files are in standard places. On MacOS and Linux issue the following commands to compile:
 ```
 #$> mkdir build; cd build; cmake ..; make -j8 ; cd ..
 ```
