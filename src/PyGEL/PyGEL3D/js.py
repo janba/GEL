@@ -50,7 +50,8 @@ def display(m,wireframe=True,smooth=True,data=None):
                    line=dict(color='rgb(125,0,0)', width=1),
                    hoverinfo='none')
         mesh_data += [trace1]
-    lyt = go.Layout(width=850,height=600)
+    lyt = go.Layout(width=850,height=800)
+    lyt.scene.aspectmode="data"
     if EXPORT_MODE:
         py.iplot(dict(data=mesh_data,layout=lyt))
     else:
