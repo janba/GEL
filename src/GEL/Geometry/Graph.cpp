@@ -161,6 +161,54 @@ namespace Geometry {
         return gn;
     }
     
+ 
+    std::vector<AMGraph::NodeSet> connected_components(const AMGraph& g, const AMGraph::NodeSet& s) {
+        using NodeID = AMGraph::NodeID;
+        using NodeSet = AMGraph::NodeSet;
+        using NodeQueue = queue<NodeID>;
+
+        NodeSet s_visited;
+        vector<AMGraph::NodeSet> component_vec;
+        for(auto nf0 : s) {
+            if(s_visited.count(nf0)==0)
+            {
+                s_visited.insert(nf0);
+                NodeQueue Q;
+                Q.push(nf0);
+                NodeSet component;
+                while(!Q.empty())
+                {
+                    NodeID nf = Q.front();
+                    Q.pop();
+                    component.insert(nf);
+                    for(auto nnf: g.neighbors(nf))
+                        if(s.count(nnf) >0 && s_visited.count(nnf)==0) {
+                            Q.push(nnf);
+                            s_visited.insert(nnf);
+                        }
+                }
+                component_vec.push_back(component);
+            }
+        }
+        return component_vec;
+    }
     
+    double vertex_separator_curvature(const AMGraph3D& g, const AMGraph::NodeSet& separator, const AMGraph::NodeSet& interior) {
+        int front_curvature = 0;
+        for(auto n: separator) {
+            int inside=0;
+            int outside=0;
+            for(auto nn: g.neighbors(n)) {
+                if(interior.count(nn))
+                    inside += 1;
+                else if(separator.count(nn)==0)
+                    outside += 1;
+            }
+            int node_curvature = outside-inside;
+            front_curvature += (node_curvature);
+        }
+        return static_cast<double>(abs(front_curvature)) / separator.size();
+    }
+
     
 }

@@ -289,5 +289,11 @@ namespace Geometry {
      the resulting graph. */
     AMGraph3D minimum_spanning_tree(const AMGraph3D&,
                                     AMGraph::NodeID root = AMGraph::InvalidNodeID);
+
+    /** Given a NodeSet s, split s into connected components and return those in a vector */
+    std::vector<AMGraph::NodeSet> connected_components(const AMGraph& g, const AMGraph::NodeSet& s);
+    
+    double vertex_separator_curvature(const AMGraph3D& g, const AMGraph::NodeSet& s, const AMGraph::NodeSet& interior);
 }
+
 #endif /* Graph_h */

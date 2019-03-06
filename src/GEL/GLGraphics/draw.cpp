@@ -235,6 +235,7 @@ namespace GLGraphics
     {
         glPointSize(5);
         glLineWidth(3);
+        glUseProgram(0);
         glDisable(GL_LIGHTING);
         glBegin(GL_POINTS);
         for(auto n: graph.node_ids())
