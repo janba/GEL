@@ -195,6 +195,8 @@ namespace Geometry {
     
     double vertex_separator_curvature(const AMGraph3D& g, const AMGraph::NodeSet& separator, const AMGraph::NodeSet& interior) {
         int front_curvature = 0;
+        int outside_sum = 0;
+        int inside_sum = 0;
         for(auto n: separator) {
             int inside=0;
             int outside=0;
@@ -204,10 +206,14 @@ namespace Geometry {
                 else if(separator.count(nn)==0)
                     outside += 1;
             }
+            inside_sum += inside;
+            outside_sum += outside;
             int node_curvature = outside-inside;
-            front_curvature += (node_curvature);
+            front_curvature += sqr(node_curvature);
         }
-        return static_cast<double>(abs(front_curvature)) / separator.size();
+        if(inside_sum == 0 || outside_sum == 0)
+            return 1e100;
+        return static_cast<double>((front_curvature)) / separator.size();
     }
 
     

@@ -93,7 +93,9 @@ namespace GLGraphics
     
     /** Project the point given as argument using modelview and projection matrices */
     CGLA::Vec3d world2screen(const CGLA::Vec3d& p);
-    
-    
+
+    /** Return a random color based on scrambling i - so always same color for the same i. */
+    const CGLA::Vec3f& get_color(int i);
+
 }
 #endif

@@ -370,5 +370,24 @@ namespace GLGraphics
         draw(box.get_aabox());
         glPopMatrix();
     }
+ 
     
+    const Vec3f& get_color(int i)
+    {
+        static Vec3f ctable[100000];
+        static bool was_here;
+        gel_srand(0);
+        if(!was_here)
+        {
+            was_here = true;
+            ctable[0] = Vec3f(0);
+            for(int j=1;j<100000;++j)
+                ctable[j] = Vec3f(0.3)+0.7*normalize(Vec3f(gel_rand(),gel_rand(),gel_rand()));
+            ctable[3] = Vec3f(1,0,0);
+            ctable[4] = Vec3f(0,1,0);
+            ctable[5] = Vec3f(0,0,1);
+            ctable[6] = Vec3f(1,0,1);
+        }
+        return ctable[i%100000];
+    }
 }
