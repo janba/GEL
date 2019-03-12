@@ -77,7 +77,10 @@ namespace Geometry {
         
         /// The range returned can be used in range based for loops over all node ids
         const Util::Range node_ids() const { return Util::Range(0,edge_map.size());}
-        
+
+        /// The range returned can be used in range based for loops over all node ids
+        const Util::Range edge_ids() const { return Util::Range(0,no_edges);}
+
         /// Add a node to the graph
         NodeID add_node() {
             NodeID id = edge_map.size();

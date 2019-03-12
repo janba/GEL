@@ -200,16 +200,19 @@ namespace Geometry {
         for(auto n: separator) {
             int inside=0;
             int outside=0;
+            int in_sep=0;
             for(auto nn: g.neighbors(n)) {
                 if(interior.count(nn))
                     inside += 1;
-                else if(separator.count(nn)==0)
+                else if(separator.count(nn))
+                    in_sep += 1;
+                else
                     outside += 1;
             }
             inside_sum += inside;
             outside_sum += outside;
             int node_curvature = outside-inside;
-            front_curvature += sqr(node_curvature);
+            front_curvature += sqr(node_curvature) + sqr(in_sep-2);
         }
         if(inside_sum == 0 || outside_sum == 0)
             return 1e100;
