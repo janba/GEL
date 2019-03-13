@@ -275,14 +275,7 @@ namespace Geometry {
         
     public:
 
-        BreadthFirstSearch(const AMGraph3D& _g, const DistAttribVec& _dist = DistAttribVec(0)):
-        g_ptr(&_g) {
-            if(_dist.size() == 0) {
-                dist = DistAttribVec(g_ptr->no_nodes(), DBL_MAX);
-            }
-            else
-                dist = _dist;
-        }
+        BreadthFirstSearch(const AMGraph3D& _g, const DistAttribVec& _dist = DistAttribVec(0));
         
         void add_init_node(AMGraph::NodeID n, double init_dist = 0.0);
 

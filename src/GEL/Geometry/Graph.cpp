@@ -103,10 +103,33 @@ namespace Geometry {
         return gn;
     }
     
+    BreadthFirstSearch::BreadthFirstSearch(const AMGraph3D& _g, const Util::AttribVec<AMGraph::NodeID, double>& _dist):
+    g_ptr(&_g) {
+        pred = Util::AttribVec<AMGraph::NodeID, AMGraph::NodeID>(g_ptr->no_nodes(), AMGraph::InvalidNodeID);
+        if(_dist.size() == 0) {
+            dist = DistAttribVec(g_ptr->no_nodes(), DBL_MAX);
+        }
+        else {
+            dist = _dist;
+            for(auto n: g_ptr->node_ids()) {
+                bool is_minimum = true;
+                for (auto m: g_ptr->neighbors(n)) {
+                    if (dist[m] < dist[n])
+                        is_minimum = false;
+                }
+                if(is_minimum) {
+                    pq.push(PrimPQElem(-dist[n], n, AMGraph::InvalidNodeID));
+                    front.insert(n);
+                }
+            }
+            
+        }
+    }
     
     void BreadthFirstSearch::add_init_node(AMGraph::NodeID n, double init_dist) {
-            pq.push(PrimPQElem(-init_dist, n, AMGraph::InvalidNodeID));
-            dist[n] = init_dist;
+        pq.push(PrimPQElem(-init_dist, n, AMGraph::InvalidNodeID));
+        dist[n] = init_dist;
+        front.insert(n);
     }
     
     bool BreadthFirstSearch::Dijkstra_step() {
@@ -140,13 +163,15 @@ namespace Geometry {
             front.erase(n);
             pq.pop();
             visited.insert(n);
-            for(auto m: g_ptr->neighbors(n)) {
-                pred[m] = n;
-                pq.push(PrimPQElem(-dist[m], m, n));
-                front.insert(m);
-            }
+            for(auto m: g_ptr->neighbors(n))
+                if (pred[m]==AMGraph::InvalidNodeID){
+                    pred[m] = n;
+                    pq.push(PrimPQElem(-dist[m], m, n));
+                    front.insert(m);
+                }
+            return true;
         }
-        return true;
+        return false;
     }
 
 
