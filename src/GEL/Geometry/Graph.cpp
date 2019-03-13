@@ -104,20 +104,12 @@ namespace Geometry {
     }
     
     
-    void BreadthFirstSearch::init(AMGraph::NodeID n) {
-        if(pq.empty()) {
-            pq = priority_queue<PrimPQElem>();
-            pq.push(PrimPQElem(-0.0, n, AMGraph::InvalidNodeID));
-
-            dist = Util::AttribVec<AMGraph::NodeID, double> (g_ptr->no_nodes(), DBL_MAX);
-            dist[n] = 0.0;
-
-            visited.clear();
-            front.clear();
-        }
+    void BreadthFirstSearch::add_init_node(AMGraph::NodeID n, double init_dist) {
+            pq.push(PrimPQElem(-init_dist, n, AMGraph::InvalidNodeID));
+            dist[n] = init_dist;
     }
     
-    bool BreadthFirstSearch::step() {
+    bool BreadthFirstSearch::Dijkstra_step() {
         bool did_visit = false;
         while(!pq.empty() && !did_visit) {
             last = pq.top();
@@ -140,6 +132,23 @@ namespace Geometry {
         }
         return did_visit;
     }
+    
+    bool BreadthFirstSearch::step() {
+        if(!pq.empty()) {
+            last = pq.top();
+            auto n = last.node;
+            front.erase(n);
+            pq.pop();
+            visited.insert(n);
+            for(auto m: g_ptr->neighbors(n)) {
+                pred[m] = n;
+                pq.push(PrimPQElem(-dist[m], m, n));
+                front.insert(m);
+            }
+        }
+        return true;
+    }
+
 
     
     AMGraph3D minimum_spanning_tree(const AMGraph3D& g, AMGraph::NodeID root)
@@ -152,10 +161,10 @@ namespace Geometry {
             gn.add_node(g.pos[n]);
 
         BreadthFirstSearch bfs(g);
-        bfs.init(root);
-        while(bfs.step()) {
+        bfs.add_init_node(root);
+        while(bfs.Dijkstra_step()) {
             auto last = bfs.get_last();
-            gn.connect_nodes(last.node, last.parent);
+            gn.connect_nodes(last, bfs.get_pred(last));
         }
         
         return gn;

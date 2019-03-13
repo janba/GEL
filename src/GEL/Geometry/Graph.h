@@ -265,23 +265,35 @@ namespace Geometry {
     
     
     class BreadthFirstSearch {
+        using DistAttribVec = Util::AttribVec<AMGraph::NodeID, double>;
+        const AMGraph3D* g_ptr;
         std::priority_queue<PrimPQElem> pq;
         AMGraph::NodeSet visited, front;
         Util::AttribVec<AMGraph::NodeID, double> dist;
         Util::AttribVec<AMGraph::NodeID, AMGraph::NodeID> pred;
-        const AMGraph3D* g_ptr;
         PrimPQElem last;
         
     public:
 
-        BreadthFirstSearch(const AMGraph3D& _g): g_ptr(&_g) {}
-        void init(AMGraph::NodeID);
+        BreadthFirstSearch(const AMGraph3D& _g, const DistAttribVec& _dist = DistAttribVec(0)):
+        g_ptr(&_g) {
+            if(_dist.size() == 0) {
+                dist = DistAttribVec(g_ptr->no_nodes(), DBL_MAX);
+            }
+            else
+                dist = _dist;
+        }
+        
+        void add_init_node(AMGraph::NodeID n, double init_dist = 0.0);
+
+        bool Dijkstra_step();
         bool step();
-        const PrimPQElem& get_last() const { return last; }
+        
+        AMGraph::NodeID get_last() const { return last.node; }
+        AMGraph::NodeID get_pred(AMGraph::NodeID n) const { return pred[n];}
         AMGraph::NodeSet get_front() const { return front; }
         AMGraph::NodeSet get_interior() const { return visited; }
         double get_dist(AMGraph::NodeID n) const { return dist[n];}
-        AMGraph::NodeID get_pred(AMGraph::NodeID n) const { return pred[n];}
     };
     
     /** Merges all nodes of g within a distance of thresh and returns the resulting graph. 
