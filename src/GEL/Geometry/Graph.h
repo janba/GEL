@@ -287,6 +287,7 @@ namespace Geometry {
         AMGraph::NodeSet get_front() const { return front; }
         AMGraph::NodeSet get_interior() const { return visited; }
         double get_dist(AMGraph::NodeID n) const { return dist[n];}
+        const DistAttribVec& get_dist_vec() const { return dist;}
     };
     
     /** Merges all nodes of g within a distance of thresh and returns the resulting graph. 
