@@ -248,8 +248,8 @@ namespace Geometry {
             int node_curvature = outside-inside;
             front_curvature += sqr(node_curvature);// + sqr(in_sep-2);
         }
-        if(inside_sum == 0 || outside_sum == 0)
-            return 1e100;
+//        if(inside_sum == 0 || outside_sum == 0)
+//            return 1e100;
         return static_cast<double>(front_curvature) / separator.size();
     }
 
