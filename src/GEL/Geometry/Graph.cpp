@@ -6,6 +6,7 @@
 //  Copyright © 2015 J. Andreas Bærentzen. All rights reserved.
 //
 
+#include <iostream>
 #include <map>
 #include <queue>
 #include "Graph.h"
@@ -15,38 +16,18 @@ namespace Geometry {
     using namespace CGLA;
     using namespace std;
     
-    void AMGraph::reassign_node_id(NodeID n_src, NodeID n_dst, bool merge) {
+    void AMGraph3D::merge_nodes(NodeID n0, NodeID n1) {
+        CGLA::Vec3d p_new = 0.5*(pos[n0]+pos[n1]);
         
-        // If we are not merging, clear the destination node. Otherwise remove
-        // just the edge connecting dst to src.
-        if(!merge)
-            isolate_node(n_dst);
-        else
-            edge_map[n_dst].erase(n_src);
+        pos[n0] = Vec3d(CGLA_NAN);
+        pos[n1] = p_new;
         
-        // Remove edge connecting src to dst.
-        edge_map[n_src].erase(n_dst);
-        
-        // For all edges in src
-        for(auto& edge: edge_map[n_src]) {
-            // Retrieve edge id of neighbor to src
-            NodeID n = edge.first;
-            
-            // Remove edge going from n back to src
-            edge_map[n].erase(n_src);
-            
-            // If we DO NOT find an edge from n to dst, we
-            // create that edge giving it the old ID from the
-            // edge connecting src to n.
-            auto itr = edge_map[n_dst].find(n);
-            if (itr == edge_map[n_dst].end()) {
-                EdgeID e = edge.second;
-                edge_map[n_dst][n] = e;
-                edge_map[n][n_dst] = e;
-            }
+        for(auto n : neighbors(n0)) {
+            edge_map[n].erase(n0);
+            if(n != n1)
+                connect_nodes(n, n1);
         }
-        // Clear all edges going out from src which is now isolated.
-        edge_map[n_src].clear();
+        edge_map[n0].clear();
     }
 
     
@@ -56,7 +37,7 @@ namespace Geometry {
     /// Special ID value for invalid edge
     const AMGraph3D::EdgeID AMGraph::InvalidEdgeID = std::numeric_limits<size_t>::max();
     
-    AMGraph3D clean_graph(const AMGraph3D& g, double thresh)
+    AMGraph3D clean_graph(const AMGraph3D& g)
     {
         AMGraph3D gn; // new graph
         map<AMGraph::NodeID, AMGraph::NodeID> node_map;
@@ -65,22 +46,9 @@ namespace Geometry {
         // create a node in the new graph
         for(auto n: g.node_ids())
         {
-            bool erased = false;
-            if(std::isnan(g.pos[n][0]))
-            {
+            if(std::isnan(g.pos[n][0])) {
                 node_map[n] = AMGraph::InvalidNodeID;
-                erased = true;
-            }
-            else
-                for(auto m: Util::Range(0,n))
-                {
-                    double d = g.sqr_dist(n,m);
-                    if(d<thresh) {
-                        erased = true;
-                        node_map[n] = node_map[m];
-                    }
-                }
-            if(!erased) {
+            } else {
                 node_map[n] = gn.add_node(g.pos[n]);
                 gn.node_color[node_map[n]] = g.node_color[n];
             }
@@ -231,25 +199,34 @@ namespace Geometry {
         int front_curvature = 0;
         int outside_sum = 0;
         int inside_sum = 0;
+//        AMGraph3D::NodeSet inside_set;
+//        AMGraph3D::NodeSet outside_set;
         for(auto n: separator) {
             int inside=0;
             int outside=0;
             int in_sep=0;
             for(auto nn: g.neighbors(n)) {
-                if(interior.count(nn))
+                if(interior.count(nn)) {
                     inside += 1;
+//                    inside_set.insert(nn);
+                }
                 else if(separator.count(nn))
                     in_sep += 1;
-                else
+                else {
                     outside += 1;
+//                    outside_set.insert(nn);
+                }
             }
             inside_sum += inside;
             outside_sum += outside;
             int node_curvature = outside-inside;
             front_curvature += sqr(node_curvature);// + sqr(in_sep-2);
         }
-//        if(inside_sum == 0 || outside_sum == 0)
-//            return 1e100;
+//        auto inside_sz = inside_set.size();
+//        auto outside_sz = outside_set.size();
+//        return (max(inside_sz,outside_sz)/(1e-150 + min(inside_sz,outside_sz)))/separator.size();
+        if(inside_sum == 0 || outside_sum == 0)
+            return 1e100;
         return static_cast<double>(front_curvature) / separator.size();
     }
 

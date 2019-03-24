@@ -1551,7 +1551,7 @@ namespace GLGraphics {
             theConsole.key_up();
         else
         {
-            int w[4];
+            GLint w[4];
             glGetIntegerv(GL_VIEWPORT, w);
             active = 0;
             active_view_control().reshape(w[2],w[3]);
@@ -1562,7 +1562,7 @@ namespace GLGraphics {
             theConsole.key_down();
         else
         {
-            int w[4];
+            GLint w[4];
             glGetIntegerv(GL_VIEWPORT, w);
             active = NO_MESHES-1;
             active_view_control().reshape(w[2],w[3]);
@@ -1573,7 +1573,7 @@ namespace GLGraphics {
             theConsole.key_left();
         else
         {
-            int w[4];
+            GLint w[4];
             glGetIntegerv(GL_VIEWPORT, w);
             active = max(0, active-1);
             active_view_control().reshape(w[2],w[3]);
@@ -1584,7 +1584,7 @@ namespace GLGraphics {
             theConsole.key_right();
         else
         {
-            int w[4];
+            GLint w[4];
             glGetIntegerv(GL_VIEWPORT, w);
             active = min(NO_MESHES-1, active+1);
             active_view_control().reshape(w[2],w[3]);

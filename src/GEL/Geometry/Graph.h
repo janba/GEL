@@ -88,21 +88,6 @@ namespace Geometry {
             return id;
         }
         
-        /// Remove all outgoing edges and all edges from other nodes to this node.
-        void isolate_node(NodeID n0)
-        {
-            // Remove all edges connecting neighboring nodes back to n0
-            for(auto& edge: edge_map[n0])
-                edge_map[edge.first].erase(n0);
-            // Remove the outgoing aspect of all edges
-            edge_map[n0].clear();
-        }
-        
-        /** move src node to dst and update all edges to reflect the change.
-            if merge is true, the existing edges in the destination node are
-            kept, otherwise it is first isolated. */
-        void reassign_node_id(NodeID n_src, NodeID n_dst, bool merge);
-        
         /// Find an edge in the graph given two nodes. Returns InvalidEdgeID if no such edge found.
         EdgeID find_edge(NodeID n0, NodeID n1) const
         {
@@ -200,7 +185,11 @@ namespace Geometry {
         
         /// Isolate the node and set its position to NAN -- effectively removing it
         void remove_node(NodeID n) {
-            isolate_node(n);
+            // Remove all edges connecting neighboring nodes back to n0
+            for(auto& edge: edge_map[n])
+                edge_map[edge.first].erase(n);
+            // Remove the outgoing aspect of all edges
+            edge_map[n].clear();
             pos[n] = CGLA::Vec3d(CGLA::CGLA_NAN);
         }
         
@@ -216,13 +205,7 @@ namespace Geometry {
      
         /** Merge two nodes, the first is removed and the second inherits all connections,
             the new position becomes the average. */
-        void merge_nodes(NodeID n0, NodeID n1) {
-            CGLA::Vec3d p_new = 0.5*(pos[n0]+pos[n1]);
-            
-            reassign_node_id(n0, n1, true);
-            pos[n1] = p_new;
-            pos[n0] = CGLA::Vec3d(CGLA::CGLA_NAN);
-        }
+        void merge_nodes(NodeID n0, NodeID n1); 
         
         /// Compute sqr distance between two nodes - not necessarily connected.
         double sqr_dist(NodeID n0, NodeID n1) const {
@@ -290,9 +273,8 @@ namespace Geometry {
         const DistAttribVec& get_dist_vec() const { return dist;}
     };
     
-    /** Merges all nodes of g within a distance of thresh and returns the resulting graph. 
-        Also remove removed nodes and edges from data structure. */
-    AMGraph3D clean_graph(const AMGraph3D& g, double thresh = 1e-12);
+    /** Clean up graph, removing unused nodes and edges. */
+    AMGraph3D clean_graph(const AMGraph3D& g);
     
     /** Computes the minimum spanning tree of the argument using Prim's algorithm and returns
      the resulting graph. */
