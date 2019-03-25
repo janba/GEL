@@ -199,32 +199,22 @@ namespace Geometry {
         int front_curvature = 0;
         int outside_sum = 0;
         int inside_sum = 0;
-//        AMGraph3D::NodeSet inside_set;
-//        AMGraph3D::NodeSet outside_set;
         for(auto n: separator) {
             int inside=0;
             int outside=0;
             int in_sep=0;
             for(auto nn: g.neighbors(n)) {
-                if(interior.count(nn)) {
+                if(interior.count(nn))
                     inside += 1;
-//                    inside_set.insert(nn);
-                }
                 else if(separator.count(nn))
                     in_sep += 1;
-                else {
+                else
                     outside += 1;
-//                    outside_set.insert(nn);
-                }
             }
             inside_sum += inside;
             outside_sum += outside;
-            int node_curvature = outside-inside;
-            front_curvature += sqr(node_curvature);// + sqr(in_sep-2);
+            front_curvature += sqr(outside-inside);// + sqr(in_sep-2);
         }
-//        auto inside_sz = inside_set.size();
-//        auto outside_sz = outside_set.size();
-//        return (max(inside_sz,outside_sz)/(1e-150 + min(inside_sz,outside_sz)))/separator.size();
         if(inside_sum == 0 || outside_sum == 0)
             return 1e100;
         return static_cast<double>(front_curvature) / separator.size();

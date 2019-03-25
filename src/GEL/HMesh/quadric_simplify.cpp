@@ -272,7 +272,7 @@ namespace HMesh
             for(HalfEdgeIDIterator h = m.halfedges_begin(); h != m.halfedges_end(); ++h){
                 halfedge_vec[*h].h = *h;
             }
-            cout << "Computing quadrics" << endl;
+//            cout << "Computing quadrics" << endl;
             
             // For all vertices, compute quadric and store in qem_vec
             for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){
@@ -297,13 +297,13 @@ namespace HMesh
                 }
                 qem_vec[*v] = q;
             }
-            cout << "Pushing initial halfedges" << endl;
+//            cout << "Pushing initial halfedges" << endl;
             
             for(HalfEdgeIDIterator h = m.halfedges_begin(); h != m.halfedges_end(); ++h){
                 if(halfedge_vec[*h].time_stamp == 0)
                     push_simplify_rec(*h);
             }
-            cout << "Simplifying"<<endl;
+//            cout << "Simplifying"<<endl;
             
             int work = 0;
             while(!sim_queue.empty() && work < max_work){
@@ -316,7 +316,7 @@ namespace HMesh
 //                cout << "work = " << work << endl;
 //                cout << "sim Q size = " << sim_queue.size() << endl;
             }
-            cout << endl;
+//            cout << endl;
         }
     }
     

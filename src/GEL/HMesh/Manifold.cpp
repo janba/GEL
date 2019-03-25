@@ -1395,7 +1395,7 @@ namespace HMesh
         // double edge test (see 3)
         if(lisect.size() != 0)
         {
-            cout << "precond_collapse failed: vertex shared by both 1-rings" << endl;
+//            cout << "precond_collapse failed: vertex shared by both 1-rings" << endl;
             return false;
         }
         
