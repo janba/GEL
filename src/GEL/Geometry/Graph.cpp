@@ -73,6 +73,9 @@ namespace Geometry {
     
     BreadthFirstSearch::BreadthFirstSearch(const AMGraph3D& _g, const Util::AttribVec<AMGraph::NodeID, double>& _dist):
     g_ptr(&_g) {
+        T = 0;
+        T_in = Util::AttribVec<AMGraph::NodeID,int>(g_ptr->no_nodes(), INT_MAX);
+        T_out = Util::AttribVec<AMGraph::NodeID,int>(g_ptr->no_nodes(), INT_MAX);
         pred = Util::AttribVec<AMGraph::NodeID, AMGraph::NodeID>(g_ptr->no_nodes(), AMGraph::InvalidNodeID);
         if(_dist.size() == 0) {
             dist = DistAttribVec(g_ptr->no_nodes(), DBL_MAX);
@@ -86,6 +89,7 @@ namespace Geometry {
                         is_minimum = false;
                 }
                 if(is_minimum) {
+                    T_in[n] = T;
                     pq.push(PrimPQElem(-dist[n], n, AMGraph::InvalidNodeID));
                     front.insert(n);
                 }
@@ -98,14 +102,17 @@ namespace Geometry {
         pq.push(PrimPQElem(-init_dist, n, AMGraph::InvalidNodeID));
         dist[n] = init_dist;
         front.insert(n);
+        T_in[n] = T;
     }
     
     bool BreadthFirstSearch::Dijkstra_step() {
         bool did_visit = false;
         while(!pq.empty() && !did_visit) {
+            ++T;
             last = pq.top();
             auto n = last.node;
             front.erase(n);
+            T_out[n] = T;
             pq.pop();
             if(last.priority == -dist[n]) {
                 visited.insert(n);
@@ -117,6 +124,7 @@ namespace Geometry {
                         pred[m] = n;
                         pq.push(PrimPQElem(-d, m, n));
                         front.insert(m);
+                        T_in[m] = T;
                     }
                 }
             }
@@ -126,16 +134,19 @@ namespace Geometry {
     
     bool BreadthFirstSearch::step() {
         if(!pq.empty()) {
+            ++T;
             last = pq.top();
             auto n = last.node;
             front.erase(n);
+            T_out[n] = T;
             pq.pop();
             visited.insert(n);
             for(auto m: g_ptr->neighbors(n))
-                if (pred[m]==AMGraph::InvalidNodeID){
+                if (T<T_in[m]){
                     pred[m] = n;
                     pq.push(PrimPQElem(-dist[m], m, n));
                     front.insert(m);
+                    T_in[m] = T;
                 }
             return true;
         }
@@ -157,7 +168,7 @@ namespace Geometry {
         bfs.add_init_node(root);
         while(bfs.Dijkstra_step()) {
             auto last = bfs.get_last();
-            gn.connect_nodes(last, bfs.get_pred(last));
+            gn.connect_nodes(last, bfs.pred[last]);
         }
         
         return gn;
@@ -195,21 +206,28 @@ namespace Geometry {
         return component_vec;
     }
     
-    double vertex_separator_curvature(const AMGraph3D& g, const AMGraph::NodeSet& separator, const AMGraph::NodeSet& interior) {
+    double vertex_separator_curvature(const AMGraph3D& g, const AMGraph::NodeSet& separator, const Util::AttribVec<AMGraph::NodeID, int>& t_out) {
         int front_curvature = 0;
         int outside_sum = 0;
         int inside_sum = 0;
+        AMGraph::NodeSet ns_inside;
+        AMGraph::NodeSet ns_outside;
+
         for(auto n: separator) {
             int inside=0;
             int outside=0;
             int in_sep=0;
             for(auto nn: g.neighbors(n)) {
-                if(interior.count(nn))
-                    inside += 1;
-                else if(separator.count(nn))
+               if(separator.count(nn))
                     in_sep += 1;
-                else
+               else if(t_out[nn]< t_out[n]) {
+                    inside += 1;
+                   ns_inside.insert(nn);
+               }
+               else {
                     outside += 1;
+                   ns_outside.insert(nn);
+               }
             }
             inside_sum += inside;
             outside_sum += outside;
@@ -217,8 +235,9 @@ namespace Geometry {
         }
         if(inside_sum == 0 || outside_sum == 0)
             return 1e100;
+//        return static_cast<double>(sqr(ns_outside.size()-ns_inside.size())) / separator.size();
         return static_cast<double>(front_curvature) / separator.size();
-    }
+  }
 
     
 }

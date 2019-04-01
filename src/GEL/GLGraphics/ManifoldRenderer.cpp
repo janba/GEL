@@ -352,10 +352,10 @@ namespace GLGraphics
     "	vec3 viewer_lightdir = vec3(0, 0, 1.0);\n"
     "	vec3 isophote_lightdir = viewer_lightdir;\n"
     "	float angle = acos(dot(n, isophote_lightdir));\n"
-    "   float diff  = dot(n,viewer_lightdir);\n"
+    "   vec4 diff  = vec4(n,1);\n"
     "	\n"
     "	// decide if we hit a white or black ring, based on y value\n"
-    "	gl_FragColor = diff * vec4(1.0) + smoothstep(0.9,0.95,cos(20.0*angle)) * vec4(-1.0);\n"
+    "	gl_FragColor = diff + smoothstep(0.9,0.95,cos(60.0*angle)) * vec4(-1.0);\n"
     "}\n";
     
     const string ToonRenderer::vss = 

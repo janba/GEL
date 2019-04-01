@@ -252,10 +252,17 @@ namespace Geometry {
         const AMGraph3D* g_ptr;
         std::priority_queue<PrimPQElem> pq;
         AMGraph::NodeSet visited, front;
-        Util::AttribVec<AMGraph::NodeID, double> dist;
-        Util::AttribVec<AMGraph::NodeID, AMGraph::NodeID> pred;
         PrimPQElem last;
+
+        int T;
         
+    public:
+
+        DistAttribVec dist;
+        Util::AttribVec<AMGraph::NodeID, AMGraph::NodeID> pred;
+        Util::AttribVec<AMGraph::NodeID, int> T_in;
+        Util::AttribVec<AMGraph::NodeID, int> T_out;
+
     public:
 
         BreadthFirstSearch(const AMGraph3D& _g, const DistAttribVec& _dist = DistAttribVec(0));
@@ -265,12 +272,14 @@ namespace Geometry {
         bool Dijkstra_step();
         bool step();
         
+//        int get_T_in(AMGraph::NodeID n) const {return T_in[n];}
+//        int get_T_out(AMGraph::NodeID n) const {return T_out[n];}
         AMGraph::NodeID get_last() const { return last.node; }
-        AMGraph::NodeID get_pred(AMGraph::NodeID n) const { return pred[n];}
+//        AMGraph::NodeID get_pred(AMGraph::NodeID n) const { return pred[n];}
         AMGraph::NodeSet get_front() const { return front; }
         AMGraph::NodeSet get_interior() const { return visited; }
-        double get_dist(AMGraph::NodeID n) const { return dist[n];}
-        const DistAttribVec& get_dist_vec() const { return dist;}
+//        double get_dist(AMGraph::NodeID n) const { return dist[n];}
+//        const DistAttribVec& get_dist_vec() const { return dist;}
     };
     
     /** Clean up graph, removing unused nodes and edges. */
@@ -284,7 +293,7 @@ namespace Geometry {
     /** Given a NodeSet s, split s into connected components and return those in a vector */
     std::vector<AMGraph::NodeSet> connected_components(const AMGraph& g, const AMGraph::NodeSet& s);
     
-    double vertex_separator_curvature(const AMGraph3D& g, const AMGraph::NodeSet& s, const AMGraph::NodeSet& interior);
+    double vertex_separator_curvature(const AMGraph3D& g, const AMGraph::NodeSet& s,  const Util::AttribVec<AMGraph::NodeID, int>& t_out);
 }
 
 #endif /* Graph_h */
