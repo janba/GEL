@@ -69,7 +69,7 @@ namespace GLGraphics {
         brush_type("smooth"),
         selection_mode(0),
         active(0),
-        display_render_mode("normal"),
+        display_render_mode("iso"),
         brush_size(0.01),
         display_smooth_shading(true),
         display_gamma(2.2) {}
