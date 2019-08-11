@@ -235,8 +235,8 @@ namespace Geometry {
         }
 //        if(inside_sum == 0 || outside_sum == 0)
 //            return 1e100;
-        return static_cast<double>(sqr(ns_outside.size()-ns_inside.size())) / separator.size();
-//        return static_cast<double>(front_curvature) / separator.size();
+//        return static_cast<double>(sqr(ns_outside.size()-ns_inside.size())) / separator.size();
+        return static_cast<double>(front_curvature) / separator.size();
   }
 
     
