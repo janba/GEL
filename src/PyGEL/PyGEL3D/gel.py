@@ -537,32 +537,36 @@ def obj_load(fn):
     """ Load Manifold from Wavefront obj file. """
     m = Manifold()
     s = ct.c_char_p(fn.encode('utf-8'))
-    lib_py_gel.obj_load(s, m.obj)
-    return m
+    if lib_py_gel.obj_load(s, m.obj):
+        return m
+    return None
 
 lib_py_gel.off_load.argtypes = (ct.c_char_p, ct.c_void_p)
 def off_load(fn):
     """ Load Manifold from OFF file. """
     m = Manifold()
     s = ct.c_char_p(fn.encode('utf-8'))
-    lib_py_gel.off_load(s, m.obj)
-    return m
+    if lib_py_gel.off_load(s, m.obj):
+        return m
+    return None
 
 lib_py_gel.ply_load.argtypes = (ct.c_char_p, ct.c_void_p)
 def ply_load(fn):
     """ Load Manifold from Stanford PLY file. """
     m = Manifold()
     s = ct.c_char_p(fn.encode('utf-8'))
-    lib_py_gel.ply_load(s, m.obj)
-    return m
+    if lib_py_gel.ply_load(s, m.obj):
+        return m
+    return None
 
 lib_py_gel.x3d_load.argtypes = (ct.c_char_p, ct.c_void_p)
 def x3d_load(fn):
     """ Load Manifold from X3D file. """
     m = Manifold()
     s = ct.c_char_p(fn.encode('utf-8'))
-    lib_py_gel.x3d_load(s, m.obj)
-    return m
+    if lib_py_gel.x3d_load(s, m.obj):
+        return m
+    return None
 
 lib_py_gel.remove_caps.argtypes = (ct.c_void_p, ct.c_float)
 def remove_caps(m, thresh=2.9):

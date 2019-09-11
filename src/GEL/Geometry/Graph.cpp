@@ -185,9 +185,9 @@ namespace Geometry {
         for(auto nf0 : s) {
             if(s_visited.count(nf0)==0)
             {
-                s_visited.insert(nf0);
                 NodeQueue Q;
                 Q.push(nf0);
+                s_visited.insert(nf0);
                 NodeSet component;
                 while(!Q.empty())
                 {
