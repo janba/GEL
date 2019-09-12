@@ -23,7 +23,7 @@
 #include <utility> //min
 #include <algorithm>
 
-#ifdef _MSC_VER
+#if defined (WIN32)
 #include <winsock.h>
 #else
 #include <unistd.h>

@@ -6,7 +6,7 @@
 //
 //
 #include <thread>
-#if !defined _MSC_VER
+#if !defined (WIN32)
 #include <stdarg.h>
 #include <unistd.h>
 #endif
