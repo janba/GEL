@@ -89,7 +89,8 @@ extern "C" {
     DLLEXPORT double area(const HMesh::Manifold* m_ptr, size_t _f);
     DLLEXPORT double perimeter(const HMesh::Manifold* m_ptr, size_t _f);
     DLLEXPORT void centre(const HMesh::Manifold* m_ptr, size_t _f, CGLA::Vec3d*);
-        
+    
+    DLLEXPORT extern size_t InvalidIndex;
 }
 
 #endif /* Manifold_hpp */

@@ -126,6 +126,8 @@ namespace HMesh
                         // flip if legal
                         if(precond_flip_edge(m, he[iplus1]))
                             m.flip_edge(he[iplus1]);
+                        else if(boundary(m, he[iplus1]))
+                            m.remove_face(*f);
                         break;
                     }
                 }
@@ -220,7 +222,7 @@ namespace HMesh
                 int cid = cluster_id[v1];
                 int cid0 = cluster_id[v0];
                 if(cid0 == cid) {
-                    cout << "Warning: edge endpoints in same cluster while stitching, ignoring " << endl;
+//                    cout << "Warning: edge endpoints in same cluster while stitching, ignoring " << endl;
                     continue;
                 }
                 vector<HalfEdgeID>& stitch_candidates = clustered_halfedges[cid];
@@ -338,10 +340,10 @@ namespace HMesh
                 int n = vertex_tree.in_sphere(m.pos(v), d, keys, vals);
                 if(n>2)
                 {
-                    cout << "Ambiguity: " << n << " vertices in the same spot: ";
-                    for (int i=0;i<n;++i)
-                        cout << vals[i] << " ";
-                    cout << endl;
+//                    cout << "Ambiguity: " << n << " vertices in the same spot: ";
+//                    for (int i=0;i<n;++i)
+//                        cout << vals[i] << " ";
+//                    cout << endl;
                     continue;
                 }
                 if(n==2)

@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -1120,10 +1120,11 @@
 				ORGANIZATIONNAME = "J. Andreas Bærentzen";
 			};
 			buildConfigurationList = 0D85998D193D01B6009DB071 /* Build configuration list for PBXProject "GEL" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 10.0";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 0D859989193D01B6009DB071;

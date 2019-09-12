@@ -284,3 +284,4 @@ void centre(const Manifold* m_ptr, size_t _f, CGLA::Vec3d* c) {
     *c = centre(*m_ptr,FaceID(_f));
 }
 
+size_t InvalidIndex = InvalidVertexID.get_index();

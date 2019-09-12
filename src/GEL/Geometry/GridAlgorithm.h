@@ -77,7 +77,7 @@ namespace Geometry
                          int x_dim, int xy_dim,
                          const CGLA::Vec3i& p0,
                          const CGLA::Vec3i& p7,
-                         F functor,
+                         F& functor,
                          const CGLA::Vec3i& offset = CGLA::Vec3i(0))
     {
         const int Amin = p0[2]*xy_dim;
@@ -105,7 +105,7 @@ namespace Geometry
     template<class T, class F>
     void _for_each_voxel(T* data,
                          const CGLA::Vec3i& dims,
-                         F functor,
+                         F& functor,
                          const CGLA::Vec3i& offset = CGLA::Vec3i(0))
     {
         int l=0;
@@ -129,7 +129,7 @@ namespace Geometry
     void for_each_voxel(RGrid<T>& grid,
                         const CGLA::Vec3i& p0,
                         const CGLA::Vec3i& p7,
-                        F functor)
+                        F& functor)
     {
         _for_each_voxel(grid.get(), grid.get_x_dim(), grid.get_xy_dim(),
                         CGLA::v_max(p0, CGLA::Vec3i(0)),
@@ -142,7 +142,7 @@ namespace Geometry
      the second.	For each voxel, an operation
      specified by the functor is performed. */
     template<class T, class F>
-    void for_each_voxel(RGrid<T>& grid, F functor)
+    void for_each_voxel(RGrid<T>& grid, F& functor)
     {
         _for_each_voxel(grid.get(), grid.get_dims(), functor);
     }
@@ -159,7 +159,7 @@ namespace Geometry
     void for_each_voxel_ordered(RGrid<T>& grid,
                                 const CGLA::Vec3i& p0,
                                 const CGLA::Vec3i& p7,
-                                F functor)
+                                F& functor)
     {
         _for_each_voxel(grid.get(), grid.get_x_dim(), grid.get_xy_dim(),
                         CGLA::v_max(p0, CGLA::Vec3i(0)),
@@ -168,7 +168,7 @@ namespace Geometry
     }
     
     template<class T, class F>
-    void for_each_voxel_ordered(RGrid<T>& grid, F functor)
+    void for_each_voxel_ordered(RGrid<T>& grid, F& functor)
     {
         _for_each_voxel(grid.get(), grid.get_dims(), functor);
     }
@@ -178,7 +178,7 @@ namespace Geometry
     void for_each_cell(HGrid<T,CellT>& grid,
                        const CGLA::Vec3i& p0,
                        const CGLA::Vec3i& p7,
-                       F functor)
+                       F& functor)
     {
         CGLA::Vec3i p0t = p0/grid.get_bottom_dim();
         CGLA::Vec3i p7t = CGLA::v_min(p7/grid.get_bottom_dim()+
@@ -192,7 +192,7 @@ namespace Geometry
     
     template<class T, class CellT, class F>
     void for_each_cell(HGrid<T,CellT>& grid,
-                       F functor)
+                       F& functor)
     {
         CGLA::Vec3i p0t;
         CGLA::Vec3i p7t =	grid.get_dims();
@@ -238,7 +238,7 @@ namespace Geometry
     void for_each_voxel(HGrid<T,CellT>& grid,
                         const CGLA::Vec3i& _p0,
                         const CGLA::Vec3i& _p7,
-                        F functor)
+                        F& functor)
     {
         CGLA::Vec3i p0 = CGLA::v_max(_p0, CGLA::Vec3i(0));
         CGLA::Vec3i p7 = CGLA::v_min(_p7, grid.get_dims());
@@ -247,7 +247,7 @@ namespace Geometry
     }
     
     template<class T, class CellT, class F>
-    void for_each_voxel(HGrid<T,CellT>& grid, F functor)
+    void for_each_voxel(HGrid<T,CellT>& grid, F& functor)
     {
         _HGridCellFunctor<CellT,F> cell_functor(CGLA::Vec3i(0),
                                                 grid.get_dims(), functor);
@@ -258,7 +258,7 @@ namespace Geometry
     void for_each_voxel_ordered(HGrid<T,CellT>& grid,
                                 const CGLA::Vec3i& _p0,
                                 const CGLA::Vec3i& _p7,
-                                F functor)
+                                F& functor)
     {
         CGLA::Vec3i p0 = CGLA::v_max(_p0, CGLA::Vec3i(0));
         CGLA::Vec3i p7 = CGLA::v_min(_p7, grid.get_dims());
@@ -276,7 +276,7 @@ namespace Geometry
     }
     
     template<class T, class CellT, class F>
-    void for_each_voxel_ordered(HGrid<T,CellT>& grid, F functor)
+    void for_each_voxel_ordered(HGrid<T,CellT>& grid, F& functor)
     {
         for_each_voxel_ordered(grid, CGLA::Vec3i(0), grid.get_dims(), functor);
     }
@@ -324,7 +324,7 @@ namespace Geometry
     void for_each_voxel_const(const RGrid<T>& grid,
                               const CGLA::Vec3i& p0,
                               const CGLA::Vec3i& p7,
-                              F functor)
+                              F& functor)
     {
         _for_each_voxel(grid.get(), grid.get_x_dim(), grid.get_xy_dim(),
                         CGLA::v_max(p0, CGLA::Vec3i(0)),
@@ -337,7 +337,7 @@ namespace Geometry
      the second.	For each voxel, an operation
      specified by the functor is performed. */
     template<class T, class F>
-    void for_each_voxel_const(const RGrid<T>& grid,	F functor)
+    void for_each_voxel_const(const RGrid<T>& grid,	F& functor)
     {
         _for_each_voxel(grid.get(), grid.get_dims(), functor);
     }
@@ -354,7 +354,7 @@ namespace Geometry
     void for_each_voxel_ordered_const(const RGrid<T>& grid,
                                       const CGLA::Vec3i& p0,
                                       const CGLA::Vec3i& p7,
-                                      F functor)
+                                      F& functor)
     {
         _for_each_voxel(grid.get(), grid.get_x_dim(), grid.get_xy_dim(),
                         CGLA::v_max(p0, CGLA::Vec3i(0)),
@@ -363,7 +363,7 @@ namespace Geometry
     }
     
     template<class T, class F>
-    void for_each_voxel_ordered_const(const RGrid<T>& grid,	F functor)
+    void for_each_voxel_ordered_const(const RGrid<T>& grid,	F& functor)
     {
         _for_each_voxel(grid.get(), grid.get_dims(), functor);
     }
@@ -373,7 +373,7 @@ namespace Geometry
     void for_each_cell_const(const HGrid<T,CellT>& grid,
                              const CGLA::Vec3i& p0,
                              const CGLA::Vec3i& p7,
-                             F functor)
+                             F& functor)
     {
         CGLA::Vec3i p0t = p0/grid.get_bottom_dim();
         CGLA::Vec3i p7t = CGLA::v_min(p7/grid.get_bottom_dim()+
@@ -387,7 +387,7 @@ namespace Geometry
     
     template<class T, class CellT, class F>
     void for_each_cell_const(const HGrid<T,CellT>& grid,
-                             F functor)
+                             F& functor)
     {
         CGLA::Vec3i p0t;
         CGLA::Vec3i p7t =	grid.get_dims();
@@ -438,7 +438,7 @@ namespace Geometry
     void for_each_voxel_const(const HGrid<T,CellT>& grid,
                               const CGLA::Vec3i& _p0,
                               const CGLA::Vec3i& _p7,
-                              F functor)
+                              F& functor)
     {
         CGLA::Vec3i p0 = CGLA::v_max(_p0, CGLA::Vec3i(0));
         CGLA::Vec3i p7 = CGLA::v_min(_p7, grid.get_dims());
@@ -447,7 +447,7 @@ namespace Geometry
     }
     
     template<class T, class CellT, class F>
-    void for_each_voxel_const(const HGrid<T,CellT>& grid, F functor)
+    void for_each_voxel_const(const HGrid<T,CellT>& grid, F& functor)
     {
         _HGridCellFunctorConst<CellT,F> cell_functor(CGLA::Vec3i(0),
                                                      grid.get_dims(), functor);
@@ -458,7 +458,7 @@ namespace Geometry
     void for_each_voxel_ordered_const(const HGrid<T,CellT>& grid,
                                       const CGLA::Vec3i& _p0,
                                       const CGLA::Vec3i& _p7,
-                                      F functor)
+                                      F& functor)
     {
         CGLA::Vec3i p0 = CGLA::v_max(_p0, CGLA::Vec3i(0));
         CGLA::Vec3i p7 = CGLA::v_min(_p7, grid.get_dims());
@@ -472,7 +472,7 @@ namespace Geometry
     }
     
     template<class T, class CellT, class F>
-    void for_each_voxel_ordered_const(const HGrid<T,CellT>& grid, F functor)
+    void for_each_voxel_ordered_const(const HGrid<T,CellT>& grid, F& functor)
     {
         for_each_voxel_ordered_const(grid,
                                      CGLA::Vec3i(0),

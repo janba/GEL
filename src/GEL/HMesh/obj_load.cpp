@@ -73,8 +73,8 @@ namespace HMesh
                     }
                 }
             }
-            cout << "Loaded " << filename << " : " << vertices.size() << " vertices and "
-            << faces.size() << " faces"<< endl;
+//            cout << "Loaded " << filename << " : " << vertices.size() << " vertices and "
+//            << faces.size() << " faces"<< endl;
             m.clear();
             
             orig_vertex_indices = build(m, vertices.size(),
