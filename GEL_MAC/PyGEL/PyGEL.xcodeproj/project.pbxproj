@@ -8,7 +8,6 @@
 
 /* Begin PBXBuildFile section */
 		BD11F84C21C8602200AC9751 /* libglfw.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BD11F84B21C8602200AC9751 /* libglfw.dylib */; };
-		BD11F84D21C8602700AC9751 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDF6DD661FAA859D00222B34 /* GEL.framework */; };
 		BD27CE6C1F837284002F0FAE /* I3DTree.h in Headers */ = {isa = PBXBuildFile; fileRef = BD27CE6A1F837284002F0FAE /* I3DTree.h */; };
 		BD27CE6D1F837284002F0FAE /* I3DTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD27CE6B1F837284002F0FAE /* I3DTree.cpp */; };
 		BD9100F21F84D0C9003AF93E /* IntVector.h in Headers */ = {isa = PBXBuildFile; fileRef = BD9100EE1F84D0C8003AF93E /* IntVector.h */; };
@@ -24,7 +23,25 @@
 		BDF6F9681FE1D182005568F0 /* MeshDistance.h in Headers */ = {isa = PBXBuildFile; fileRef = BDF6F9661FE1D182005568F0 /* MeshDistance.h */; };
 		BDFE55591FE47EA400062448 /* Manifold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDFE55571FE47EA400062448 /* Manifold.cpp */; };
 		BDFE555A1FE47EA400062448 /* Manifold.h in Headers */ = {isa = PBXBuildFile; fileRef = BDFE55581FE47EA400062448 /* Manifold.h */; };
+		E13A6E63232A55E60011D5D9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E13A6E60232A55C60011D5D9 /* GEL.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E13A6E5F232A55C60011D5D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E13A6E5B232A55C60011D5D9 /* GEL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0D859993193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+		E13A6E61232A55E00011D5D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E13A6E5B232A55C60011D5D9 /* GEL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D859992193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		BD11F84B21C8602200AC9751 /* libglfw.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.dylib; path = ../../../../../opt/local/lib/libglfw.dylib; sourceTree = "<group>"; };
@@ -48,6 +65,7 @@
 		BDF6F9661FE1D182005568F0 /* MeshDistance.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MeshDistance.h; path = ../../src/PyGEL/MeshDistance.h; sourceTree = "<group>"; };
 		BDFE55571FE47EA400062448 /* Manifold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Manifold.cpp; path = ../../src/PyGEL/Manifold.cpp; sourceTree = "<group>"; };
 		BDFE55581FE47EA400062448 /* Manifold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Manifold.h; path = ../../src/PyGEL/Manifold.h; sourceTree = "<group>"; };
+		E13A6E5B232A55C60011D5D9 /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -55,8 +73,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				E13A6E63232A55E60011D5D9 /* GEL.framework in Frameworks */,
 				BD9100FB1F880C41003AF93E /* OpenGL.framework in Frameworks */,
-				BD11F84D21C8602700AC9751 /* GEL.framework in Frameworks */,
 				BD11F84C21C8602200AC9751 /* libglfw.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -89,6 +107,7 @@
 		BD4883461F82CBB200EC04F0 = {
 			isa = PBXGroup;
 			children = (
+				E13A6E5B232A55C60011D5D9 /* GEL.xcodeproj */,
 				BD27CE6E1F83729E002F0FAE /* PyGEL */,
 				BD4883501F82CBB200EC04F0 /* Products */,
 				BD48836E1F82D35B00EC04F0 /* Frameworks */,
@@ -123,6 +142,14 @@
 			name = PyGEL3D;
 			sourceTree = "<group>";
 		};
+		E13A6E5C232A55C60011D5D9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E13A6E60232A55C60011D5D9 /* GEL.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXHeadersBuildPhase section */
@@ -154,6 +181,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				E13A6E62232A55E00011D5D9 /* PBXTargetDependency */,
 			);
 			name = PyGEL;
 			productName = PyGEL;
@@ -185,12 +213,28 @@
 			mainGroup = BD4883461F82CBB200EC04F0;
 			productRefGroup = BD4883501F82CBB200EC04F0 /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = E13A6E5C232A55C60011D5D9 /* Products */;
+					ProjectRef = E13A6E5B232A55C60011D5D9 /* GEL.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				BD48834E1F82CBB200EC04F0 /* PyGEL */,
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		E13A6E60232A55C60011D5D9 /* GEL.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GEL.framework;
+			remoteRef = E13A6E5F232A55C60011D5D9 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
 		BD48834B1F82CBB200EC04F0 /* Sources */ = {
@@ -208,6 +252,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		E13A6E62232A55E00011D5D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = E13A6E61232A55E00011D5D9 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		BD4883581F82CBB200EC04F0 /* Debug */ = {

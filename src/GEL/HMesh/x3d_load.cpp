@@ -49,26 +49,26 @@ namespace HMesh
 
     void handle_Shape(XmlElement& elem)
     {
-        cout << "Found Shape" << endl;
+//        cout << "Found Shape" << endl;
         elem.process_elements();
-        cout << "Shape ends" << endl;				
+//        cout << "Shape ends" << endl;
     }
 
     void handle_IndexedFaceSet(XmlElement& elem)
     {
-        cout << "Found IndexedFaceSet" << endl;
+//        cout << "Found IndexedFaceSet" << endl;
         vector<int> coord_index;
         parse(elem.atts["coordIndex"].c_str(), coord_index);
         coord_index_to_face_vec(coord_index, faces, indices);
         elem.process_elements();
-        cout << "IndexedFaceSet ends" << endl;
+//        cout << "IndexedFaceSet ends" << endl;
     }
 
     void handle_Coordinate(XmlElement& elem)
     {
-        cout << "Found Coordinate" << endl;
+//        cout << "Found Coordinate" << endl;
         parse(elem.atts["point"].c_str(), vertices);
-        cout << "Coordinate ends" << endl;
+//        cout << "Coordinate ends" << endl;
     }
 
     int find_last_of(const string& F, const string& C)
@@ -106,7 +106,7 @@ namespace HMesh
         x3d_doc.process_elements();
         x3d_doc.close();
         
-        cout << "vertices " << vertices.size() << endl;
+//        cout << "vertices " << vertices.size() << endl;
 
         build(m, vertices.size()/3,
                 reinterpret_cast<double*>(&vertices[0]),
@@ -114,7 +114,7 @@ namespace HMesh
                 &faces[0],
                 &indices[0]);
         
-        cout << " Loading took " << tim.get_secs() << endl;
+//        cout << " Loading took " << tim.get_secs() << endl;
         return true;
     }
 }

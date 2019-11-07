@@ -3,28 +3,28 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		0D9823D4198BB662004E3CC9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0D9823D1198BB654004E3CC9 /* GEL.framework */; };
 		0DD456411989A7BB0031C970 /* raytrace.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0DD456401989A7BB0031C970 /* raytrace.cpp */; };
 		0DF6951B19410D49008F1E8C /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF6951A19410D49008F1E8C /* OpenGL.framework */; };
 		0DF6951D19410D51008F1E8C /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF6951C19410D51008F1E8C /* GLUT.framework */; };
 		0DF6951F19410D55008F1E8C /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF6951E19410D55008F1E8C /* Accelerate.framework */; };
+		E13A6E4B232A32540011D5D9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E13A6E47232A32120011D5D9 /* GEL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		0D9823D0198BB654004E3CC9 /* PBXContainerItemProxy */ = {
+		E13A6E46232A32120011D5D9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 0D9823CC198BB654004E3CC9 /* GEL.xcodeproj */;
+			containerPortal = E13A6E42232A32120011D5D9 /* GEL.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 0D859993193D01B6009DB071;
 			remoteInfo = GEL;
 		};
-		0D9823D2198BB65C004E3CC9 /* PBXContainerItemProxy */ = {
+		E13A6E48232A32480011D5D9 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = 0D9823CC198BB654004E3CC9 /* GEL.xcodeproj */;
+			containerPortal = E13A6E42232A32120011D5D9 /* GEL.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 0D859992193D01B6009DB071;
 			remoteInfo = GEL;
@@ -44,13 +44,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		0D9823CC198BB654004E3CC9 /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
 		0DD4563F1989A7BB0031C970 /* Camera.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Camera.h; sourceTree = "<group>"; };
 		0DD456401989A7BB0031C970 /* raytrace.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = raytrace.cpp; sourceTree = "<group>"; };
 		0DF6950519410D1C008F1E8C /* RayTracer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = RayTracer; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DF6951A19410D49008F1E8C /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DF6951C19410D51008F1E8C /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		0DF6951E19410D55008F1E8C /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
+		E13A6E42232A32120011D5D9 /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = RayTracer.xcodeproj/../../GEL.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,7 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				0D9823D4198BB662004E3CC9 /* GEL.framework in Frameworks */,
+				E13A6E4B232A32540011D5D9 /* GEL.framework in Frameworks */,
 				0DF6951F19410D55008F1E8C /* Accelerate.framework in Frameworks */,
 				0DF6951D19410D51008F1E8C /* GLUT.framework in Frameworks */,
 				0DF6951B19410D49008F1E8C /* OpenGL.framework in Frameworks */,
@@ -68,14 +68,6 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		0D9823CD198BB654004E3CC9 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				0D9823D1198BB654004E3CC9 /* GEL.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		0DD4563E1989A7BB0031C970 /* Raytracer */ = {
 			isa = PBXGroup;
 			children = (
@@ -89,12 +81,13 @@
 		0DF694FC19410D1C008F1E8C = {
 			isa = PBXGroup;
 			children = (
-				0D9823CC198BB654004E3CC9 /* GEL.xcodeproj */,
+				E13A6E42232A32120011D5D9 /* GEL.xcodeproj */,
 				0DD4563E1989A7BB0031C970 /* Raytracer */,
 				0DF6951E19410D55008F1E8C /* Accelerate.framework */,
 				0DF6951C19410D51008F1E8C /* GLUT.framework */,
 				0DF6951A19410D49008F1E8C /* OpenGL.framework */,
 				0DF6950619410D1C008F1E8C /* Products */,
+				E13A6E4A232A32540011D5D9 /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -104,6 +97,21 @@
 				0DF6950519410D1C008F1E8C /* RayTracer */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		E13A6E43232A32120011D5D9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E13A6E47232A32120011D5D9 /* GEL.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		E13A6E4A232A32540011D5D9 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -120,7 +128,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				0D9823D3198BB65C004E3CC9 /* PBXTargetDependency */,
+				E13A6E49232A32480011D5D9 /* PBXTargetDependency */,
 			);
 			name = RayTracer;
 			productName = RayTracer;
@@ -137,10 +145,11 @@
 				ORGANIZATIONNAME = "J. Andreas Bærentzen";
 			};
 			buildConfigurationList = 0DF6950019410D1C008F1E8C /* Build configuration list for PBXProject "RayTracer" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 10.0";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 0DF694FC19410D1C008F1E8C;
@@ -148,8 +157,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 0D9823CD198BB654004E3CC9 /* Products */;
-					ProjectRef = 0D9823CC198BB654004E3CC9 /* GEL.xcodeproj */;
+					ProductGroup = E13A6E43232A32120011D5D9 /* Products */;
+					ProjectRef = E13A6E42232A32120011D5D9 /* GEL.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -160,11 +169,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		0D9823D1198BB654004E3CC9 /* GEL.framework */ = {
+		E13A6E47232A32120011D5D9 /* GEL.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GEL.framework;
-			remoteRef = 0D9823D0198BB654004E3CC9 /* PBXContainerItemProxy */;
+			remoteRef = E13A6E46232A32120011D5D9 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -181,10 +190,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		0D9823D3198BB65C004E3CC9 /* PBXTargetDependency */ = {
+		E13A6E49232A32480011D5D9 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = GEL;
-			targetProxy = 0D9823D2198BB65C004E3CC9 /* PBXContainerItemProxy */;
+			targetProxy = E13A6E48232A32480011D5D9 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 

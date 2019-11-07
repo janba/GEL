@@ -3,7 +3,7 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 46;
+	objectVersion = 51;
 	objects = {
 
 /* Begin PBXBuildFile section */
@@ -18,6 +18,7 @@
 		0DD08971194778F300E4EC4C /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08970194778F300E4EC4C /* GLUT.framework */; };
 		0DD08972194778FB00E4EC4C /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD0896E194778ED00E4EC4C /* OpenGL.framework */; };
 		0DD089731947790100E4EC4C /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08970194778F300E4EC4C /* GLUT.framework */; };
+<<<<<<< HEAD
 		BD3232C0237441EA00A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
 		BD3232C3237441F500A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
 		BD3232C6237441FE00A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
@@ -33,52 +34,104 @@
 		BD3232BC237441AB00A6E6FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+=======
+		E13A6E6C232A61640011D5D9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E13A6E69232A614C0011D5D9 /* GEL.framework */; };
+		E13A6E6F232A619B0011D5D9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E13A6E69232A614C0011D5D9 /* GEL.framework */; };
+		E13A6E72232A61A60011D5D9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E13A6E69232A614C0011D5D9 /* GEL.framework */; };
+		E13A6E75232A61B60011D5D9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E13A6E69232A614C0011D5D9 /* GEL.framework */; };
+		E13A6E78232A61C50011D5D9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E13A6E69232A614C0011D5D9 /* GEL.framework */; };
+		E13A6E7B232A61DA0011D5D9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E13A6E69232A614C0011D5D9 /* GEL.framework */; };
+		E13A6E7E232A61E70011D5D9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E13A6E69232A614C0011D5D9 /* GEL.framework */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		E13A6E68232A614C0011D5D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */;
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			proxyType = 2;
 			remoteGlobalIDString = 0D859993193D01B6009DB071;
 			remoteInfo = GEL;
 		};
+<<<<<<< HEAD
 		BD3232BE237441DE00A6E6FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+=======
+		E13A6E6A232A615E0011D5D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */;
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			proxyType = 1;
 			remoteGlobalIDString = 0D859992193D01B6009DB071;
 			remoteInfo = GEL;
 		};
+<<<<<<< HEAD
 		BD3232C1237441F200A6E6FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+=======
+		E13A6E6D232A61910011D5D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */;
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			proxyType = 1;
 			remoteGlobalIDString = 0D859992193D01B6009DB071;
 			remoteInfo = GEL;
 		};
+<<<<<<< HEAD
 		BD3232C4237441FB00A6E6FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+=======
+		E13A6E70232A61A20011D5D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */;
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			proxyType = 1;
 			remoteGlobalIDString = 0D859992193D01B6009DB071;
 			remoteInfo = GEL;
 		};
+<<<<<<< HEAD
 		BD3232C72374420400A6E6FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+=======
+		E13A6E73232A61B00011D5D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */;
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			proxyType = 1;
 			remoteGlobalIDString = 0D859992193D01B6009DB071;
 			remoteInfo = GEL;
 		};
+<<<<<<< HEAD
 		BD3232CA2374420E00A6E6FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+=======
+		E13A6E76232A61C00011D5D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */;
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			proxyType = 1;
 			remoteGlobalIDString = 0D859992193D01B6009DB071;
 			remoteInfo = GEL;
 		};
+<<<<<<< HEAD
 		BD3232CD2374421800A6E6FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+=======
+		E13A6E79232A61CF0011D5D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */;
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			proxyType = 1;
 			remoteGlobalIDString = 0D859992193D01B6009DB071;
 			remoteInfo = GEL;
 		};
+<<<<<<< HEAD
 		BD3232D02374422200A6E6FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
@@ -96,6 +149,11 @@
 		BD3232D62374423600A6E6FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+=======
+		E13A6E7C232A61E20011D5D9 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */;
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			proxyType = 1;
 			remoteGlobalIDString = 0D859992193D01B6009DB071;
 			remoteInfo = GEL;
@@ -157,24 +215,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 1;
 		};
-		0DD0892E194777B100E4EC4C /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
-		0DD0893B194777CB00E4EC4C /* CopyFiles */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = /usr/share/man/man1/;
-			dstSubfolderSpec = 0;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 1;
-		};
 		0DD089551947782E00E4EC4C /* CopyFiles */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -200,13 +240,12 @@
 		0DD089091947777E00E4EC4C /* CGLA-simple */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-simple"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DD089161947779100E4EC4C /* Geometry-kdtree */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "Geometry-kdtree"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DD08923194777A200E4EC4C /* GLGraphics-console */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "GLGraphics-console"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0DD08930194777B100E4EC4C /* LinAlg-eigensolver */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "LinAlg-eigensolver"; sourceTree = BUILT_PRODUCTS_DIR; };
-		0DD0893D194777CB00E4EC4C /* LinAlg-leastsq */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "LinAlg-leastsq"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DD089571947782E00E4EC4C /* CGLA-vec */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-vec"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DD0896E194778ED00E4EC4C /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DD08970194778F300E4EC4C /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
 		BDA95A4C21EDDAA5005E51EC /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-essvayrgsrjsqfasrgpeytfafkwo/Build/Products/Release/GEL.framework"; sourceTree = "<group>"; };
+		E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -214,7 +253,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
 				BD3232C3237441F500A6E6FE /* GEL.framework in Frameworks */,
+=======
+				E13A6E6F232A619B0011D5D9 /* GEL.framework in Frameworks */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -222,7 +265,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
 				BD3232C6237441FE00A6E6FE /* GEL.framework in Frameworks */,
+=======
+				E13A6E72232A61A60011D5D9 /* GEL.framework in Frameworks */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -230,7 +277,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
 				BD3232C92374420800A6E6FE /* GEL.framework in Frameworks */,
+=======
+				E13A6E75232A61B60011D5D9 /* GEL.framework in Frameworks */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 				0DD08971194778F300E4EC4C /* GLUT.framework in Frameworks */,
 				0DD0896F194778ED00E4EC4C /* OpenGL.framework in Frameworks */,
 			);
@@ -240,7 +291,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
 				BD3232CC2374421200A6E6FE /* GEL.framework in Frameworks */,
+=======
+				E13A6E78232A61C50011D5D9 /* GEL.framework in Frameworks */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -248,7 +303,11 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
 				BD3232CF2374421C00A6E6FE /* GEL.framework in Frameworks */,
+=======
+				E13A6E7B232A61DA0011D5D9 /* GEL.framework in Frameworks */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -256,12 +315,17 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
 				BD3232D22374422600A6E6FE /* GEL.framework in Frameworks */,
+=======
+				E13A6E7E232A61E70011D5D9 /* GEL.framework in Frameworks */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 				0DD089731947790100E4EC4C /* GLUT.framework in Frameworks */,
 				0DD08972194778FB00E4EC4C /* OpenGL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+<<<<<<< HEAD
 		0DD0892D194777B100E4EC4C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -278,11 +342,17 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+=======
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 		0DD089541947782E00E4EC4C /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+<<<<<<< HEAD
 				BD3232C0237441EA00A6E6FE /* GEL.framework in Frameworks */,
+=======
+				E13A6E6C232A61640011D5D9 /* GEL.framework in Frameworks */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -292,7 +362,11 @@
 		0D6D57B1194255D900726FDE = {
 			isa = PBXGroup;
 			children = (
+<<<<<<< HEAD
 				BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */,
+=======
+				E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 				0DD08970194778F300E4EC4C /* GLUT.framework */,
 				0DD0896E194778ED00E4EC4C /* OpenGL.framework */,
 				0D6D57DE1942561A00726FDE /* CGLA-vec */,
@@ -316,8 +390,6 @@
 				0DD089091947777E00E4EC4C /* CGLA-simple */,
 				0DD089161947779100E4EC4C /* Geometry-kdtree */,
 				0DD08923194777A200E4EC4C /* GLGraphics-console */,
-				0DD08930194777B100E4EC4C /* LinAlg-eigensolver */,
-				0DD0893D194777CB00E4EC4C /* LinAlg-leastsq */,
 				0DD089571947782E00E4EC4C /* CGLA-vec */,
 			);
 			name = Products;
@@ -402,6 +474,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		E13A6E65232A614C0011D5D9 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				E13A6E69232A614C0011D5D9 /* GEL.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -416,7 +496,11 @@
 			buildRules = (
 			);
 			dependencies = (
+<<<<<<< HEAD
 				BD3232C2237441F200A6E6FE /* PBXTargetDependency */,
+=======
+				E13A6E6E232A61910011D5D9 /* PBXTargetDependency */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			name = "CGLA-covariance";
 			productName = "CGLA-covariance";
@@ -434,7 +518,11 @@
 			buildRules = (
 			);
 			dependencies = (
+<<<<<<< HEAD
 				BD3232C5237441FB00A6E6FE /* PBXTargetDependency */,
+=======
+				E13A6E71232A61A20011D5D9 /* PBXTargetDependency */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			name = "CGLA-mat";
 			productName = "CGLA-mat";
@@ -452,7 +540,11 @@
 			buildRules = (
 			);
 			dependencies = (
+<<<<<<< HEAD
 				BD3232C82374420400A6E6FE /* PBXTargetDependency */,
+=======
+				E13A6E74232A61B00011D5D9 /* PBXTargetDependency */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			name = "CGLA-ogl";
 			productName = "CGLA-ogl";
@@ -470,7 +562,11 @@
 			buildRules = (
 			);
 			dependencies = (
+<<<<<<< HEAD
 				BD3232CB2374420E00A6E6FE /* PBXTargetDependency */,
+=======
+				E13A6E77232A61C00011D5D9 /* PBXTargetDependency */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			name = "CGLA-simple";
 			productName = "CGLA-simple";
@@ -488,7 +584,11 @@
 			buildRules = (
 			);
 			dependencies = (
+<<<<<<< HEAD
 				BD3232CE2374421800A6E6FE /* PBXTargetDependency */,
+=======
+				E13A6E7A232A61CF0011D5D9 /* PBXTargetDependency */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			name = "Geometry-kdtree";
 			productName = "Geometry-kdtree";
@@ -506,13 +606,18 @@
 			buildRules = (
 			);
 			dependencies = (
+<<<<<<< HEAD
 				BD3232D12374422200A6E6FE /* PBXTargetDependency */,
+=======
+				E13A6E7D232A61E20011D5D9 /* PBXTargetDependency */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			name = "GLGraphics-console";
 			productName = "GLGraphics-console";
 			productReference = 0DD08923194777A200E4EC4C /* GLGraphics-console */;
 			productType = "com.apple.product-type.tool";
 		};
+<<<<<<< HEAD
 		0DD0892F194777B100E4EC4C /* LinAlg-eigensolver */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0DD08936194777B200E4EC4C /* Build configuration list for PBXNativeTarget "LinAlg-eigensolver" */;
@@ -549,6 +654,8 @@
 			productReference = 0DD0893D194777CB00E4EC4C /* LinAlg-leastsq */;
 			productType = "com.apple.product-type.tool";
 		};
+=======
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 		0DD089561947782E00E4EC4C /* CGLA-vec */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0DD0895D1947782E00E4EC4C /* Build configuration list for PBXNativeTarget "CGLA-vec" */;
@@ -560,7 +667,11 @@
 			buildRules = (
 			);
 			dependencies = (
+<<<<<<< HEAD
 				BD3232BF237441DE00A6E6FE /* PBXTargetDependency */,
+=======
+				E13A6E6B232A615E0011D5D9 /* PBXTargetDependency */,
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			);
 			name = "CGLA-vec";
 			productName = "CGLA-vec";
@@ -577,7 +688,7 @@
 				ORGANIZATIONNAME = "J. Andreas Bærentzen";
 			};
 			buildConfigurationList = 0D6D57B5194255D900726FDE /* Build configuration list for PBXProject "GEL_test" */;
-			compatibilityVersion = "Xcode 3.2";
+			compatibilityVersion = "Xcode 10.0";
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -589,8 +700,13 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
+<<<<<<< HEAD
 					ProductGroup = BD3232B9237441AB00A6E6FE /* Products */;
 					ProjectRef = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+=======
+					ProductGroup = E13A6E65232A614C0011D5D9 /* Products */;
+					ProjectRef = E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */;
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 				},
 			);
 			projectRoot = "";
@@ -602,18 +718,24 @@
 				0DD089081947777E00E4EC4C /* CGLA-simple */,
 				0DD089151947779100E4EC4C /* Geometry-kdtree */,
 				0DD08922194777A200E4EC4C /* GLGraphics-console */,
-				0DD0892F194777B100E4EC4C /* LinAlg-eigensolver */,
-				0DD0893C194777CB00E4EC4C /* LinAlg-leastsq */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+<<<<<<< HEAD
 		BD3232BD237441AB00A6E6FE /* GEL.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GEL.framework;
 			remoteRef = BD3232BC237441AB00A6E6FE /* PBXContainerItemProxy */;
+=======
+		E13A6E69232A614C0011D5D9 /* GEL.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GEL.framework;
+			remoteRef = E13A6E68232A614C0011D5D9 /* PBXContainerItemProxy */;
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -667,20 +789,6 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
-		0DD0892C194777B100E4EC4C /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		0DD08939194777CB00E4EC4C /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		0DD089531947782E00E4EC4C /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -692,6 +800,7 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+<<<<<<< HEAD
 		BD3232BF237441DE00A6E6FE /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = GEL;
@@ -736,6 +845,42 @@
 			isa = PBXTargetDependency;
 			name = GEL;
 			targetProxy = BD3232D62374423600A6E6FE /* PBXContainerItemProxy */;
+=======
+		E13A6E6B232A615E0011D5D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = E13A6E6A232A615E0011D5D9 /* PBXContainerItemProxy */;
+		};
+		E13A6E6E232A61910011D5D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = E13A6E6D232A61910011D5D9 /* PBXContainerItemProxy */;
+		};
+		E13A6E71232A61A20011D5D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = E13A6E70232A61A20011D5D9 /* PBXContainerItemProxy */;
+		};
+		E13A6E74232A61B00011D5D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = E13A6E73232A61B00011D5D9 /* PBXContainerItemProxy */;
+		};
+		E13A6E77232A61C00011D5D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = E13A6E76232A61C00011D5D9 /* PBXContainerItemProxy */;
+		};
+		E13A6E7A232A61CF0011D5D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = E13A6E79232A61CF0011D5D9 /* PBXContainerItemProxy */;
+		};
+		E13A6E7D232A61E20011D5D9 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = E13A6E7C232A61E20011D5D9 /* PBXContainerItemProxy */;
+>>>>>>> 81ce415dd137f3de3470a34b080a796d7f64ca97
 		};
 /* End PBXTargetDependency section */
 
@@ -982,66 +1127,6 @@
 			};
 			name = Release;
 		};
-		0DD08937194777B200E4EC4C /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
-					"$(PROJECT_DIR)",
-				);
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		0DD08938194777B200E4EC4C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
-					"$(PROJECT_DIR)",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
-		0DD08944194777CB00E4EC4C /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
-					"$(PROJECT_DIR)",
-				);
-				GCC_PREPROCESSOR_DEFINITIONS = (
-					"DEBUG=1",
-					"$(inherited)",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Debug;
-		};
-		0DD08945194777CB00E4EC4C /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
-					"$(PROJECT_DIR)",
-				);
-				PRODUCT_NAME = "$(TARGET_NAME)";
-			};
-			name = Release;
-		};
 		0DD0895E1947782E00E4EC4C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -1134,24 +1219,6 @@
 			buildConfigurations = (
 				0DD0892A194777A200E4EC4C /* Debug */,
 				0DD0892B194777A200E4EC4C /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		0DD08936194777B200E4EC4C /* Build configuration list for PBXNativeTarget "LinAlg-eigensolver" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				0DD08937194777B200E4EC4C /* Debug */,
-				0DD08938194777B200E4EC4C /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		0DD08943194777CB00E4EC4C /* Build configuration list for PBXNativeTarget "LinAlg-leastsq" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				0DD08944194777CB00E4EC4C /* Debug */,
-				0DD08945194777CB00E4EC4C /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

@@ -138,7 +138,7 @@ void initRaytracer()
 	Manifold m;
 	vector<int> faces(mesh.geometry.no_faces(), 3);
 	cout << "Creating manifold" << endl;
-    m.build(mesh.geometry.no_vertices(),
+    build(m, mesh.geometry.no_vertices(),
             reinterpret_cast<const float*>(&mesh.geometry.vertex(0)),
             faces.size(),
             &faces[0],

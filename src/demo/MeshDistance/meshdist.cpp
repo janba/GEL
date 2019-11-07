@@ -148,7 +148,7 @@ int main(int argc, char** argv)
 		cout << "Not a valid manifold" << endl;
 		exit(0);
 	}
-	triangulate_by_edge_face_split(m);
+	triangulate(m);
 	
 	Vec3d p0, p7;
 	bbox(m, p0, p7);

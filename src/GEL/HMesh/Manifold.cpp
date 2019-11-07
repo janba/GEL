@@ -434,11 +434,11 @@ namespace HMesh
             
             //If the vertices are already connected, welding them together will be awkward.
             if(connected(*this, v0a, v0b)){
-                cout << "0 end points are distinct but connected" << endl;
+//                cout << "0 end points are distinct but connected" << endl;
                 return false;
             }
             if(connected(*this, v1a, v1b)){
-                cout << "1 end points are distinct but connected" << endl;
+//                cout << "1 end points are distinct but connected" << endl;
                 return false;
             }
             
@@ -446,11 +446,11 @@ namespace HMesh
             // two edges whose opposite edges have the property that second one is the next
             // edge of the first one or vice versa.
             if(v1a == v1b && kernel.next(h0o) == h1o){
-                cout << "Would have created val 1 vertex" << endl;
+//                cout << "Would have created val 1 vertex" << endl;
                 return false;
             }
             if(v0a == v0b && kernel.next(h1o) == h0o){
-                cout << "Would have created val 1 vertex" << endl;
+//                cout << "Would have created val 1 vertex" << endl;
                 return false;
             }
             
@@ -532,11 +532,11 @@ namespace HMesh
         circulate_vertex_ccw(*this, v1, [&](VertexID v){r1.push_back(v); cout  << v << ",";});
 
         if(find(begin(r0),end(r0),v1) != end(r0)) {
-            cout << "Oops " << v1  << " in 1-ring of " << v0;
+//            cout << "Oops " << v1  << " in 1-ring of " << v0;
             return false;
         }
         if(find(begin(r1),end(r1),v0) != end(r1)) {
-            cout << "Oops " << v0  << " in 1-ring of " << v1;
+//            cout << "Oops " << v0  << " in 1-ring of " << v1;
             return false;
         }
         
@@ -546,7 +546,7 @@ namespace HMesh
         set_intersection(begin(r0), end(r0), begin(r1), end(r1), back_inserter(risect));
         if(!risect.empty())
         {
-            cout << "One rings overlap" << endl;
+//            cout << "One rings overlap" << endl;
             return false;
         }
 
@@ -1347,7 +1347,7 @@ namespace HMesh
                          faces1.begin(), faces1.end(),
                          fii);
         if(fisect.size() > 0) {
-            cout << "precond_collapse failed: same face " << fisect[0] << " in both 1-rings" << endl;
+//            cout << "precond_collapse failed: same face " << fisect[0] << " in both 1-rings" << endl;
             return false;
         }
         
@@ -1359,7 +1359,7 @@ namespace HMesh
             // valency test (see 5)
             if(valency(m, v) < 3)
             {
-                cout << "precond_collapse failed: left vertex in triangle has val<3" << endl;
+//                cout << "precond_collapse failed: left vertex in triangle has val<3" << endl;
                 return false;
             }
 
@@ -1379,7 +1379,7 @@ namespace HMesh
             // valency test (see 5)
             if(valency(m, v) < 3)
             {
-                cout << "precond_collapse failed: right vertex in triangle has val<3" << endl;
+//                cout << "precond_collapse failed: right vertex in triangle has val<3" << endl;
                 return false;
             }
 
@@ -1409,7 +1409,7 @@ namespace HMesh
         // test that we do not merge holes (see 6)
         if(boundary(m, v0) && boundary(m, v1) && !boundary(m, h))
         {
-            cout << "precond_collapse failed: would merge holes" << endl;
+//            cout << "precond_collapse failed: would merge holes" << endl;
             return false;
         }
         

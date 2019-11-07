@@ -62,7 +62,7 @@ namespace HMesh {
             int k = tri_out.trianglelist[3*l+2];
             
             if(!(i<pts2d.size() && j<pts2d.size() && k<pts2d.size())) {
-                cout << "Removing face incident on Steiner " << endl;
+//                cout << "Removing face incident on Steiner " << endl;
                 continue;
             }
             

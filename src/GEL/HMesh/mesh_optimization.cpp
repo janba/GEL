@@ -615,7 +615,7 @@ namespace HMesh
 		
 		if(max_iter>0){ 
 			do{
-				cout << "Temperature : " << T << endl;
+//                cout << "Temperature : " << T << endl;
 				vector<HalfEdgeID>  halfedges;
 				for(HalfEdgeIDIterator h = m.halfedges_begin(); h != m.halfedges_end(); ++h){
 					if(boundary(m, *h))
@@ -649,13 +649,13 @@ namespace HMesh
 						}
 					}
 				}
-				cout << "Swaps = " << swaps << " T = " << T << endl;
+//                cout << "Swaps = " << swaps << " T = " << T << endl;
 				if(iter % 5 == 0 && iter > 0)
 					T *= 0.9;
 			}
 			while(++iter < max_iter && swaps);
 		}
-		cout << "Iterations "  << iter << endl; 
+//        cout << "Iterations "  << iter << endl; 
 		
 	}
 	

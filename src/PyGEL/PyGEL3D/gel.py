@@ -36,6 +36,8 @@ def get_lib_name():
 # Load PyGEL the Python GEL bridge library
 lib_py_gel = ct.cdll.LoadLibrary(get_script_path() + "/" + get_lib_name())
 
+InvalidIndex = ct.c_size_t.in_dll(lib_py_gel, "InvalidIndex").value
+
 lib_py_gel.IntVector_new.restype = ct.c_void_p
 lib_py_gel.IntVector_get.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.IntVector_size.argtypes = (ct.c_void_p,)
@@ -335,13 +337,22 @@ class Manifold:
         simple application of remove_face. """
         return lib_py_gel.Manifold_remove_edge(self.obj, hid)
     def vertex_in_use(self,vid):
-        """ check if vertex is in use """
+        """ check if vertex is in use. This function returns true if the id corresponds
+        to a vertex that is currently in the mesh and false otherwise. The id could
+        be outside the range of used ids and it could also correspond to a vertex
+        which is not active. The function returns false in both cases. """
         return lib_py_gel.Manifold_vertex_in_use(self.obj, vid)
     def face_in_use(self,fid):
-        """ check if face is in use """
+        """ check if face is in use. This function returns true if the id corresponds
+        to a face that is currently in the mesh and false otherwise. The id could
+        be outside the range of used ids and it could also correspond to a face
+        which is not active. The function returns false in both cases. """
         return lib_py_gel.Manifold_face_in_use(self.obj, fid)
     def halfedge_in_use(self,hid):
-        """ check if halfedge is in use """
+        """ check if halfedge is in use. This function returns true if the id corresponds
+        to a halfedge that is currently in the mesh and false otherwise. The id could
+        be outside the range of used ids and it could also correspond to a halfedge
+        which is not active. The function returns false in both cases. """
         return lib_py_gel.Manifold_halfedge_in_use(self.obj, hid)
     def flip_edge(self,hid):
         """ Flip the edge separating two faces. The function first verifies that

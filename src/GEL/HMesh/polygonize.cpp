@@ -108,7 +108,7 @@ namespace HMesh
             }
         }
         mani.cleanup();
-        cout << "Produced " << mani.no_faces() << " faces " << endl;
+//        cout << "Produced " << mani.no_faces() << " faces " << endl;
     }
     
 }

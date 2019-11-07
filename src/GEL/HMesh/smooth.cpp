@@ -254,7 +254,7 @@ namespace HMesh
                 }
                 if(max_move<sqr(1e-8*avg_len))
                 {
-                    cout << "iters " << sub_iter << endl;
+//                    cout << "iters " << sub_iter << endl;
                     break;
                 }
             }
