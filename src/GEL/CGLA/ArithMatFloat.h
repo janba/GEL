@@ -163,7 +163,8 @@ namespace CGLA
         const MT operator * (ScalarType k) const
         {
             MT v_new;
-            std::transform(data, &data[ROWS], &v_new[0], std::bind2nd(std::multiplies<HVT>(), HVT(k)));
+            for(auto& x: v_new.data)
+                x *= k;
             return v_new;
         }
         
@@ -171,21 +172,24 @@ namespace CGLA
         const MT operator / (ScalarType k) const
         {
             MT v_new;
-            std::transform(data, &data[ROWS], &v_new[0], std::bind2nd(std::divides<HVT>(), HVT(k)));
+            for(auto& x: v_new.data)
+                x /= k;
             return v_new;
         }
         
         /// Assignment multiplication of matrix by scalar.
         const MT& operator *=(ScalarType k)
         {
-            std::transform(data, &data[ROWS], data, std::bind2nd(std::multiplies<HVT>(), HVT(k)));
+            for(auto& x: data)
+                x *= k;
             return static_cast<const MT&>(*this);
         }
         
         /// Assignment division of matrix by scalar.
         const MT& operator /=(ScalarType k)
         {
-            std::transform(data, &data[ROWS], data, std::bind2nd(std::divides<HVT>(), HVT(k)));
+            for(auto& x: data)
+                x /= k;
             return static_cast<const MT&>(*this);
         }
         

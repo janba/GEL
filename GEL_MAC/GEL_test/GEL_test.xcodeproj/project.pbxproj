@@ -18,8 +18,89 @@
 		0DD08971194778F300E4EC4C /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08970194778F300E4EC4C /* GLUT.framework */; };
 		0DD08972194778FB00E4EC4C /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD0896E194778ED00E4EC4C /* OpenGL.framework */; };
 		0DD089731947790100E4EC4C /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DD08970194778F300E4EC4C /* GLUT.framework */; };
-		BDA95A4D21EDDAA5005E51EC /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDA95A4C21EDDAA5005E51EC /* GEL.framework */; };
+		BD3232C0237441EA00A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
+		BD3232C3237441F500A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
+		BD3232C6237441FE00A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
+		BD3232C92374420800A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
+		BD3232CC2374421200A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
+		BD3232CF2374421C00A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
+		BD3232D22374422600A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
+		BD3232D52374423000A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
+		BD3232D82374423A00A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		BD3232BC237441AB00A6E6FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 0D859993193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+		BD3232BE237441DE00A6E6FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D859992193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+		BD3232C1237441F200A6E6FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D859992193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+		BD3232C4237441FB00A6E6FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D859992193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+		BD3232C72374420400A6E6FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D859992193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+		BD3232CA2374420E00A6E6FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D859992193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+		BD3232CD2374421800A6E6FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D859992193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+		BD3232D02374422200A6E6FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D859992193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+		BD3232D32374422B00A6E6FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D859992193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+		BD3232D62374423600A6E6FE /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 0D859992193D01B6009DB071;
+			remoteInfo = GEL;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
 		0D6D57E21942563F00726FDE /* CopyFiles */ = {
@@ -124,6 +205,7 @@
 		0DD089571947782E00E4EC4C /* CGLA-vec */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "CGLA-vec"; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DD0896E194778ED00E4EC4C /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DD08970194778F300E4EC4C /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
+		BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
 		BDA95A4C21EDDAA5005E51EC /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-essvayrgsrjsqfasrgpeytfafkwo/Build/Products/Release/GEL.framework"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -132,6 +214,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD3232C3237441F500A6E6FE /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -139,6 +222,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD3232C6237441FE00A6E6FE /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -146,6 +230,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD3232C92374420800A6E6FE /* GEL.framework in Frameworks */,
 				0DD08971194778F300E4EC4C /* GLUT.framework in Frameworks */,
 				0DD0896F194778ED00E4EC4C /* OpenGL.framework in Frameworks */,
 			);
@@ -155,6 +240,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD3232CC2374421200A6E6FE /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -162,7 +248,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BDA95A4D21EDDAA5005E51EC /* GEL.framework in Frameworks */,
+				BD3232CF2374421C00A6E6FE /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -170,6 +256,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD3232D22374422600A6E6FE /* GEL.framework in Frameworks */,
 				0DD089731947790100E4EC4C /* GLUT.framework in Frameworks */,
 				0DD08972194778FB00E4EC4C /* OpenGL.framework in Frameworks */,
 			);
@@ -179,6 +266,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD3232D52374423000A6E6FE /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -186,6 +274,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD3232D82374423A00A6E6FE /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -193,6 +282,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BD3232C0237441EA00A6E6FE /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -202,6 +292,7 @@
 		0D6D57B1194255D900726FDE = {
 			isa = PBXGroup;
 			children = (
+				BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */,
 				0DD08970194778F300E4EC4C /* GLUT.framework */,
 				0DD0896E194778ED00E4EC4C /* OpenGL.framework */,
 				0D6D57DE1942561A00726FDE /* CGLA-vec */,
@@ -295,6 +386,14 @@
 			path = "../../test/CGLA-vec";
 			sourceTree = "<group>";
 		};
+		BD3232B9237441AB00A6E6FE /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BD3232BD237441AB00A6E6FE /* GEL.framework */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
 		BDA95A4B21EDDAA5005E51EC /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -317,6 +416,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BD3232C2237441F200A6E6FE /* PBXTargetDependency */,
 			);
 			name = "CGLA-covariance";
 			productName = "CGLA-covariance";
@@ -334,6 +434,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BD3232C5237441FB00A6E6FE /* PBXTargetDependency */,
 			);
 			name = "CGLA-mat";
 			productName = "CGLA-mat";
@@ -351,6 +452,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BD3232C82374420400A6E6FE /* PBXTargetDependency */,
 			);
 			name = "CGLA-ogl";
 			productName = "CGLA-ogl";
@@ -368,6 +470,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BD3232CB2374420E00A6E6FE /* PBXTargetDependency */,
 			);
 			name = "CGLA-simple";
 			productName = "CGLA-simple";
@@ -385,6 +488,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BD3232CE2374421800A6E6FE /* PBXTargetDependency */,
 			);
 			name = "Geometry-kdtree";
 			productName = "Geometry-kdtree";
@@ -402,6 +506,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BD3232D12374422200A6E6FE /* PBXTargetDependency */,
 			);
 			name = "GLGraphics-console";
 			productName = "GLGraphics-console";
@@ -419,6 +524,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BD3232D42374422B00A6E6FE /* PBXTargetDependency */,
 			);
 			name = "LinAlg-eigensolver";
 			productName = "LinAlg-eigensolver";
@@ -436,6 +542,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BD3232D72374423600A6E6FE /* PBXTargetDependency */,
 			);
 			name = "LinAlg-leastsq";
 			productName = "LinAlg-leastsq";
@@ -453,6 +560,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				BD3232BF237441DE00A6E6FE /* PBXTargetDependency */,
 			);
 			name = "CGLA-vec";
 			productName = "CGLA-vec";
@@ -473,11 +581,18 @@
 			developmentRegion = English;
 			hasScannedForEncodings = 0;
 			knownRegions = (
+				English,
 				en,
 			);
 			mainGroup = 0D6D57B1194255D900726FDE;
 			productRefGroup = 0D6D57BB194255D900726FDE /* Products */;
 			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = BD3232B9237441AB00A6E6FE /* Products */;
+					ProjectRef = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
+				},
+			);
 			projectRoot = "";
 			targets = (
 				0DD089561947782E00E4EC4C /* CGLA-vec */,
@@ -492,6 +607,16 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXReferenceProxy section */
+		BD3232BD237441AB00A6E6FE /* GEL.framework */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.framework;
+			path = GEL.framework;
+			remoteRef = BD3232BC237441AB00A6E6FE /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+/* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
 		0D6D57E01942563F00726FDE /* Sources */ = {
@@ -565,6 +690,54 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		BD3232BF237441DE00A6E6FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = BD3232BE237441DE00A6E6FE /* PBXContainerItemProxy */;
+		};
+		BD3232C2237441F200A6E6FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = BD3232C1237441F200A6E6FE /* PBXContainerItemProxy */;
+		};
+		BD3232C5237441FB00A6E6FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = BD3232C4237441FB00A6E6FE /* PBXContainerItemProxy */;
+		};
+		BD3232C82374420400A6E6FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = BD3232C72374420400A6E6FE /* PBXContainerItemProxy */;
+		};
+		BD3232CB2374420E00A6E6FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = BD3232CA2374420E00A6E6FE /* PBXContainerItemProxy */;
+		};
+		BD3232CE2374421800A6E6FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = BD3232CD2374421800A6E6FE /* PBXContainerItemProxy */;
+		};
+		BD3232D12374422200A6E6FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = BD3232D02374422200A6E6FE /* PBXContainerItemProxy */;
+		};
+		BD3232D42374422B00A6E6FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = BD3232D32374422B00A6E6FE /* PBXContainerItemProxy */;
+		};
+		BD3232D72374423600A6E6FE /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = GEL;
+			targetProxy = BD3232D62374423600A6E6FE /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		0D6D57C1194255D900726FDE /* Debug */ = {

@@ -62,7 +62,13 @@ void power_eigensolution_test()
 /* This is a non-exhaustive test program for CGLA */
 int main()
 {
-
+    {
+        Mat4x4d m44(1);
+        m44 *= 3;
+        m44 /= 2;
+        cout << "All entries should be 1.5\n" << m44;
+    }
+    
 	Mat2x3f m23(Vec3f(1,1,1),Vec3f(2,2,2));
 	Mat3x2f m32;
 	

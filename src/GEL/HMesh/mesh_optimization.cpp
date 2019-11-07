@@ -10,6 +10,7 @@
 #include <cfloat>
 #include <queue>
 #include <vector>
+#include <random>
 
 #include "../CGLA/Vec3d.h"
 #include "../Geometry/Implicit.h"
@@ -621,7 +622,8 @@ namespace HMesh
 						continue;
 					halfedges.push_back(*h);
 				}
-				random_shuffle(halfedges.begin(), halfedges.end());
+                shuffle(halfedges.begin(), halfedges.end(), default_random_engine(0));
+//				random_shuffle(halfedges.begin(), halfedges.end());
 				swaps = 0;
 				for(size_t i = 0; i < halfedges.size(); ++i){
 					HalfEdgeID h = halfedges[i];
