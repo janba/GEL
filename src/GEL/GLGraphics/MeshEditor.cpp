@@ -118,8 +118,6 @@ namespace GLGraphics {
                 me->printf("Note that results might be unexpected if the meshes are not on the same scale");
             }
             
-            int dest = 0;
-            
             if(args.size()>0){
                 int src = console_arg(args, 0, 1);
                 if(src <0 || src>= me->get_no_meshes())
@@ -269,8 +267,8 @@ namespace GLGraphics {
                 return;
             }
             
-            Vec3d a;
-            double angle;
+            Vec3d a(1,0,0);
+            double angle = 0;
             
             if(args.size() > 0){
                 istringstream a0(args[0]);

@@ -163,8 +163,8 @@ namespace CGLA
         const MT operator * (ScalarType k) const
         {
             MT v_new;
-            for(auto& x: v_new.data)
-                x *= k;
+            for(std::size_t i = 0; i < ROWS; ++i)
+                v_new.data[i] = data[i] * k;
             return v_new;
         }
         
@@ -172,8 +172,8 @@ namespace CGLA
         const MT operator / (ScalarType k) const
         {
             MT v_new;
-            for(auto& x: v_new.data)
-                x /= k;
+            for(std::size_t i = 0; i < ROWS; ++i)
+                v_new.data[i] = data[i] / k;
             return v_new;
         }
         

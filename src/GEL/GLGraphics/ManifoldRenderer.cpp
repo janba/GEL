@@ -31,9 +31,9 @@ namespace GLGraphics
         if(!was_here)
         {
             was_here = true;
-            int width = 32;
-            int height = 32;
-            int depth = 32;
+            int width = 256;
+            int height = 256;
+            int depth = 256;
             vector<unsigned char> texels(width*height*depth);
             for (int i = 0; i < width*height*depth; ++i)
             {
@@ -761,8 +761,8 @@ namespace GLGraphics
         float r;
         Vec3d c;
         bsphere(m, c, r);
-        float noise_scale = 10.0f/r;
-        float line_scale = 0.02f;
+        float noise_scale = 1.0f/r;
+        float line_scale = 0.0032f;
         
         GLint old_prog;
         glGetIntegerv(GL_CURRENT_PROGRAM, &old_prog);

@@ -491,7 +491,7 @@ namespace Geometry
     }
   }
 
-  const int MAX_DEPTH=25;
+//  const int MAX_DEPTH=25;
 
   void BSPTree::make_fast_tree(BSPNode *node) 
   {
