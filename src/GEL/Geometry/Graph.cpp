@@ -16,9 +16,12 @@ namespace Geometry {
     using namespace CGLA;
     using namespace std;
     
-    void AMGraph3D::merge_nodes(NodeID n0, NodeID n1) {
-        CGLA::Vec3d p_new = 0.5*(pos[n0]+pos[n1]);
-        
+    void AMGraph3D::merge_nodes(NodeID n0, NodeID n1, bool avg_pos) {
+        CGLA::Vec3d p_new = pos[n1];
+        if(avg_pos) {
+            p_new += pos[n0];
+            p_new *= 0.5;
+        }
         pos[n0] = Vec3d(CGLA_NAN);
         pos[n1] = p_new;
         

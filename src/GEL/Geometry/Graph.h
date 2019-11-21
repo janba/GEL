@@ -205,7 +205,7 @@ namespace Geometry {
      
         /** Merge two nodes, the first is removed and the second inherits all connections,
             the new position becomes the average. */
-        void merge_nodes(NodeID n0, NodeID n1); 
+        void merge_nodes(NodeID n0, NodeID n1, bool avg_pos=true); 
         
         /// Compute sqr distance between two nodes - not necessarily connected.
         double sqr_dist(NodeID n0, NodeID n1) const {

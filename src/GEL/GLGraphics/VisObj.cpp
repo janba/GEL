@@ -353,9 +353,16 @@ namespace GLGraphics {
     
     void VisObj::display(const std::string& display_method , Console& cs, bool smooth, float gamma)
     {
+        static GLuint graph_list=0;
         if(create_display_list){
             create_display_list = false;
             produce_renderer(display_method, cs, smooth, gamma);
+            glDeleteLists(graph_list, 1);
+            graph_list = glGenLists(1);
+            glNewList(graph_list, GL_COMPILE);
+            if(!graph.empty())
+                draw(graph);
+            glEndList();
         }
         view_ctrl.set_gl_modelview();
         renderer->draw();
@@ -363,8 +370,7 @@ namespace GLGraphics {
            !face_selection.empty() ||
            !halfedge_selection.empty())
             draw_selection();
-        if(!graph.empty())
-            draw(graph);
+        glCallList(graph_list);
         if(!obb_tree.empty())
         {
             static Console::variable<int> max_level(1);
