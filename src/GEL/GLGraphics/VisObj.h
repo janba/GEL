@@ -29,6 +29,8 @@ class VisObj
     std::string file = "";
     GLGraphics::GLViewController view_ctrl;
     bool create_display_list = true;
+    GLuint graph_list=0;
+
     
     HMesh::Manifold mani;
     HMesh::Manifold old_mani;

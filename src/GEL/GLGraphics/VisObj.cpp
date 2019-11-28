@@ -353,7 +353,6 @@ namespace GLGraphics {
     
     void VisObj::display(const std::string& display_method , Console& cs, bool smooth, float gamma)
     {
-        static GLuint graph_list=0;
         if(create_display_list){
             create_display_list = false;
             produce_renderer(display_method, cs, smooth, gamma);
