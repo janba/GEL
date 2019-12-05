@@ -1471,39 +1471,16 @@ namespace HMesh
     Manifold::Vec normal(const Manifold& m, VertexID v)
     {
         Manifold::Vec p0 = m.pos(v);
-        vector<Manifold::Vec> one_ring;
-        
-        // run through outgoing edges, and store them normalized
-        circulate_vertex_ccw(m, v, static_cast<std::function<void(VertexID)>>([&](VertexID vn) {
-            Manifold::Vec edge = m.pos(vn) - p0;
-            double l = length(edge);
-            if(l > 0.0)
-                one_ring.push_back(edge/l);
-        }));
-        int N = one_ring.size();
-        if(N<2)
-            return Manifold::Vec(0);
-        
-        size_t N_count = N;
-        size_t N_start = 0;
-        if(boundary(m, v))
-            N_start = 1;
-        
-        // sum up the normals of each face surrounding the vertex
         Manifold::Vec n(0);
-        for(size_t i = N_start; i < N_count; ++i){
-            Manifold::Vec e0 = one_ring[i];
-            Manifold::Vec e1 = one_ring[(i+1) % N];
-            
-            Manifold::Vec n_part = normalize(cross(e0, e1));
-            n += n_part * acos(max(-1.0, min(1.0, dot(e0, e1))));
-        }
-        
-        // normalize and return the normal
-        float sqr_l = sqr_length(n);
-        if(sqr_l > 0.0f) return n / sqrt(sqr_l);
-        
-        return n;
+        circulate_vertex_ccw(m, v, [&](Walker& w) {
+            if(w.face() != InvalidFaceID) {
+                Manifold::Vec e0 = cond_normalize(m.pos(w.prev().opp().vertex()) - p0);
+                Manifold::Vec e1 = cond_normalize(m.pos(w.vertex()) - p0);
+                Manifold::Vec n_face = cond_normalize(cross(e1, e0));
+                n += acos(max(-1.0, min(1.0, dot(e0, e1)))) * n_face;
+            }
+        });
+        return cond_normalize(n);
     }
     
     

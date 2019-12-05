@@ -610,6 +610,8 @@ std::vector<std::string> Console::parse_cmdline(const char* buffer) const
 void Console::open_socket() {
 	// Windows support for this must come later:
 #ifndef _MSC_VER
+    
+    signal(SIGPIPE, SIG_IGN);
     // Create a socket with a local domain and a duplex stream type
     sck = socket(PF_LOCAL, SOCK_STREAM, 0);
 
