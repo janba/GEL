@@ -12,6 +12,7 @@
 #include <queue>
 #include <map>
 #include <set>
+#include <unordered_set>
 #include <vector>
 #include <limits>
 #include "../CGLA/Vec3d.h"
@@ -33,8 +34,9 @@ namespace Geometry {
         using NodeID = size_t;
         
         /// Node Set type
+//        using NodeSet = std::unordered_set<NodeID>;
         using NodeSet = std::set<NodeID>;
-        
+
         /// ID type for edges
         using EdgeID = size_t;
         
