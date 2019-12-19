@@ -24,7 +24,7 @@ namespace Geometry
         double sl = sqr_length(g);
         double d = (eval(p)-tau)/sl;
         Vec3d disp = g*d;
-        double disp_len = length(disp);
+        double disp_len = length(disp)+1e-10;
         double clamped_disp_len = min(max_dist, disp_len);
         p = p - clamped_disp_len*disp/disp_len;
     }

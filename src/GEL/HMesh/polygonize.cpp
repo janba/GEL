@@ -18,14 +18,14 @@ using namespace Geometry;
 using namespace HMesh;
 
 namespace {
-    Vec3d xpf[] = {Vec3d(0,-0.5,-0.5),Vec3d(0,0.5,-0.5),Vec3d(0,0.5,0.5),Vec3d(0,-0.5,0.5)};
-    Vec3d xmf[] = {Vec3d(0, 0.5,-0.5),Vec3d(0,-0.5,-0.5),Vec3d(0,-0.5,0.5),Vec3d(0,0.5,0.5)};
+    Vec3d xmf[] = {Vec3d(0,-0.5,-0.5),Vec3d(0,0.5,-0.5),Vec3d(0,0.5,0.5),Vec3d(0,-0.5,0.5)};
+    Vec3d xpf[] = {Vec3d(0, 0.5,-0.5),Vec3d(0,-0.5,-0.5),Vec3d(0,-0.5,0.5),Vec3d(0,0.5,0.5)};
     
-    Vec3d ypf[] = {Vec3d( 0.5,0, -0.5),Vec3d(-0.5,0, -0.5),Vec3d(-0.5,0, 0.5),Vec3d(0.5,0, 0.5)};
-    Vec3d ymf[] = {Vec3d(-0.5,0, -0.5),Vec3d(0.5,0, -0.5),Vec3d(0.5,0, 0.5),Vec3d(-0.5,0, 0.5)};
+    Vec3d ymf[] = {Vec3d( 0.5,0, -0.5),Vec3d(-0.5,0, -0.5),Vec3d(-0.5,0, 0.5),Vec3d(0.5,0, 0.5)};
+    Vec3d ypf[] = {Vec3d(-0.5,0, -0.5),Vec3d(0.5,0, -0.5),Vec3d(0.5,0, 0.5),Vec3d(-0.5,0, 0.5)};
     
-    Vec3d zpf[] = {Vec3d(-0.5,-0.5,0),Vec3d(0.5,-0.5,0),Vec3d(0.5,0.5,0),Vec3d(-0.5,0.5,0)};
-    Vec3d zmf[] = {Vec3d( 0.5,-0.5,0),Vec3d(-0.5,-0.5,0),Vec3d(-0.5,0.5,0),Vec3d(0.5,0.5,0)};
+    Vec3d zmf[] = {Vec3d(-0.5,-0.5,0),Vec3d(0.5,-0.5,0),Vec3d(0.5,0.5,0),Vec3d(-0.5,0.5,0)};
+    Vec3d zpf[] = {Vec3d( 0.5,-0.5,0),Vec3d(-0.5,-0.5,0),Vec3d(-0.5,0.5,0),Vec3d(0.5,0.5,0)};
 }
 
 namespace HMesh
@@ -94,13 +94,12 @@ namespace HMesh
         VolumetricImplicit imp(xform, grid);
         for(int iter=0;iter<4;++iter)
         {
-            TAL_smoothing(mani, .25, 1);
-            
+            taubin_smooth(mani,5);
             for(auto v: mani.vertices())
                 if(mani.in_use(v)) {
                     Vec3d p = mani.pos(v);
                     if(!std::isnan(p[0]))
-                        imp.push_to_surface(p,0,avg_edge_len*0.5);
+                        imp.push_to_surface(p,tau,2.0*avg_edge_len);
                     if(std::isnan(p[0]))
                         mani.remove_vertex(v);
                     else
