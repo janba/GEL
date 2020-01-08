@@ -547,7 +547,7 @@ namespace HMesh
         VertexAttributeVector<int> flipCounter(m.allocated_vertices(), 0);
         priority_queue<PQElement> Q;
 		
-		cout << "Building priority queue"<< endl;
+//		cout << "Building priority queue"<< endl;
         int time=1;
         for(HalfEdgeIDIterator h = m.halfedges_begin(); h != m.halfedges_end(); ++h){
             if(!counter[*h].touched) {
@@ -555,13 +555,13 @@ namespace HMesh
             }
         }
 		
-		cout << "Emptying priority queue of size: " << Q.size() << " ";
+//		cout << "Emptying priority queue of size: " << Q.size() << " ";
 		while(!Q.empty())
 		{
-			if(Q.size() % 1000 == 0)
-				cout << ".";
-			if(Q.size() % 10000 == 0)
-				cout << Q.size();
+//			if(Q.size() % 1000 == 0)
+//				cout << ".";
+//			if(Q.size() % 10000 == 0)
+//				cout << Q.size();
 
             PQElement elem = Q.top();
             Q.pop();
@@ -591,7 +591,7 @@ namespace HMesh
             add_one_ring_to_queue(m, counter, Q, w.opp().next().vertex(), efun, flipCounter, time);
 
         }
-		cout << endl;
+//		cout << endl;
 	}
 	
 	void simulated_annealing_optimization(Manifold& m, const EnergyFun& efun, int max_iter)
