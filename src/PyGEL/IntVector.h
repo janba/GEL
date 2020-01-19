@@ -9,20 +9,20 @@
 #ifndef IntVector_hpp
 #define IntVector_hpp
 
+#include <stddef.h>
+
 #if defined(__APPLE__) || defined(__linux__)
 #define DLLEXPORT __attribute__ ((visibility ("default")))
 #else
 #define DLLEXPORT __declspec(dllexport)
 #endif
 
-#include <vector>
-
-using IntVector = std::vector<std::size_t>;
+typedef char* IntVector_ptr;
 
 extern "C" {
-    DLLEXPORT IntVector* IntVector_new(std::size_t s);
-    DLLEXPORT std::size_t IntVector_get(IntVector* self, std::size_t size_t);
-    DLLEXPORT std::size_t IntVector_size(IntVector* self);
-    DLLEXPORT void IntVector_delete(IntVector* self);
+    DLLEXPORT IntVector_ptr IntVector_new(size_t s);
+    DLLEXPORT size_t IntVector_get(IntVector_ptr self, size_t idx);
+    DLLEXPORT size_t IntVector_size(IntVector_ptr self);
+    DLLEXPORT void IntVector_delete(IntVector_ptr self);
 }
 #endif /* IntVector_hpp */

@@ -15,28 +15,20 @@
 #define DLLEXPORT __declspec(dllexport)
 #endif
 
-#include <GEL/HMesh/Manifold.h>
-#include <GEL/Geometry/build_bbtree.h>
-
-class MeshDistance {
-    Geometry::AABBTree aabb_tree;
-public:
-    MeshDistance(HMesh::Manifold* m);
-    
-    float signed_distance(const CGLA::Vec3f& p, float upper);
-    bool ray_inside_test(const CGLA::Vec3f& p, int no_rays);
-};
+typedef char* MeshDistance_ptr;
+typedef char* Manifold_ptr;
 
 extern "C" {
-    DLLEXPORT MeshDistance* MeshDistance_new(HMesh::Manifold* m);
-    DLLEXPORT void MeshDistance_delete(MeshDistance*);
+    DLLEXPORT MeshDistance_ptr MeshDistance_new(Manifold_ptr m);
+
+    DLLEXPORT void MeshDistance_delete(MeshDistance_ptr);
     
-    DLLEXPORT float MeshDistance_signed_distance(MeshDistance* self,
-                                                 const CGLA::Vec3f* p,
+    DLLEXPORT float MeshDistance_signed_distance(MeshDistance_ptr self,
+                                                 const float* p,
                                                  float upper);
 
-    DLLEXPORT bool MeshDistance_ray_inside_test(MeshDistance* self,
-                                                 const CGLA::Vec3f* p,
+    DLLEXPORT bool MeshDistance_ray_inside_test(MeshDistance_ptr self,
+                                                 const float* p,
                                                  int no_rays);
 
     

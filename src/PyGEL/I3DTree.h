@@ -21,20 +21,19 @@
 #include "IntVector.h"
 #include "Vec3dVector.h"
 
-template class Geometry::KDTree<CGLA::Vec3d, size_t>;
-using I3DTree = Geometry::KDTree<CGLA::Vec3d, size_t>;
+typedef char* I3DTree_ptr;
 
 extern "C" {
-    DLLEXPORT I3DTree* I3DTree_new();
-    DLLEXPORT void I3DTree_delete(I3DTree* self);
-    DLLEXPORT void I3DTree_insert(I3DTree* tree, double x, double y, double z, size_t v);
-    DLLEXPORT void I3DTree_build(I3DTree* tree);
-    DLLEXPORT size_t I3DTree_closest_point(I3DTree* tree, double x, double y, double z, double r,
-                                           CGLA::Vec3d* key, size_t* val);
-    DLLEXPORT size_t I3DTree_in_sphere(I3DTree* tree, double x, double y, double z, double r,
-                                       Vec3dVector* keys, IntVector* vals);
-    DLLEXPORT size_t I3DTree_m_closest_points(I3DTree* tree, double x, double y, double z, double r, int m,
-                                              CGLA::Vec3d* key, size_t* val);
+    DLLEXPORT I3DTree_ptr I3DTree_new();
+    DLLEXPORT void I3DTree_delete(I3DTree_ptr self);
+    DLLEXPORT void I3DTree_insert(I3DTree_ptr tree, double x, double y, double z, size_t v);
+    DLLEXPORT void I3DTree_build(I3DTree_ptr tree);
+    DLLEXPORT size_t I3DTree_closest_point(I3DTree_ptr tree, double x, double y, double z, double r,
+                                           double* key, size_t* val);
+    DLLEXPORT size_t I3DTree_in_sphere(I3DTree_ptr tree, double x, double y, double z, double r,
+                                       Vec3dVector_ptr keys, IntVector_ptr vals);
+    DLLEXPORT size_t I3DTree_m_closest_points(I3DTree_ptr tree, double x, double y, double z, double r, int m,
+                                              Vec3dVector_ptr keys, IntVector_ptr vals);
     
 }
 
