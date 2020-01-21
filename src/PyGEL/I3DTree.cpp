@@ -10,6 +10,9 @@
 #include "Vec3dVector.h"
 #include "IntVector.h"
 
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/Geometry/KDTree.h>
+
 using namespace CGLA;
 using namespace std;
 

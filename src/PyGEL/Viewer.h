@@ -15,10 +15,14 @@
 #define DLLEXPORT __declspec(dllexport)
 #endif
 
+#include <stdbool.h>
+
 typedef char* GLManifoldViewer_ptr;
 typedef char* Manifold_ptr;
 
+#ifdef __cplusplus
 extern "C" {
+#endif
     DLLEXPORT GLManifoldViewer_ptr GLManifoldViewer_new();
     
     DLLEXPORT void GLManifoldViewer_event_loop(bool once);
@@ -38,6 +42,8 @@ extern "C" {
 
     DLLEXPORT void GLManifoldViewer_set_annotation_points(GLManifoldViewer_ptr self, int n, double* data);
 
+#ifdef __cplusplus
 }
+#endif
 
 #endif /* Viewer_hpp */

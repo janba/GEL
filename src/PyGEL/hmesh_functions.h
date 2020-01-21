@@ -15,9 +15,13 @@
 #define DLLEXPORT __declspec(dllexport)
 #endif
 
+#include <stdbool.h>
+
 typedef  char* Manifold_ptr;
 
+#ifdef __cplusplus
 extern "C" {
+#endif
     DLLEXPORT int stitch_mesh(Manifold_ptr m_ptr, double rad);
     
     DLLEXPORT bool valid(const Manifold_ptr m_ptr);
@@ -38,25 +42,25 @@ extern "C" {
         
     DLLEXPORT void remove_caps(Manifold_ptr m_ptr, float thresh);
     
-    DLLEXPORT void remove_needles(Manifold_ptr m_ptr, float thresh, bool averagePositions = false);
+    DLLEXPORT void remove_needles(Manifold_ptr m_ptr, float thresh, bool averagePositions);
 
     DLLEXPORT void close_holes(Manifold_ptr m_ptr, int max_size);
     
     DLLEXPORT void flip_orientation(Manifold_ptr m_ptr);
     
-    DLLEXPORT void merge_coincident_boundary_vertices(Manifold_ptr m_ptr, double rad=1e-30);
+    DLLEXPORT void merge_coincident_boundary_vertices(Manifold_ptr m_ptr, double rad);
     
-    DLLEXPORT void minimize_curvature(Manifold_ptr m_ptr, bool anneal=false);
+    DLLEXPORT void minimize_curvature(Manifold_ptr m_ptr, bool anneal);
     
-    DLLEXPORT void minimize_dihedral_angle(Manifold_ptr m_ptr, int max_iter=10000, bool anneal=false, bool alpha=false, double gamma=4.0);
+    DLLEXPORT void minimize_dihedral_angle(Manifold_ptr m_ptr, int max_iter, bool anneal, bool alpha, double gamma);
     
-    DLLEXPORT void maximize_min_angle(Manifold_ptr m_ptr, float thresh, bool anneal=false);
+    DLLEXPORT void maximize_min_angle(Manifold_ptr m_ptr, float thresh, bool anneal);
     
-    DLLEXPORT void optimize_valency(Manifold_ptr m_ptr, bool anneal=false);
+    DLLEXPORT void optimize_valency(Manifold_ptr m_ptr, bool anneal);
     
     DLLEXPORT void randomize_mesh(Manifold_ptr m_ptr, int max_iter);
     
-    DLLEXPORT void quadric_simplify(Manifold_ptr m_ptr, double keep_fraction, double singular_thresh = 0.0001, bool choose_optimal_positions = true);
+    DLLEXPORT void quadric_simplify(Manifold_ptr m_ptr, double keep_fraction, double singular_thresh, bool choose_optimal_positions);
 
     DLLEXPORT float average_edge_length(const Manifold_ptr m_ptr);
     
@@ -82,6 +86,8 @@ extern "C" {
 
     DLLEXPORT void ear_clip_triangulate(Manifold_ptr m_ptr);
 
+#ifdef __cplusplus
 }
+#endif
 
 #endif /* hmesh_functions_hpp */

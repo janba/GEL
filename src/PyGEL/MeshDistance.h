@@ -15,10 +15,14 @@
 #define DLLEXPORT __declspec(dllexport)
 #endif
 
+#include <stdbool.h>
+
 typedef char* MeshDistance_ptr;
 typedef char* Manifold_ptr;
 
+#ifdef __cplusplus
 extern "C" {
+#endif
     DLLEXPORT MeshDistance_ptr MeshDistance_new(Manifold_ptr m);
 
     DLLEXPORT void MeshDistance_delete(MeshDistance_ptr);
@@ -32,6 +36,9 @@ extern "C" {
                                                  int no_rays);
 
     
+#ifdef __cplusplus
 }
+#endif
+
 
 #endif /* MeshDistance_hpp */

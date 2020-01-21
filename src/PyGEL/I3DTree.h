@@ -15,15 +15,16 @@
 #define DLLEXPORT __declspec(dllexport)
 #endif
 
-#include <GEL/CGLA/Vec3d.h>
-#include <GEL/Geometry/KDTree.h>
+#include <stdbool.h>
 
 #include "IntVector.h"
 #include "Vec3dVector.h"
 
 typedef char* I3DTree_ptr;
 
+#ifdef __cplusplus
 extern "C" {
+#endif
     DLLEXPORT I3DTree_ptr I3DTree_new();
     DLLEXPORT void I3DTree_delete(I3DTree_ptr self);
     DLLEXPORT void I3DTree_insert(I3DTree_ptr tree, double x, double y, double z, size_t v);
@@ -35,6 +36,8 @@ extern "C" {
     DLLEXPORT size_t I3DTree_m_closest_points(I3DTree_ptr tree, double x, double y, double z, double r, int m,
                                               Vec3dVector_ptr keys, IntVector_ptr vals);
     
+#ifdef __cplusplus
 }
+#endif
 
 #endif /* PyGEL_h */

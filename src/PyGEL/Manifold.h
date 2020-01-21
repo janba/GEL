@@ -14,14 +14,17 @@
 #else
 #define DLLEXPORT __declspec(dllexport)
 #endif
-    
+
+#include <stdbool.h>
 #include "IntVector.h"
 #include "Vec3dVector.h"
 
 typedef char* Manifold_ptr;
 
+#ifdef __cplusplus
 extern "C" {
-    
+#endif
+
 //    Manifold class methods
     DLLEXPORT Manifold_ptr Manifold_new();
 
@@ -54,7 +57,7 @@ extern "C" {
     DLLEXPORT bool Manifold_halfedge_in_use(Manifold_ptr self,size_t id);
     
     DLLEXPORT bool Manifold_flip_edge(Manifold_ptr self,size_t h);
-    DLLEXPORT bool Manifold_collapse_edge(Manifold_ptr self,size_t h, bool avg_vertices = false);
+    DLLEXPORT bool Manifold_collapse_edge(Manifold_ptr self,size_t h, bool avg_vertices);
 
     DLLEXPORT size_t Manifold_split_face_by_edge(Manifold_ptr self,size_t f, size_t v0, size_t v1);
     DLLEXPORT size_t Manifold_split_face_by_vertex(Manifold_ptr self,size_t f);
@@ -82,16 +85,19 @@ extern "C" {
     DLLEXPORT double length(const Manifold_ptr m_ptr, size_t _h);
     DLLEXPORT bool boundary_edge(const Manifold_ptr m_ptr, size_t _v, size_t _h);
     DLLEXPORT size_t valency(const Manifold_ptr m_ptr, size_t _v);
-    DLLEXPORT void vertex_normal(const Manifold_ptr m_ptr, size_t _v, CGLA::Vec3d*);
+    DLLEXPORT void vertex_normal(const Manifold_ptr m_ptr, size_t _v, double*);
     DLLEXPORT bool connected(const Manifold_ptr m_ptr, size_t _v0, size_t _v1);
     
     DLLEXPORT size_t no_edges(const Manifold_ptr m_ptr, size_t _f);
-    DLLEXPORT void face_normal(const Manifold_ptr m_ptr, size_t _f, CGLA::Vec3d*);
+    DLLEXPORT void face_normal(const Manifold_ptr m_ptr, size_t _f, double*);
     DLLEXPORT double area(const Manifold_ptr m_ptr, size_t _f);
     DLLEXPORT double perimeter(const Manifold_ptr m_ptr, size_t _f);
-    DLLEXPORT void centre(const Manifold_ptr m_ptr, size_t _f, CGLA::Vec3d*);
+    DLLEXPORT void centre(const Manifold_ptr m_ptr, size_t _f, double*);
     
     DLLEXPORT extern size_t InvalidIndex;
+
+#ifdef __cplusplus
 }
+#endif
 
 #endif /* Manifold_hpp */
