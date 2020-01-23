@@ -302,9 +302,10 @@ size_t valency(const Manifold_ptr _m_ptr, size_t _v) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return valency(*m_ptr, VertexID(_v));
 }
-void vertex_normal(const Manifold_ptr _m_ptr, size_t _v, CGLA::Vec3d* n) {
+void vertex_normal(const Manifold_ptr _m_ptr, size_t _v, double* _n) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
-    *n = normal(*m_ptr, VertexID(_v));
+    Vec3d& n = *reinterpret_cast<Vec3d*>(_n);
+    n = normal(*m_ptr, VertexID(_v));
 }
 
 bool connected(const Manifold_ptr _m_ptr, size_t _v0, size_t _v1) {
@@ -316,9 +317,10 @@ size_t no_edges(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return no_edges(*m_ptr,FaceID(_f));
 }
-void face_normal(const Manifold_ptr _m_ptr, size_t _f, CGLA::Vec3d* n) {
+void face_normal(const Manifold_ptr _m_ptr, size_t _f, double* _n) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
-    *n = normal(*m_ptr, FaceID(_f));
+    Vec3d& n = *reinterpret_cast<Vec3d*>(_n);
+    n = normal(*m_ptr, FaceID(_f));
 }
 double area(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
@@ -328,9 +330,10 @@ double perimeter(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return perimeter(*m_ptr,FaceID(_f));
 }
-void centre(const Manifold_ptr _m_ptr, size_t _f, CGLA::Vec3d* c) {
+void centre(const Manifold_ptr _m_ptr, size_t _f, double* _c) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
-    *c = centre(*m_ptr,FaceID(_f));
+    Vec3d& c = *reinterpret_cast<Vec3d*>(_c);
+    c = centre(*m_ptr,FaceID(_f));
 }
 
 size_t InvalidIndex = InvalidVertexID.get_index();
