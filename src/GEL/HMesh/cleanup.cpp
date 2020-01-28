@@ -12,6 +12,7 @@
 #include "../Geometry/QEM.h"
 #include "../Geometry/KDTree.h"
 
+#include "refine_edges.h"
 #include "Manifold.h"
 
 namespace HMesh
@@ -136,39 +137,12 @@ namespace HMesh
         
     }
     
-    void remove_needles(Manifold& m, float thresh, bool averagePositions)
+    void remove_needles(Manifold& m, float _thresh, bool averagePositions)
     {
-        bool did_work = false;
-        
-        // remove needles until no more can be removed
-        do{
-            did_work = false;
-            for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){
-                // don't attempt to remove needles if vertex is boundary
-                if(boundary(m, *v))
-                    continue;
-                
-                for(Walker vj = m.walker(*v); !vj.full_circle(); vj = vj.circulate_vertex_cw()){
-                    // don't attempt to remove needles if vertex of jumper halfedge is boundary
-                    //                 if(boundary(m, vj.vertex()))
-                    //                        continue;
-                    
-                    HalfEdgeID h = vj.opp().halfedge();
-                    //                    VertexID n = vj.vertex();
-                    float dist = length(m, h);
-                    
-                    // collapse edge if allowed and needle is present
-                    if(dist < thresh && precond_collapse_edge(m, h)){
-                        //                        if(vertex_error(m, *v, Vec3d(m.pos(n))) < vertex_error(m, n, Vec3d(m.pos(*v))))
-                        //                            m.pos(*v) = m.pos(n);
-                        m.collapse_edge(h, averagePositions);
-                        did_work = true;
-                        break;
-                    }
-                }
-            }
-        }
-        while(did_work);
+        double thresh = _thresh * median_edge_length(m);
+        for(HalfEdgeID h : m.halfedges())
+            if(m.in_use(h) && length(m, h)<thresh && precond_collapse_edge(m, h))
+                m.collapse_edge(h, averagePositions);
     }
     
  

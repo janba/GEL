@@ -1380,19 +1380,13 @@ namespace GLGraphics {
         {
             if(wantshelp(args)){
                 me->printf("usage: cleanup.remove_needles <thresh>");
-                me->printf("Removes very short edges by collapse. thresh is multiplied by the average edge length");
+                me->printf("Removes very short edges by collapse. thresh is multiplied by the median edge length");
                 me->printf("to get the length shorter than which we collapse. Default = 0.1");
                 return;
             }
             me->save_active_mesh();
-            
-            float thresh = 0.1f;
-            if(args.size() > 0){
-                istringstream a0(args[0]);
-                a0 >> thresh;
-            }
-            float avg_length = average_edge_length(me->active_mesh());
-            remove_needles(me->active_mesh(), thresh * avg_length);
+            float thresh = console_arg(args, 0, 0.1);
+            remove_needles(me->active_mesh(), thresh);
             me->active_mesh().cleanup();
             
             return;
