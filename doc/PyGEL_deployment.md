@@ -8,13 +8,13 @@ On MacOS, we can compile GEL and PyGEL as follows.
 
 `cd GEL; mkdir build; cd build; cmake .. ; make -j 12`
 
-having executed these commands, we have a version of PyGEL that we can install by issuing two more commands which creates a wheel package and installs it somewhere in our Python site-package library presumably.
+However, note that PyGEL relies on GLFW, so that library must be installed for the above to work. Having executed these commands, we have a version of PyGEL that we can install by issuing two more commands which creates a wheel package and installs it somewhere in our Python site-package library presumably.
 
 `python setup.py bdist_wheel`
 
 `pip install dist/<something>.whl`
 
-However, note that PyGEL relies on GLFW, so that library must be installed for the above to work. Moreover, this installation will often only work on the local machine precisely since we don’t necessarily have GLFW installed on the next machine we try.
+Moreover, this installation will often only work on the local machine precisely since we don’t necessarily have GLFW installed on the next machine we try.
 
 Make sure to manually put the GLFW package inside the build folder next to `libPyGEL.dylib` and name it `libglfw.3.dylib`
 
@@ -39,6 +39,7 @@ Repeat the process for PyGEL
 
 Finally, download the GLFW source code, and also change that to /MT as above and make sure to link against precisely the version of the library thus compiled.
 
+Clearly, this is an arduous process, and it would be a good idea to either build the static linking into the CMake files or perhaps not use static linking but copy the relevant DLLs into the package.
 
 ## Packing it up and sending it off ##
 
@@ -54,4 +55,8 @@ and enter the login and password when prompted.
 
 ## What about Linux? ##
 
-On Linux you need to install GLFW and follow the steps above for MacOS. It should just work. Only remember to get the GLFW-devel package and not the regular package since that is probably missing the header files.
+On Linux you need to install GLFW and follow the steps above for MacOS. It should just work. Only remember to install the GLFW-devel package and not the regular GLFW package since that is probably missing the header files.
+
+## In the future ##
+
+Some cross compilation in the cloud based solution would be so much nicer.
