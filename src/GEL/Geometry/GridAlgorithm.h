@@ -71,7 +71,7 @@
 #include "HGrid.h"
 
 namespace Geometry 
-{
+    {
     template<class T, class F>
     void _for_each_voxel(T* data,
                          int x_dim, int xy_dim,
@@ -481,6 +481,47 @@ namespace Geometry
     }
     
     
-}
+    
+    class Range3D {
+    public:
+        class iterator {
+            friend class Range3D;
+            inline bool inc3d(const CGLA::Vec3i& pl, const CGLA::Vec3i& ph, CGLA::Vec3i& p) {
+                if(++p[0]<ph[0])
+                    return true;
+                p[0]=pl[0];
+                if(++p[1]<ph[1])
+                    return true;
+                p[1]=pl[1];
+                if(++p[2]<ph[2])
+                    return true;
+                p=ph;
+                return false;
+            }
+        public:
+            CGLA::Vec3i operator *() const { return p; }
+            const iterator &operator ++() { inc3d(pl, ph, p); return *this; }
+            iterator operator ++(int) { iterator copy(*this); inc3d(pl, ph, p); return copy; }
+            bool operator ==(const iterator &other) const { return p == other.p && pl == other.pl && ph == other.ph; }
+            bool operator !=(const iterator &other) const { return !(*this == other); }
+            
+        protected:
+            iterator(const CGLA::Vec3i& _pl, const CGLA::Vec3i& _ph, const CGLA::Vec3i& _p) : pl(_pl), ph(_ph), p(_p) {}
+            
+        private:
+            const CGLA::Vec3i pl,ph;
+            CGLA::Vec3i p;
+        };
+        
+        iterator begin() const { return begin_; }
+        iterator end() const { return end_; }
+        Range3D(const CGLA::Vec3i& pl, const CGLA::Vec3i& ph) : begin_(pl,ph,pl), end_(pl,ph,ph) {}
+        Range3D(const CGLA::Vec3i& ph) : begin_(CGLA::Vec3i(0),ph,CGLA::Vec3i(0)), end_(CGLA::Vec3i(0),ph,ph) {}
+        
+    private:
+        iterator begin_;
+        iterator end_;
+    };
+    }
 
 #endif

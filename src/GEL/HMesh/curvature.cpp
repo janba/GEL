@@ -79,7 +79,8 @@ namespace HMesh
     {
         double barea = 0;
         //For each triangle T from the 1-ring neighborhood of x
-        for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()){
+        for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw())
+        if(w.face() != InvalidFaceID) {
             barea += area(m, w.face())/3.0;
         }
         return barea;

@@ -11,25 +11,26 @@ using namespace CGLA;
 using namespace std;
 
 namespace Geometry
-{
-
-	template<class T>
-	bool load_raw(const string& file, RGrid<T>& grid)
-	{
-			int sz = grid.get_size();
-			ifstream f(file.c_str(),ios::binary);
-			if(f)
-			{
-					f.read(reinterpret_cast<char*>(grid.get()),sz*sizeof(T));
-					return true;
-			}
-			cerr << "Could not open volume :" << file << endl;
-			return false;
-	}
-		
-		template bool load_raw(const string&, RGrid<unsigned char>& grid);
-		template bool load_raw(const string&, RGrid<unsigned short>& grid);
-		template bool load_raw(const string&, RGrid<short>& grid);
-		template bool load_raw(const string&, RGrid<float>& grid);
-
-}
+    {
+    
+    template<class T>
+    bool load_raw(const string& file, RGrid<T>& grid)
+    {
+        int sz = grid.get_size();
+        ifstream f(file.c_str(),ios::binary);
+        if(f)
+        {
+            f.read(reinterpret_cast<char*>(grid.get()),sz*sizeof(T));
+            return true;
+        }
+        cerr << "Could not open volume :" << file << endl;
+        return false;
+    }
+    
+    template bool load_raw(const string&, RGrid<unsigned char>& grid);
+    template bool load_raw(const string&, RGrid<unsigned short>& grid);
+    template bool load_raw(const string&, RGrid<short>& grid);
+    template bool load_raw(const string&, RGrid<float>& grid);
+    template bool load_raw(const string&, RGrid<double>& grid);
+    
+    }
