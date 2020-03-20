@@ -499,7 +499,7 @@ namespace Geometry
                 return false;
             }
         public:
-            CGLA::Vec3i operator *() const { return p; }
+            const CGLA::Vec3i& operator *() const { return p; }
             const iterator &operator ++() { inc3d(pl, ph, p); return *this; }
             iterator operator ++(int) { iterator copy(*this); inc3d(pl, ph, p); return copy; }
             bool operator ==(const iterator &other) const { return p == other.p && pl == other.pl && ph == other.ph; }
