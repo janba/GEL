@@ -36,7 +36,7 @@ namespace HMesh
         int k = 0;
         for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){
             Vec3d p = m.pos(*v);
-            os << "v "<< p[0] << " " << p[1] << " " << p[2] << "\n";
+            os << p[0] << " " << p[1] << " " << p[2] << "\n";
             vmap[*v] = k++;
         }
 

@@ -238,6 +238,8 @@
 		BD4ACED6214A6010004EEC2F /* Delaunay_triangulate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD4ACED4214A6010004EEC2F /* Delaunay_triangulate.cpp */; };
 		BD4ACED8214A76B2004EEC2F /* jrs_triangle.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BD4ACED3214A5F03004EEC2F /* jrs_triangle.h */; };
 		BD4ACED9214A76D6004EEC2F /* Delaunay_triangulate.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BD4ACED7214A605E004EEC2F /* Delaunay_triangulate.h */; };
+		E1246E0D242CF7F500653E54 /* bounding_sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */; };
+		E1246E0E242D0A5000653E54 /* bounding_sphere.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1246E0C242CF7F500653E54 /* bounding_sphere.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -303,6 +305,7 @@
 			dstPath = ../Headers/Geometry;
 			dstSubfolderSpec = 7;
 			files = (
+				E1246E0E242D0A5000653E54 /* bounding_sphere.h in CopyFiles */,
 				BD4ACED8214A76B2004EEC2F /* jrs_triangle.h in CopyFiles */,
 				0D1028351C74CC9E00250431 /* Graph.h in CopyFiles */,
 				0D52EBF1197D1DB9002C7150 /* AABox.h in CopyFiles */,
@@ -681,6 +684,8 @@
 		BD4ACED7214A605E004EEC2F /* Delaunay_triangulate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Delaunay_triangulate.h; sourceTree = "<group>"; };
 		BD4E9FA8201CB17B0029AEA2 /* GEL copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GEL copy-Info.plist"; path = "/Users/janba/GEL/GEL_MAC/GEL copy-Info.plist"; sourceTree = "<absolute>"; };
 		BDAC7CAA201885F600197925 /* Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serialization.h; sourceTree = "<group>"; };
+		E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bounding_sphere.cpp; sourceTree = "<group>"; };
+		E1246E0C242CF7F500653E54 /* bounding_sphere.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bounding_sphere.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -731,6 +736,7 @@
 				0D52EAB4197D18C1002C7150 /* BoundingLNode.cpp */,
 				0D52EAB6197D18C1002C7150 /* BoundingNode.cpp */,
 				0D52EAB8197D18C1002C7150 /* BoundingTree.cpp */,
+				E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */,
 				0D52EABA197D18C1002C7150 /* BSPTree.cpp */,
 				0D52EABC197D18C1002C7150 /* build_bbtree.cpp */,
 				0D52EABF197D18C1002C7150 /* geo_load.cpp */,
@@ -893,6 +899,7 @@
 		0D52EBB2197D1901002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				E1246E0C242CF7F500653E54 /* bounding_sphere.h */,
 				BD4ACED3214A5F03004EEC2F /* jrs_triangle.h */,
 				0D52EAAE197D18C1002C7150 /* AABox.h */,
 				0D52EAAF197D18C1002C7150 /* AncestorGrid.h */,
@@ -1205,6 +1212,7 @@
 				0D52EB69197D18C1002C7150 /* Vec3i.cpp in Sources */,
 				0D52EB5D197D18C1002C7150 /* ArithVec2Float.cpp in Sources */,
 				0D52EBA3197D18C1002C7150 /* polygonize.cpp in Sources */,
+				E1246E0D242CF7F500653E54 /* bounding_sphere.cpp in Sources */,
 				0D52EB97197D18C1002C7150 /* curvature.cpp in Sources */,
 				0D52EB9E197D18C1002C7150 /* obj_load.cpp in Sources */,
 				0D52EB8F197D18C1002C7150 /* SimpleTrackBall.cpp in Sources */,

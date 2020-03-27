@@ -54,7 +54,7 @@ namespace HMesh
          This function is provided a vector of points in space and produces a single
          polygonal face.
          */
-        FaceID add_face(std::vector<Manifold::Vec> points);
+        FaceID add_face(const std::vector<Manifold::Vec>& points);
 
         /** Removes a face from the Manifold. If it is an interior face it is simply replaces
          by an InvalidFaceID. If the face contains boundary edges, these are removed. Situations

@@ -10,6 +10,7 @@
 #include <iterator>
 
 #include "../Geometry/TriMesh.h"
+#include "../Geometry/bounding_sphere.h"
 #include "Manifold.h"
 #include "cleanup.h"
 
@@ -25,7 +26,7 @@ namespace HMesh
 	 * Public functions
 	 *********************************************/
     
-    FaceID Manifold::add_face(std::vector<Manifold::Vec> points)
+    FaceID Manifold::add_face(const std::vector<Manifold::Vec>& points)
     {
         struct Edge
         {
