@@ -135,10 +135,13 @@ namespace GLGraphics {
         }
         
         /// Make sure the object fits in the window.
+        void refit(const CGLA::Vec3d& c, double r) {
+            active_visobj().refit(c,r);
+        }
         void refit() {
             active_visobj().refit();
         }
-        
+
         /// Returns the name of the file whence the active mesh was loaded.
         std::string& get_file_name() {return active_visobj().get_file_name();}
 

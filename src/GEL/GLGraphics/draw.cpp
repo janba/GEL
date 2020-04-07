@@ -233,8 +233,8 @@ namespace GLGraphics
     
     void draw(const Geometry::AMGraph3D& graph)
     {
-        glPointSize(10);
-        glLineWidth(3);
+        glPointSize(20);
+        glLineWidth(5);
         glUseProgram(0);
         glDisable(GL_LIGHTING);
         glBegin(GL_POINTS);

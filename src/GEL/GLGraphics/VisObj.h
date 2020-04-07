@@ -123,8 +123,9 @@ public:
     
     GLGraphics::GLViewController& view_control() {return view_ctrl;}
     
+    void refit(const CGLA::Vec3d& _bsc, double _bsr);
     void refit();
-    
+
     bool reload(std::string _file);
     
     bool add_mesh(std::string _file);
