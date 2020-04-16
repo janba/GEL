@@ -6,6 +6,8 @@
 //  Copyright © 2020 J. Andreas Bærentzen. All rights reserved.
 //
 
+#include <algorithm>
+#include <random>
 #include "bounding_sphere.h"
 
 using namespace std;
@@ -93,5 +95,13 @@ pair<Vec3d, double> Welzl(vector<Vec3d> P, vector<Vec3d> R) {
 }
 
 pair<Vec3d, double> bounding_sphere(const vector<Vec3d>& pts) {
+    return Welzl(pts, {});
+}
+
+pair<Vec3d, double> approximate_bounding_sphere(const vector<Vec3d>& _pts) {
+    vector<Vec3d> pts(_pts);
+    if(pts.size()>1000)
+        shuffle(pts.begin(), pts.end(), default_random_engine(0));
+    pts.resize(1000);
     return Welzl(pts, {});
 }
