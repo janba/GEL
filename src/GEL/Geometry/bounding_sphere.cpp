@@ -100,8 +100,9 @@ pair<Vec3d, double> bounding_sphere(const vector<Vec3d>& pts) {
 
 pair<Vec3d, double> approximate_bounding_sphere(const vector<Vec3d>& _pts) {
     vector<Vec3d> pts(_pts);
-    if(pts.size()>1000)
+    if(pts.size()>1000) {
         shuffle(pts.begin(), pts.end(), default_random_engine(0));
-    pts.resize(1000);
+        pts.resize(1000);
+    }
     return Welzl(pts, {});
 }
