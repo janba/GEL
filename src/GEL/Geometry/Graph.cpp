@@ -236,8 +236,8 @@ namespace Geometry {
             outside_sum += outside;
             front_curvature += sqr(outside-inside);// + sqr(in_sep-2);
         }
-//        if(inside_sum == 0 || outside_sum == 0)
-//            return 1e100;
+        if(inside_sum == 0 || outside_sum == 0)
+            return 1e100;
 //        return static_cast<double>(sqr(ns_outside.size()-ns_inside.size())) / separator.size();
         return static_cast<double>(front_curvature) / separator.size();
   }
