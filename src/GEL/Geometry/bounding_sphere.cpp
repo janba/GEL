@@ -94,12 +94,21 @@ pair<Vec3d, double> Welzl(vector<Vec3d> P, vector<Vec3d> R) {
     return Welzl(P, R);
 }
 
-pair<Vec3d, double> bounding_sphere(const vector<Vec3d>& pts) {
+pair<Vec3d, double> bounding_sphere(const vector<Vec3d>& _pts) {
+    
+    vector<Vec3d> pts;
+    for(const Vec3d& p: _pts)
+        if(!(isnan(p[0])||isnan(p[1])||isnan(p[2])))
+           pts.push_back(p);
+           
     return Welzl(pts, {});
 }
 
 pair<Vec3d, double> approximate_bounding_sphere(const vector<Vec3d>& _pts) {
-    vector<Vec3d> pts(_pts);
+    vector<Vec3d> pts;
+    for(const Vec3d& p: _pts)
+        if(!(isnan(p[0])||isnan(p[1])||isnan(p[2])))
+           pts.push_back(p);
     if(pts.size()>1000) {
         shuffle(pts.begin(), pts.end(), default_random_engine(0));
         pts.resize(1000);
