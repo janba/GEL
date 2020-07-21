@@ -23,6 +23,7 @@
 #include <memory> //unique_ptr
 #include <vector>
 #include <cassert>
+#include <csignal>
 
 namespace GLGraphics {
     
