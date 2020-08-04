@@ -73,6 +73,10 @@ namespace Geometry {
         
         return gn;
     }
+
+    void AMGraph3D::cleanup() {
+        *this = clean_graph(*this);
+    }
     
     BreadthFirstSearch::BreadthFirstSearch(const AMGraph3D& _g, const Util::AttribVec<AMGraph::NodeID, double>& _dist):
     g_ptr(&_g) {

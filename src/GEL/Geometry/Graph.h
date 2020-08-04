@@ -176,6 +176,9 @@ namespace Geometry {
             node_color.clear();
         }
         
+        /// Clean the graph, removing unused nodes and vertices.
+        void cleanup();
+        
         /// Add a node at arbitrary 3D position
         NodeID add_node(const CGLA::Vec3d& p)
         {
