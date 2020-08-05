@@ -21,12 +21,13 @@
 
 namespace Geometry {
     
-    /** AMGraph means adjacency map graph. It is a simple graph class that is similar to an adjacency list.
-     the difference is that the adjacency is given by a map from node id to edge id instead of a list. The
-     reason for this is that we can still iterate over all adjacent nodes (the keys) but we can also find
-     ids for the concrete edges. This class can be used but has no properties for the edges or nodes. Using
-     an external data structure, such attributes can be added.
-     */
+/** AMGraph means adjacency map graph. It is a simple graph class that is similar to an adjacency list.
+ the difference is that the adjacency is given by a map from node id to edge id instead of a list. The
+ reason for this is that we can still iterate over all adjacent nodes (the keys) but we can also find
+ ids for the concrete edges. This class is not abstract but also not intended for direct usage. There are no
+ attributes for nodes or edges and it is not possible to remove nodes or edges from instances of this
+ class. Look to the derived AMGraph3D.
+ */
     class AMGraph {
     public:
         
@@ -34,7 +35,6 @@ namespace Geometry {
         using NodeID = size_t;
         
         /// Node Set type
-//        using NodeSet = std::unordered_set<NodeID>;
         using NodeSet = std::set<NodeID>;
 
         /// ID type for edges
@@ -55,24 +55,30 @@ namespace Geometry {
         std::vector<AdjMap> edge_map;
         
         /// Number of edges.
-        size_t no_edges = 0;
+        size_t no_edges_created = 0;
         
     public:
         
         /// Clear the graph
         void clear() {
             edge_map.clear();
-            no_edges = 0;
+            no_edges_created = 0;
         }
         
-        /// Return number of nodes
+        /** Return number of nodes. Note that nodes are never removed from edge_map, so the number of nodes is not decremented.
+         If you use the derived class AMGraph3D and call cleanup, the number of nodes will  be the actual number. */
         size_t no_nodes() const {return edge_map.size();}
+        
+        /** Return number of edges created. Note that if nodes were disconnected thereby removing an edge,
+         this number is not decremented. If you use the derived class AMGraph3D and call cleanup, the number
+         of edges will  be the actual number. */
+        size_t no_edges() const {return no_edges_created;}
         
         /// Return whether the node is valid (i.e. in the graph)
         bool valid_node(NodeID n) const { return n < no_nodes();}
         
         /// Return whether an edge is valid (i.e. in the graph)
-        bool valid_edge(EdgeID e) const { return e < no_edges;}
+        bool valid_edge(EdgeID e) const { return e < no_edges_created;}
         
         /// Returns true if the graph contains no nodes, false otherwise
         bool empty() const {return edge_map.empty();}
@@ -81,7 +87,7 @@ namespace Geometry {
         const Util::Range node_ids() const { return Util::Range(0,edge_map.size());}
 
         /// The range returned can be used in range based for loops over all node ids
-        const Util::Range edge_ids() const { return Util::Range(0,no_edges);}
+        const Util::Range edge_ids() const { return Util::Range(0,no_edges_created);}
 
         /// Add a node to the graph
         NodeID add_node() {
@@ -107,19 +113,12 @@ namespace Geometry {
         {
             if(valid_node(n0) && valid_node(n1) &&
                find_edge(n0, n1) == InvalidEdgeID) {
-                size_t id = no_edges++;
+                size_t id = no_edges_created++;
                 edge_map[n0][n1] = id;
                 edge_map[n1][n0] = id;
                 return id;
             }
             return InvalidEdgeID;
-        }
-        
-        void disconnect_nodes(NodeID n0, NodeID n1) {
-            if(valid_node(n0) && valid_node(n1)) {
-                edge_map[n0].erase(n1);
-                edge_map[n1].erase(n0);
-            }
         }
         
         /// Return the NodeIDs of nodes adjacent to a given node
@@ -144,7 +143,6 @@ namespace Geometry {
             set_intersection(begin(nbrs0), end(nbrs0), begin(nbrs1), end(nbrs1), back_inserter(nbr_isect));
             return nbr_isect;
         };
-
         
         /// Return the number of edges incident on a given node.
         size_t valence(NodeID n) const { return edge_map[n].size(); }
@@ -206,6 +204,16 @@ namespace Geometry {
             if(valid_edge(e))
                 edge_color[e] = CGLA::Vec3f(0);
             return e;
+        }
+        
+        /** Disconnect nodes. This operation removes the edge from the edge maps of the two formerly connected
+         vertices, but the number of edges reported by the super class AMGraph is not decremented, so the edge is only
+         invalidated. Call cleanup to finalize removal. */
+        void disconnect_nodes(NodeID n0, NodeID n1) {
+            if(valid_node(n0) && valid_node(n1)) {
+                edge_map[n0].erase(n1);
+                edge_map[n1].erase(n0);
+            }
         }
      
         /** Merge two nodes, the first is removed and the second inherits all connections,
@@ -277,14 +285,9 @@ namespace Geometry {
         bool Dijkstra_step();
         bool step();
         
-//        int get_T_in(AMGraph::NodeID n) const {return T_in[n];}
-//        int get_T_out(AMGraph::NodeID n) const {return T_out[n];}
         AMGraph::NodeID get_last() const { return last.node; }
-//        AMGraph::NodeID get_pred(AMGraph::NodeID n) const { return pred[n];}
         AMGraph::NodeSet get_front() const { return front; }
         AMGraph::NodeSet get_interior() const { return visited; }
-//        double get_dist(AMGraph::NodeID n) const { return dist[n];}
-//        const DistAttribVec& get_dist_vec() const { return dist;}
     };
     
     /** Clean up graph, removing unused nodes and edges. */
