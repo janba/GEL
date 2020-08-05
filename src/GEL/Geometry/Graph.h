@@ -124,7 +124,7 @@ namespace Geometry {
         /// Return the NodeIDs of nodes adjacent to a given node
         std::vector<NodeID> neighbors(NodeID n) const {
             std::vector<NodeID> nbrs(edge_map[n].size());
-            int i=0;
+            unsigned i=0;
             for(auto edge : edge_map[n])
                 nbrs[i++] = edge.first;
             return nbrs;
@@ -230,7 +230,7 @@ namespace Geometry {
         
         /// Compute the average edge length
         double average_edge_length() const {
-            int i=0;
+            unsigned i=0;
             double sum_len = 0;
             for(auto n: node_ids())
                 for(auto nn: neighbors(n))

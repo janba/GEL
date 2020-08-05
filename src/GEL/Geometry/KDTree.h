@@ -60,7 +60,7 @@ namespace {
         void to_vector(std::vector<T>& vec) {
             const size_t N = q.size();
             vec.resize(N);
-            for(int i=0;i<N;++i) {
+            for(unsigned i=0;i<N;++i) {
                 vec[N-1-i] = q.top();
                 q.pop();
             }
@@ -133,15 +133,15 @@ namespace Geometry
          for comparing keys - Comp objects are passed to the sort algorithm.*/
         class Comp
         {
-            const int dsc;
+            const short dsc;
         public:
-            Comp(int _dsc): dsc(_dsc) {}
+            Comp(short _dsc): dsc(_dsc) {}
             bool operator()(const KeyType& k0, const KeyType& k1) const
             {
-                int dim=KeyType::get_dim();
-                for(int i=0;i<dim;i++)
+                unsigned dim=KeyType::get_dim();
+                for(unsigned i=0;i<dim;i++)
                 {
-                    int j=(dsc+i)%dim;
+                    unsigned j=(dsc+i)%dim;
                     if(k0[j]<k1[j])
                         return true;
                     if(k0[j]>k1[j])
@@ -159,18 +159,18 @@ namespace Geometry
         
         /** Passed a vector of keys, this function will construct an optimal tree.
          It is called recursively */
-        void optimize(int, int, int);
+        void optimize(unsigned, unsigned, unsigned);
         
         /** Finde nearest neighbour. */
-        int closest_point_priv(int, const KeyType&, ScalarType&) const;
+        unsigned closest_point_priv(unsigned, const KeyType&, ScalarType&) const;
         
         
-        void in_sphere_priv(int n,
+        void in_sphere_priv(unsigned n,
                             const KeyType& p,
                             const ScalarType& dist,
                             std::vector<int>& records) const;
         
-        void m_closest_priv(int n,
+        void m_closest_priv(unsigned n,
                             const KeyType& p,
                             ScalarType& max_dist,
                             NQueue<KDTreeRecord<KeyT, ValT>>& nq) const;
@@ -179,7 +179,7 @@ namespace Geometry
          function traverses the vector and finds out what dimension has
          the greatest difference between min and max element. That dimension
          is used for discriminator */
-        int opt_disc(int,int) const;
+        short opt_disc(unsigned,unsigned) const;
         
     public:
         
@@ -226,7 +226,7 @@ namespace Geometry
             if(nodes.size()>1)
             {
                 ScalarType max_sq_dist = CGLA::sqr(dist);
-                if(int n = closest_point_priv(1, p, max_sq_dist))
+                if(unsigned n = closest_point_priv(1, p, max_sq_dist))
                 {
                     k = nodes[n].key;
                     v = nodes[n].val;
@@ -244,7 +244,7 @@ namespace Geometry
          they should be empty vectors or you should desire appending the newly
          found elements onto these vectors.
          */
-        int in_sphere(const KeyType& p,
+        unsigned in_sphere(const KeyType& p,
                       ScalarType dist,
                       std::vector<KeyT>& keys,
                       std::vector<ValT>& vals) const
@@ -255,10 +255,10 @@ namespace Geometry
                 ScalarType max_sq_dist = CGLA::sqr(dist);
                 std::vector<int> records;
                 in_sphere_priv(1,p,max_sq_dist,records);
-                int N = records.size();
+                size_t N = records.size();
                 keys.resize(N);
                 vals.resize(N);
-                for (int i=0;i<N;++i) {
+                for (unsigned i=0;i<N;++i) {
                     keys[i] = nodes[records[i]].key;
                     vals[i] = nodes[records[i]].val;
                 }
@@ -271,7 +271,7 @@ namespace Geometry
          of KDTreeRecords sorted in ascending distance order. This function is often significantly faster than simply
          finding all elements within a given radius using in_sphere and then sorting because once m elements have been
          found, the search radius can be narrowed. */
-        std::vector<KDTreeRecord<KeyT, ValT>> m_closest(int m, const KeyType& p, ScalarType dist) const {
+        std::vector<KDTreeRecord<KeyT, ValT>> m_closest(unsigned m, const KeyType& p, ScalarType dist) const {
             assert(is_built);
             std::vector<KDTreeRecord<KeyT,ValT>> nv;
             if(nodes.size()>1)
@@ -287,27 +287,27 @@ namespace Geometry
     };
     
     template<class KeyT, class ValT>
-    int KDTree<KeyT,ValT>::opt_disc(int kvec_beg,
-                                    int kvec_end) const
+    short KDTree<KeyT,ValT>::opt_disc(unsigned kvec_beg,
+                                    unsigned kvec_end) const
     {
         KeyType vmin = init_nodes[kvec_beg].key;
         KeyType vmax = init_nodes[kvec_beg].key;
-        for(int i=kvec_beg;i<kvec_end;i++)
+        for(unsigned i=kvec_beg;i<kvec_end;i++)
         {
             vmin = CGLA::v_min(vmin,init_nodes[i].key);
             vmax = CGLA::v_max(vmax,init_nodes[i].key);
         }
-        int od=0;
+        short od=0;
         KeyType ave_v = vmax-vmin;
-        for(int i=1;i<KeyType::get_dim();i++)
+        for(unsigned i=1;i<KeyType::get_dim();i++)
             if(ave_v[i]>ave_v[od]) od = i;
         return od;
     }
     
     template<class KeyT, class ValT>
-    void KDTree<KeyT,ValT>::optimize(int cur,
-                                     int kvec_beg,
-                                     int kvec_end)
+    void KDTree<KeyT,ValT>::optimize(unsigned cur,
+                                     unsigned kvec_beg,
+                                     unsigned kvec_end)
     {
         // Assert that we are not inserting beyond capacity.
         assert(cur < nodes.size());
@@ -321,15 +321,15 @@ namespace Geometry
         }
         
         // Find the axis that best separates the data.
-        int disc = opt_disc(kvec_beg, kvec_end);
+        short disc = opt_disc(kvec_beg, kvec_end);
         
         // Compute the median element. See my document on how to do this
         // www.imm.dtu.dk/~jab/publications.html
-        int N = kvec_end-kvec_beg;
-        int M = 1<< (CGLA::two_to_what_power(N));
-        int R = N-(M-1);
-        int left_size  = (M-2)/2;
-        int right_size = (M-2)/2;
+        unsigned N = kvec_end-kvec_beg;
+        unsigned M = 1<< (CGLA::two_to_what_power(N));
+        unsigned R = N-(M-1);
+        unsigned left_size  = (M-2)/2;
+        unsigned right_size = (M-2)/2;
         if(R < M/2)
         {
             left_size += R;
@@ -340,7 +340,7 @@ namespace Geometry
             right_size += R-M/2;
         }
         
-        int median = kvec_beg + left_size;
+        unsigned median = kvec_beg + left_size;
         
         // Sort elements but use nth_element (which is cheaper) than
         // a sorting algorithm. All elements to the left of the median
@@ -365,10 +365,10 @@ namespace Geometry
     }
     
     template<class KeyT, class ValT>
-    int KDTree<KeyT,ValT>::closest_point_priv(int n, const KeyType& p,
+    unsigned KDTree<KeyT,ValT>::closest_point_priv(unsigned n, const KeyType& p,
                                               ScalarType& dist) const
     {
-        int ret_node = 0;
+        unsigned ret_node = 0;
         ScalarType this_dist = nodes[n].dist(p);
         
         if(this_dist<dist)
@@ -378,22 +378,22 @@ namespace Geometry
         }
         if(nodes[n].dsc != -1)
         {
-            int dsc         = nodes[n].dsc;
+            short dsc         = nodes[n].dsc;
             ScalarType dsc_dist  = CGLA::sqr(nodes[n].key[dsc]-p[dsc]);
             bool left_son   = Comp(dsc)(p,nodes[n].key);
             
             if(left_son||dsc_dist<dist)
             {
-                int left_child = 2*n;
+                unsigned left_child = 2*n;
                 if(left_child < nodes.size())
-                    if(int nl=closest_point_priv(left_child, p, dist))
+                    if(unsigned nl=closest_point_priv(left_child, p, dist))
                         ret_node = nl;
             }
             if(!left_son||dsc_dist<dist)
             {
-                int right_child = 2*n+1;
+                unsigned right_child = 2*n+1;
                 if(right_child < nodes.size())
-                    if(int nr=closest_point_priv(right_child, p, dist))
+                    if(unsigned nr = closest_point_priv(right_child, p, dist))
                         ret_node = nr;
             }
         }
@@ -401,7 +401,7 @@ namespace Geometry
     }
     
     template<class KeyT, class ValT>
-    void KDTree<KeyT,ValT>::in_sphere_priv(int n,
+    void KDTree<KeyT,ValT>::in_sphere_priv(unsigned n,
                                            const KeyType& p,
                                            const ScalarType& dist,
                                            std::vector<int>& records) const
@@ -412,8 +412,8 @@ namespace Geometry
             records.push_back(n);
         if(nodes[n].dsc != -1)
         {
-            const int dsc         = nodes[n].dsc;
-            const ScalarType dsc_dist  = CGLA::sqr(nodes[n].key[dsc]-p[dsc]);
+            const short dsc = nodes[n].dsc;
+            const ScalarType dsc_dist = CGLA::sqr(nodes[n].key[dsc]-p[dsc]);
             
             bool left_son = Comp(dsc)(p,nodes[n].key);
             
@@ -433,7 +433,7 @@ namespace Geometry
     }
     
     template<class KeyT, class ValT>
-    void KDTree<KeyT,ValT>::m_closest_priv(int n,
+    void KDTree<KeyT,ValT>::m_closest_priv(unsigned n,
                                            const KeyType& p,
                                            ScalarType& max_dist,
                                            NQueue<KDTreeRecord<KeyT, ValT>>& nq) const
@@ -448,20 +448,20 @@ namespace Geometry
         }
         if(nodes[n].dsc != -1)
         {
-            const int dsc = nodes[n].dsc;
+            const short dsc = nodes[n].dsc;
             const ScalarType dsc_dist  = CGLA::sqr(nodes[n].key[dsc]-p[dsc]);
             
             bool left_son = Comp(dsc)(p,nodes[n].key);
             
             if(left_son||dsc_dist<max_dist)
             {
-                int left_child = 2*n;
+                unsigned left_child = 2*n;
                 if(left_child < nodes.size())
                     m_closest_priv(left_child, p, max_dist, nq);
             }
             if(!left_son||dsc_dist<max_dist)
             {
-                int right_child = 2*n+1;
+                unsigned right_child = 2*n+1;
                 if(right_child < nodes.size())
                     m_closest_priv(right_child, p, max_dist, nq);
             }
