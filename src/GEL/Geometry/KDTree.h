@@ -419,13 +419,13 @@ namespace Geometry
             
             if(left_son||dsc_dist<dist)
             {
-                int left_child = 2*n;
+                unsigned left_child = 2*n;
                 if(left_child < nodes.size())
                     in_sphere_priv(left_child, p, dist, records);
             }
             if(!left_son||dsc_dist<dist)
             {
-                int right_child = 2*n+1;
+                unsigned right_child = 2*n+1;
                 if(right_child < nodes.size())
                     in_sphere_priv(right_child, p, dist, records);
             }

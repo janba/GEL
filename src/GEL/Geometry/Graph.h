@@ -232,8 +232,8 @@ namespace Geometry {
         double average_edge_length() const {
             unsigned i=0;
             double sum_len = 0;
-            for(auto n: node_ids())
-                for(auto nn: neighbors(n))
+            for(NodeID n: node_ids())
+                for(NodeID nn: neighbors(n))
                     if(n<nn)
                     {
                         sum_len += sqrt(sqr_dist(n, nn));
