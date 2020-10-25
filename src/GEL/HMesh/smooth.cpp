@@ -264,37 +264,50 @@ namespace HMesh
     void TAL_smoothing(Manifold& m, float w, int max_iter)
     {
         for(int iter=0;iter<max_iter;++iter) {
-            VertexAttributeVector<float> vertex_areas;
-            VertexAttributeVector<Vec3d> laplacians;
+            FaceAttributeVector<Vec3d> face_normal;
+            FaceAttributeVector<double> face_area;
+            for(auto f: m.faces()) {
+                face_normal[f] = normal(m, f);
+                face_area[f] = area(m, f);
+            }
             
+            VertexAttributeVector<float> vertex_area;
+            VertexAttributeVector<Vec3d> L;
+            VertexAttributeVector<Vec3d> norm;
+            
+
             for(auto v: m.vertices())
             {
-                vertex_areas[v] = 0;
+                vertex_area[v] = 0;
+                norm[v] = Vec3d(0);
                 for (auto f: m.incident_faces(v))
-                    if(m.in_use(f))
-                        vertex_areas[v] += area(m,f);
+                    if(m.in_use(f)) {
+                        vertex_area[v] += face_area[f];
+                        norm[v] += face_normal[f] * face_area[f];
+                    }
+                norm[v].cond_normalize();
             }
             
             for(auto v: m.vertices())
             {
-                laplacians[v] = Vec3d(0);
+                L[v] = Vec3d(0);
                 if(!boundary(m, v)) {
                     double weight_sum = 0.0;
                     for(auto vn: m.incident_vertices(v))
                     {
-                        float weight = vertex_areas[vn];
+                        float weight = vertex_area[vn];
                         Vec3d l = m.pos(vn) - m.pos(v);
-                        laplacians[v] +=  weight * l;
+                        L[v] +=  weight * l;
                         weight_sum += weight;
                     }
-                    laplacians[v] /= weight_sum;
-                    Vec3d n = normal(m, v);
+                    L[v] /= weight_sum;
+                    Vec3d n = norm[v];
                     if(sqr_length(n)>0.9)
-                        laplacians[v] -= n * dot(n, laplacians[v]);
+                        L[v] -= n * dot(n, L[v]);
                 }
             }
             for(auto v: m.vertices())
-                m.pos(v) += w*laplacians[v];
+                m.pos(v) += w*L[v];
         }
     }
 
