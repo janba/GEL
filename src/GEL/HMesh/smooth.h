@@ -22,10 +22,14 @@ namespace HMesh
     inline CGLA::Vec3d laplacian(const Manifold& m, VertexID v)
     {
         CGLA::Vec3d p(0);
-        int n = circulate_vertex_ccw(m, v, static_cast<std::function<void(VertexID)>>([&](VertexID v){ p += m.pos(v); }));
-        return p / n - m.pos(v);
+        int cnt = 0;
+        for(auto vn: m.incident_vertices(v)) {
+            p += m.pos(vn);
+            ++cnt;
+        }
+        return p / cnt - m.pos(v);
     }
-    
+
     CGLA::Vec3d cot_laplacian(const Manifold& m, VertexID v);
     
     /// Simple laplacian smoothing with an optional weight.
