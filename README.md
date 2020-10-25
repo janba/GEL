@@ -1,9 +1,5 @@
 ## INTRODUCTION
-GEL is a C++ library of geometry processing tools intended for computer graphics applications. In particular, GEL
-contains a fairly mature half-edge based library, an efficient kD tree and data structures for volumetric data.
-Functionality includes quadric based simplification, mesh optimization, distance field computation, iso surface polygonization 
-and more. A linear algebra library for small vectors and matrices is also included as well as tools for visualizing meshes
-using OpenGL.
+GEL is a C++ library of geometry processing tools intended for computer graphics applications. In particular, GEL contains a fairly mature half-edge based library, an efficient kD tree and data structures for volumetric data, and a graph data structure. Functionality includes quadric based simplification, mesh optimization, distance field computation, iso surface polygonization and much more. A linear algebra library for small vectors and matrices is also included as well as tools for visualizing meshes using OpenGL.
 
 PyGEL3D is a set of Python bindings for a subset of the features in GEL. In particular, PyGEL covers almost all the mesh features. In addition PyGEL has its own viewer based on OpenGL and PyGEL can be used from Jupyter notebooks. In this case, it is possible to visualize meshes using a plotly widget. A significant benefit here is that when the notebook is exported to HTML, the 3D view comes along.
 
