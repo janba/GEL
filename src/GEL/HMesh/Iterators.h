@@ -12,7 +12,9 @@
 #define __HMESH_ITERATORS_H__
 
 #include <cstddef>
+#include <iterator>
 #include "ItemVector.h"
+#include "ConnectivityKernel.h"
 
 namespace HMesh
 {
@@ -22,17 +24,11 @@ namespace HMesh
     class IDIterator
     {
     public:
-        typedef ItemID<ITEM> ID;
-        
-        // typedefs to accommodiate stl compliance
-        typedef std::bidirectional_iterator_tag iterator_category;
-        typedef ptrdiff_t difference_type;
-        typedef ID value_type;
-        typedef value_type reference;
-        typedef value_type* pointer;
+        using vector_type = ItemVector<ITEM>;
+        using value_type = ItemID<ITEM>;
 
         /// constructor (default: skipping enabled)
-        IDIterator(const ItemVector<ITEM>& _item_vector, ID _id, bool _skip = true);
+        IDIterator(const vector_type& _item_vector, value_type _id, bool _skip = true);
 
         /// prefix increment 
         IDIterator& operator ++();		
@@ -49,27 +45,23 @@ namespace HMesh
         bool operator !=(const IDIterator& other) const;
 
         /// indirection
-        reference operator *();
-        /// member by pointer
-        pointer operator ->();
-        /// cast
-        //operator VertexID() const;
+        value_type operator *();
 
     private:
-        const ItemVector<ITEM>* item_vector;
-        ID id;
+        const vector_type* item_vector;
+        value_type id;
         bool skip;
     };
+
     
-    template<typename ITEM>
-    class IDIteratorPair
+    template<typename IterType>
+    class IteratorPair
     {
+        IterType f,l;
     public:
-        IDIteratorPair(IDIterator<ITEM> _f, IDIterator<ITEM> _l): f(_f), l(_l) {}
-        IDIterator<ITEM> begin() const {return f;}
-        IDIterator<ITEM> end() const {return l;}
-    private:
-        IDIterator<ITEM> f,l;
+        IteratorPair(IterType _f, IterType _l): f(_f), l(_l) {}
+        IterType begin() const {return f;}
+        IterType end() const {return l;}
     };
     
 
@@ -79,16 +71,24 @@ namespace HMesh
      *-----------------------------------------*/
 
     template<typename ITEM>
-    inline IDIterator<ITEM>::IDIterator(const ItemVector<ITEM>& _item_vector, ID _id, bool _skip) 
+    inline IDIterator<ITEM>::IDIterator(const vector_type& _item_vector, value_type _id, bool _skip)
         : item_vector(&_item_vector), id(_id), skip(_skip){}
 
     template<typename ITEM>
     inline IDIterator<ITEM>& IDIterator<ITEM>::operator ++(int)
-    { return ++(*this); }
+    {
+        auto tmp(*this);
+        ++(*this);
+        return tmp;
+    }
 
     template<typename ITEM>
     inline IDIterator<ITEM>& IDIterator<ITEM>::operator --(int)
-    { return --(*this); }
+    {
+        auto tmp(*this);
+        --(*this);
+        return tmp;
+    }
 
     template<typename ITEM>
     inline bool IDIterator<ITEM>::operator ==(const IDIterator<ITEM>& other) const
@@ -99,12 +99,8 @@ namespace HMesh
     { return item_vector != other.item_vector || id != other.id; }
 
     template<typename ITEM>
-    inline ItemID<ITEM> IDIterator<ITEM>::operator *()
+    inline typename IDIterator<ITEM>::value_type IDIterator<ITEM>::operator *()
     { return id; }
-
-    template<typename ITEM>
-    inline ItemID<ITEM>* IDIterator<ITEM>::operator ->()
-    { return &id; }
 
     template<typename ITEM>
     inline IDIterator<ITEM>& IDIterator<ITEM>::operator ++()

@@ -260,63 +260,41 @@ namespace HMesh
             }
         }
     }
-    
+
     void TAL_smoothing(Manifold& m, float w, int max_iter)
     {
         for(int iter=0;iter<max_iter;++iter) {
             VertexAttributeVector<float> vertex_areas;
             VertexAttributeVector<Vec3d> laplacians;
             
-            for(VertexIDIterator vid = m.vertices_begin(); vid != m.vertices_end(); ++vid)
+            for(auto v: m.vertices())
             {
-                vertex_areas[*vid] = 0;
-                for(Walker w = m.walker(*vid); !w.full_circle(); w = w.circulate_vertex_ccw())
-                    if(w.face() != InvalidFaceID)
-                        vertex_areas[*vid] += area(m, w.face());
+                vertex_areas[v] = 0;
+                for (auto f: m.incident_faces(v))
+                    if(m.in_use(f))
+                        vertex_areas[v] += area(m,f);
             }
             
-            for(VertexIDIterator vid = m.vertices_begin(); vid != m.vertices_end(); ++vid)
+            for(auto v: m.vertices())
             {
-                laplacians[*vid] = Vec3d(0);
-                double weight_sum = 0.0;
-                if(boundary(m, *vid))
-                {
-                    double angle_sum = 0;
-                    for(Walker w = m.walker(*vid); !w.full_circle(); w = w.circulate_vertex_ccw())
+                laplacians[v] = Vec3d(0);
+                if(!boundary(m, v)) {
+                    double weight_sum = 0.0;
+                    for(auto vn: m.incident_vertices(v))
                     {
-                        if (w.face() != InvalidFaceID)
-                        {
-                            Vec3d vec_a = normalize(m.pos(w.vertex()) - m.pos(*vid));
-                            Vec3d vec_b = normalize(m.pos(w.circulate_vertex_ccw().vertex()) -
-                                                    m.pos(*vid));
-                            angle_sum += acos(max(-1.0,min(1.0,dot(vec_a,vec_b))));
-                        }
-                        if(boundary(m,w.vertex()))
-                        {
-                            laplacians[*vid] += m.pos(w.vertex()) - m.pos(*vid);
-                            weight_sum += 1.0;
-                        }
-                    }
-                    laplacians[*vid] /= weight_sum;
-                    laplacians[*vid] *= exp(-3.0*sqr(max(0.0, M_PI-angle_sum)));
-                }
-                else
-                {
-                    for(Walker w = m.walker(*vid); !w.full_circle(); w = w.circulate_vertex_ccw())
-                    {
-                        float weight = vertex_areas[w.vertex()];
-                        Vec3d l = m.pos(w.vertex()) - m.pos(*vid);
-                        laplacians[*vid] +=  weight * l;
+                        float weight = vertex_areas[vn];
+                        Vec3d l = m.pos(vn) - m.pos(v);
+                        laplacians[v] +=  weight * l;
                         weight_sum += weight;
                     }
-                    laplacians[*vid] /= weight_sum;
-                    //                Vec3d n = normal(m, *vid);
-                    //                if(sqr_length(n)>0.9)
-                    //                    laplacians[*vid] -= n * dot(n, laplacians[*vid]);
+                    laplacians[v] /= weight_sum;
+                    Vec3d n = normal(m, v);
+                    if(sqr_length(n)>0.9)
+                        laplacians[v] -= n * dot(n, laplacians[v]);
                 }
             }
-            for(VertexIDIterator vid = m.vertices_begin(); vid != m.vertices_end(); ++vid)
-                m.pos(*vid) += w*laplacians[*vid];
+            for(auto v: m.vertices())
+                m.pos(v) += w*laplacians[v];
         }
     }
 

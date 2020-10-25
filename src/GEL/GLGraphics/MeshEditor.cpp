@@ -1284,6 +1284,33 @@ namespace GLGraphics {
             return;
         }
         
+        void console_TAL_smooth(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)){
+                me->printf("usage:  smooth.TAL <weight> <iter>");
+                me->printf("Perform Tangential Area weighted Laplacian smoothing. Weight is how strong the");
+                me->printf("smoothing should be, and iter (default=1) is the number of iterations.");
+                return;
+            }
+            me->save_active_mesh();
+            
+            float w=1.0;
+            if(args.size() > 0){
+                istringstream a0(args[0]);
+                a0 >> w;
+            }
+            int iter = 1;
+            if(args.size()>1){
+                istringstream a0(args[1]);
+                a0 >> iter;
+            }
+
+            TAL_smoothing(me->active_mesh(), w, iter);
+            
+            return;
+        }
+
+            
         void console_fvm_anisotropic_smooth(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)){
@@ -1967,6 +1994,7 @@ namespace GLGraphics {
         
         register_console_function("smooth.laplacian", console_laplacian_smooth,"");
         register_console_function("smooth.taubin", console_taubin_smooth,"");
+        register_console_function("smooth.TAL", console_TAL_smooth,"");
         register_console_function("smooth.fuzzy_vector_median_anisotropic", console_fvm_anisotropic_smooth ,"");
         register_console_function("smooth.bilateral_anisotropic", console_bilateral_anisotropic_smooth ,"");
         

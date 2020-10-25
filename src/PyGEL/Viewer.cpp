@@ -20,6 +20,15 @@ using namespace GLGraphics;
 using namespace HMesh;
 using namespace std;
 
+struct DisplayParameters {
+    Manifold* m_ptr;
+    char mode;
+    bool smooth_shading;
+    Vec3f* bg_color;
+    double* attrib_vec;
+    bool reset_view;
+};
+
 class GLManifoldViewer {
     GLFWwindow* window = 0;
     std::vector<CGLA::Vec3d> annotation_points;
@@ -36,12 +45,8 @@ public:
     
     bool was_initialized() const {return glv != 0;}
     
-    void display_init(HMesh::Manifold& m,
-                 char mode,
-                 bool smooth_shading,
-                 CGLA::Vec3f* bg_color,
-                 double* attrib_vec,
-                 bool reset_view);
+    DisplayParameters display_parameters;
+    void display_init();
     
     void display();
     
@@ -137,8 +142,9 @@ ManifoldRenderer* render_factory(char mode, Manifold& m, bool smooth_shading, do
             return renderer;
         case 's':
         {
+            VertexID vid = *(m.vertices().begin());
             VertexAttributeVector<double> attrib_vec;
-            double val0 = _attrib_vec[(m.vertices().begin())->get_index()];
+            double val0 = _attrib_vec[vid.get_index()];
             double min_val = val0;
             double max_val = val0;
             for(VertexID v : m.vertices())
@@ -187,6 +193,7 @@ void draw_colored_ball(const Vec3d& p, float r, const Vec3f& col) {
     draw_ball();
     glPopMatrix();
 }
+
 void key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
     if(wv_map[window]->was_initialized() == false) return;
@@ -231,33 +238,40 @@ void mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
     }
 }
 
-void GLManifoldViewer::display_init(Manifold& m,
-                                    char mode,
-                                    bool smooth_shading,
-                                    Vec3f* _bg_color,
-                                    double* _attrib_vec,
-                                    bool reset_view) {
+void resize_callback(GLFWwindow* window, int width, int height)
+{
+    if(wv_map[window]->was_initialized() == false) return;
+    wv_map[window]->display_init();
+}
+
+void GLManifoldViewer::display_init() {
     glfwMakeContextCurrent(window);
     glEnable(GL_DEPTH_TEST);
 
-    const Vec3f& c = *_bg_color;
+    const Vec3f& c = *(display_parameters.bg_color);
     glClearColor(c[0],c[1],c[2],1.0);
     Vec3d ctr;
     float rad;
-    bsphere(m, ctr, rad);
-    int W,H;
+    bsphere(*(display_parameters.m_ptr), ctr, rad);
+    int W,H,WF,HF;
     glfwGetWindowSize(window, &W, &H);
-    if(glv==0 || reset_view) {
+    glfwGetFramebufferSize(window, &WF, &HF);
+    if(glv==0 || display_parameters.reset_view) {
         delete glv;
         glv = new GLViewController(W,H,Vec3f(ctr),2.0*rad);
     }
+    else glv->reshape(WF, HF);
     if(renderer != 0)
         delete renderer;
-    renderer = render_factory(mode, m, smooth_shading, _attrib_vec);
+    renderer = render_factory(display_parameters.mode,
+                              *(display_parameters.m_ptr),
+                              display_parameters.smooth_shading,
+                              display_parameters.attrib_vec);
 
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetKeyCallback(window, key_callback);
+    glfwSetWindowSizeCallback(window, resize_callback);
     glfwPostEmptyEvent();
 }
 
@@ -325,7 +339,7 @@ GLManifoldViewer::GLManifoldViewer() {
 
     if (!window) {
         glfwTerminate();
-        cout << "Terminating" << endl;
+//        cout << "Terminating" << endl;
     }
     glfwMakeContextCurrent(window);
     glewInit();
@@ -344,7 +358,7 @@ GLManifoldViewer::~GLManifoldViewer() {
 class GLFWResource {
 public:
     GLFWResource() {
-        cout << "Initializing GLFW" << endl;
+//        cout << "Initializing GLFW" << endl;
         if(!glfwInit())
         {
             cout << "could not init GLFW ... bailing" << endl;
@@ -352,7 +366,7 @@ public:
         }
     }
      ~GLFWResource() {
-        cout << "Terminating GLFW" << endl;
+//        cout << "Terminating GLFW" << endl;
         glfwTerminate();
     }
 };
@@ -391,9 +405,15 @@ void GLManifoldViewer_display(GLManifoldViewer_ptr _self,
                               bool reset_view,
                               bool once) {
     GLManifoldViewer* self = reinterpret_cast<GLManifoldViewer*>(_self);
-    Manifold* m = reinterpret_cast<Manifold*>(_m);
-    Vec3f* bg_color = reinterpret_cast<Vec3f*>(_bg_color);
-    self->display_init(*m,mode,smooth_shading,bg_color, attrib_vec, reset_view);
+    self->display_parameters = {
+        reinterpret_cast<Manifold*>(_m),
+        mode,
+        smooth_shading,
+        reinterpret_cast<Vec3f*>(_bg_color),
+        attrib_vec,
+        reset_view
+    };
+    self->display_init();
     GLManifoldViewer_event_loop(once);
 }
 

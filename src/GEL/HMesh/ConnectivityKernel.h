@@ -81,8 +81,9 @@ namespace HMesh
     class IDSet: public std::set<ItemID<T>>
     {
     public:
-        IDSet(const IDIteratorPair<T>& _vertices) {
-            for(const auto x : _vertices)
+        template<typename IterType>
+        IDSet(const IterType& entities) {
+            for(const auto x : entities)
                 this->insert(x);
         }
         

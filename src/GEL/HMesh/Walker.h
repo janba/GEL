@@ -114,7 +114,6 @@ namespace HMesh
     inline HalfEdgeID Walker::hmin() const
     { return (current<ck->opp(current))?current:ck->opp(current); }
 
-    
 
     inline Walker Walker::operator =(const Walker& w)
     { 
@@ -124,8 +123,8 @@ namespace HMesh
         last = w.last;
         return *this;
     }
-    
- 
 
 }
+
+
 

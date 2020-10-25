@@ -240,6 +240,7 @@
 		BD4ACED9214A76D6004EEC2F /* Delaunay_triangulate.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BD4ACED7214A605E004EEC2F /* Delaunay_triangulate.h */; };
 		E1246E0D242CF7F500653E54 /* bounding_sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */; };
 		E1246E0E242D0A5000653E54 /* bounding_sphere.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1246E0C242CF7F500653E54 /* bounding_sphere.h */; };
+		E166EB952544BE09008DE5C0 /* Circulators.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E166EB932544B074008DE5C0 /* Circulators.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -394,6 +395,7 @@
 			dstPath = ../Headers/HMesh;
 			dstSubfolderSpec = 7;
 			files = (
+				E166EB952544BE09008DE5C0 /* Circulators.h in CopyFiles */,
 				BD4ACED9214A76D6004EEC2F /* Delaunay_triangulate.h in CopyFiles */,
 				0DA7DC611CEBAC0C009FD206 /* graph_algorithm.h in CopyFiles */,
 				0DE1F9071B35B9210012ACF9 /* HMesh.h in CopyFiles */,
@@ -686,6 +688,7 @@
 		BDAC7CAA201885F600197925 /* Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serialization.h; sourceTree = "<group>"; };
 		E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bounding_sphere.cpp; sourceTree = "<group>"; };
 		E1246E0C242CF7F500653E54 /* bounding_sphere.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bounding_sphere.h; sourceTree = "<group>"; };
+		E166EB932544B074008DE5C0 /* Circulators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Circulators.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -1009,6 +1012,7 @@
 				0D52EB41197D18C1002C7150 /* Walker.h */,
 				0D52EB43197D18C1002C7150 /* x3d_load.h */,
 				0D52EB45197D18C1002C7150 /* x3d_save.h */,
+				E166EB932544B074008DE5C0 /* Circulators.h */,
 			);
 			name = header;
 			sourceTree = "<group>";
@@ -1123,7 +1127,7 @@
 		0D85998A193D01B6009DB071 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 1110;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "J. Andreas Bærentzen";
 			};
 			buildConfigurationList = 0D85998D193D01B6009DB071 /* Build configuration list for PBXProject "GEL" */;
@@ -1302,6 +1306,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -1356,6 +1361,7 @@
 				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;

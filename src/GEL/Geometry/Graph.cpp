@@ -62,9 +62,9 @@ namespace Geometry {
             if(node_map[n] != AMGraph::InvalidNodeID)
                 for(AMGraph::NodeID& nn: g.neighbors(n)) {
                     AMGraph::EdgeID e = gn.connect_nodes(node_map[n], node_map[nn]);
-                    if(gn.valid_edge(e)) {
+                    if(gn.valid_edge_id(e)) {
                         AMGraph::EdgeID e_old = g.find_edge(n, nn);
-                        if(g.valid_edge(e_old))
+                        if(g.valid_edge_id(e_old))
                             gn.edge_color[e] = g.edge_color[e_old];
                         else
                             gn.edge_color[e] = Vec3f(0);
