@@ -75,10 +75,10 @@ namespace Geometry {
         size_t no_edges() const {return no_edges_created;}
         
         /// Return whether the node is valid (i.e. in the graph)
-        bool valid_node(NodeID n) const { return n < no_nodes();}
+        bool valid_node_id(NodeID n) const { return n < no_nodes();}
         
         /// Return whether an edge is valid (i.e. in the graph)
-        bool valid_edge(EdgeID e) const { return e < no_edges_created;}
+        bool valid_edge_id(EdgeID e) const { return e < no_edges_created;}
         
         /// Returns true if the graph contains no nodes, false otherwise
         bool empty() const {return edge_map.empty();}
@@ -99,7 +99,7 @@ namespace Geometry {
         /// Find an edge in the graph given two nodes. Returns InvalidEdgeID if no such edge found.
         EdgeID find_edge(NodeID n0, NodeID n1) const
         {
-            if(valid_node(n0) && valid_node(n1)) {
+            if(valid_node_id(n0) && valid_node_id(n1)) {
                 auto it = edge_map[n0].find(n1);
                 if (it != edge_map[n0].end())
                     return it->second;
@@ -111,7 +111,7 @@ namespace Geometry {
          were not valid or the edge already existed. */
         EdgeID connect_nodes(NodeID n0, NodeID n1)
         {
-            if(valid_node(n0) && valid_node(n1) &&
+            if(valid_node_id(n0) && valid_node_id(n1) &&
                find_edge(n0, n1) == InvalidEdgeID) {
                 size_t id = no_edges_created++;
                 edge_map[n0][n1] = id;
@@ -196,12 +196,22 @@ namespace Geometry {
             pos[n] = CGLA::Vec3d(CGLA::CGLA_NAN);
         }
         
+        /** Returns true if the ID is a valid NodeID and the position is not NaN. These two conditions are true for all nodes
+         that are currently in use in the graph. */
+        bool in_use(NodeID n) const {
+            if (!valid_node_id(n))
+                return false;
+            if(isnan(pos[n][0]) && edge_map.empty())
+                return false;
+            return true;
+        }
+        
         
         /// Create edge connecting two nodes. Calls the AMGraph::connect_nodes function
         EdgeID connect_nodes(NodeID n0, NodeID n1)
         {
             EdgeID e = AMGraph::connect_nodes(n0,n1);
-            if(valid_edge(e))
+            if(valid_edge_id(e))
                 edge_color[e] = CGLA::Vec3f(0);
             return e;
         }
@@ -210,7 +220,7 @@ namespace Geometry {
          vertices, but the number of edges reported by the super class AMGraph is not decremented, so the edge is only
          invalidated. Call cleanup to finalize removal. */
         void disconnect_nodes(NodeID n0, NodeID n1) {
-            if(valid_node(n0) && valid_node(n1)) {
+            if(valid_node_id(n0) && valid_node_id(n1)) {
                 edge_map[n0].erase(n1);
                 edge_map[n1].erase(n0);
             }
@@ -222,7 +232,7 @@ namespace Geometry {
         
         /// Compute sqr distance between two nodes - not necessarily connected.
         double sqr_dist(NodeID n0, NodeID n1) const {
-            if(valid_node(n0) && valid_node(n1))
+            if(valid_node_id(n0) && valid_node_id(n1))
                 return CGLA::sqr_length(pos[n0]-pos[n1]);
             else
                 return  CGLA::CGLA_NAN;
