@@ -19,7 +19,7 @@
 #include "Iterators.h"
 #include "Walker.h"
 #include "AttributeVector.h"
-
+#include "Circulators.h"
 
 namespace Geometry
 {
@@ -96,12 +96,15 @@ namespace HMesh
         /// check if ID of halfedge is in use
         bool in_use(HalfEdgeID id) const { return kernel.in_use(id);}
         
-        IDIteratorPair<Vertex> vertices() const {return IDIteratorPair<Vertex>(kernel.vertices_begin(),
-                                                                         kernel.vertices_end());}
-        IDIteratorPair<Face> faces() const {return IDIteratorPair<Face>(kernel.faces_begin(),
-                                                                         kernel.faces_end());}
-        IDIteratorPair<HalfEdge> halfedges() const {return IDIteratorPair<HalfEdge>(kernel.halfedges_begin(),
-                                                                         kernel.halfedges_end());}
+        IteratorPair<IDIterator<Vertex>> vertices() const {
+            return IteratorPair<IDIterator<Vertex>>(kernel.vertices_begin(), kernel.vertices_end());
+        }
+        IteratorPair<IDIterator<Face>> faces() const {
+            return IteratorPair<IDIterator<Face>>(kernel.faces_begin(), kernel.faces_end());
+        }
+        IteratorPair<IDIterator<HalfEdge>> halfedges() const {
+            return IteratorPair<IDIterator<HalfEdge>>(kernel.halfedges_begin(), kernel.halfedges_end());
+        }
         
         /// Iterator to first VertexID, optional argument defines if unused items should be skipped
         VertexIDIterator vertices_begin(bool skip = true) const { return kernel.vertices_begin();}
@@ -238,6 +241,26 @@ namespace HMesh
         /// Returns a Walker to the halfedge given by HalfEdgeID
         Walker walker(HalfEdgeID id) const;
         
+        /** Returns a begin, end pair of iterators to the circular list of vertices in the 1-ring of the vertex passed as argument.
+         This function allows range based for loops over the vertices incident on a given vertex.*/
+        IteratorPair<VertexCirculator<Vertex>> incident_vertices(VertexID id) const;
+        /** Returns a begin, end pair of iterators to the circular list of halfedges in the 1-ring of the vertex passed as argument.
+         This function allows range based for loops over the halfedges incident on a given vertex.*/
+        IteratorPair<VertexCirculator<HalfEdge>> incident_halfedges(VertexID id) const;
+        /** Returns a begin, end pair of iterators to the circular list of faces in the 1-ring of the vertex passed as argument.
+         This function allows range based for loops over the faces incident on a given vertex.*/
+        IteratorPair<VertexCirculator<Face>> incident_faces(VertexID id) const;
+        
+        /** Returns a begin, end pair of iterators to the circular list of vertices belonging to the face passed as argument.
+         This function allows range based for loops over the vertices incident on a given face.*/
+        IteratorPair<FaceCirculator<Vertex>> incident_vertices(FaceID id) const;
+        /** Returns a begin, end pair of iterators to the circular list of vertices belonging to the face passed as argument.
+         This function allows range based for loops over the halfedges incident on a given face.*/
+        IteratorPair<FaceCirculator<HalfEdge>> incident_halfedges(FaceID id) const;
+        /** Returns a begin, end pair of iterators to the circular list of vertices belonging to the face passed as argument.
+         This function allows range based for loops over the faces adjacent to a given face.*/
+        IteratorPair<FaceCirculator<Face>> incident_faces(FaceID id) const;
+
 
     private:
         
@@ -393,6 +416,19 @@ namespace HMesh
     /// Compute the centre of a face
     Manifold::Vec centre(const Manifold& m, FaceID f);
 
+    /// Compute the barycenter of a face (with American spelling).
+    inline Manifold::Vec barycenter(const Manifold& m, FaceID f) {
+        return centre(m,f);
+    }
+
+    /// Compute the barycenter of an halfedge (with American spelling).
+    inline Manifold::Vec barycenter(const Manifold& m, HalfEdgeID h) {
+        Walker w = m.walker(h);
+        return 0.5 * (m.pos(w.vertex()) + m.pos(w.opp().vertex()));
+    }
+
+
+
     /*******************************************************************
     * Manifold code
     *******************************************************************/
@@ -427,6 +463,41 @@ namespace HMesh
     inline Walker Manifold::walker(HalfEdgeID id) const
     { return Walker(kernel, id); }
 
+    inline IteratorPair<VertexCirculator<Vertex>> Manifold::incident_vertices(VertexID v) const {
+        using VCType = VertexCirculator<Vertex>;
+        HalfEdgeID he = kernel.out(v);
+        return IteratorPair<VCType>(VCType(kernel, he), VCType(kernel, he, true));
+    }
+
+    inline IteratorPair<VertexCirculator<HalfEdge>> Manifold::incident_halfedges(VertexID v) const {
+        using VCType = VertexCirculator<HalfEdge>;
+        HalfEdgeID he = kernel.out(v);
+        return IteratorPair<VCType>(VCType(kernel, he), VCType(kernel, he, true));
+    }
+
+    inline IteratorPair<VertexCirculator<Face>> Manifold::incident_faces(VertexID v) const {
+        using VCType = VertexCirculator<Face>;
+        HalfEdgeID he = kernel.out(v);
+        return IteratorPair<VCType>(VCType(kernel, he), VCType(kernel, he, true));
+    }
+
+    inline IteratorPair<FaceCirculator<Vertex>> Manifold::incident_vertices(FaceID f) const {
+        using FCType = FaceCirculator<Vertex>;
+        HalfEdgeID he = kernel.last(f);
+        return IteratorPair<FCType>(FCType(kernel, he), FCType(kernel, he, true));
+    }
+
+    inline IteratorPair<FaceCirculator<HalfEdge>> Manifold::incident_halfedges(FaceID f) const {
+        using FCType = FaceCirculator<HalfEdge>;
+        HalfEdgeID he = kernel.last(f);
+        return IteratorPair<FCType>(FCType(kernel, he), FCType(kernel, he, true));
+    }
+
+    inline IteratorPair<FaceCirculator<Face>> Manifold::incident_faces(FaceID f) const {
+        using FCType = FaceCirculator<Face>;
+        HalfEdgeID he = kernel.last(f);
+        return IteratorPair<FCType>(FCType(kernel, he), FCType(kernel, he, true));
+    }
 
     inline void Manifold::cleanup(IDRemap& map)
     {   
