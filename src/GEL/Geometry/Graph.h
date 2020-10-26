@@ -201,7 +201,7 @@ namespace Geometry {
         bool in_use(NodeID n) const {
             if (!valid_node_id(n))
                 return false;
-            if(isnan(pos[n][0]) && edge_map.empty())
+            if(pos[n] == CGLA::Vec3d(CGLA::CGLA_NAN) && edge_map.empty())
                 return false;
             return true;
         }

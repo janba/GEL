@@ -25,8 +25,6 @@
 		BD3232CC2374421200A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
 		BD3232CF2374421C00A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
 		BD3232D22374422600A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
-		BD3232D52374423000A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
-		BD3232D82374423A00A6E6FE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD3232BD237441AB00A6E6FE /* GEL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -80,20 +78,6 @@
 			remoteInfo = GEL;
 		};
 		BD3232D02374422200A6E6FE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 0D859992193D01B6009DB071;
-			remoteInfo = GEL;
-		};
-		BD3232D32374422B00A6E6FE /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 0D859992193D01B6009DB071;
-			remoteInfo = GEL;
-		};
-		BD3232D62374423600A6E6FE /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */;
 			proxyType = 1;
@@ -187,7 +171,6 @@
 		0DD08970194778F300E4EC4C /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		BD3232B8237441AB00A6E6FE /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
 		BDA95A4C21EDDAA5005E51EC /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-essvayrgsrjsqfasrgpeytfafkwo/Build/Products/Release/GEL.framework"; sourceTree = "<group>"; };
-		E13A6E64232A614C0011D5D9 /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -240,22 +223,6 @@
 				BD3232D22374422600A6E6FE /* GEL.framework in Frameworks */,
 				0DD089731947790100E4EC4C /* GLUT.framework in Frameworks */,
 				0DD08972194778FB00E4EC4C /* OpenGL.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		0DD0892D194777B100E4EC4C /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				BD3232D52374423000A6E6FE /* GEL.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		0DD0893A194777CB00E4EC4C /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				BD3232D82374423A00A6E6FE /* GEL.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -381,14 +348,6 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
-		E13A6E65232A614C0011D5D9 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				E13A6E69232A614C0011D5D9 /* GEL.framework */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -500,42 +459,6 @@
 			productReference = 0DD08923194777A200E4EC4C /* GLGraphics-console */;
 			productType = "com.apple.product-type.tool";
 		};
-		0DD0892F194777B100E4EC4C /* LinAlg-eigensolver */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 0DD08936194777B200E4EC4C /* Build configuration list for PBXNativeTarget "LinAlg-eigensolver" */;
-			buildPhases = (
-				0DD0892C194777B100E4EC4C /* Sources */,
-				0DD0892D194777B100E4EC4C /* Frameworks */,
-				0DD0892E194777B100E4EC4C /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				BD3232D42374422B00A6E6FE /* PBXTargetDependency */,
-			);
-			name = "LinAlg-eigensolver";
-			productName = "LinAlg-eigensolver";
-			productReference = 0DD08930194777B100E4EC4C /* LinAlg-eigensolver */;
-			productType = "com.apple.product-type.tool";
-		};
-		0DD0893C194777CB00E4EC4C /* LinAlg-leastsq */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 0DD08943194777CB00E4EC4C /* Build configuration list for PBXNativeTarget "LinAlg-leastsq" */;
-			buildPhases = (
-				0DD08939194777CB00E4EC4C /* Sources */,
-				0DD0893A194777CB00E4EC4C /* Frameworks */,
-				0DD0893B194777CB00E4EC4C /* CopyFiles */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-				BD3232D72374423600A6E6FE /* PBXTargetDependency */,
-			);
-			name = "LinAlg-leastsq";
-			productName = "LinAlg-leastsq";
-			productReference = 0DD0893D194777CB00E4EC4C /* LinAlg-leastsq */;
-			productType = "com.apple.product-type.tool";
-		};
 		0DD089561947782E00E4EC4C /* CGLA-vec */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 0DD0895D1947782E00E4EC4C /* Build configuration list for PBXNativeTarget "CGLA-vec" */;
@@ -560,16 +483,16 @@
 		0D6D57B2194255D900726FDE /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0510;
+				LastUpgradeCheck = 1200;
 				ORGANIZATIONNAME = "J. Andreas Bærentzen";
 			};
 			buildConfigurationList = 0D6D57B5194255D900726FDE /* Build configuration list for PBXProject "GEL_test" */;
 			compatibilityVersion = "Xcode 10.0";
-			developmentRegion = English;
+			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
-				English,
 				en,
+				Base,
 			);
 			mainGroup = 0D6D57B1194255D900726FDE;
 			productRefGroup = 0D6D57BB194255D900726FDE /* Products */;
@@ -698,16 +621,6 @@
 			name = GEL;
 			targetProxy = BD3232D02374422200A6E6FE /* PBXContainerItemProxy */;
 		};
-		BD3232D42374422B00A6E6FE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = GEL;
-			targetProxy = BD3232D32374422B00A6E6FE /* PBXContainerItemProxy */;
-		};
-		BD3232D72374423600A6E6FE /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = GEL;
-			targetProxy = BD3232D62374423600A6E6FE /* PBXContainerItemProxy */;
-		};
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
@@ -715,23 +628,39 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
 				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -754,24 +683,39 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
 				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
 				CLANG_CXX_LIBRARY = "libc++";
 				CLANG_ENABLE_MODULES = YES;
 				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
 				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_EMPTY_BODY = YES;
 				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				FRAMEWORK_SEARCH_PATHS = /Library/Frameworks;
 				GCC_C_LANGUAGE_STANDARD = gnu99;
 				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
 				GCC_WARN_UNDECLARED_SELECTOR = YES;
@@ -786,6 +730,7 @@
 		0D6D57EB1942563F00726FDE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
@@ -803,6 +748,7 @@
 		0D6D57EC1942563F00726FDE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
@@ -816,6 +762,7 @@
 		0D6D58091942568B00726FDE /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
@@ -833,6 +780,7 @@
 		0D6D580A1942568B00726FDE /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
@@ -846,6 +794,7 @@
 		0DD088A4194776B800E4EC4C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
@@ -863,6 +812,7 @@
 		0DD088A5194776B800E4EC4C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
@@ -876,6 +826,7 @@
 		0DD089101947777E00E4EC4C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
@@ -893,6 +844,7 @@
 		0DD089111947777E00E4EC4C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
@@ -906,6 +858,7 @@
 		0DD0891D1947779100E4EC4C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				GCC_PREPROCESSOR_DEFINITIONS = (
 					"DEBUG=1",
@@ -918,6 +871,7 @@
 		0DD0891E1947779100E4EC4C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
@@ -926,6 +880,7 @@
 		0DD0892A194777A200E4EC4C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
@@ -943,6 +898,7 @@
 		0DD0892B194777A200E4EC4C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
@@ -956,6 +912,7 @@
 		0DD0895E1947782E00E4EC4C /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
@@ -973,6 +930,7 @@
 		0DD0895F1947782E00E4EC4C /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_IDENTITY = "-";
 				FRAMEWORK_SEARCH_PATHS = (
 					"$(inherited)",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
