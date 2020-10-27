@@ -24,9 +24,16 @@ namespace HMesh
     class IDIterator
     {
     public:
-        using vector_type = ItemVector<ITEM>;
-        using value_type = ItemID<ITEM>;
+      typedef ItemVector<ITEM> vector_type;
 
+      // typedefs to accommodiate stl compliance
+      typedef ptrdiff_t difference_type;
+      typedef std::bidirectional_iterator_tag iterator_category;
+      typedef ItemID<ITEM> value_type;
+      typedef value_type reference;
+      typedef value_type* pointer;
+      
+      
         /// constructor (default: skipping enabled)
         IDIterator(const vector_type& _item_vector, value_type _id, bool _skip = true);
 
