@@ -11,20 +11,20 @@
 		0DF6951B19410D49008F1E8C /* OpenGL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF6951A19410D49008F1E8C /* OpenGL.framework */; };
 		0DF6951D19410D51008F1E8C /* GLUT.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF6951C19410D51008F1E8C /* GLUT.framework */; };
 		0DF6951F19410D55008F1E8C /* Accelerate.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 0DF6951E19410D55008F1E8C /* Accelerate.framework */; };
-		E13A6E4B232A32540011D5D9 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E13A6E47232A32120011D5D9 /* GEL.framework */; };
+		BDC2C1E62549750E005D10EA /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BDC2C1E0254974C0005D10EA /* GEL.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		E13A6E46232A32120011D5D9 /* PBXContainerItemProxy */ = {
+		BDC2C1DF254974C0005D10EA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = E13A6E42232A32120011D5D9 /* GEL.xcodeproj */;
+			containerPortal = BDC2C1DB254974C0005D10EA /* GEL.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 0D859993193D01B6009DB071;
 			remoteInfo = GEL;
 		};
-		E13A6E48232A32480011D5D9 /* PBXContainerItemProxy */ = {
+		BDC2C1E325497500005D10EA /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = E13A6E42232A32120011D5D9 /* GEL.xcodeproj */;
+			containerPortal = BDC2C1DB254974C0005D10EA /* GEL.xcodeproj */;
 			proxyType = 1;
 			remoteGlobalIDString = 0D859992193D01B6009DB071;
 			remoteInfo = GEL;
@@ -50,7 +50,7 @@
 		0DF6951A19410D49008F1E8C /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DF6951C19410D51008F1E8C /* GLUT.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GLUT.framework; path = System/Library/Frameworks/GLUT.framework; sourceTree = SDKROOT; };
 		0DF6951E19410D55008F1E8C /* Accelerate.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Accelerate.framework; path = System/Library/Frameworks/Accelerate.framework; sourceTree = SDKROOT; };
-		E13A6E42232A32120011D5D9 /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = RayTracer.xcodeproj/../../GEL.xcodeproj; sourceTree = "<group>"; };
+		BDC2C1DB254974C0005D10EA /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -58,7 +58,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				E13A6E4B232A32540011D5D9 /* GEL.framework in Frameworks */,
+				BDC2C1E62549750E005D10EA /* GEL.framework in Frameworks */,
 				0DF6951F19410D55008F1E8C /* Accelerate.framework in Frameworks */,
 				0DF6951D19410D51008F1E8C /* GLUT.framework in Frameworks */,
 				0DF6951B19410D49008F1E8C /* OpenGL.framework in Frameworks */,
@@ -81,7 +81,7 @@
 		0DF694FC19410D1C008F1E8C = {
 			isa = PBXGroup;
 			children = (
-				E13A6E42232A32120011D5D9 /* GEL.xcodeproj */,
+				BDC2C1DB254974C0005D10EA /* GEL.xcodeproj */,
 				0DD4563E1989A7BB0031C970 /* Raytracer */,
 				0DF6951E19410D55008F1E8C /* Accelerate.framework */,
 				0DF6951C19410D51008F1E8C /* GLUT.framework */,
@@ -99,10 +99,10 @@
 			name = Products;
 			sourceTree = "<group>";
 		};
-		E13A6E43232A32120011D5D9 /* Products */ = {
+		BDC2C1DC254974C0005D10EA /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				E13A6E47232A32120011D5D9 /* GEL.framework */,
+				BDC2C1E0254974C0005D10EA /* GEL.framework */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -128,7 +128,7 @@
 			buildRules = (
 			);
 			dependencies = (
-				E13A6E49232A32480011D5D9 /* PBXTargetDependency */,
+				BDC2C1E425497500005D10EA /* PBXTargetDependency */,
 			);
 			name = RayTracer;
 			productName = RayTracer;
@@ -157,8 +157,8 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = E13A6E43232A32120011D5D9 /* Products */;
-					ProjectRef = E13A6E42232A32120011D5D9 /* GEL.xcodeproj */;
+					ProductGroup = BDC2C1DC254974C0005D10EA /* Products */;
+					ProjectRef = BDC2C1DB254974C0005D10EA /* GEL.xcodeproj */;
 				},
 			);
 			projectRoot = "";
@@ -169,11 +169,11 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		E13A6E47232A32120011D5D9 /* GEL.framework */ = {
+		BDC2C1E0254974C0005D10EA /* GEL.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = GEL.framework;
-			remoteRef = E13A6E46232A32120011D5D9 /* PBXContainerItemProxy */;
+			remoteRef = BDC2C1DF254974C0005D10EA /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -190,10 +190,10 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		E13A6E49232A32480011D5D9 /* PBXTargetDependency */ = {
+		BDC2C1E425497500005D10EA /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			name = GEL;
-			targetProxy = E13A6E48232A32480011D5D9 /* PBXContainerItemProxy */;
+			targetProxy = BDC2C1E325497500005D10EA /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -303,11 +303,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Debug;
@@ -316,11 +311,6 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_IDENTITY = "-";
-				FRAMEWORK_SEARCH_PATHS = (
-					"$(inherited)",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-girpjowuwxphleewpuevkjrfaitq/Build/Products/Debug",
-					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug",
-				);
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;

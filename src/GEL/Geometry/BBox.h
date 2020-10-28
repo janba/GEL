@@ -26,8 +26,8 @@ namespace Geometry
     
     CGLA::Vec3f edge0; // Optimization
     CGLA::Vec3f edge1; // Optimization
-    unsigned int mesh_id;
-    unsigned int tri_id; // pad to 48 bytes for cache alignment purposes
+    unsigned long int mesh_id;
+    unsigned long int tri_id; // pad to 48 bytes for cache alignment purposes
   };
 
   struct TriAccel
@@ -44,7 +44,7 @@ namespace Geometry
     double b_nu;
     double b_nv;
     double b_d;
-    unsigned int mesh_id;
+    unsigned long int mesh_id;
 
     // third 16 byte half cache line
     // line equation for line ab
@@ -52,7 +52,7 @@ namespace Geometry
     double c_nv;
     double c_d;
 
-    unsigned int tri_id; // pad to 48 bytes for cache alignment purposes
+    unsigned long int tri_id; // pad to 48 bytes for cache alignment purposes
   };
 
   struct BBox 

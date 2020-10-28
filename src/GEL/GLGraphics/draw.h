@@ -78,7 +78,7 @@ namespace GLGraphics
     }
     
     template <class BoxType>
-    inline void draw(const Geometry::BoundingTree<BoxType>& tree, int max_level=1e16)
+    inline void draw(const Geometry::BoundingTree<BoxType>& tree, int max_level=INT_MAX)
     {
         draw(*tree.root, 0, max_level);
     }

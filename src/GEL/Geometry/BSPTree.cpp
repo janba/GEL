@@ -364,7 +364,7 @@ namespace Geometry
     return size(root);
   }
 
-/*__declspec(align(16))*/ static const unsigned int modulo[] = {0,1,2,0,1};
+///*__declspec(align(16))*/ static const unsigned int modulo[] = {0,1,2,0,1};
 
 //  inline bool intersect2(Ray &ray, const TriAccel &acc, double t_max) 
 //  {

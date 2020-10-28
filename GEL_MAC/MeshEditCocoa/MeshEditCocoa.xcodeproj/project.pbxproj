@@ -48,7 +48,6 @@
 		0D52EBC0197D1B77002C7150 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Debug/GEL.framework"; sourceTree = "<group>"; };
 		0D945D1E198B850C00B78450 /* GEL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = GEL.framework; path = "../../../Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Release/GEL.framework"; sourceTree = "<group>"; };
 		0D9823B7198BB567004E3CC9 /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
-		0DE924C8198BAFCC00F8A63D /* GEL.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; name = GEL.framework; path = "/Users/jab/Library/Developer/Xcode/DerivedData/GEL-bvshujpzghydbagznpheiutqilzk/Build/Products/Release/GEL.framework"; sourceTree = "<absolute>"; };
 		0DF694B11940EDF6008F1E8C /* MeshEditCocoa.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = MeshEditCocoa.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		0DF694B41940EDF6008F1E8C /* Cocoa.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Cocoa.framework; path = System/Library/Frameworks/Cocoa.framework; sourceTree = SDKROOT; };
 		0DF694B71940EDF6008F1E8C /* AppKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AppKit.framework; path = System/Library/Frameworks/AppKit.framework; sourceTree = SDKROOT; };
@@ -92,7 +91,6 @@
 			isa = PBXGroup;
 			children = (
 				0D9823B7198BB567004E3CC9 /* GEL.xcodeproj */,
-				0DE924C8198BAFCC00F8A63D /* GEL.framework */,
 				0DF694BA1940EDF6008F1E8C /* MeshEditCocoa */,
 				0DF694B31940EDF6008F1E8C /* Frameworks */,
 				0DF694B21940EDF6008F1E8C /* Products */,

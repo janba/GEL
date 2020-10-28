@@ -6,6 +6,7 @@
 //  Copyright © 2018 J. Andreas Bærentzen. All rights reserved.
 //
 
+#include "../Geometry/KDTree.h"
 #include "../Geometry/jrs_triangle.h"
 #include "Delaunay_triangulate.h"
 #include "HMesh.h"
@@ -41,7 +42,7 @@ namespace HMesh {
         // Call Triangle with arguments that specify: (z)ero is firt index, (p)slg triangulation.
         // no (B)oundary markers, no (S)teiner points not absolutely needed. Operate (Q)ietly.
         string triangulate_cmd_str("zBSQ");
-        triangulate("zBSQ", &pts_in, &tri_out, 0);
+        triangulate(triangulate_cmd_str.data(), &pts_in, &tri_out, 0);
         
         if(tri_out.numberofpoints > pts_in.numberofpoints){
             cout << "Steiner points were created, any incident triangles will be removed..." << endl;
@@ -86,4 +87,6 @@ namespace HMesh {
         
         return m_new;
     }
+
+  
 }

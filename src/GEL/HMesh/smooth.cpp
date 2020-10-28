@@ -89,7 +89,7 @@ namespace HMesh
                 new_pos[v] = m.pos(v)+weight*laplacian(m, v);
         };
 
-        for(auto _ : range(0, max_iter)) {
+        for(int i=0; i < max_iter; ++i) {
             for_each_vertex_parallel(CORES, vertex_ids, f);
             swap(m.positions_attribute_vector(), new_pos);
         }
