@@ -36,32 +36,32 @@ int stitch_mesh(Manifold_ptr m_ptr, double rad) {
     return stitch_mesh(*(reinterpret_cast<Manifold*>(m_ptr)), rad);
 }
 
-bool obj_load(char* fn, Manifold_ptr m_ptr) {
+bool obj_load(const char* fn, Manifold_ptr m_ptr) {
     return obj_load(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
-bool off_load(char* fn, Manifold_ptr m_ptr) {
+bool off_load(const char* fn, Manifold_ptr m_ptr) {
     return off_load(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
-bool ply_load(char* fn, Manifold_ptr m_ptr) {
+bool ply_load(const char* fn, Manifold_ptr m_ptr) {
     return ply_load(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
-bool x3d_load(char* fn, Manifold_ptr m_ptr) {
+bool x3d_load(const char* fn, Manifold_ptr m_ptr) {
     return x3d_load(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
 
-bool obj_save(char* fn, Manifold_ptr m_ptr) {
+bool obj_save(const char* fn, Manifold_ptr m_ptr) {
     return obj_save(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
-bool off_save(char* fn, Manifold_ptr m_ptr) {
+bool off_save(const char* fn, Manifold_ptr m_ptr) {
     return off_save(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
 
 }
-bool x3d_save(char* fn, Manifold_ptr m_ptr) {
+bool x3d_save(const char* fn, Manifold_ptr m_ptr) {
     return x3d_save(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 

@@ -1019,6 +1019,39 @@ namespace GLGraphics {
             me->printf("Bounding box corners : %s", bbox_corners.str().c_str());
 
         }
+    
+    void console_volume(MeshEditor* me, const std::vector<std::string> & args)
+    {
+        if(wantshelp(args))
+        {
+            me->printf("usage:  volume");
+            me->printf("Computes mesh volume. Assumes mesh is closed");
+            return;
+        }
+        
+        Manifold& m = me->active_mesh();
+        for(auto h: m.halfedges())
+            if (boundary(m, h)) {
+                me->printf("Does not compute: mesh is not watertight");
+                return;
+            }
+        
+        Vec3d c;
+        float r;
+        bsphere(m, c, r);
+
+        double V = 0.0;
+        for(auto f: m.faces()) {
+            double A = area(m, f);
+            Vec3d n = normal(m, f);
+            Vec3d p = m.pos(m.walker(f).vertex());
+            double h = dot(n, p-c);
+            V += A*h;
+        }
+        V /= 3.0;
+        me->printf("Volume = %f", V);
+    }
+    
 
         void console_info(MeshEditor* me, const std::vector<std::string> & args)
         {
@@ -2034,6 +2067,7 @@ namespace GLGraphics {
         
         register_console_function("validity", console_valid,"");
         register_console_function("info", console_info,"");
+        register_console_function("volume", console_volume,"");
         register_console_function("info.all_meshes", console_info_all,"");
         
                 
