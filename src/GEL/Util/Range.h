@@ -15,7 +15,14 @@ namespace Util {
         class iterator {
             friend class Range;
         public:
-            long int operator *() const { return i_; }
+            // typedefs to accommodiate stl compliance
+            typedef ptrdiff_t difference_type;
+            typedef std::forward_iterator_tag iterator_category;
+            typedef long int value_type;
+            typedef value_type reference;
+            typedef value_type* pointer;
+
+            value_type operator *() const { return i_; }
             const iterator &operator ++() { ++i_; return *this; }
             iterator operator ++(int) { iterator copy(*this); ++i_; return copy; }
             
