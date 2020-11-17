@@ -840,3 +840,74 @@ class MeshDistance:
         ray is more robust than using the sign computed locally. """
         p_ct = np.array(p,dtype=ct.c_float).ctypes.data_as(ct.POINTER(ct.c_float*3))
         return lib_py_gel.MeshDistance_ray_inside_test(self.obj,p_ct,no_rays)
+
+
+lib_py_gel.Graph_new.restype = ct.c_void_p
+lib_py_gel.Graph_copy.restype = ct.c_void_p
+lib_py_gel.Graph_copy.argtypes = (ct.c_void_p,)
+lib_py_gel.Graph_delete.argtypes = (ct.c_void_p,)
+lib_py_gel.Graph_clear.argtypes = (ct.c_void_p,)
+lib_py_gel.Graph_cleanup.argtypes = (ct.c_void_p,)
+lib_py_gel.Graph_positions.argtypes = (ct.c_void_p,ct.POINTER(ct.POINTER(ct.c_double)))
+lib_py_gel.Graph_positions.restype = ct.c_size_t
+lib_py_gel.Graph_average_edge_length.argtypes = (ct.c_void_p,)
+lib_py_gel.Graph_add_node.argtypes = (ct.c_void_p, ct.POINTER(ct.c_double))
+lib_py_gel.Graph_add_node.restype = ct.c_size_t
+lib_py_gel.Graph_remove_node.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.Graph_node_in_use.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.Graph_connect_nodes.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_size_t)
+lib_py_gel.Graph_connect_nodes.restype = ct.c_size_t
+lib_py_gel.Graph_disconnect_nodes.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_size_t)
+lib_py_gel.Graph_merge_nodes.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_size_t, ct.c_bool)
+
+class Graph:
+    """ This class is for representing graphs embedded in 3D. The class does not in
+    itself come with many features: it contains methods for creating, accessing, and
+    housekeeping. """
+    def __init__(self,orig=None):
+        if orig == None:
+            self.obj = lib_py_gel.Graph_new()
+        else:
+            self.obj = lib_py_gel.Graph_copy(orig.obj)
+    def __del__(self):
+        lib_py_gel.Graph_delete(self.obj)
+    def clear(self):
+        """ Clear the graph. """
+        lib_py_gel.Graph_clear(self.obj)
+    def cleanup(self):
+        """ Cleanup reorders the graph nodes such that there is no
+        gap in the index range. """
+        lib_py_gel.Graph_cleanup(self.obj)
+    def positions(self):
+        """ Get the vertex positions by reference. You can assign to the
+        positions. """
+        pos = ct.POINTER(ct.c_double)()
+        n = lib_py_gel.Graph_positions(self.obj, ct.byref(pos))
+        return np.ctypeslib.as_array(pos,(n,3))
+    def average_edge_length(self):
+        """ Returns the average edge length. """
+        ael = lib_py_gel.Graph_average_edge_length(self.obj)
+        return ael
+    def add_node(self, p):
+        """ Adds node with position p to the graph and returns the
+        index of the new node. """
+        return lib_py_gel.Graph_add_node(self.obj, np.array(p))
+    def remove_node(self, n):
+        """ Removes the node n passed as argument. This does not change
+        any indices of other nodes, but n is then invalid. """
+        lib_py_gel.Graph_remove_node(self.obj, n)
+    def node_in_use(self, n):
+        """ Checks if n is in_use. This function returns false both
+        if n has been removed and if n is an index outside the range of
+        indices that are used. """
+        return lib_py_gel.Graph_node_in_use(self.obj, n)
+    def connect_nodes(self, n0, n1):
+        """ Creates a new edge connecting nodes n0 and n1. The index of
+        the new edge is returned. """
+        return lib_py_gel.Graph_connect_nodes(self.obj, n0, n1)
+    def disconnect_nodes(self, n0, n1):
+        """ Disconect
+        lib_py_gel.Graph_disconnect_nodes(self.obj, n0, n1)
+    def merge_nodes(self, n0, n1, avg_pos):
+        lib_py_gel.Graph_merge_nodes(self.obj, n0, n1, avg_pos)
+        

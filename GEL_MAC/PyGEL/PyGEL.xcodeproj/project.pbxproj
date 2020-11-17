@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BD11F84C21C8602200AC9751 /* libglfw.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = BD11F84B21C8602200AC9751 /* libglfw.dylib */; };
 		BD27CE6C1F837284002F0FAE /* I3DTree.h in Headers */ = {isa = PBXBuildFile; fileRef = BD27CE6A1F837284002F0FAE /* I3DTree.h */; };
 		BD27CE6D1F837284002F0FAE /* I3DTree.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD27CE6B1F837284002F0FAE /* I3DTree.cpp */; };
 		BD9100F21F84D0C9003AF93E /* IntVector.h in Headers */ = {isa = PBXBuildFile; fileRef = BD9100EE1F84D0C8003AF93E /* IntVector.h */; };
@@ -24,6 +23,11 @@
 		BDFE55591FE47EA400062448 /* Manifold.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDFE55571FE47EA400062448 /* Manifold.cpp */; };
 		BDFE555A1FE47EA400062448 /* Manifold.h in Headers */ = {isa = PBXBuildFile; fileRef = BDFE55581FE47EA400062448 /* Manifold.h */; };
 		E176D0112545C7BD006230B1 /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = E176D00E2545C659006230B1 /* GEL.framework */; };
+		E188221225630FC600A10643 /* Graph.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E188221025630FC600A10643 /* Graph.cpp */; };
+		E188221325630FC600A10643 /* Graph.h in Headers */ = {isa = PBXBuildFile; fileRef = E188221125630FC600A10643 /* Graph.h */; };
+		E188221B25631C3A00A10643 /* graph_functions.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E188221925631C3A00A10643 /* graph_functions.cpp */; };
+		E188221C25631C3A00A10643 /* graph_functions.h in Headers */ = {isa = PBXBuildFile; fileRef = E188221A25631C3A00A10643 /* graph_functions.h */; };
+		E18B1D0A256416DA00CB23A0 /* libglfw.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = E18B1D09256416DA00CB23A0 /* libglfw.dylib */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,8 +40,20 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		E18B1D072563F60C00CB23A0 /* Embed Libraries */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 10;
+			files = (
+			);
+			name = "Embed Libraries";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
-		BD11F84B21C8602200AC9751 /* libglfw.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.dylib; path = ../../../../../opt/local/lib/libglfw.dylib; sourceTree = "<group>"; };
 		BD27CE6A1F837284002F0FAE /* I3DTree.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = I3DTree.h; path = ../../src/PyGEL/I3DTree.h; sourceTree = "<group>"; };
 		BD27CE6B1F837284002F0FAE /* I3DTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = I3DTree.cpp; path = ../../src/PyGEL/I3DTree.cpp; sourceTree = "<group>"; };
 		BD48834F1F82CBB200EC04F0 /* libPyGEL.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libPyGEL.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -58,6 +74,11 @@
 		BDFE55571FE47EA400062448 /* Manifold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Manifold.cpp; path = ../../src/PyGEL/Manifold.cpp; sourceTree = "<group>"; };
 		BDFE55581FE47EA400062448 /* Manifold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Manifold.h; path = ../../src/PyGEL/Manifold.h; sourceTree = "<group>"; };
 		E176D0092545C659006230B1 /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
+		E188221025630FC600A10643 /* Graph.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Graph.cpp; path = ../../src/PyGEL/Graph.cpp; sourceTree = "<group>"; };
+		E188221125630FC600A10643 /* Graph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Graph.h; path = ../../src/PyGEL/Graph.h; sourceTree = "<group>"; };
+		E188221925631C3A00A10643 /* graph_functions.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = graph_functions.cpp; path = ../../src/PyGEL/graph_functions.cpp; sourceTree = "<group>"; };
+		E188221A25631C3A00A10643 /* graph_functions.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = graph_functions.h; path = ../../src/PyGEL/graph_functions.h; sourceTree = "<group>"; };
+		E18B1D09256416DA00CB23A0 /* libglfw.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libglfw.dylib; path = ../../../../../opt/local/lib/libglfw.dylib; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -67,7 +88,7 @@
 			files = (
 				E176D0112545C7BD006230B1 /* GEL.framework in Frameworks */,
 				BD9100FB1F880C41003AF93E /* OpenGL.framework in Frameworks */,
-				BD11F84C21C8602200AC9751 /* libglfw.dylib in Frameworks */,
+				E18B1D0A256416DA00CB23A0 /* libglfw.dylib in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -78,6 +99,8 @@
 			isa = PBXGroup;
 			children = (
 				BD696D3621F878090090F7E6 /* PyGEL3D */,
+				E188221025630FC600A10643 /* Graph.cpp */,
+				E188221125630FC600A10643 /* Graph.h */,
 				BDFE55571FE47EA400062448 /* Manifold.cpp */,
 				BDFE55581FE47EA400062448 /* Manifold.h */,
 				BD9100FF1F883CE3003AF93E /* Viewer.cpp */,
@@ -92,6 +115,8 @@
 				BD9D57811FAE7C5700788326 /* hmesh_functions.h */,
 				BDF6F9651FE1D182005568F0 /* MeshDistance.cpp */,
 				BDF6F9661FE1D182005568F0 /* MeshDistance.h */,
+				E188221925631C3A00A10643 /* graph_functions.cpp */,
+				E188221A25631C3A00A10643 /* graph_functions.h */,
 			);
 			name = PyGEL;
 			sourceTree = "<group>";
@@ -117,7 +142,7 @@
 		BD48836E1F82D35B00EC04F0 /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				BD11F84B21C8602200AC9751 /* libglfw.dylib */,
+				E18B1D09256416DA00CB23A0 /* libglfw.dylib */,
 				BD9100FA1F880C41003AF93E /* OpenGL.framework */,
 			);
 			name = Frameworks;
@@ -149,8 +174,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				BD9101001F883CE3003AF93E /* Viewer.h in Headers */,
+				E188221325630FC600A10643 /* Graph.h in Headers */,
 				BD9100F31F84D0C9003AF93E /* Vec3dVector.h in Headers */,
 				BD9D57831FAE7C5700788326 /* hmesh_functions.h in Headers */,
+				E188221C25631C3A00A10643 /* graph_functions.h in Headers */,
 				BDFE555A1FE47EA400062448 /* Manifold.h in Headers */,
 				BDF6F9681FE1D182005568F0 /* MeshDistance.h in Headers */,
 				BD27CE6C1F837284002F0FAE /* I3DTree.h in Headers */,
@@ -168,6 +195,7 @@
 				BD48834B1F82CBB200EC04F0 /* Sources */,
 				BD48834C1F82CBB200EC04F0 /* Frameworks */,
 				BD48834D1F82CBB200EC04F0 /* Headers */,
+				E18B1D072563F60C00CB23A0 /* Embed Libraries */,
 			);
 			buildRules = (
 			);
@@ -184,7 +212,7 @@
 		BD4883471F82CBB200EC04F0 /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0900;
+				LastUpgradeCheck = 1220;
 				ORGANIZATIONNAME = "Jakob Andreas Bærentzen";
 				TargetAttributes = {
 					BD48834E1F82CBB200EC04F0 = {
@@ -199,6 +227,7 @@
 			hasScannedForEncodings = 0;
 			knownRegions = (
 				en,
+				Base,
 			);
 			mainGroup = BD4883461F82CBB200EC04F0;
 			productRefGroup = BD4883501F82CBB200EC04F0 /* Products */;
@@ -235,8 +264,10 @@
 				BD9101011F883CE3003AF93E /* Viewer.cpp in Sources */,
 				BD9100F41F84D0C9003AF93E /* Vec3dVector.cpp in Sources */,
 				BDFE55591FE47EA400062448 /* Manifold.cpp in Sources */,
+				E188221225630FC600A10643 /* Graph.cpp in Sources */,
 				BD27CE6D1F837284002F0FAE /* I3DTree.cpp in Sources */,
 				BD9D57821FAE7C5700788326 /* hmesh_functions.cpp in Sources */,
+				E188221B25631C3A00A10643 /* graph_functions.cpp in Sources */,
 				BDF6F9671FE1D182005568F0 /* MeshDistance.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -258,6 +289,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -265,8 +297,10 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -313,6 +347,7 @@
 				CLANG_WARN_BOOL_CONVERSION = YES;
 				CLANG_WARN_COMMA = YES;
 				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
 				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
 				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
 				CLANG_WARN_EMPTY_BODY = YES;
@@ -320,8 +355,10 @@
 				CLANG_WARN_INFINITE_RECURSION = YES;
 				CLANG_WARN_INT_CONVERSION = YES;
 				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
 				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
 				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
 				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
@@ -350,6 +387,7 @@
 		BD48835B1F82CBB200EC04F0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_STYLE = Automatic;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -368,6 +406,7 @@
 		BD48835C1F82CBB200EC04F0 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				ARCHS = "$(ARCHS_STANDARD)";
 				CODE_SIGN_STYLE = Automatic;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -379,6 +418,7 @@
 				HEADER_SEARCH_PATHS = /opt/local/include;
 				LIBRARY_SEARCH_PATHS = /opt/local/lib;
 				MACOSX_DEPLOYMENT_TARGET = 10.9;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 			};
 			name = Release;
