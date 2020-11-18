@@ -5,10 +5,10 @@
  * ----------------------------------------------------------------------- */
 
 #include <iostream>
-#include "../GL/glew.h"
-#include "../CGLA/CGLA-util.h"
-#include "QuatTrackBall.h"
-#include "GLViewController.h"
+#include <GEL/GL/glew.h>
+#include <GEL/CGLA/CGLA-util.h>
+#include <GEL/GLGraphics/QuatTrackBall.h>
+#include <GEL/GLGraphics/GLViewController.h>
 
 
 using namespace std;

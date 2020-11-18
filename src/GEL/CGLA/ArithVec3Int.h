@@ -11,7 +11,7 @@
 #ifndef __CGLA__ARITHVEC3INT_H__
 #define __CGLA__ARITHVEC3INT_H__
 
-#include "ArithVecInt.h"
+#include <GEL/CGLA/ArithVecInt.h>
 
 namespace CGLA {
 

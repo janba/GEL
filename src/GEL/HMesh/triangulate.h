@@ -12,7 +12,7 @@
 #ifndef __HMESH_TRIANGULATE__H
 #define __HMESH_TRIANGULATE__H
 
-#include "Manifold.h"
+#include <GEL/HMesh/Manifold.h>
 
 namespace HMesh
 {

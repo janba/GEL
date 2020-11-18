@@ -11,11 +11,11 @@
 #ifndef __CGLA_MAT4X4D_H__
 #define __CGLA_MAT4X4D_H__
 
-#include "ExceptionStandard.h"
-#include "CGLA-util.h"
-#include "Vec3d.h"
-#include "Vec4d.h"
-#include "ArithSqMat4x4Float.h"
+#include <GEL/CGLA/ExceptionStandard.h>
+#include <GEL/CGLA/CGLA-util.h>
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec4d.h>
+#include <GEL/CGLA/ArithSqMat4x4Float.h>
 
 
 namespace CGLA {

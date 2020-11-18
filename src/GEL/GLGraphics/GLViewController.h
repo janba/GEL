@@ -12,7 +12,7 @@
 #define __GLGRAPHICS_GLVIEWCONTROLLER_H__
 
 #include <fstream>
-#include "QuatTrackBall.h"
+#include <GEL/GLGraphics/QuatTrackBall.h>
 
 namespace GLGraphics
 {

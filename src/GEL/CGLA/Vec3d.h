@@ -11,10 +11,10 @@
 #ifndef __CGLA_VEC3D_fdsfa_H__
 #define __CGLA_VEC3D_fdsfa_H__
 
-#include "ArithVec3Float.h"
-#include "Vec3i.h"
-#include "Vec3usi.h"
-#include "Vec3f.h"
+#include <GEL/CGLA/ArithVec3Float.h>
+#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec3usi.h>
+#include <GEL/CGLA/Vec3f.h>
 
 
 namespace CGLA {

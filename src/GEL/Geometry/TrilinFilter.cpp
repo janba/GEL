@@ -4,9 +4,9 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "GradientFilter.h"
-#include "TrilinFilter.h"
-#include "Neighbours.h"
+#include <GEL/Geometry/GradientFilter.h>
+#include <GEL/Geometry/TrilinFilter.h>
+#include <GEL/Geometry/Neighbours.h>
 
 
 using namespace CGLA;

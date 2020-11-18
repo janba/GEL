@@ -4,9 +4,9 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "build_bbtree.h"
+#include <GEL/Geometry/build_bbtree.h>
 
-#include "../HMesh/Manifold.h"
+#include <GEL/HMesh/Manifold.h>
 
 using namespace CGLA;
 using namespace std;

@@ -4,10 +4,10 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "load.h"
-#include "obj_load.h"
-#include "ply_load.h"
-#include "../CGLA/Vec3i.h"
+#include <GEL/Geometry/load.h>
+#include <GEL/Geometry/obj_load.h>
+#include <GEL/Geometry/ply_load.h>
+#include <GEL/CGLA/Vec3i.h>
 
 using namespace std;
 using namespace CGLA;

@@ -12,10 +12,10 @@
 #ifndef __GLGRAPHICS_TrackBall_H__
 #define __GLGRAPHICS_TrackBall_H__
 
-#include "../CGLA/Vec2i.h"
-#include "../CGLA/Vec2f.h"
-#include "../CGLA/Vec3f.h"
-#include "../CGLA/Quatf.h"
+#include <GEL/CGLA/Vec2i.h>
+#include <GEL/CGLA/Vec2f.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Quatf.h>
 
 namespace GLGraphics
 {

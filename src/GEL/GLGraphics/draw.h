@@ -12,13 +12,13 @@
 #ifndef __GLGRAPHICS_DRAW_H_
 #define __GLGRAPHICS_DRAW_H_
 
-#include "../Geometry/TriMesh.h"
-#include "../Geometry/AABox.h"
-#include "../Geometry/OBox.h"
-#include "../Geometry/BoundingINode.h"
-#include "../Geometry/BoundingLNode.h"
-#include "../Geometry/BoundingTree.h"
-#include "../Geometry/Graph.h"
+#include <GEL/Geometry/TriMesh.h>
+#include <GEL/Geometry/AABox.h>
+#include <GEL/Geometry/OBox.h>
+#include <GEL/Geometry/BoundingINode.h>
+#include <GEL/Geometry/BoundingLNode.h>
+#include <GEL/Geometry/BoundingTree.h>
+#include <GEL/Geometry/Graph.h>
 
 namespace HMesh
 {

@@ -4,17 +4,17 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "IDBufferWireFrameRenderer.h"
+#include <GEL/GLGraphics/IDBufferWireFrameRenderer.h>
 
-#include "../CGLA/Vec4f.h"
-#include "../CGLA/Vec2f.h"
-#include "../CGLA/Vec3f.h"
-#include "../HMesh/Manifold.h"
-#include "../HMesh/AttributeVector.h"
+#include <GEL/CGLA/Vec4f.h>
+#include <GEL/CGLA/Vec2f.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/AttributeVector.h>
 
-#include "../GLGraphics/draw.h"
+#include <GEL/GLGraphics/draw.h>
 
-#include "glsl_shader.h"
+#include <GEL/GLGraphics/glsl_shader.h>
 
 using namespace std;
 using namespace CGLA;

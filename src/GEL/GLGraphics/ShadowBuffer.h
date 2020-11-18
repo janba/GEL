@@ -10,8 +10,8 @@
 #ifndef __SHADOWBUFFER_H__
 #define __SHADOWBUFFER_H__
 
-#include "../GL/glew.h"
-#include "glsl_shader.h"
+#include <GEL/GL/glew.h>
+#include <GEL/GLGraphics/glsl_shader.h>
 
 /** This class represents a shadow buffer. Essentially, this is just a texture
  and a framebuffer object wrapped in a class. Note that the shadow is a depth 

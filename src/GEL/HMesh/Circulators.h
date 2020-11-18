@@ -7,8 +7,8 @@
 //
 #include <iterator>
 
-#include "ConnectivityKernel.h"
-#include "Iterators.h"
+#include <GEL/HMesh/ConnectivityKernel.h>
+#include <GEL/HMesh/Iterators.h>
 
 
 #ifndef HMesh_Circulators_h

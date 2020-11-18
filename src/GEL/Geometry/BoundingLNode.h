@@ -12,8 +12,8 @@
 #ifndef __GEOMETRY_BOUNDINGLNODE_H
 #define __GEOMETRY_BOUNDINGLNODE_H
 
-#include "Ray.h"
-#include "BoundingNode.h"
+#include <GEL/Geometry/Ray.h>
+#include <GEL/Geometry/BoundingNode.h>
 
 #define USE_LEAF_BOXES 0
 

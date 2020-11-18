@@ -7,17 +7,17 @@
  *
  */
 
-#include "VisObj.h"
+#include <GEL/GLGraphics/VisObj.h>
 
-#include "Console.h"
-#include "../HMesh/Manifold.h"
-#include "../HMesh/AttributeVector.h"
-#include "../HMesh/load.h"
-#include "../HMesh/curvature.h"
+#include <GEL/GLGraphics/Console.h>
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/AttributeVector.h>
+#include <GEL/HMesh/load.h>
+#include <GEL/HMesh/curvature.h>
 
-#include "../CGLA/Mat3x3d.h"
-#include "../CGLA/Vec3d.h"
-#include "../CGLA/Vec4d.h"
+#include <GEL/CGLA/Mat3x3d.h>
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec4d.h>
 
 using namespace std;
 using namespace CGLA;

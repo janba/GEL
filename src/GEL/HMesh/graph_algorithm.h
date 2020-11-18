@@ -9,7 +9,7 @@
 #ifndef HMESH_graph_algorithm_h
 #define HMESH_graph_algorithm_h
 
-#include "Manifold.h"
+#include <GEL/HMesh/Manifold.h>
 
 namespace HMesh {
     

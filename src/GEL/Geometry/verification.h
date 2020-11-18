@@ -11,7 +11,7 @@
 #ifndef __GEOMETRY_VERIFICATION_H
 #define __GEOMETRY_VERIFICATION_H
 
-#include "Triangle.h"
+#include <GEL/Geometry/Triangle.h>
 
 namespace Geometry
 {

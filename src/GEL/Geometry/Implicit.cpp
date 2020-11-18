@@ -6,11 +6,11 @@
 //  Copyright (c) 2013 J. Andreas Bærentzen. All rights reserved.
 //
 
-#include "../CGLA/CGLA-util.h"
-#include "../Geometry/Neighbours.h"
-#include "../Geometry/GridAlgorithm.h"
-#include "XForm.h"
-#include "Implicit.h"
+#include <GEL/CGLA/CGLA-util.h>
+#include <GEL/Geometry/Neighbours.h>
+#include <GEL/Geometry/GridAlgorithm.h>
+#include <GEL/Geometry/XForm.h>
+#include <GEL/Geometry/Implicit.h>
 
 using namespace std;
 using namespace CGLA;

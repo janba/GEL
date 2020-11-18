@@ -11,9 +11,9 @@
 #ifndef __CGLA_MAT2X3D_H__
 #define __CGLA_MAT2X3D_H__
 
-#include "Vec2d.h"
-#include "Vec3d.h"
-#include "ArithMatFloat.h"
+#include <GEL/CGLA/Vec2d.h>
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/ArithMatFloat.h>
 
 namespace CGLA
 {

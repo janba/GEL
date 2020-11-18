@@ -18,8 +18,8 @@ typedef int64_t Integer64Bits;
 #endif
 
 
-#include "../CGLA/Vec3f.h"
-#include "../CGLA/Vec3i.h"
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec3i.h>
 
 namespace Geometry
 {

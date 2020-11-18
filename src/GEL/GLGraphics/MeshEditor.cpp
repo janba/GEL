@@ -13,26 +13,26 @@
 
 #include <regex>
 
-#include "../GL/glew.h"
+#include <GEL/GL/glew.h>
 #include <functional>
-#include "MeshEditor.h"
+#include <GEL/GLGraphics/MeshEditor.h>
 #include <string>
 #include <iostream>
 #include <vector>
 #include <queue>
 #include <algorithm>
 
-#include "../GLGraphics/Console.h"
-#include "../GLGraphics/glsl_shader.h"
-#include "../GLGraphics/ShadowBuffer.h"
+#include <GEL/GLGraphics/Console.h>
+#include <GEL/GLGraphics/glsl_shader.h>
+#include <GEL/GLGraphics/ShadowBuffer.h>
 
-#include "../CGLA/CGLA.h"
+#include <GEL/CGLA/CGLA.h>
 
-#include "../HMesh/HMesh.h"
+#include <GEL/HMesh/HMesh.h>
 
-#include "../Util/Timer.h"
+#include <GEL/Util/Timer.h>
 
-#include "VisObj.h"
+#include <GEL/GLGraphics/VisObj.h>
 
 using namespace std;
 using namespace CGLA;

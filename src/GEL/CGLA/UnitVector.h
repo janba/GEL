@@ -11,9 +11,9 @@
 #ifndef __CGLA_UNITVECTOR_H__
 #define __CGLA_UNITVECTOR_H__
 
-#include "CGLA-util.h"
-#include "Vec3f.h"
-#include "TableTrigonometry.h"
+#include <GEL/CGLA/CGLA-util.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/TableTrigonometry.h>
 
 namespace CGLA
 {

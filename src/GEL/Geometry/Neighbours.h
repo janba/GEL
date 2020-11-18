@@ -12,9 +12,9 @@
 #ifndef __GEOMETRY_NEIGHBOURS_H
 #define __GEOMETRY_NEIGHBOURS_H
 
-#include "../CGLA/Vec3i.h"
-#include "../CGLA/Vec3f.h"
-#include "../CGLA/Vec3d.h"
+#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec3d.h>
 
 namespace Geometry
 {

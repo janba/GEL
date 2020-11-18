@@ -9,10 +9,10 @@
 #include <map>
 #include <iterator>
 
-#include "../Geometry/TriMesh.h"
-#include "../Geometry/bounding_sphere.h"
-#include "Manifold.h"
-#include "cleanup.h"
+#include <GEL/Geometry/TriMesh.h>
+#include <GEL/Geometry/bounding_sphere.h>
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/cleanup.h>
 
 namespace HMesh
 {

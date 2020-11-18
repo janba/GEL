@@ -7,9 +7,9 @@
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
-#include "rply.h"
-#include "ply_load.h"
-#include "../CGLA/Vec4f.h"
+#include <GEL/Geometry/rply.h>
+#include <GEL/Geometry/ply_load.h>
+#include <GEL/CGLA/Vec4f.h>
 
 namespace Geometry
 {

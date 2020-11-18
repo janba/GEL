@@ -32,8 +32,8 @@ J. Andreas Bærentzen 2003.
 #include <vector>
 #include <list>
 #include <sys/types.h>
-#include "../CGLA/CGLA-util.h"
-#include "Polygonizer.h"
+#include <GEL/CGLA/CGLA-util.h>
+#include <GEL/Geometry/Polygonizer.h>
 
 using namespace std;
 using namespace CGLA;

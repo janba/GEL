@@ -15,8 +15,8 @@
 // Created: Wed Jan 24 18:29:0
 
 #include <vector>
-#include "AncestorGrid.h"
-#include "Cell.h"
+#include <GEL/Geometry/AncestorGrid.h>
+#include <GEL/Geometry/Cell.h>
 
 namespace Geometry 
 {

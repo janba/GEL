@@ -4,17 +4,17 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "triangulate.h"
+#include <GEL/HMesh/triangulate.h>
 
 #include <queue>
 #include <vector>
 #include <iterator>
 #include <cassert>
 
-#include "../CGLA/Vec3d.h"
+#include <GEL/CGLA/Vec3d.h>
 
-#include "Manifold.h"
-#include "AttributeVector.h"
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/AttributeVector.h>
 
 namespace HMesh
 {

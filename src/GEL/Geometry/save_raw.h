@@ -15,7 +15,7 @@
 #include <iostream>
 #include <iomanip>
 #include <fstream>
-#include "GridAlgorithm.h"
+#include <GEL/Geometry/GridAlgorithm.h>
 
 namespace Geometry 
 {

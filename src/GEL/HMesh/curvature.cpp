@@ -4,17 +4,17 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "curvature.h"
+#include <GEL/HMesh/curvature.h>
 
 #include <iostream>
-#include "../CGLA/CGLA.h"
+#include <GEL/CGLA/CGLA.h>
 
-#include "Manifold.h"
-#include "AttributeVector.h"
-#include "x3d_save.h"
-#include "x3d_load.h"
-#include "obj_load.h"
-#include "mesh_optimization.h"
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/AttributeVector.h>
+#include <GEL/HMesh/x3d_save.h>
+#include <GEL/HMesh/x3d_load.h>
+#include <GEL/HMesh/obj_load.h>
+#include <GEL/HMesh/mesh_optimization.h>
 
 using namespace std;
 using namespace CGLA;

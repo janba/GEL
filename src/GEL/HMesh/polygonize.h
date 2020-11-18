@@ -11,9 +11,9 @@
 
 #include <iostream>
 
-#include "../Geometry/XForm.h"
-#include "../Geometry/RGrid.h"
-#include "Manifold.h"
+#include <GEL/Geometry/XForm.h>
+#include <GEL/Geometry/RGrid.h>
+#include <GEL/HMesh/Manifold.h>
 
 namespace HMesh
 {

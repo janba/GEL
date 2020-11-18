@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "verification.h"
+#include <GEL/Geometry/verification.h>
 
 using namespace CGLA;
 using namespace std;

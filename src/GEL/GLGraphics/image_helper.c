@@ -6,7 +6,7 @@
     MIT license
 */
 
-#include "image_helper.h"
+#include <GEL/GLGraphics/image_helper.h>
 #include <stdlib.h>
 #include <math.h>
 

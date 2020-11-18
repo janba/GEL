@@ -11,7 +11,7 @@
 #ifndef __CGLA_VEC4I_H__
 #define __CGLA_VEC4I_H__
 
-#include "ArithVec4Int.h"
+#include <GEL/CGLA/ArithVec4Int.h>
 
 namespace CGLA 
 {

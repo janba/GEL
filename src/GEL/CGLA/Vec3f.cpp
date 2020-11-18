@@ -6,9 +6,9 @@
 
 #include <algorithm>
 
-#include "Vec3f.h"
-#include "Vec3d.h"
-#include "Vec4f.h"
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec4f.h>
 
 using namespace std;
 

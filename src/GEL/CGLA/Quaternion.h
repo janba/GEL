@@ -11,7 +11,7 @@
 #ifndef __CGLA_QUATERNION_H__
 #define __CGLA_QUATERNION_H__
 
-#include "Quatf.h"
+#include <GEL/CGLA/Quatf.h>
 
 namespace CGLA {
 

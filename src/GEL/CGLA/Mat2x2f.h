@@ -11,8 +11,8 @@
 #ifndef __CGLA_MAT2X2F_H__
 #define __CGLA_MAT2X2F_H__
 
-#include "Vec2f.h"
-#include "ArithSqMat2x2Float.h"
+#include <GEL/CGLA/Vec2f.h>
+#include <GEL/CGLA/ArithSqMat2x2Float.h>
 
 
 namespace CGLA 

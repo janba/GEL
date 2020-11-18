@@ -12,9 +12,9 @@
 #ifndef __GEOMETRY_BBOX_H__
 #define __GEOMETRY_BBOX_H__
 
-#include "../CGLA/Vec3f.h"
+#include <GEL/CGLA/Vec3f.h>
 
-#include "Ray.h"
+#include <GEL/Geometry/Ray.h>
 
 namespace Geometry 
 {

@@ -13,7 +13,7 @@
 #define __HMESH_SMOOTH_H
 
 #include <vector>
-#include "Manifold.h"
+#include <GEL/HMesh/Manifold.h>
 
 namespace HMesh
 {

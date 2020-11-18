@@ -6,7 +6,7 @@
 
 #include <string>
 #include <list>
-#include "string_utils.h"
+#include <GEL/Util/string_utils.h>
 
 using namespace std;
 

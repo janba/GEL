@@ -6,12 +6,12 @@
 
 #include <iostream>
 #include <cfloat>
-#include "../CGLA/statistics.h"
-#include "../CGLA/eigensolution.h"
-#include "../CGLA/Mat4x4f.h"
-#include "AABox.h"
-#include "OBox.h"
-#include "Triangle.h"
+#include <GEL/CGLA/statistics.h>
+#include <GEL/CGLA/eigensolution.h>
+#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/Geometry/AABox.h>
+#include <GEL/Geometry/OBox.h>
+#include <GEL/Geometry/Triangle.h>
 
 using namespace std;
 using namespace CGLA;

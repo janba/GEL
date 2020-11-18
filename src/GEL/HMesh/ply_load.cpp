@@ -5,13 +5,13 @@
  * ----------------------------------------------------------------------- */
 
 #include <vector>
-#include "ply_load.h"
+#include <GEL/HMesh/ply_load.h>
 
-#include "../Geometry/ply_load.h"
-#include "../Geometry/TriMesh.h"
+#include <GEL/Geometry/ply_load.h>
+#include <GEL/Geometry/TriMesh.h>
 
-#include "Manifold.h"
-#include "load.h"
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/load.h>
 
 namespace HMesh
 {

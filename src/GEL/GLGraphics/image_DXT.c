@@ -7,7 +7,7 @@
 	public domain
 */
 
-#include "image_DXT.h"
+#include <GEL/GLGraphics/image_DXT.h>
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>

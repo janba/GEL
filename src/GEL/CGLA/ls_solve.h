@@ -9,20 +9,20 @@
 #ifndef GEL_ls_solve_h
 #define GEL_ls_solve_h
 
-#include "Mat2x2d.h"
-#include "Mat2x2f.h"
-#include "Mat2x3d.h"
-#include "Mat2x3f.h"
-#include "Mat3x3d.h"
-#include "Mat3x3f.h"
-#include "Mat4x4d.h"
-#include "Mat4x4f.h"
-#include "Vec2d.h"
-#include "Vec2f.h"
-#include "Vec3d.h"
-#include "Vec3f.h"
-#include "Vec4d.h"
-#include "Vec4f.h"
+#include <GEL/CGLA/Mat2x2d.h>
+#include <GEL/CGLA/Mat2x2f.h>
+#include <GEL/CGLA/Mat2x3d.h>
+#include <GEL/CGLA/Mat2x3f.h>
+#include <GEL/CGLA/Mat3x3d.h>
+#include <GEL/CGLA/Mat3x3f.h>
+#include <GEL/CGLA/Mat4x4d.h>
+#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/CGLA/Vec2d.h>
+#include <GEL/CGLA/Vec2f.h>
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec4d.h>
+#include <GEL/CGLA/Vec4f.h>
 
 namespace CGLA {
         

@@ -4,19 +4,19 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "x3d_load.h"
+#include <GEL/HMesh/x3d_load.h>
 
 #include <iostream>
 #include <vector>
 #include <string>
 
-#include "../CGLA/Vec3f.h"
-#include "../Util/Timer.h"
-#include "../Util/Parse.h"
-#include "../Util/XmlParser.h"
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/Util/Timer.h>
+#include <GEL/Util/Parse.h>
+#include <GEL/Util/XmlParser.h>
 
-#include "Manifold.h"
-#include "load.h"
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/load.h>
 
 namespace HMesh
 {

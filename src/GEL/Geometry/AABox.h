@@ -14,7 +14,7 @@
 
 #include <iostream>
 #include <vector>
-#include "Triangle.h"
+#include <GEL/Geometry/Triangle.h>
 
 namespace Geometry
 {

@@ -12,7 +12,7 @@
 #ifndef __CGLA_VEC2UI_H__
 #define __CGLA_VEC2UI_H__
 
-#include "ArithVec.h"
+#include <GEL/CGLA/ArithVec.h>
 
 namespace CGLA 
 {

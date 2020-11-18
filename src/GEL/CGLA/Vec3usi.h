@@ -11,7 +11,7 @@
 #ifndef __CGLA_VEC3USI_H__
 #define __CGLA_VEC3USI_H__
 
-#include "Vec3i.h"
+#include <GEL/CGLA/Vec3i.h>
 
 namespace CGLA {
 	typedef unsigned short int USInt;

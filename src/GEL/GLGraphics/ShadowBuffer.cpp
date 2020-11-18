@@ -8,7 +8,7 @@
  */
 
 #include <iostream>
-#include "ShadowBuffer.h"
+#include <GEL/GLGraphics/ShadowBuffer.h>
 
 using namespace std;
 

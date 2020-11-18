@@ -8,9 +8,9 @@
 #include <queue>
 #include <algorithm>
 #include <vector>
-#include "AABox.h"
-#include "OBox.h"
-#include "BoundingTree.h"
+#include <GEL/Geometry/AABox.h>
+#include <GEL/Geometry/OBox.h>
+#include <GEL/Geometry/BoundingTree.h>
 
 using namespace std;
 using namespace CGLA;

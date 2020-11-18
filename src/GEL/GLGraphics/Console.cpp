@@ -10,8 +10,8 @@
  * @date   Fri Oct 22 18:36:58 2011
  */
 
-#include "../GLGraphics/Console.h"
-#include "../GL/glew.h"
+#include <GEL/GLGraphics/Console.h>
+#include <GEL/GL/glew.h>
 #include <cstdarg>
 #include <cstring> //std::memcpy
 #include <cstdio>
@@ -32,8 +32,8 @@
 #endif
 
 
-#include "../GLGraphics/stb_image.h"
-#include "../GLGraphics/stb_image_write.h"
+#include <GEL/GLGraphics/stb_image.h>
+#include <GEL/GLGraphics/stb_image_write.h>
 
 static const char* history_filename = "history.txt";
 

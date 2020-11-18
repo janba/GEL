@@ -13,7 +13,7 @@
 
 #include <cassert>
 #include <vector>
-#include "ItemID.h"
+#include <GEL/HMesh/ItemID.h>
 
 namespace HMesh
 {

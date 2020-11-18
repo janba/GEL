@@ -11,8 +11,8 @@
 #include <algorithm>
 #include <list>
 
-#include "XmlParser.h"
-#include "string_utils.h"
+#include <GEL/Util/XmlParser.h>
+#include <GEL/Util/string_utils.h>
 
 namespace Util
 {

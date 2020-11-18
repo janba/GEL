@@ -11,11 +11,11 @@
 #ifndef __CGLA_QUATF_H__
 #define __CGLA_QUATF_H__
 
-#include "ArithQuat.h"
-#include "Vec3f.h"
-#include "Vec4f.h"
-#include "Mat3x3f.h"
-#include "Mat4x4f.h"
+#include <GEL/CGLA/ArithQuat.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec4f.h>
+#include <GEL/CGLA/Mat3x3f.h>
+#include <GEL/CGLA/Mat4x4f.h>
 
 
 namespace CGLA {

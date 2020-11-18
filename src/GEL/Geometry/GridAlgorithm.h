@@ -67,8 +67,8 @@
  */
 
 #include <iostream>
-#include "RGrid.h"
-#include "HGrid.h"
+#include <GEL/Geometry/RGrid.h>
+#include <GEL/Geometry/HGrid.h>
 
 namespace Geometry 
     {

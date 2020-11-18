@@ -11,16 +11,16 @@
 
 
 #include <string>
-#include "../GL/glew.h"
-#include "../HMesh/Manifold.h"
-#include "../CGLA/Vec3d.h"
-#include "../Geometry/Graph.h"
-#include "../Geometry/build_bbtree.h"
-#include "../GLGraphics/draw.h"
-#include "../GLGraphics/Console.h"
-#include "../GLGraphics/GLViewController.h"
-#include "../GLGraphics/ManifoldRenderer.h"
-//#include "../HMesh/harmonics.h"
+#include <GEL/GL/glew.h>
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/Geometry/Graph.h>
+#include <GEL/Geometry/build_bbtree.h>
+#include <GEL/GLGraphics/draw.h>
+#include <GEL/GLGraphics/Console.h>
+#include <GEL/GLGraphics/GLViewController.h>
+#include <GEL/GLGraphics/ManifoldRenderer.h>
+//#include <GEL/HMesh/harmonics.h>
 
 namespace GLGraphics {
 

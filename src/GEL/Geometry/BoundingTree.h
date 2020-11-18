@@ -12,10 +12,10 @@
 #ifndef __GEOMETRY_BOUNDINGTREE_H
 #define __GEOMETRY_BOUNDINGTREE_H
 
-#include "BoundingNode.h"
-#include "BoundingLNode.h"
-#include "BoundingINode.h"
-#include "Ray.h"
+#include <GEL/Geometry/BoundingNode.h>
+#include <GEL/Geometry/BoundingLNode.h>
+#include <GEL/Geometry/BoundingINode.h>
+#include <GEL/Geometry/Ray.h>
 
 namespace Geometry
 {

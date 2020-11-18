@@ -4,10 +4,10 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "../CGLA/Vec3d.h"
-#include "../Geometry/TriMesh.h"
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/Geometry/TriMesh.h>
 
-#include "BSPTree.h"
+#include <GEL/Geometry/BSPTree.h>
 
 using namespace std;
 using namespace CGLA;

@@ -15,9 +15,9 @@
 #include <string>
 #include <sstream>
 #include <vector>
-#include "../CGLA/Vec4f.h"
-#include "../CGLA/Vec3f.h"
-#include "../CGLA/Vec2f.h"
+#include <GEL/CGLA/Vec4f.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec2f.h>
 
 namespace Util {
 	std::string floatToString(float value);

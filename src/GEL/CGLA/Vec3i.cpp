@@ -4,10 +4,10 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "Vec3i.h"
-#include "Vec3f.h"
-#include "Vec3d.h"
-#include "Vec3uc.h"
+#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec3uc.h>
 
 namespace CGLA {
 

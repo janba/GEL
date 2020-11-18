@@ -6,11 +6,11 @@
 
 #include <iostream>
 #include <algorithm>
-#include "Vec2f.h"
-#include "Vec2d.h"
-#include "Mat2x2f.h"
-#include "Mat2x2d.h"
-#include "CGLA-util.h"
+#include <GEL/CGLA/Vec2f.h>
+#include <GEL/CGLA/Vec2d.h>
+#include <GEL/CGLA/Mat2x2f.h>
+#include <GEL/CGLA/Mat2x2d.h>
+#include <GEL/CGLA/CGLA-util.h>
 
 namespace CGLA {
   using namespace std;

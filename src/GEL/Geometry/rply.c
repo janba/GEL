@@ -16,7 +16,7 @@
 #include <stdlib.h>
 #include <stddef.h>
 
-#include "rply.h"
+#include <GEL/Geometry/rply.h>
 
 /* ----------------------------------------------------------------------
  * Constants 

@@ -13,7 +13,7 @@
 #define __HMESH_OBJLOAD__H__
 
 #include <string>
-#include "Manifold.h"
+#include <GEL/HMesh/Manifold.h>
 
 namespace HMesh
 {

@@ -13,8 +13,8 @@
 #define __GEOMETRY_GEOMETRY_INDEXED_FACE_SET_H__
 
 #include <vector>
-#include "../CGLA/Vec3f.h"
-#include "../CGLA/Vec3i.h"
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec3i.h>
 
 namespace Geometry
 {

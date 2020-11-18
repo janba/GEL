@@ -12,9 +12,9 @@
 #ifndef __GEOMETRY_TESSELATE_H
 #define __GEOMETRY_TESSELATE_H
 
-#include "../CGLA/Vec3f.h"
-#include "../Util/Grid2D.h"
-#include "IndexedFaceSet.h"
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/Util/Grid2D.h>
+#include <GEL/Geometry/IndexedFaceSet.h>
 
 namespace Geometry
 {

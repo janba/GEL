@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "Mat3x3f.h"
+#include <GEL/CGLA/Mat3x3f.h>
 
 namespace CGLA {
 	Mat3x3f rotation_Mat3x3f(Axis axis, float angle)

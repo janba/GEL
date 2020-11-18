@@ -13,8 +13,8 @@
 #define __GEOMETRY_VOXELGRID_LOAD_RAW_H__
 
 #include <string>
-#include "../CGLA/Mat4x4f.h"
-#include "RGrid.h"
+#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/Geometry/RGrid.h>
 
 namespace Geometry
 {

@@ -13,8 +13,8 @@
 
 #include <cstddef>
 #include <iterator>
-#include "ItemVector.h"
-#include "ConnectivityKernel.h"
+#include <GEL/HMesh/ItemVector.h>
+#include <GEL/HMesh/ConnectivityKernel.h>
 
 namespace HMesh
 {

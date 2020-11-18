@@ -735,7 +735,7 @@ def triangulate(m, clip_ear=True):
 try:
     lib_py_gel.GLManifoldViewer_new.restype = ct.c_void_p
     lib_py_gel.GLManifoldViewer_delete.argtypes = (ct.c_void_p,)
-    lib_py_gel.GLManifoldViewer_display.argtypes = (ct.c_void_p,ct.c_void_p,ct.c_char,ct.c_bool, ct.POINTER(ct.c_float*3), ct.POINTER(ct.c_double),ct.c_bool,ct.c_bool)
+    lib_py_gel.GLManifoldViewer_display.argtypes = (ct.c_void_p,ct.c_void_p,ct.c_void_p,ct.c_char,ct.c_bool, ct.POINTER(ct.c_float*3), ct.POINTER(ct.c_double),ct.c_bool,ct.c_bool)
     lib_py_gel.GLManifoldViewer_get_annotation_points.restype = ct.c_size_t
     lib_py_gel.GLManifoldViewer_get_annotation_points.argtypes = (ct.c_void_p, ct.POINTER(ct.POINTER(ct.c_double)))
     lib_py_gel.GLManifoldViewer_set_annotation_points.argtypes = (ct.c_void_p, ct.c_int, ct.POINTER(ct.c_double))
@@ -751,7 +751,7 @@ try:
             self.obj = lib_py_gel.GLManifoldViewer_new()
         def __del__(self):
             lib_py_gel.GLManifoldViewer_delete(self.obj)
-        def display(self, m, mode='w', smooth=True, bg_col=[0.3,0.3,0.3], data=None, reset_view=False, once=False):
+        def display(self, m=None, g=None, mode='w', smooth=True, bg_col=[0.3,0.3,0.3], data=None, reset_view=False, once=False):
             """ Display a mesh
 
             Args:
@@ -788,7 +788,14 @@ try:
             data_a = data_ct.data_as(ct.POINTER(ct.c_double))
             bg_col_ct = np.array(bg_col,dtype=ct.c_float).ctypes
             bg_col_a = bg_col_ct.data_as(ct.POINTER(ct.c_float*3))
-            lib_py_gel.GLManifoldViewer_display(self.obj,m.obj,ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
+            if m is not None and g is not None:
+                lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, g.obj, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
+            elif m is not None:
+                lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, 0, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
+            elif g is not None:
+                print("g is", g.obj, "but m is",m)
+                lib_py_gel.GLManifoldViewer_display(self.obj, 0, g.obj, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
+
         def annotation_points(self):
             """ Retrieve a vector of annotation points. This vector is not a copy,
             so any changes made to the points will be reflected in the viewer. """
@@ -848,10 +855,14 @@ lib_py_gel.Graph_copy.argtypes = (ct.c_void_p,)
 lib_py_gel.Graph_delete.argtypes = (ct.c_void_p,)
 lib_py_gel.Graph_clear.argtypes = (ct.c_void_p,)
 lib_py_gel.Graph_cleanup.argtypes = (ct.c_void_p,)
+lib_py_gel.Graph_nodes.argtypes = (ct.c_void_p, ct.c_void_p)
+lib_py_gel.Graph_nodes.restype = ct.c_size_t
+lib_py_gel.Graph_neighbors.restype = ct.c_size_t
+lib_py_gel.Graph_neighbors.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_void_p, ct.c_char)
 lib_py_gel.Graph_positions.argtypes = (ct.c_void_p,ct.POINTER(ct.POINTER(ct.c_double)))
 lib_py_gel.Graph_positions.restype = ct.c_size_t
 lib_py_gel.Graph_average_edge_length.argtypes = (ct.c_void_p,)
-lib_py_gel.Graph_add_node.argtypes = (ct.c_void_p, ct.POINTER(ct.c_double))
+lib_py_gel.Graph_add_node.argtypes = (ct.c_void_p, np.ctypeslib.ndpointer(ct.c_double))
 lib_py_gel.Graph_add_node.restype = ct.c_size_t
 lib_py_gel.Graph_remove_node.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.Graph_node_in_use.argtypes = (ct.c_void_p, ct.c_size_t)
@@ -878,6 +889,17 @@ class Graph:
         """ Cleanup reorders the graph nodes such that there is no
         gap in the index range. """
         lib_py_gel.Graph_cleanup(self.obj)
+    def nodes(self):
+        """ Get all nodes as an iterable range """
+        nodes = IntVector()
+        lib_py_gel.Graph_nodes(self.obj, nodes.obj)
+        return nodes
+    def neighbors(self, n, mode='n'):
+        """ Get the neighbors of node n. The final argument is either 'n' or 'e'. If it is 'n'
+        the function returns all neighboring nodes, and if it is 'e' it returns incident edges."""
+        nbors = IntVector()
+        lib_py_gel.Graph_neighbors(self.obj, n, nbors.obj, ct.c_char(mode.encode('ascii')))
+        return nbors
     def positions(self):
         """ Get the vertex positions by reference. You can assign to the
         positions. """
@@ -906,8 +928,49 @@ class Graph:
         the new edge is returned. """
         return lib_py_gel.Graph_connect_nodes(self.obj, n0, n1)
     def disconnect_nodes(self, n0, n1):
-        """ Disconect
+        """ Disconect nodes n0 and n1"""
         lib_py_gel.Graph_disconnect_nodes(self.obj, n0, n1)
     def merge_nodes(self, n0, n1, avg_pos):
+        """ Merge nodes n0 and n1. avg_pos indicates if you want the position to be the average. """
         lib_py_gel.Graph_merge_nodes(self.obj, n0, n1, avg_pos)
         
+
+lib_py_gel.graph_load.argtypes = (ct.c_void_p, ct.c_char_p)
+lib_py_gel.graph_load.restype = ct.c_void_p
+def graph_load(fn):
+    s = ct.c_char_p(fn.encode('utf-8'))
+    g = Graph();
+    if lib_py_gel.graph_load(g.obj, s):
+        return g
+    return None
+
+lib_py_gel.graph_save.argtypes = (ct.c_void_p, ct.c_char_p)
+lib_py_gel.graph_save.restype = ct.c_bool
+def graph_save(fn, g):
+    s = ct.c_char_p(fn.encode('utf-8'))
+    return lib_py_gel.graph_save(g.obj, s)
+
+lib_py_gel.graph_to_mesh_cyl.argtypes = (ct.c_void_p, ct.c_float)
+lib_py_gel.graph_to_mesh_cyl.restype = ct.c_void_p
+def graph_to_mesh_cyl(g, fudge):
+    m = Manifold()
+    lib_py_gel.graph_to_mesh_cyl(g.obj, m.obj, fudge)
+    return m
+
+lib_py_gel.graph_smooth.argtypes = (ct.c_void_p, ct.c_int, ct.c_float)
+def graph_smooth(g, iter, alpha):
+    lib_py_gel.graph_smooth(g.obj, iter, alpha)
+
+lib_py_gel.graph_edge_contract.argtypes = (ct.c_void_p, ct.c_double)
+def graph_edge_contract(g, dist_thresh):
+    lib_py_gel.graph_edge_contract(g.obj, dist_thresh)
+
+lib_py_gel.graph_prune.argtypes = (ct.c_void_p,)
+def graph_prune(g):
+    lib_py_gel.graph_prune(g.obj)
+    
+lib_py_gel.graph_LS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_bool)
+def graph_LS_skeleton(g, sampling=True):
+    skel = Graph()
+    lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, sampling)
+    return skel

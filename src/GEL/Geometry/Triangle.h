@@ -12,9 +12,9 @@
 #ifndef __GEOMETRY_TRIANGLE_H
 #define __GEOMETRY_TRIANGLE_H
 
-#include "../CGLA/Vec2f.h"
-#include "../CGLA/Vec3f.h"
-#include "../CGLA/Mat3x3f.h"
+#include <GEL/CGLA/Vec2f.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Mat3x3f.h>
 
 namespace Geometry
 {

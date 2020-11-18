@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "ConnectivityKernel.h"
+#include <GEL/HMesh/ConnectivityKernel.h>
 
 namespace HMesh
 {

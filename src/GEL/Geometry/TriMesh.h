@@ -12,9 +12,9 @@
 #ifndef __GEOMETRY_TRIMESH_H__
 #define __GEOMETRY_TRIMESH_H__
 
-#include "../CGLA/Mat4x4f.h"
-#include "IndexedFaceSet.h"
-#include "Material.h"
+#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/Geometry/IndexedFaceSet.h>
+#include <GEL/Geometry/Material.h>
 
 namespace Geometry
 {

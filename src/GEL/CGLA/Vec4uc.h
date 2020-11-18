@@ -12,7 +12,7 @@
 #ifndef __CGLA_VEC4UC_H__
 #define __CGLA_VEC4UC_H__
 
-#include "Vec4f.h"
+#include <GEL/CGLA/Vec4f.h>
 
 namespace CGLA {
 	typedef unsigned char UChar;

@@ -9,9 +9,9 @@
 #ifndef __PointReconstruction__Implicit__
 #define __PointReconstruction__Implicit__
 
-#include "../CGLA/Vec3d.h"
-#include "RGrid.h"
-#include "XForm.h"
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/Geometry/RGrid.h>
+#include <GEL/Geometry/XForm.h>
 
 namespace Geometry
 {

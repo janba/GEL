@@ -5,8 +5,8 @@
  * ----------------------------------------------------------------------- */
 
 #include <iostream>
-#include "../GLGraphics/glsl_shader.h"
-#include "SinglePassWireframeRenderer.h"
+#include <GEL/GLGraphics/glsl_shader.h>
+#include <GEL/GLGraphics/SinglePassWireframeRenderer.h>
 
 using namespace CGLA;
 using namespace std;

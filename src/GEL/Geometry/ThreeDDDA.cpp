@@ -7,8 +7,8 @@
 #include <cmath>
 #include <stdlib.h>
 #include <iostream>
-#include "../CGLA/Vec3d.h"
-#include "ThreeDDDA.h"
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/Geometry/ThreeDDDA.h>
 
 using namespace std;
 using namespace CGLA;

@@ -11,8 +11,8 @@
 #ifndef __CGLA_VEC4D_H__
 #define __CGLA_VEC4D_H__
 
-#include "Vec3d.h"
-#include "ArithVec4Float.h"
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/ArithVec4Float.h>
 
 namespace CGLA {
 

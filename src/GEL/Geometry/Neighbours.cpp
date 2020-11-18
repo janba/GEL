@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "Neighbours.h"
+#include <GEL/Geometry/Neighbours.h>
 
 namespace Geometry
 {

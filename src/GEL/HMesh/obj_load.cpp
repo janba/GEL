@@ -6,10 +6,10 @@
 
 #include <sstream>
 #include <fstream>
-#include "load.h"
-#include "obj_load.h"
-#include "Manifold.h"
-#include "cleanup.h"
+#include <GEL/HMesh/load.h>
+#include <GEL/HMesh/obj_load.h>
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/cleanup.h>
 
 using namespace std;
 using namespace CGLA;

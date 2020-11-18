@@ -11,12 +11,12 @@
 #ifndef __MESHEDIT_RENDERER_H__
 #define __MESHEDIT_RENDERER_H__
 
-#include "../CGLA/Vec2d.h"
-#include "../GL/glew.h"
-#include "../GLGraphics/draw.h"
-#include "../GLGraphics/Console.h"
-#include "../GLGraphics/IDBufferWireFrameRenderer.h"
-#include "../CGLA/Vec4d.h"
+#include <GEL/CGLA/Vec2d.h>
+#include <GEL/GL/glew.h>
+#include <GEL/GLGraphics/draw.h>
+#include <GEL/GLGraphics/Console.h>
+#include <GEL/GLGraphics/IDBufferWireFrameRenderer.h>
+#include <GEL/CGLA/Vec4d.h>
 
 namespace HMesh
 {

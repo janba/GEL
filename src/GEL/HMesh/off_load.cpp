@@ -4,11 +4,11 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "off_load.h"
-#include "load.h"
+#include <GEL/HMesh/off_load.h>
+#include <GEL/HMesh/load.h>
 #include <fstream>
 
-#include "Manifold.h"
+#include <GEL/HMesh/Manifold.h>
 
 using namespace std;
 using namespace CGLA;

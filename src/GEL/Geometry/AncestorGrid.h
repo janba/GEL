@@ -12,7 +12,7 @@
 #ifndef __GEOMETRY_ANCESTORGRID_H
 #define __GEOMETRY_ANCESTORGRID_H
 
-#include "../CGLA/Vec3i.h"
+#include <GEL/CGLA/Vec3i.h>
 
 namespace Geometry 
 {

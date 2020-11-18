@@ -5,18 +5,18 @@
  * ----------------------------------------------------------------------- */
 
 #include <thread>
-#include "smooth.h"
+#include <GEL/HMesh/smooth.h>
 
 #include <future>
 #include <vector>
 #include <algorithm>
-#include "../CGLA/Mat3x3d.h"
-#include "../CGLA/Vec3d.h"
-#include "../CGLA/Quatd.h"
-#include "../Util/Timer.h"
+#include <GEL/CGLA/Mat3x3d.h>
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Quatd.h>
+#include <GEL/Util/Timer.h>
 
-#include "Manifold.h"
-#include "AttributeVector.h"
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/AttributeVector.h>
 
 namespace HMesh
 {

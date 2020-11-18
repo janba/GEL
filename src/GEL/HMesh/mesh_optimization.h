@@ -13,9 +13,9 @@
 #define __HMESH_MESH_OPTIMIZATION_H
 
 #include <algorithm>
-#include "Manifold.h"
-#include "../CGLA/Vec3d.h"
-#include "../Geometry/Implicit.h"
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/Geometry/Implicit.h>
 
 namespace HMesh
 {

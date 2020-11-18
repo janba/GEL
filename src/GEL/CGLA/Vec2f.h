@@ -11,8 +11,8 @@
 #ifndef __CGLA_VEC2F_H__
 #define __CGLA_VEC2F_H__
 
-#include "ArithVec2Float.h"
-#include "Vec2i.h"
+#include <GEL/CGLA/ArithVec2Float.h>
+#include <GEL/CGLA/Vec2i.h>
 
 
 namespace CGLA {

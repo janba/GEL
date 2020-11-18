@@ -6,11 +6,11 @@
 //  Copyright (c) 2013 J. Andreas Bærentzen. All rights reserved.
 //
 
-#include "../Geometry/Implicit.h"
-#include "polygonize.h"
-#include "smooth.h"
-#include "cleanup.h"
-#include "triangulate.h"
+#include <GEL/Geometry/Implicit.h>
+#include <GEL/HMesh/polygonize.h>
+#include <GEL/HMesh/smooth.h>
+#include <GEL/HMesh/cleanup.h>
+#include <GEL/HMesh/triangulate.h>
 
 using namespace std;
 using namespace CGLA;

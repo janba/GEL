@@ -241,6 +241,12 @@
 		E1246E0D242CF7F500653E54 /* bounding_sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */; };
 		E1246E0E242D0A5000653E54 /* bounding_sphere.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1246E0C242CF7F500653E54 /* bounding_sphere.h */; };
 		E166EB952544BE09008DE5C0 /* Circulators.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E166EB932544B074008DE5C0 /* Circulators.h */; };
+		E1FDAF9725650C10007114CD /* graph_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1FDAF9125650C10007114CD /* graph_util.cpp */; };
+		E1FDAF9825650C10007114CD /* graph_skeletonize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1FDAF9325650C10007114CD /* graph_skeletonize.cpp */; };
+		E1FDAF9925650C10007114CD /* graph_io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1FDAF9525650C10007114CD /* graph_io.cpp */; };
+		E1FDAFA5256532D8007114CD /* graph_io.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1FDAF9625650C10007114CD /* graph_io.h */; };
+		E1FDAFA6256532D8007114CD /* graph_skeletonize.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1FDAF9425650C10007114CD /* graph_skeletonize.h */; };
+		E1FDAFA7256532D8007114CD /* graph_util.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1FDAF9225650C10007114CD /* graph_util.h */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -306,6 +312,9 @@
 			dstPath = ../Headers/Geometry;
 			dstSubfolderSpec = 7;
 			files = (
+				E1FDAFA5256532D8007114CD /* graph_io.h in CopyFiles */,
+				E1FDAFA6256532D8007114CD /* graph_skeletonize.h in CopyFiles */,
+				E1FDAFA7256532D8007114CD /* graph_util.h in CopyFiles */,
 				E1246E0E242D0A5000653E54 /* bounding_sphere.h in CopyFiles */,
 				BD4ACED8214A76B2004EEC2F /* jrs_triangle.h in CopyFiles */,
 				0D1028351C74CC9E00250431 /* Graph.h in CopyFiles */,
@@ -689,6 +698,12 @@
 		E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bounding_sphere.cpp; sourceTree = "<group>"; };
 		E1246E0C242CF7F500653E54 /* bounding_sphere.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bounding_sphere.h; sourceTree = "<group>"; };
 		E166EB932544B074008DE5C0 /* Circulators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Circulators.h; sourceTree = "<group>"; };
+		E1FDAF9125650C10007114CD /* graph_util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = graph_util.cpp; sourceTree = "<group>"; };
+		E1FDAF9225650C10007114CD /* graph_util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph_util.h; sourceTree = "<group>"; };
+		E1FDAF9325650C10007114CD /* graph_skeletonize.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = graph_skeletonize.cpp; sourceTree = "<group>"; };
+		E1FDAF9425650C10007114CD /* graph_skeletonize.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph_skeletonize.h; sourceTree = "<group>"; };
+		E1FDAF9525650C10007114CD /* graph_io.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = graph_io.cpp; sourceTree = "<group>"; };
+		E1FDAF9625650C10007114CD /* graph_io.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph_io.h; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -731,35 +746,38 @@
 		0D52EAAC197D18C1002C7150 /* Geometry */ = {
 			isa = PBXGroup;
 			children = (
-				BD4ACED1214A5C88004EEC2F /* jrs_triangle.c */,
-				0D52EAD9197D18C1002C7150 /* rply.c */,
+				0D52EBB2197D1901002C7150 /* header */,
 				0D52EAAD197D18C1002C7150 /* AABox.cpp */,
 				0D52EAB0197D18C1002C7150 /* BBox.cpp */,
+				E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */,
 				0D52EAB2197D18C1002C7150 /* BoundingINode.cpp */,
 				0D52EAB4197D18C1002C7150 /* BoundingLNode.cpp */,
 				0D52EAB6197D18C1002C7150 /* BoundingNode.cpp */,
 				0D52EAB8197D18C1002C7150 /* BoundingTree.cpp */,
-				E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */,
 				0D52EABA197D18C1002C7150 /* BSPTree.cpp */,
 				0D52EABC197D18C1002C7150 /* build_bbtree.cpp */,
 				0D52EABF197D18C1002C7150 /* geo_load.cpp */,
 				0D52EAC0197D18C1002C7150 /* geo_obj_load.cpp */,
 				0D52EAC1197D18C1002C7150 /* GradientFilter.cpp */,
+				E1FDAF9525650C10007114CD /* graph_io.cpp */,
+				E1FDAF9325650C10007114CD /* graph_skeletonize.cpp */,
+				E1FDAF9125650C10007114CD /* graph_util.cpp */,
 				0D6583D91C1871DF005C966A /* Graph.cpp */,
+				0D52EAC5197D18C1002C7150 /* Implicit.cpp */,
+				BD4ACED1214A5C88004EEC2F /* jrs_triangle.c */,
 				0D52EACA197D18C1002C7150 /* load_raw.cpp */,
 				0D52EACD197D18C1002C7150 /* Neighbours.cpp */,
 				0D52EAD0197D18C1002C7150 /* OBox.cpp */,
 				0D52EAD3197D18C1002C7150 /* Polygonizer.cpp */,
 				0D52EAD5197D18C1002C7150 /* QEM.cpp */,
-				0D52EAC5197D18C1002C7150 /* Implicit.cpp */,
 				0D52EADB197D18C1002C7150 /* rply_load.cpp */,
+				0D52EAD9197D18C1002C7150 /* rply.c */,
 				0D52EADD197D18C1002C7150 /* tessellate.cpp */,
 				0D52EADF197D18C1002C7150 /* ThreeDDDA.cpp */,
 				0D52EAE1197D18C1002C7150 /* Triangle.cpp */,
 				0D52EAE3197D18C1002C7150 /* TrilinFilter.cpp */,
 				0D52EAE5197D18C1002C7150 /* TriMesh.cpp */,
 				0D52EAE7197D18C1002C7150 /* verification.cpp */,
-				0D52EBB2197D1901002C7150 /* header */,
 			);
 			name = Geometry;
 			path = ../../src/GEL/Geometry;
@@ -768,8 +786,8 @@
 		0D52EAEA197D18C1002C7150 /* GL */ = {
 			isa = PBXGroup;
 			children = (
-				0D52EAEB197D18C1002C7150 /* glew.c */,
 				0D52EBB3197D190D002C7150 /* header */,
+				0D52EAEB197D18C1002C7150 /* glew.c */,
 			);
 			name = GL;
 			path = ../../src/GEL/GL;
@@ -778,24 +796,24 @@
 		0D52EAEF197D18C1002C7150 /* GLGraphics */ = {
 			isa = PBXGroup;
 			children = (
-				0D52EAFA197D18C1002C7150 /* image_DXT.c */,
-				0D52EAFC197D18C1002C7150 /* image_helper.c */,
-				0D52EB0A197D18C1002C7150 /* SOIL.c */,
-				0D52EB0C197D18C1002C7150 /* stb_image.c */,
-				0D52EB0E197D18C1002C7150 /* stb_image_write.c */,
+				0D52EBB4197D191F002C7150 /* header */,
 				0D52EAF0197D18C1002C7150 /* Console.cpp */,
 				0D52EAF2197D18C1002C7150 /* draw.cpp */,
 				0D52EAF4197D18C1002C7150 /* glsl_shader.cpp */,
 				0D52EAF6197D18C1002C7150 /* GLViewController.cpp */,
 				0D52EAF8197D18C1002C7150 /* IDBufferWireFrameRenderer.cpp */,
+				0D52EAFA197D18C1002C7150 /* image_DXT.c */,
+				0D52EAFC197D18C1002C7150 /* image_helper.c */,
 				0D52EAFE197D18C1002C7150 /* ManifoldRenderer.cpp */,
 				0D52EB00197D18C1002C7150 /* MeshEditor.cpp */,
 				0D52EB02197D18C1002C7150 /* QuatTrackBall.cpp */,
 				0D52EB04197D18C1002C7150 /* ShadowBuffer.cpp */,
 				0D52EB06197D18C1002C7150 /* SimpleTrackBall.cpp */,
 				0D52EB08197D18C1002C7150 /* SinglePassWireframeRenderer.cpp */,
+				0D52EB0A197D18C1002C7150 /* SOIL.c */,
+				0D52EB0E197D18C1002C7150 /* stb_image_write.c */,
+				0D52EB0C197D18C1002C7150 /* stb_image.c */,
 				0D52EB12197D18C1002C7150 /* VisObj.cpp */,
-				0D52EBB4197D191F002C7150 /* header */,
 			);
 			name = GLGraphics;
 			path = ../../src/GEL/GLGraphics;
@@ -804,11 +822,13 @@
 		0D52EB14197D18C1002C7150 /* HMesh */ = {
 			isa = PBXGroup;
 			children = (
+				0D52EBB5197D1930002C7150 /* header */,
 				0D52EB16197D18C1002C7150 /* cleanup.cpp */,
 				0D52EB18197D18C1002C7150 /* ConnectivityKernel.cpp */,
 				0D52EB1A197D18C1002C7150 /* curvature.cpp */,
 				BD4ACED4214A6010004EEC2F /* Delaunay_triangulate.cpp */,
 				0D52EB1C197D18C1002C7150 /* dual.cpp */,
+				0DA7DC5E1CEBA687009FD206 /* graph_algorithm.cpp */,
 				0D52EB25197D18C1002C7150 /* load.cpp */,
 				0D52EB27197D18C1002C7150 /* Manifold.cpp */,
 				0D52EB29197D18C1002C7150 /* mesh_optimization.cpp */,
@@ -825,8 +845,6 @@
 				0D52EB3F197D18C1002C7150 /* triangulate.cpp */,
 				0D52EB42197D18C1002C7150 /* x3d_load.cpp */,
 				0D52EB44197D18C1002C7150 /* x3d_save.cpp */,
-				0DA7DC5E1CEBA687009FD206 /* graph_algorithm.cpp */,
-				0D52EBB5197D1930002C7150 /* header */,
 			);
 			name = HMesh;
 			path = ../../src/GEL/HMesh;
@@ -835,11 +853,11 @@
 		0D52EB4D197D18C1002C7150 /* Util */ = {
 			isa = PBXGroup;
 			children = (
+				0D52EBB7197D196D002C7150 /* header */,
 				0D52EB53197D18C1002C7150 /* Parse.cpp */,
+				BDAC7CAA201885F600197925 /* Serialization.h */,
 				0D52EB56197D18C1002C7150 /* string_utils.cpp */,
 				0D52EB59197D18C1002C7150 /* XmlParser.cpp */,
-				0D52EBB7197D196D002C7150 /* header */,
-				BDAC7CAA201885F600197925 /* Serialization.h */,
 			);
 			name = Util;
 			path = ../../src/GEL/Util;
@@ -848,7 +866,6 @@
 		0D52EBB1197D18D4002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
-				0D57306D1ABB570900F33E40 /* CGLA.h */,
 				0D52EA6F197D18C1002C7150 /* ArithMatFloat.h */,
 				0D52EA70197D18C1002C7150 /* ArithQuat.h */,
 				0D52EA71197D18C1002C7150 /* ArithSqMat2x2Float.h */,
@@ -865,8 +882,10 @@
 				0D52EA80197D18C1002C7150 /* ArithVecInt.h */,
 				0D52EA81197D18C1002C7150 /* BitMask.h */,
 				0D52EA82197D18C1002C7150 /* CGLA-util.h */,
+				0D57306D1ABB570900F33E40 /* CGLA.h */,
 				0D52EA84197D18C1002C7150 /* eigensolution.h */,
 				0D52EA85197D18C1002C7150 /* ExceptionStandard.h */,
+				0DD53BE91ABB69C50074B704 /* ls_solve.h */,
 				0D52EA87197D18C1002C7150 /* Mat2x2d.h */,
 				0D52EA88197D18C1002C7150 /* Mat2x2f.h */,
 				0D52EA89197D18C1002C7150 /* Mat2x3d.h */,
@@ -894,7 +913,6 @@
 				0D52EAA9197D18C1002C7150 /* Vec4f.h */,
 				0D52EAAA197D18C1002C7150 /* Vec4i.h */,
 				0D52EAAB197D18C1002C7150 /* Vec4uc.h */,
-				0DD53BE91ABB69C50074B704 /* ls_solve.h */,
 			);
 			name = header;
 			sourceTree = "<group>";
@@ -902,11 +920,10 @@
 		0D52EBB2197D1901002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
-				E1246E0C242CF7F500653E54 /* bounding_sphere.h */,
-				BD4ACED3214A5F03004EEC2F /* jrs_triangle.h */,
 				0D52EAAE197D18C1002C7150 /* AABox.h */,
 				0D52EAAF197D18C1002C7150 /* AncestorGrid.h */,
 				0D52EAB1197D18C1002C7150 /* BBox.h */,
+				E1246E0C242CF7F500653E54 /* bounding_sphere.h */,
 				0D52EAB3197D18C1002C7150 /* BoundingINode.h */,
 				0D52EAB5197D18C1002C7150 /* BoundingLNode.h */,
 				0D52EAB7197D18C1002C7150 /* BoundingNode.h */,
@@ -915,13 +932,18 @@
 				0D52EABD197D18C1002C7150 /* build_bbtree.h */,
 				0D52EABE197D18C1002C7150 /* Cell.h */,
 				0D52EAC2197D18C1002C7150 /* GradientFilter.h */,
+				E1FDAF9625650C10007114CD /* graph_io.h */,
+				E1FDAF9425650C10007114CD /* graph_skeletonize.h */,
+				E1FDAF9225650C10007114CD /* graph_util.h */,
+				0D1028331C74A95200250431 /* Graph.h */,
 				0D52EAC3197D18C1002C7150 /* GridAlgorithm.h */,
 				0D52EAC4197D18C1002C7150 /* HGrid.h */,
 				0D52EAC6197D18C1002C7150 /* Implicit.h */,
 				0D52EAC7197D18C1002C7150 /* IndexedFaceSet.h */,
+				BD4ACED3214A5F03004EEC2F /* jrs_triangle.h */,
 				0D52EAC8197D18C1002C7150 /* KDTree.h */,
-				0D52EAC9197D18C1002C7150 /* load.h */,
 				0D52EACB197D18C1002C7150 /* load_raw.h */,
+				0D52EAC9197D18C1002C7150 /* load.h */,
 				0D52EACC197D18C1002C7150 /* Material.h */,
 				0D52EACE197D18C1002C7150 /* Neighbours.h */,
 				0D52EACF197D18C1002C7150 /* obj_load.h */,
@@ -940,7 +962,6 @@
 				0D52EAE6197D18C1002C7150 /* TriMesh.h */,
 				0D52EAE8197D18C1002C7150 /* verification.h */,
 				0D52EAE9197D18C1002C7150 /* XForm.h */,
-				0D1028331C74A95200250431 /* Graph.h */,
 			);
 			name = header;
 			sourceTree = "<group>";
@@ -984,14 +1005,15 @@
 		0D52EBB5197D1930002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
-				BD4ACED7214A605E004EEC2F /* Delaunay_triangulate.h */,
-				0DA7DC5F1CEBA687009FD206 /* graph_algorithm.h */,
-				0D2378ED1ABB593200874F06 /* HMesh.h */,
 				0D52EB15197D18C1002C7150 /* AttributeVector.h */,
+				E166EB932544B074008DE5C0 /* Circulators.h */,
 				0D52EB17197D18C1002C7150 /* cleanup.h */,
 				0D52EB19197D18C1002C7150 /* ConnectivityKernel.h */,
 				0D52EB1B197D18C1002C7150 /* curvature.h */,
+				BD4ACED7214A605E004EEC2F /* Delaunay_triangulate.h */,
 				0D52EB1D197D18C1002C7150 /* dual.h */,
+				0DA7DC5F1CEBA687009FD206 /* graph_algorithm.h */,
+				0D2378ED1ABB593200874F06 /* HMesh.h */,
 				0D52EB22197D18C1002C7150 /* ItemID.h */,
 				0D52EB23197D18C1002C7150 /* ItemVector.h */,
 				0D52EB24197D18C1002C7150 /* Iterators.h */,
@@ -1012,7 +1034,6 @@
 				0D52EB41197D18C1002C7150 /* Walker.h */,
 				0D52EB43197D18C1002C7150 /* x3d_load.h */,
 				0D52EB45197D18C1002C7150 /* x3d_save.h */,
-				E166EB932544B074008DE5C0 /* Circulators.h */,
 			);
 			name = header;
 			sourceTree = "<group>";
@@ -1021,13 +1042,13 @@
 			isa = PBXGroup;
 			children = (
 				0D52EB4E197D18C1002C7150 /* ArgExtracter.h */,
+				0D37DF931C85905A00CD0A07 /* AttribVec.h */,
 				0D52EB4F197D18C1002C7150 /* Grid2D.h */,
 				0D52EB54197D18C1002C7150 /* Parse.h */,
+				0D1028341C74B10600250431 /* Range.h */,
 				0D52EB57197D18C1002C7150 /* string_utils.h */,
 				0D52EB58197D18C1002C7150 /* Timer.h */,
 				0D52EB5A197D18C1002C7150 /* XmlParser.h */,
-				0D1028341C74B10600250431 /* Range.h */,
-				0D37DF931C85905A00CD0A07 /* AttribVec.h */,
 			);
 			name = header;
 			sourceTree = "<group>";
@@ -1201,6 +1222,7 @@
 				0D52EB9B197D18C1002C7150 /* load.cpp in Sources */,
 				0D52EB6B197D18C1002C7150 /* BBox.cpp in Sources */,
 				0D52EB84197D18C1002C7150 /* Console.cpp in Sources */,
+				E1FDAF9925650C10007114CD /* graph_io.cpp in Sources */,
 				0D52EB80197D18C1002C7150 /* TrilinFilter.cpp in Sources */,
 				0D52EBA0197D18C1002C7150 /* off_load.cpp in Sources */,
 				0D52EB81197D18C1002C7150 /* TriMesh.cpp in Sources */,
@@ -1208,6 +1230,7 @@
 				0D52EB76197D18C1002C7150 /* load_raw.cpp in Sources */,
 				0D6583DB1C1871DF005C966A /* Graph.cpp in Sources */,
 				0D52EB94197D18C1002C7150 /* VisObj.cpp in Sources */,
+				E1FDAF9825650C10007114CD /* graph_skeletonize.cpp in Sources */,
 				BD4ACED6214A6010004EEC2F /* Delaunay_triangulate.cpp in Sources */,
 				0D52EB9D197D18C1002C7150 /* mesh_optimization.cpp in Sources */,
 				BD4ACED2214A5C88004EEC2F /* jrs_triangle.c in Sources */,
@@ -1246,6 +1269,7 @@
 				0D52EBAA197D18C1002C7150 /* x3d_save.cpp in Sources */,
 				0D52EB91197D18C1002C7150 /* SOIL.c in Sources */,
 				0D52EB83197D18C1002C7150 /* glew.c in Sources */,
+				E1FDAF9725650C10007114CD /* graph_util.cpp in Sources */,
 				0D52EB66197D18C1002C7150 /* TableTrigonometry.cpp in Sources */,
 				0D52EB63197D18C1002C7150 /* Mat4x4d.cpp in Sources */,
 				0D52EB6D197D18C1002C7150 /* BoundingLNode.cpp in Sources */,
@@ -1396,6 +1420,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = "";
 				FRAMEWORK_VERSION = A;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "GEL/GEL-Prefix.pch";
@@ -1404,8 +1429,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					../src/GEL,
+					../src,
 				);
 				INFOPLIST_FILE = "GEL/GEL-Info.plist";
 				LD_DYLIB_INSTALL_NAME = "";
@@ -1422,6 +1446,7 @@
 				COMBINE_HIDPI_IMAGES = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
+				FRAMEWORK_SEARCH_PATHS = "";
 				FRAMEWORK_VERSION = A;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "GEL/GEL-Prefix.pch";
@@ -1430,8 +1455,7 @@
 				GCC_WARN_UNINITIALIZED_AUTOS = YES;
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
-					/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/include,
-					../src/GEL,
+					../src,
 				);
 				INFOPLIST_FILE = "GEL/GEL-Info.plist";
 				LD_DYLIB_INSTALL_NAME = "";

@@ -12,9 +12,9 @@
 #include <sstream>
 #include <mutex>
 #include <string>
-#include "../GLGraphics/Console.h"
-#include "../GLGraphics/VisObj.h"
-#include "../GLGraphics/GLViewController.h"
+#include <GEL/GLGraphics/Console.h>
+#include <GEL/GLGraphics/VisObj.h>
+#include <GEL/GLGraphics/GLViewController.h>
 
 
 namespace GLGraphics {

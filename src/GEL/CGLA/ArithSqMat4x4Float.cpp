@@ -4,9 +4,9 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "ArithSqMat4x4Float.h"
-#include "Mat4x4f.h"
-#include "Mat4x4d.h"
+#include <GEL/CGLA/ArithSqMat4x4Float.h>
+#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/CGLA/Mat4x4d.h>
 
 namespace CGLA {
 	

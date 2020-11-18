@@ -11,7 +11,7 @@
 #ifndef __HMESH_QUADRIC_SIMPLIFY__H
 #define __HMESH_QUADRIC_SIMPLIFY__H
 
-#include "Manifold.h"
+#include <GEL/HMesh/Manifold.h>
 
 namespace HMesh
 {

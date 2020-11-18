@@ -30,11 +30,11 @@
 	#include <GL/glx.h>
 #endif
 
-#include "SOIL.h"
-#include "stb_image.h"
-#include "stb_image_write.h"
-#include "image_helper.h"
-#include "image_DXT.h"
+#include <GEL/GLGraphics/SOIL.h>
+#include <GEL/GLGraphics/stb_image.h>
+#include <GEL/GLGraphics/stb_image_write.h>
+#include <GEL/GLGraphics/image_helper.h>
+#include <GEL/GLGraphics/image_DXT.h>
 
 #include <stdlib.h>
 #include <string.h>

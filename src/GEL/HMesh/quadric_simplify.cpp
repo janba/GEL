@@ -4,16 +4,16 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "quadric_simplify.h"
+#include <GEL/HMesh/quadric_simplify.h>
 
 #include <queue>
 #include <iostream>
-#include "../CGLA/Vec3d.h"
-#include "../Geometry/QEM.h"
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/Geometry/QEM.h>
 
-#include "Manifold.h"
-#include "AttributeVector.h"
-#include "smooth.h"
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/AttributeVector.h>
+#include <GEL/HMesh/smooth.h>
 
 
 namespace HMesh

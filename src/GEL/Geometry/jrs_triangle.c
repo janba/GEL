@@ -355,7 +355,7 @@
 #include <fpu_control.h>
 #endif /* LINUX */
 #ifdef TRILIBRARY
-#include "jrs_triangle.h"
+#include <GEL/Geometry/jrs_triangle.h>
 #endif /* TRILIBRARY */
 
 /* A few forward declarations.                                               */

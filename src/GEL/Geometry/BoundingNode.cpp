@@ -4,9 +4,9 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "BoundingNode.h"
-#include "BoundingINode.h"
-#include "BoundingLNode.h"
+#include <GEL/Geometry/BoundingNode.h>
+#include <GEL/Geometry/BoundingINode.h>
+#include <GEL/Geometry/BoundingLNode.h>
 
 
 using namespace std;

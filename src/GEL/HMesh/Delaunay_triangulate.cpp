@@ -6,11 +6,11 @@
 //  Copyright © 2018 J. Andreas Bærentzen. All rights reserved.
 //
 
-#include "../Geometry/KDTree.h"
-#include "../Geometry/jrs_triangle.h"
-#include "Delaunay_triangulate.h"
-#include "HMesh.h"
-#include "../CGLA/Vec2d.h"
+#include <GEL/Geometry/KDTree.h>
+#include <GEL/Geometry/jrs_triangle.h>
+#include <GEL/HMesh/Delaunay_triangulate.h>
+#include <GEL/HMesh/HMesh.h>
+#include <GEL/CGLA/Vec2d.h>
 
 using namespace CGLA;
 using namespace std;

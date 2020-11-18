@@ -69,7 +69,7 @@
 
 */
 
-#include "stb_image.h"
+#include <GEL/GLGraphics/stb_image.h>
 
 #ifndef STBI_HEADER_FILE_ONLY
 

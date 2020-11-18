@@ -12,7 +12,7 @@
 #ifndef __CGLA_ARITHSQMATFLOAT_H__
 #define __CGLA_ARITHSQMATFLOAT_H__
 
-#include "ArithMatFloat.h"
+#include <GEL/CGLA/ArithMatFloat.h>
 
 namespace CGLA
 {

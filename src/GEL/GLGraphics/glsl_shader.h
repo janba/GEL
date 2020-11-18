@@ -12,7 +12,7 @@
 #ifndef __GLGRAPHICS_GLSL_SHADER_H__
 #define __GLGRAPHICS_GLSL_SHADER_H__
 
-#include "../GL/glew.h"
+#include <GEL/GL/glew.h>
 #include <string>
 
 /* It is a little tricky to make shader programs in C++ using GLSL but the problems are

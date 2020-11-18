@@ -9,6 +9,33 @@
 #ifndef graph_functions_hpp
 #define graph_functions_hpp
 
-#include <stdio.h>
+#if defined(__APPLE__) || defined(__linux__)
+#define DLLEXPORT __attribute__ ((visibility ("default")))
+#else
+#define DLLEXPORT __declspec(dllexport)
+#endif
+
+typedef char* Graph_ptr;
+typedef char* Manifold_ptr;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+DLLEXPORT bool graph_load(Graph_ptr g_ptr, const char* file_name);
+DLLEXPORT bool graph_save(Graph_ptr g_ptr, const char* file_name);
+
+DLLEXPORT void graph_to_mesh_cyl(Graph_ptr g_ptr, Manifold_ptr m_ptr, float fudge);
+
+DLLEXPORT void graph_smooth(Graph_ptr g_ptr, const int iter, const float alpha);
+DLLEXPORT void graph_edge_contract(Graph_ptr g_ptr, double dist_thresh);
+DLLEXPORT void graph_prune(Graph_ptr g_ptr);
+
+DLLEXPORT void graph_LS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, bool sampling=false);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* graph_functions_hpp */

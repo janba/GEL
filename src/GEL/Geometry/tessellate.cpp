@@ -8,11 +8,11 @@
 #include <algorithm>
 #include <queue>
 
-#include "../Util/Grid2D.h"
-#include "../CGLA/Vec3f.h"
-#include "../CGLA/Vec2f.h"
+#include <GEL/Util/Grid2D.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec2f.h>
 
-#include "tessellate.h"
+#include <GEL/Geometry/tessellate.h>
 
 using namespace std;
 using namespace CGLA;

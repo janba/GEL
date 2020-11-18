@@ -12,11 +12,11 @@
 #ifndef __CGLA_ARITHSQMAT4X4FLOAT_H
 #define __CGLA_ARITHSQMAT4X4FLOAT_H
 
-#include "ExceptionStandard.h"
-#include "CGLA-util.h"
-#include "Vec3f.h"
-#include "Vec4f.h"
-#include "ArithSqMatFloat.h"
+#include <GEL/CGLA/ExceptionStandard.h>
+#include <GEL/CGLA/CGLA-util.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec4f.h>
+#include <GEL/CGLA/ArithSqMatFloat.h>
 
 
 namespace CGLA 

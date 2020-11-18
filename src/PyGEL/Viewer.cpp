@@ -10,18 +10,22 @@
 #include <GEL/GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <GEL/HMesh/HMesh.h>
+#include <GEL/Geometry/Graph.h>
+#include <GEL/Geometry/graph_util.h>
 #include <GEL/GLGraphics/ManifoldRenderer.h>
 #include <GEL/GLGraphics/draw.h>
 #include <GEL/GLGraphics/GLViewController.h>
 #include "Viewer.h"
 
 using namespace CGLA;
+using namespace Geometry;
 using namespace GLGraphics;
 using namespace HMesh;
 using namespace std;
 
 struct DisplayParameters {
-    Manifold* m_ptr;
+    Manifold* m_ptr = 0;
+    AMGraph3D* g_ptr = 0;
     char mode;
     bool smooth_shading;
     Vec3f* bg_color;
@@ -37,6 +41,7 @@ class GLManifoldViewer {
     bool mouse_down = false;
     GLGraphics::GLViewController* glv = 0;
     GLGraphics::ManifoldRenderer* renderer = 0;
+    GLuint graph_display_list = 0;
     bool escaping = false;
 
 public:
@@ -252,7 +257,14 @@ void GLManifoldViewer::display_init() {
     glClearColor(c[0],c[1],c[2],1.0);
     Vec3d ctr;
     float rad;
-    bsphere(*(display_parameters.m_ptr), ctr, rad);
+    if (display_parameters.m_ptr != 0)
+        bsphere(*(display_parameters.m_ptr), ctr, rad);
+    else {
+        double radd;
+        tie(ctr,radd) = approximate_bounding_sphere(*display_parameters.g_ptr);
+        rad = radd;
+    }
+        
     int W,H,WF,HF;
     glfwGetWindowSize(window, &W, &H);
     glfwGetFramebufferSize(window, &WF, &HF);
@@ -261,12 +273,22 @@ void GLManifoldViewer::display_init() {
         glv = new GLViewController(W,H,Vec3f(ctr),2.0*rad);
     }
     else glv->reshape(WF, HF);
-    if(renderer != 0)
+    if(renderer != 0) {
         delete renderer;
-    renderer = render_factory(display_parameters.mode,
-                              *(display_parameters.m_ptr),
-                              display_parameters.smooth_shading,
-                              display_parameters.attrib_vec);
+        renderer = 0;
+    }
+    if(display_parameters.m_ptr != 0)
+        renderer = render_factory(display_parameters.mode,
+                                  *(display_parameters.m_ptr),
+                                  display_parameters.smooth_shading,
+                                  display_parameters.attrib_vec);
+    
+    if (display_parameters.g_ptr != 0) {
+        graph_display_list = glGenLists(1);
+        glNewList(graph_display_list, GL_COMPILE);
+        draw(*display_parameters.g_ptr);
+        glEndList();
+    }
 
     glfwSetMouseButtonCallback(window, mouse_button_callback);
     glfwSetCursorPosCallback(window, cursor_position_callback);
@@ -286,7 +308,12 @@ void GLManifoldViewer::display() {
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     glv->set_gl_modelview();
     glv->reset_projection();
-    renderer->draw();
+    
+    if(display_parameters.m_ptr != 0)
+        renderer->draw();
+    
+    if(display_parameters.g_ptr !=0)
+        glCallList(graph_display_list);
 
     double rad = 0.01*glv->get_eye_dist();
     if(do_pick) {
@@ -398,6 +425,7 @@ GLManifoldViewer_ptr GLManifoldViewer_new() {
 
 void GLManifoldViewer_display(GLManifoldViewer_ptr _self,
                               Manifold_ptr _m,
+                              Graph_ptr _g,
                               char mode,
                               bool smooth_shading,
                               float* _bg_color,
@@ -407,6 +435,7 @@ void GLManifoldViewer_display(GLManifoldViewer_ptr _self,
     GLManifoldViewer* self = reinterpret_cast<GLManifoldViewer*>(_self);
     self->display_parameters = {
         reinterpret_cast<Manifold*>(_m),
+        reinterpret_cast<AMGraph3D*>(_g),
         mode,
         smooth_shading,
         reinterpret_cast<Vec3f*>(_bg_color),

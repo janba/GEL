@@ -6,8 +6,8 @@
 
 // Created by Bent Dalgaard Larsen, Nov, 2003
 
-#include "Ray.h"
-#include "BBox.h"
+#include <GEL/Geometry/Ray.h>
+#include <GEL/Geometry/BBox.h>
 
 using namespace std;
 using namespace CGLA;

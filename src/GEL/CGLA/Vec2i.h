@@ -11,7 +11,7 @@
 #ifndef __CGLA_VEC2I_H__
 #define __CGLA_VEC2I_H__
 
-#include "ArithVec.h"
+#include <GEL/CGLA/ArithVec.h>
 
 namespace CGLA {
 	class Vec2f;

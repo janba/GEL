@@ -11,7 +11,7 @@
 #ifndef __CGLA__ARITHVECFLOAT_H__
 #define __CGLA__ARITHVECFLOAT_H__
 
-#include "ArithVec.h"
+#include <GEL/CGLA/ArithVec.h>
 
 namespace CGLA {
     

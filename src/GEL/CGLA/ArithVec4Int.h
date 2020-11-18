@@ -12,7 +12,7 @@
 #ifndef __CGLA__ARITHVEC4INT_H__
 #define __CGLA__ARITHVEC4INT_H__
 
-#include "ArithVecInt.h"
+#include <GEL/CGLA/ArithVecInt.h>
 
 namespace CGLA {
 

@@ -11,9 +11,9 @@
 #ifndef __CGLA_VEC3F_H__
 #define __CGLA_VEC3F_H__
 
-#include "ArithVec3Float.h"
-#include "Vec3i.h"
-#include "Vec3usi.h"
+#include <GEL/CGLA/ArithVec3Float.h>
+#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec3usi.h>
 
 namespace CGLA {
 	class Vec3d;

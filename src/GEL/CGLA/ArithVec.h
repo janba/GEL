@@ -15,7 +15,7 @@
 #include <array>
 #include <algorithm>
 #include <iostream>
-#include "CGLA-util.h"
+#include <GEL/CGLA/CGLA-util.h>
 
 #include <numeric>
 

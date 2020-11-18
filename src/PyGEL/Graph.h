@@ -15,6 +15,8 @@
 #define DLLEXPORT __declspec(dllexport)
 #endif
 
+#include "IntVector.h"
+
 typedef char* Graph_ptr;
 
 #ifdef __cplusplus
@@ -25,6 +27,10 @@ DLLEXPORT Graph_ptr Graph_new();
 DLLEXPORT Graph_ptr Graph_copy(Graph_ptr self);
 DLLEXPORT void Graph_delete(Graph_ptr self);
 DLLEXPORT void Graph_clear(Graph_ptr self);
+
+DLLEXPORT size_t Graph_nodes(Graph_ptr self, IntVector_ptr nodes);
+DLLEXPORT size_t Graph_neighbors(Graph_ptr _self, size_t n, IntVector_ptr _nbors, char mode='n');
+
 
 DLLEXPORT void Graph_cleanup(Graph_ptr self);
 DLLEXPORT size_t Graph_positions(Graph_ptr self, double** pos);

@@ -4,14 +4,14 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "dual.h"
+#include <GEL/HMesh/dual.h>
 
 #include <vector>
-#include "../CGLA/Vec3d.h"
+#include <GEL/CGLA/Vec3d.h>
 
-#include "load.h"
-#include "Manifold.h"
-#include "AttributeVector.h"
+#include <GEL/HMesh/load.h>
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/AttributeVector.h>
 
 namespace HMesh
 {

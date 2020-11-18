@@ -4,8 +4,8 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "../CGLA/Vec4f.h"
-#include "Triangle.h"
+#include <GEL/CGLA/Vec4f.h>
+#include <GEL/Geometry/Triangle.h>
 
 
 using namespace std;

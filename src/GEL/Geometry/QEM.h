@@ -13,8 +13,8 @@
 #define __GEOMETRY_QEM_H
 
 #include <cfloat>
-#include "../CGLA/Vec3d.h"
-#include "../CGLA/Mat3x3d.h"
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Mat3x3d.h>
 
 
 namespace

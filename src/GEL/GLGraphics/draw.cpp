@@ -4,17 +4,17 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "../GL/glew.h"
+#include <GEL/GL/glew.h>
 
-#include "../CGLA/Mat4x4f.h"
-#include "../CGLA/Vec3d.h"
-#include "../HMesh/Manifold.h"
-#include "../Geometry/TriMesh.h"
+#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/Geometry/TriMesh.h>
 
-#include "draw.h"
-#include "SinglePassWireframeRenderer.h"
-#include "IDBufferWireFrameRenderer.h"
-#include "SOIL.h"
+#include <GEL/GLGraphics/draw.h>
+#include <GEL/GLGraphics/SinglePassWireframeRenderer.h>
+#include <GEL/GLGraphics/IDBufferWireFrameRenderer.h>
+#include <GEL/GLGraphics/SOIL.h>
 
 namespace GLGraphics
 {
@@ -248,9 +248,11 @@ namespace GLGraphics
         for(auto n: graph.node_ids())
             for(auto e: graph.edges(n))
             {
-                glColor3fv(graph.edge_color[e.second].get());
+                AMGraph::NodeID n_idx = e.first;
+                AMGraph::EdgeID e_idx = e.second;
+                glColor3fv(graph.edge_color[e_idx].get());
                 glVertex3dv(graph.pos[n].get());
-                glVertex3dv(graph.pos[e.first].get());
+                glVertex3dv(graph.pos[n_idx].get());
             }
         glEnd();
         glEnable(GL_LIGHTING);

@@ -4,8 +4,8 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "Vec2i.h"
-#include "Vec2f.h"
+#include <GEL/CGLA/Vec2i.h>
+#include <GEL/CGLA/Vec2f.h>
 
 namespace CGLA {
 

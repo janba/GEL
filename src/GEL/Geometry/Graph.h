@@ -15,9 +15,9 @@
 #include <unordered_set>
 #include <vector>
 #include <limits>
-#include "../CGLA/Vec3d.h"
-#include "../Util/Range.h"
-#include "../Util/AttribVec.h"
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/Util/Range.h>
+#include <GEL/Util/AttribVec.h>
 
 namespace Geometry {
     
@@ -131,7 +131,7 @@ namespace Geometry {
         }
         
         /// Return the edges - map from NodeID to EdgeID of the current node.
-        AdjMap edges(NodeID n) const {
+        const AdjMap& edges(NodeID n) const {
             return edge_map[n];
         }
         

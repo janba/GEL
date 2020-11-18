@@ -6,9 +6,9 @@
 
 
 //#include <iostream>
-#include "GradientFilter.h"
-#include "../Geometry/Neighbours.h"
-#include "../Geometry/RGrid.h"
+#include <GEL/Geometry/GradientFilter.h>
+#include <GEL/Geometry/Neighbours.h>
+#include <GEL/Geometry/RGrid.h>
 
 using namespace std;
 using namespace CGLA;

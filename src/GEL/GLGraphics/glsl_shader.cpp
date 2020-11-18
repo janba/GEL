@@ -7,7 +7,7 @@
 #include <iostream>
 #include <fstream>
 #include <string>
-#include "../GL/glew.h"
+#include <GEL/GL/glew.h>
 using namespace std;
 
 namespace GLGraphics

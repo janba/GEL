@@ -12,7 +12,7 @@
 #ifndef __CGLA__ARITHVEC3FLOAT_H__
 #define __CGLA__ARITHVEC3FLOAT_H__
 
-#include "ArithVecFloat.h"
+#include <GEL/CGLA/ArithVecFloat.h>
 
 namespace CGLA {
 

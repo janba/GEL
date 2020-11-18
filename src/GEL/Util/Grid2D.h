@@ -13,7 +13,7 @@
 #define __UTIL_GRID2D_H
 
 #include <vector>
-#include "../CGLA/Vec2i.h"
+#include <GEL/CGLA/Vec2i.h>
 
 namespace Util
 {

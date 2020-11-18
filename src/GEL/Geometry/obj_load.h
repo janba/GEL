@@ -14,7 +14,7 @@
 
 #include <string>
 #include <vector>
-#include "TriMesh.h"
+#include <GEL/Geometry/TriMesh.h>
 
 namespace Geometry
 {

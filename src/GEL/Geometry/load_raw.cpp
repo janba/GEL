@@ -5,7 +5,7 @@
  * ----------------------------------------------------------------------- */
 
 #include <fstream>
-#include "../Geometry/load_raw.h"
+#include <GEL/Geometry/load_raw.h>
 
 using namespace CGLA;
 using namespace std;

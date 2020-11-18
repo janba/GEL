@@ -16,8 +16,8 @@
 #include <queue>
 #include <vector>
 #include <algorithm>
-#include "../CGLA/CGLA-util.h"
-#include "../CGLA/ArithVec.h"
+#include <GEL/CGLA/CGLA-util.h>
+#include <GEL/CGLA/ArithVec.h>
 
 #if (_MSC_VER >= 1200)
 #pragma warning (push)

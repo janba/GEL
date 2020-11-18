@@ -12,10 +12,10 @@
 #ifndef __GLGRAPHICS_IDBUFFERWIREFRAMERENDERER_H__
 #define __GLGRAPHICS_IDBUFFERWIREFRAMERENDERER_H__
 
-#include "../GL/glew.h"
-#include "../CGLA/Vec3uc.h"
-#include "../CGLA/Vec3f.h"
-#include "../HMesh/Manifold.h"
+#include <GEL/GL/glew.h>
+#include <GEL/CGLA/Vec3uc.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/HMesh/Manifold.h>
 
 namespace GLGraphics
 {

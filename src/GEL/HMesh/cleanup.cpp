@@ -5,15 +5,15 @@
  * ----------------------------------------------------------------------- */
 
 #include <map>
-#include "cleanup.h"
+#include <GEL/HMesh/cleanup.h>
 
-#include "../CGLA/Vec3f.h"
-#include "../CGLA/Vec3d.h"
-#include "../Geometry/QEM.h"
-#include "../Geometry/KDTree.h"
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/Geometry/QEM.h>
+#include <GEL/Geometry/KDTree.h>
 
-#include "refine_edges.h"
-#include "Manifold.h"
+#include <GEL/HMesh/refine_edges.h>
+#include <GEL/HMesh/Manifold.h>
 
 namespace HMesh
 {

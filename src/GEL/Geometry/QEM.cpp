@@ -6,8 +6,8 @@
 
 #include <iostream>
 
-#include "QEM.h"
-#include "../CGLA/eigensolution.h"
+#include <GEL/Geometry/QEM.h>
+#include <GEL/CGLA/eigensolution.h>
 
 using namespace CGLA;
 using namespace std;

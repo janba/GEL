@@ -4,12 +4,12 @@
 * For license and list of authors, see ../../doc/intro.pdf
 * ----------------------------------------------------------------------- */
 
-#include "../CGLA/Vec3f.h"
+#include <GEL/CGLA/Vec3f.h>
 #include <stdio.h>
 #include <iostream>
 #include <set>
 
-#include "TriMesh.h"
+#include <GEL/Geometry/TriMesh.h>
 
 using namespace std;
 using namespace CGLA;

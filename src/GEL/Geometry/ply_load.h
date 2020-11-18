@@ -13,7 +13,7 @@
 #define __GEOMETRY_PLYLOAD_H_
 
 
-#include "../Geometry/TriMesh.h"
+#include <GEL/Geometry/TriMesh.h>
 
 namespace Geometry
 {

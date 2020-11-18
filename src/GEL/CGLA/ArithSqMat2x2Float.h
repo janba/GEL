@@ -11,8 +11,8 @@
 #ifndef __CGLA_ARITHSQMAT2X2FLOAT_H__
 #define __CGLA_ARITHSQMAT2X2FLOAT_H__
 
-#include "ExceptionStandard.h"
-#include "ArithSqMatFloat.h"
+#include <GEL/CGLA/ExceptionStandard.h>
+#include <GEL/CGLA/ArithSqMatFloat.h>
 
 
 namespace CGLA 

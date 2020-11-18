@@ -4,18 +4,18 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "ManifoldRenderer.h"
+#include <GEL/GLGraphics/ManifoldRenderer.h>
 
 #include <algorithm>
 #include <string>
 #include <cstdlib>
-#include "../Geometry/TriMesh.h"
-#include "../CGLA/Mat3x3d.h"
-#include "../GLGraphics/glsl_shader.h"
-#include "../GLGraphics/draw.h"
-#include "../HMesh/Manifold.h"
-#include "../HMesh/AttributeVector.h"
-#include "../HMesh/curvature.h"
+#include <GEL/Geometry/TriMesh.h>
+#include <GEL/CGLA/Mat3x3d.h>
+#include <GEL/GLGraphics/glsl_shader.h>
+#include <GEL/GLGraphics/draw.h>
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/AttributeVector.h>
+#include <GEL/HMesh/curvature.h>
 
 using namespace CGLA;
 using namespace HMesh;

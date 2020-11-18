@@ -4,9 +4,9 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "../GL/glew.h"
-#include "GLViewController.h"
-#include "SimpleTrackBall.h"
+#include <GEL/GL/glew.h>
+#include <GEL/GLGraphics/GLViewController.h>
+#include <GEL/GLGraphics/SimpleTrackBall.h>
 
 using namespace std;
 using namespace CGLA;

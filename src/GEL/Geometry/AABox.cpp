@@ -5,7 +5,7 @@
  * ----------------------------------------------------------------------- */
 
 #include <cfloat>
-#include "AABox.h"
+#include <GEL/Geometry/AABox.h>
 
 using namespace std;
 using namespace CGLA;

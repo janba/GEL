@@ -14,8 +14,8 @@
 
 #include <iostream>
 #include <vector>
-#include "Triangle.h"
-#include "AABox.h"
+#include <GEL/Geometry/Triangle.h>
+#include <GEL/Geometry/AABox.h>
 
 namespace Geometry
 {

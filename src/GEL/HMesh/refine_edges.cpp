@@ -4,13 +4,13 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "refine_edges.h"
+#include <GEL/HMesh/refine_edges.h>
 
 #include <vector>
 #include <iterator>
 
-#include "Manifold.h"
-#include "AttributeVector.h"
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/AttributeVector.h>
 
 namespace HMesh
 {

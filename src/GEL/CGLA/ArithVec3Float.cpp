@@ -5,9 +5,9 @@
  * ----------------------------------------------------------------------- */
 
 #include <algorithm>
-#include "ArithVec3Float.h"
-#include "Vec3f.h"
-#include "Vec3d.h"
+#include <GEL/CGLA/ArithVec3Float.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec3d.h>
 
 using namespace std;
 

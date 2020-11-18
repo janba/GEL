@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "Manifold.h"
+#include <GEL/HMesh/Manifold.h>
 
 namespace HMesh
 {

@@ -13,7 +13,7 @@
 #define __MESHEDIT_CURVATURE_H__
 
 #include <vector>
-#include "Manifold.h"
+#include <GEL/HMesh/Manifold.h>
 
 namespace CGLA
 {

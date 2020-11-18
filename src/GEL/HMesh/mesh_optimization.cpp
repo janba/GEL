@@ -5,19 +5,19 @@
  * ----------------------------------------------------------------------- */
 
 
-#include "mesh_optimization.h"
+#include <GEL/HMesh/mesh_optimization.h>
 
 #include <cfloat>
 #include <queue>
 #include <vector>
 #include <random>
 
-#include "../CGLA/Vec3d.h"
-#include "../Geometry/Implicit.h"
-//#include "Manifold.h"
-#include "AttributeVector.h"
-#include "triangulate.h"
-#include "smooth.h"
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/Geometry/Implicit.h>
+//#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/AttributeVector.h>
+#include <GEL/HMesh/triangulate.h>
+#include <GEL/HMesh/smooth.h>
 
 namespace HMesh
 {

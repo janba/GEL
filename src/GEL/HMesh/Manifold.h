@@ -13,13 +13,13 @@
 
 #include <set>
 #include <algorithm>
-#include "../CGLA/Vec3d.h"
+#include <GEL/CGLA/Vec3d.h>
 
-#include "ConnectivityKernel.h"
-#include "Iterators.h"
-#include "Walker.h"
-#include "AttributeVector.h"
-#include "Circulators.h"
+#include <GEL/HMesh/ConnectivityKernel.h>
+#include <GEL/HMesh/Iterators.h>
+#include <GEL/HMesh/Walker.h>
+#include <GEL/HMesh/AttributeVector.h>
+#include <GEL/HMesh/Circulators.h>
 
 namespace Geometry
 {

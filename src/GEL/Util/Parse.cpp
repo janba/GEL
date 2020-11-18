@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "Parse.h"
+#include <GEL/Util/Parse.h>
 #include <cstring>
 #include <cstdlib>
 #include <iostream>

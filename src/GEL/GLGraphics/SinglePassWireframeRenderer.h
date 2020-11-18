@@ -12,8 +12,8 @@
 #ifndef __GLGRAPHICS_SINGLE_PASS_WIREFRAME__
 #define __GLGRAPHICS_SINGLE_PASS_WIREFRAME__
 
-#include "../GL/glew.h"
-#include "../CGLA/Vec3f.h"
+#include <GEL/GL/glew.h>
+#include <GEL/CGLA/Vec3f.h>
 
 namespace GLGraphics
 {

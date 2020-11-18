@@ -15,7 +15,7 @@
 #ifndef __GEL_GLGRAPHICS_CONSOLE_H__
 #define __GEL_GLGRAPHICS_CONSOLE_H__
 
-#include "../GL/glew.h"
+#include <GEL/GL/glew.h>
 
 #include <functional> //make_shared, bind
 #include <map> //multimap

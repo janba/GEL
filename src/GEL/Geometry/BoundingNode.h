@@ -13,11 +13,11 @@
 #define __GEOMETRY_BOUNDINGNODE_H
 
 #include <vector>
-#include "../CGLA/Vec3f.h"
-#include "Ray.h"
-#include "Triangle.h"
-#include "AABox.h"
-#include "OBox.h"
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/Geometry/Ray.h>
+#include <GEL/Geometry/Triangle.h>
+#include <GEL/Geometry/AABox.h>
+#include <GEL/Geometry/OBox.h>
 
 namespace Geometry
 {

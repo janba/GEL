@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "Mat3x3d.h"
+#include <GEL/CGLA/Mat3x3d.h>
 
 namespace CGLA {
 	Mat3x3d rotation_Mat3x3d(Axis axis, double angle)

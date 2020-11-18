@@ -4,9 +4,9 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "../GL/glew.h"
-#include "GLViewController.h"
-#include "../CGLA/Mat3x3f.h"
+#include <GEL/GL/glew.h>
+#include <GEL/GLGraphics/GLViewController.h>
+#include <GEL/CGLA/Mat3x3f.h>
 
 using namespace std;
 using namespace CGLA;

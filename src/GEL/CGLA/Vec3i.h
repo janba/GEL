@@ -12,7 +12,7 @@
 #ifndef __CGLA_VEC3I_H__
 #define __CGLA_VEC3I_H__
 
-#include "ArithVec3Int.h"
+#include <GEL/CGLA/ArithVec3Int.h>
 
 namespace CGLA 
 {

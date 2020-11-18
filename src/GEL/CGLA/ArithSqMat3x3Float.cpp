@@ -4,9 +4,9 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "ArithSqMat3x3Float.h"
-#include "Mat3x3f.h"
-#include "Mat3x3d.h"
+#include <GEL/CGLA/ArithSqMat3x3Float.h>
+#include <GEL/CGLA/Mat3x3f.h>
+#include <GEL/CGLA/Mat3x3d.h>
 
 namespace CGLA {
 

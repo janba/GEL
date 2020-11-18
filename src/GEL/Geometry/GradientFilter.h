@@ -15,8 +15,8 @@
 // Author: J. Andreas Bærentzen,
 // Created: Wed Feb 13 11:00:1
 
-#include "../CGLA/Vec3i.h"
-#include "../CGLA/Vec3f.h"
+#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec3f.h>
 
 
 namespace Geometry

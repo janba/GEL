@@ -6,15 +6,15 @@
 
 
 
-#include "load.h"
+#include <GEL/HMesh/load.h>
 
-#include "Manifold.h"
+#include <GEL/HMesh/Manifold.h>
 
-#include "ply_load.h"
-#include "x3d_load.h"
-#include "obj_load.h"
-#include "off_load.h"
-#include "cleanup.h"
+#include <GEL/HMesh/ply_load.h>
+#include <GEL/HMesh/x3d_load.h>
+#include <GEL/HMesh/obj_load.h>
+#include <GEL/HMesh/off_load.h>
+#include <GEL/HMesh/cleanup.h>
 
 using namespace std;
 using namespace CGLA;

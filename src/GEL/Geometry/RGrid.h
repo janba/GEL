@@ -14,8 +14,8 @@
 #define __GEOMETRY_RGRID_H
 
 #include <vector>
-#include "../CGLA/Vec3i.h"
-#include "AncestorGrid.h"
+#include <GEL/CGLA/Vec3i.h>
+#include <GEL/Geometry/AncestorGrid.h>
 
 namespace Geometry 
 {

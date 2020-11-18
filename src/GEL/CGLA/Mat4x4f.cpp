@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "Mat4x4f.h"
+#include <GEL/CGLA/Mat4x4f.h>
 
 namespace CGLA 
 {

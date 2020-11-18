@@ -12,9 +12,9 @@
 #ifndef __GEOMETRY_VOXELGRID_TRILINFILTER_H
 #define __GEOMETRY_VOXELGRID_TRILINFILTER_H
 
-#include "../CGLA/Vec3f.h"
-#include "RGrid.h"
-#include "Neighbours.h"
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/Geometry/RGrid.h>
+#include <GEL/Geometry/Neighbours.h>
 
 namespace Geometry
 {

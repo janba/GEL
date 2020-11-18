@@ -15,9 +15,9 @@
 #include <vector>
 #include <map>
 #include <set>
-#include "ItemVector.h"
-#include "ItemID.h"
-#include "Iterators.h"
+#include <GEL/HMesh/ItemVector.h>
+#include <GEL/HMesh/ItemID.h>
+#include <GEL/HMesh/Iterators.h>
 
 namespace HMesh
 {

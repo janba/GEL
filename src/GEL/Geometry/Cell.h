@@ -13,9 +13,9 @@
 #define __GEOMETRY_CELL_H
 
 #include <vector>
-#include "../CGLA/Vec3i.h"
-#include "../CGLA/BitMask.h"
-#include "RGrid.h"
+#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/BitMask.h>
+#include <GEL/Geometry/RGrid.h>
 
 namespace Geometry 
 {

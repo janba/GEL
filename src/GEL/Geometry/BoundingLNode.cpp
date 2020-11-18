@@ -4,8 +4,8 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "AABox.h"
-#include "BoundingLNode.h"
+#include <GEL/Geometry/AABox.h>
+#include <GEL/Geometry/BoundingLNode.h>
 
 namespace Geometry
 {

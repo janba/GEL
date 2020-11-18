@@ -9,7 +9,7 @@
 #include <iostream>
 #include <map>
 #include <queue>
-#include "Graph.h"
+#include <GEL/Geometry/Graph.h>
 
 namespace Geometry {
     

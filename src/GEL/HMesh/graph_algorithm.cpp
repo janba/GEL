@@ -6,7 +6,7 @@
 //  Copyright © 2016 J. Andreas Bærentzen. All rights reserved.
 //
 
-#include "graph_algorithm.h"
+#include <GEL/HMesh/graph_algorithm.h>
 #include <queue>
 #include <utility>
 

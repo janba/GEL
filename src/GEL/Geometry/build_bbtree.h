@@ -12,7 +12,7 @@
 #ifndef __GEOMETRY_BUILD_BBTREE_H
 #define __GEOMETRY_BUILD_BBTREE_H
 
-#include "BoundingTree.h"
+#include <GEL/Geometry/BoundingTree.h>
 
 namespace HMesh
 {

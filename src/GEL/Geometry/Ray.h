@@ -12,10 +12,10 @@
 #ifndef __GEOMETRY_RAY_H__
 #define __GEOMETRY_RAY_H__
 
-#include "../CGLA/Vec3i.h"
-#include "../CGLA/Vec3f.h"
-#include "TriMesh.h"
-#include "Material.h"
+#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec3f.h>
+#include <GEL/Geometry/TriMesh.h>
+#include <GEL/Geometry/Material.h>
 
 namespace Geometry 
 {

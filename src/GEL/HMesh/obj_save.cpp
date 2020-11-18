@@ -4,17 +4,17 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "obj_save.h"
+#include <GEL/HMesh/obj_save.h>
 
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 
-#include "../CGLA/Vec3f.h"
+#include <GEL/CGLA/Vec3f.h>
 
-#include "Manifold.h"
-#include "AttributeVector.h"
+#include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/AttributeVector.h>
 
 namespace HMesh
 {

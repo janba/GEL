@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include "TableTrigonometry.h"
+#include <GEL/CGLA/TableTrigonometry.h>
 
 namespace CGLA {
 

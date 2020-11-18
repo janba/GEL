@@ -19,6 +19,7 @@
 
 typedef char* GLManifoldViewer_ptr;
 typedef char* Manifold_ptr;
+typedef char* Graph_ptr;
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,13 +29,14 @@ extern "C" {
     DLLEXPORT void GLManifoldViewer_event_loop(bool once);
     
     DLLEXPORT void GLManifoldViewer_display(GLManifoldViewer_ptr self,
-                                  Manifold_ptr m,
-                                  char mode,
-                                  bool smooth_shading,
-                                  float* bg_color,
-                                  double* attrib_vec,
-                                  bool reset_view,
-                                  bool once);
+                                            Manifold_ptr m,
+                                            Graph_ptr g,
+                                            char mode,
+                                            bool smooth_shading,
+                                            float* bg_color,
+                                            double* attrib_vec,
+                                            bool reset_view,
+                                            bool once);
     
     DLLEXPORT void GLManifoldViewer_delete(GLManifoldViewer_ptr);
     

@@ -14,10 +14,10 @@
 
 #include <vector>
 
-#include "../CGLA/Mat4x4f.h"
-#include "../Geometry/TriMesh.h"
+#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/Geometry/TriMesh.h>
 
-#include "BBox.h"
+#include <GEL/Geometry/BBox.h>
 
 namespace Geometry 
 {
