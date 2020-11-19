@@ -9,6 +9,8 @@
 #ifndef UTIL__AttribVec_h
 #define UTIL__AttribVec_h
 
+#include <assert.h>
+
 namespace Util {
     
     template<typename IndexT, typename ValT>
