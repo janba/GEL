@@ -740,9 +740,9 @@ try:
     lib_py_gel.GLManifoldViewer_get_annotation_points.argtypes = (ct.c_void_p, ct.POINTER(ct.POINTER(ct.c_double)))
     lib_py_gel.GLManifoldViewer_set_annotation_points.argtypes = (ct.c_void_p, ct.c_int, ct.POINTER(ct.c_double))
     lib_py_gel.GLManifoldViewer_event_loop.argtypes = (ct.c_bool,)
-    class GLManifoldViewer:
-        """ An OpenGL Viewer for Manifolds. Having created an instance of this
-        class, call display to show a mesh. The display function is flexible,
+    class Viewer:
+        """ An OpenGL Viewer for Manifolds and Graphs. Having created an instance of this
+        class, call display to show a mesh or a graph. The display function is flexible,
         allowing several types of interactive visualization. Each instance of this
         class corresponds to a single window, but you can have several
         GLManifoldViewer and hence also several windows showing different
@@ -751,12 +751,15 @@ try:
             self.obj = lib_py_gel.GLManifoldViewer_new()
         def __del__(self):
             lib_py_gel.GLManifoldViewer_delete(self.obj)
-        def display(self, m=None, g=None, mode='w', smooth=True, bg_col=[0.3,0.3,0.3], data=None, reset_view=False, once=False):
+        def display(self, m, g=None, mode='w', smooth=True, bg_col=[0.3,0.3,0.3], data=None, reset_view=False, once=False):
             """ Display a mesh
 
             Args:
             ---
-            - m : the Manifold mesh we are visualizing.
+            - m : the Manifold mesh or Graph we want to show.
+            - g : the Graph we want to show. If you only want to show a graph, you
+                can simply pass the graph as m, so the g argument is relevant only if
+                you need to show both a Manifold _and_ a Graph.
             - mode : a single character that determines how the mesh is visualized:
                 'w' - wireframe,
                 'i' - isophote,
@@ -764,6 +767,7 @@ try:
                 's' - scalar field,
                 'l' - line field,
                 'n' - normal.
+                'x' - xray or ghost rendering. Useful to show Manifold on top of Graph
             - smooth : if True we use vertex normals. Otherwise, face normals.
             - bg_col : background color.
             - data : per vertex data for visualization. scalar or vector field.
@@ -788,14 +792,16 @@ try:
             data_a = data_ct.data_as(ct.POINTER(ct.c_double))
             bg_col_ct = np.array(bg_col,dtype=ct.c_float).ctypes
             bg_col_a = bg_col_ct.data_as(ct.POINTER(ct.c_float*3))
-            if m is not None and g is not None:
+            if isinstance(m,Graph):
+                g = m
+                m = None
+            if isinstance(m,Manifold) and isinstance(g,Graph):
                 lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, g.obj, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
-            elif m is not None:
+            elif isinstance(m,Manifold):
                 lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, 0, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
-            elif g is not None:
-                print("g is", g.obj, "but m is",m)
+            elif isinstance(g,Graph):
                 lib_py_gel.GLManifoldViewer_display(self.obj, 0, g.obj, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
-
+                
         def annotation_points(self):
             """ Retrieve a vector of annotation points. This vector is not a copy,
             so any changes made to the points will be reflected in the viewer. """
@@ -933,11 +939,23 @@ class Graph:
     def merge_nodes(self, n0, n1, avg_pos):
         """ Merge nodes n0 and n1. avg_pos indicates if you want the position to be the average. """
         lib_py_gel.Graph_merge_nodes(self.obj, n0, n1, avg_pos)
-        
+
+
+lib_py_gel.graph_from_mesh.argtypes = (ct.c_void_p, ct.c_void_p)
+def graph_from_mesh(m):
+    """ Creates a graph from a mesh. The argument, m, is the input mesh,
+    and the function returns a graph with the same vertices and edges
+    as m."""
+    g = Graph()
+    lib_py_gel.graph_from_mesh(m.obj, g.obj)
+    return g
 
 lib_py_gel.graph_load.argtypes = (ct.c_void_p, ct.c_char_p)
 lib_py_gel.graph_load.restype = ct.c_void_p
 def graph_load(fn):
+    """ Load a graph from a file. The argument, fn, is the filename which
+    is in a special format similar to Wavefront obj. The loaded graph is
+    returned by the function - or None if loading failed. """
     s = ct.c_char_p(fn.encode('utf-8'))
     g = Graph();
     if lib_py_gel.graph_load(g.obj, s):
@@ -947,30 +965,55 @@ def graph_load(fn):
 lib_py_gel.graph_save.argtypes = (ct.c_void_p, ct.c_char_p)
 lib_py_gel.graph_save.restype = ct.c_bool
 def graph_save(fn, g):
+    """ Save graph to a file. The first argument, fn, is the file name,
+    and g is the graph. This function returns True if saving happened and
+    False otherwise. """
     s = ct.c_char_p(fn.encode('utf-8'))
     return lib_py_gel.graph_save(g.obj, s)
 
 lib_py_gel.graph_to_mesh_cyl.argtypes = (ct.c_void_p, ct.c_float)
 lib_py_gel.graph_to_mesh_cyl.restype = ct.c_void_p
 def graph_to_mesh_cyl(g, fudge):
+    """ Creates a Manifold mesh from the graph. The first argument, g, is the
+    mesh we want converted, and fudge is a constant that is used to increase the radius
+    of every node. This is useful if the radii are 0. """
     m = Manifold()
     lib_py_gel.graph_to_mesh_cyl(g.obj, m.obj, fudge)
     return m
 
 lib_py_gel.graph_smooth.argtypes = (ct.c_void_p, ct.c_int, ct.c_float)
-def graph_smooth(g, iter, alpha):
+def graph_smooth(g, iter=1, alpha=1.0):
+    """ Simple Laplacian smoothing of a graph. The first argument is the Graph, g, iter
+    is the number of iterations, and alpha is the weight. If the weight is high,
+    each iteration causes a lot of smoothing, and a high number of iterations
+    ensures that the effect of smoothing diffuses throughout the graph, i.e. that the
+    effect is more global than local. """
     lib_py_gel.graph_smooth(g.obj, iter, alpha)
 
 lib_py_gel.graph_edge_contract.argtypes = (ct.c_void_p, ct.c_double)
 def graph_edge_contract(g, dist_thresh):
-    lib_py_gel.graph_edge_contract(g.obj, dist_thresh)
+    """ Simplified a graph by contracting edges. The first argument, g, is the graph,
+    and only edges shorter than dist_thresh are contracted. When an edge is contracted
+    the merged vertices are moved to the average of their former positions. Thus,
+    the ordering in which contractions are carried out matters. Hence, edges are contracted
+    in the order of increasing length and edges are only considered if neither end point
+    is the result of a contraction, but the process is then repeated until no more contractions
+    are possible. Returns total number of contractions. """
+    return lib_py_gel.graph_edge_contract(g.obj, dist_thresh)
 
 lib_py_gel.graph_prune.argtypes = (ct.c_void_p,)
 def graph_prune(g):
+    """ Prune leaves of a graph. The graph, g, is passed as the argument. This function removes
+    leaf nodes (valency 1) whose only neighbour has valency > 2. In practice such isolated
+    leaves are frequently spurious if the graph is a skeleton. Does not return a value. """
     lib_py_gel.graph_prune(g.obj)
     
 lib_py_gel.graph_LS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_bool)
 def graph_LS_skeleton(g, sampling=True):
+    """ Skeletonize a graph using the local separators approach. The first argument, g, is
+    the graph, and, sampling indicates whether we try to use all vertices (False) as starting
+    points for finding separators or just a sampling (True). The function returns a new graph
+    which is the skeleton of the input graph. """
     skel = Graph()
     lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, sampling)
     return skel

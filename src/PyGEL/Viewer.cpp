@@ -178,6 +178,10 @@ ManifoldRenderer* render_factory(char mode, Manifold& m, bool smooth_shading, do
             renderer = lrenderer;
         }
             return renderer;
+        case 'x':
+            renderer = new GhostRenderer();
+            renderer->compile_display_list(m, smooth_shading);
+            return renderer;
         case 'n':
         default:
             renderer = new NormalRenderer();
@@ -264,7 +268,6 @@ void GLManifoldViewer::display_init() {
         tie(ctr,radd) = approximate_bounding_sphere(*display_parameters.g_ptr);
         rad = radd;
     }
-        
     int W,H,WF,HF;
     glfwGetWindowSize(window, &W, &H);
     glfwGetFramebufferSize(window, &WF, &HF);

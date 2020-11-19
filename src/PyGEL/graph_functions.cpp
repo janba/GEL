@@ -22,6 +22,21 @@ using namespace std;
 using namespace Geometry;
 using namespace HMesh;
 
+void graph_from_mesh(Manifold_ptr _m_ptr, Graph_ptr _g_ptr) {
+    AMGraph3D& g = *reinterpret_cast<AMGraph3D*>(_g_ptr);
+    Manifold& m = *reinterpret_cast<Manifold*>(_m_ptr);
+    VertexAttributeVector<AMGraph::NodeID> v2n;
+
+    for(auto v : m.vertices())
+        v2n[v] = g.add_node(m.pos(v));
+    for(auto h: m.halfedges()) {
+        Walker w = m.walker(h);
+        if(h<w.opp().halfedge())
+            g.connect_nodes(v2n[w.opp().vertex()], v2n[w.vertex()]);
+    }
+}
+
+
 bool graph_load(Graph_ptr _g_ptr, const char* _file_name) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     const string file_name(_file_name);
@@ -46,9 +61,9 @@ void graph_smooth(Graph_ptr _g_ptr, const int iter, const float alpha) {
     smooth_graph(*g_ptr, iter, alpha);
 }
 
-void graph_edge_contract(Graph_ptr _g_ptr, double dist_thresh) {
+int graph_edge_contract(Graph_ptr _g_ptr, double dist_thresh) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
-    graph_edge_contract(*g_ptr, dist_thresh);
+    return graph_edge_contract(*g_ptr, dist_thresh);
 }
 
 void graph_prune(Graph_ptr _g_ptr) {

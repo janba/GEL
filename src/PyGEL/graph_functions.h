@@ -22,6 +22,7 @@ typedef char* Manifold_ptr;
 extern "C" {
 #endif
 
+DLLEXPORT void graph_from_mesh(Manifold_ptr m_ptr, Graph_ptr g_ptr);
 
 DLLEXPORT bool graph_load(Graph_ptr g_ptr, const char* file_name);
 DLLEXPORT bool graph_save(Graph_ptr g_ptr, const char* file_name);
@@ -29,7 +30,7 @@ DLLEXPORT bool graph_save(Graph_ptr g_ptr, const char* file_name);
 DLLEXPORT void graph_to_mesh_cyl(Graph_ptr g_ptr, Manifold_ptr m_ptr, float fudge);
 
 DLLEXPORT void graph_smooth(Graph_ptr g_ptr, const int iter, const float alpha);
-DLLEXPORT void graph_edge_contract(Graph_ptr g_ptr, double dist_thresh);
+DLLEXPORT int graph_edge_contract(Graph_ptr g_ptr, double dist_thresh);
 DLLEXPORT void graph_prune(Graph_ptr g_ptr);
 
 DLLEXPORT void graph_LS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, bool sampling=false);
