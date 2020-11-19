@@ -21,6 +21,10 @@ endif (Use_GLGraphics)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
+if (LINUX)
+  set(CMAKE_CXX_FLAGS, "-std=c++1z")
+endif ()
+
 if (WIN32)
     include_directories(./src/GEL)
     add_definitions(-DGLEW_STATIC)

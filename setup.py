@@ -28,7 +28,7 @@ print("Found these libraries: ", libs_data)
 setuptools.setup(
     name="PyGEL3D",
     version="0.0.27",
-    author="Andreas Bærentzen",
+    author="Andreas Baerentzen",
     author_email="janba@dtu.dk",
     description="PyGEL 3D (Python Bindings for GEL) contains tools for polygonal mesh based geometry processing",
     long_description=long_description,
