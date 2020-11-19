@@ -15,7 +15,6 @@
 #include <random>
 #include <GEL/Util/AttribVec.h>
 #include <GEL/Geometry/Graph.h>
-#include <GEL/GLGraphics/draw.h>
 #include <GEL/Geometry/build_bbtree.h>
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/Geometry/GridAlgorithm.h>
@@ -268,7 +267,26 @@ namespace Geometry {
         return total_work;
     }
 
-
+namespace  {
+    const Vec3f& get_color(int i)
+    {
+        static Vec3f ctable[100000];
+        static bool was_here;
+        gel_srand(0);
+        if(!was_here)
+        {
+            was_here = true;
+            ctable[0] = Vec3f(0);
+            for(int j=1;j<100000;++j)
+            ctable[j] = Vec3f(0.3)+0.7*normalize(Vec3f(gel_rand(),gel_rand(),gel_rand()));
+            ctable[3] = Vec3f(1,0,0);
+            ctable[4] = Vec3f(0,1,0);
+            ctable[5] = Vec3f(0,0,1);
+            ctable[6] = Vec3f(1,0,1);
+        }
+        return ctable[i%100000];
+    }
+}
 
     void color_graph_node_sets(AMGraph3D& g, const NodeSetVec& node_set_vec) {
         double w_max = 0;
@@ -281,7 +299,7 @@ namespace Geometry {
         int cnt = 0;
         for(const auto& [w,ns]:node_set_vec) {
             //        cout << " w, sz:" << w << " , " << ns.size() << endl;
-            Vec3f col  = sqr(GLGraphics::get_color(cnt++));
+            Vec3f col  = sqr(get_color(cnt++));
             //        Vec3f col = Vec3f(w,0,1-w);// = GLGraphics::get_color(cnt);
             for(auto n: ns) {
                 g.node_color[n] = col;

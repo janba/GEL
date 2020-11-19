@@ -13,6 +13,7 @@
 #include <unordered_set>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/KDTree.h>
+#include <GEL/HMesh/Manifold.h>
 //#include <GEL/Geometry/bounding_box_tools.h>
 
 namespace Geometry {

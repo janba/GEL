@@ -17,13 +17,11 @@
 #include <chrono>
 #include <GEL/Util/AttribVec.h>
 #include <GEL/Geometry/Graph.h>
-#include <GEL/GLGraphics/draw.h>
 #include <GEL/Geometry/graph_util.h>
 
 using namespace std;
 using namespace CGLA;
 using namespace Util;
-using namespace HMesh;
 using namespace Geometry;
 
 namespace  Geometry {
