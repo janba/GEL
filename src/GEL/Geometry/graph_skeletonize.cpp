@@ -490,7 +490,7 @@ namespace  Geometry {
             bool did_work = false;
             
             // Since the separator set changes, we iterate over a vector copy instead
-            vector sep(begin(separator), end(separator));
+            vector<NodeID> sep(begin(separator), end(separator));
             // and shuffle it for good measure.
             shuffle(begin(sep), end(sep), default_random_engine(rand()));
             for (auto n: sep) {
