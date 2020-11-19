@@ -971,7 +971,7 @@ def graph_save(fn, g):
     s = ct.c_char_p(fn.encode('utf-8'))
     return lib_py_gel.graph_save(g.obj, s)
 
-lib_py_gel.graph_to_mesh_cyl.argtypes = (ct.c_void_p, ct.c_float)
+lib_py_gel.graph_to_mesh_cyl.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_float)
 lib_py_gel.graph_to_mesh_cyl.restype = ct.c_void_p
 def graph_to_mesh_cyl(g, fudge):
     """ Creates a Manifold mesh from the graph. The first argument, g, is the
