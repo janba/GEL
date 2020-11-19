@@ -68,18 +68,17 @@ namespace Geometry {
      @param merge the resulting skeleton may contain triangles where threee nodes are
      mutually connected forming a clique.  If merge is true, such triangles are
      collapsed into a single vertex joining all the thus connected nodes
-     
-     @returns A graph which represents the skeleton
+     @returns A pair containing the graph which represents the skeleton and a mapping
+     from nodes of the original graph to nodes of the skeleton.
      
      Using Dijkstra, we add nodes to each node set in node_set_vec until all nodes are assigned to
-     exacly one node set.  The skeleton is then easy to find.  Each
-     (augmented) node set begets a vertex of the skeleton, and whenever two vertices
-     belonging to different node sets are connected by an edge, we connect the
-     corresponding skeletal vertices.  Normally, we have merge=true and all of the
-     thriangles in the graph are reduced to Steiner-like vertices.  The graph
-     structure has a color associated with vertices, and we color the Steiner
-     vertices red.  The green channel is used to store the estimated radius.  In a
-     better API, we would output these things as separate attributes.
+     exacly one node set.  The skeleton is then easy to find.  Each  (augmented) node set begets
+     a vertex of the skeleton, and whenever two vertices belonging to different node sets are
+     connected by an edge, we connect the corresponding skeletal vertices.  Normally, we have
+     merge=true and all of the thriangles in the graph are reduced to Steiner-like vertices.  The
+     graph structure has a color associated with vertices, and we color the Steiner vertices red.
+     The green channel is used to store the estimated radius.  In a better API, we would output these
+     things as separate attributes.
      */
     std::pair<AMGraph3D, Util::AttribVec<AMGraph3D::NodeID,AMGraph3D::NodeID>>
     skeleton_from_node_set_vec(AMGraph3D& g,
