@@ -84,7 +84,7 @@ namespace Geometry {
             istr >> x >> y >> z;
             if(1) {
                 Vec3d p = Vec3d(x,y,z);
-                if(!isnan(p[0])) {
+                if(!std::isnan(p[0])) {
                     g.add_node(p);
                 }
                 else
@@ -95,7 +95,7 @@ namespace Geometry {
         KDTree<Vec3d, AMGraph3D::NodeID> tree;
         for(auto n : g.node_ids()) {
             Vec3d p = g.pos[n];
-            if(isnan(p[0]))
+            if(std::isnan(p[0]))
                 cout << "nan node inserted in tree: " << n << endl;
             tree.insert(g.pos[n], n);
         }
@@ -126,7 +126,7 @@ namespace Geometry {
     //            for(const auto& nn: nbors)
     //                if(nn.v != n) {
     //                    Vec3d p = g.pos[nn.v];
-    //                    if(isnan(p[0])) {
+    //                    if(std::isnan(p[0])) {
     //                        cout << "--- Nan: " << endl;
     //                        cout << nn.k << " " << nn.v << " " << nn.d << " " << g.pos[n] << endl;
     //                    }
@@ -210,7 +210,7 @@ namespace Geometry {
         for(auto n: g.node_ids())
             if(g.valid_node_id(n)) {
                 Vec3d p = g.pos[n];
-                if(!isnan(p[0])) {
+                if(!std::isnan(p[0])) {
                     pmin = v_min(p, pmin);
                     pmax = v_max(p, pmax);
                 }
