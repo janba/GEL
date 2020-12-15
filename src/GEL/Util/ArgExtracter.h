@@ -112,6 +112,19 @@ namespace Util
         {
             args = std::vector<std::string>(avec.begin(), avec.end());
         }
+        
+        std::vector<std::string> get_all_args(int from = 0)
+        {
+            std::vector<std::string> args;
+            int arg_no = 0;
+            for (auto a: avec) {
+                if(arg_no >= from)
+                args.push_back(a);
+                arg_no += 1;
+            }
+            return args;
+        }
+
     };
 
 }

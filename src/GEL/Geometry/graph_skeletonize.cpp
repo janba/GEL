@@ -60,7 +60,6 @@ namespace  Geometry {
             node_set_index.push_back(make_pair(w_i, i));
         }
         
-        
         sort(begin(node_set_index), end(node_set_index), greater<pair<double,int>>());
         NodeSetVec node_set_vec_new;
         AttribVec<NodeID, size_t> set_index(g.no_nodes(), -1);
@@ -547,8 +546,7 @@ namespace  Geometry {
                                     if(len_sum_m<len_sum_n)
                                         do_swap = true;
                                     else if(policy>0) {
-                                        double r = rand() / double(RAND_MAX);
-                                        if(r < exp(-policy*(len_sum_m/len_sum_n-1.0)))
+                                        if(((len_sum_m-len_sum_n)/len_sum_n) < 0.1)
                                             do_swap = true;
                                     }
                                     
@@ -589,40 +587,34 @@ namespace  Geometry {
     }
 
 
-
-    void shrink_separator(const AMGraph3D& g, NodeSetUnordered& separator, vector<NodeSetUnordered>& front_components, const Vec3d& sphere_centre) {
-        // Next, we thin out the separator until it becomes minimal (i.e. removing one more node
-        // would make it cease to be a separator. We remove nodes iteratively and always remove the
-        // last visited nodes first.
-        
-        const auto separator_orig = separator;
-        
-        AttribVec<NodeID, Vec3d> smpos(g.no_nodes(), Vec3d(0));
-        for(int i=0;i<front_components.size();++i)
-            for(auto n: front_components[i])
-                smpos[n] = g.pos[n];
-        
-        for(auto n: separator)
-            smpos[n] = g.pos[n];
-        
-        auto smpos_new = smpos;
-        int N_iter = sqrt(separator.size());
+    template<typename T>
+    void smooth_attribute(const AMGraph3D& g, AttribVec<NodeID, T>& attrib, const NodeSetUnordered& node_set, int N_iter = 1) {
+        auto attrib_new = attrib;
         for(int iter=0;iter<N_iter;++iter) {
-            for(auto n: separator) {
+            for(auto n: node_set) {
                 auto N = g.neighbors(n);
-                smpos_new[n] = Vec3d(0);
+                attrib_new[n] = T(0);
+                double w_sum = 0.0;
                 for(auto m: N) {
-                    smpos_new[n] += smpos[m];
+                    double w = 1.0/(1e-30+sqrt(g.sqr_dist(m, n)));
+                    attrib_new[n] += w*attrib[m];
+                    w_sum += w;
                 }
-                smpos_new[n] /= N.size();
+                double delta = 1.0-attrib_new[n]/w_sum;
+                attrib_new[n] = ((1.0-delta)*attrib[n] + delta*attrib_new[n]/w_sum);
             }
-            swap(smpos_new,smpos);
+            swap(attrib_new,attrib);
         }
+    }
 
+
+    void node_set_thinning(const AMGraph3D& g, NodeSetUnordered& separator,
+                           vector<NodeSetUnordered>& front_components,
+                           const AttribVecDouble& priority) {
         using DN_pair = pair<double, NodeID>;
         priority_queue<DN_pair> DNQ;
         for(auto n: separator)
-            DNQ.push(make_pair(sqr_length(smpos[n]-sphere_centre),n));
+            DNQ.push(make_pair(priority[n],n));
         
         bool did_work = false;
         do {
@@ -643,37 +635,30 @@ namespace  Geometry {
             swap(DNQ_new,DNQ);
         }
         while(did_work);
-        
-        double cost_orig, cost_opt, cost_final;
-        cost_orig = separator_cost(g, separator);
-        if(optimize_separator(g, separator_orig, separator, front_components)) {
-            cost_opt = separator_cost(g, separator);
+    }
 
-            if(1.000001 * cost_opt < cost_orig)
-                for(int iter=0;iter<100;++iter)
-                {
-                    did_work = false;
-                    for(int i=0;i<3;++i) {
-                        auto separator_p = separator;
-                        auto front_components_p = front_components;
-                        double cost_p = separator_cost(g, separator);
-                        
-                        optimize_separator(g, separator_orig, separator, front_components, 64);
-                        optimize_separator(g, separator_orig, separator, front_components);
-                        double cost = separator_cost(g, separator);
-                        
-                        if(1.000001 * cost<cost_p) {
-                            did_work = true;
-                            break;
-                        }
-                        else {
-                            separator = separator_p;
-                            front_components = front_components_p;
-                        }
-                    }
-                    if(!did_work)
-                        break;
-            }
+
+    void shrink_separator(const AMGraph3D& g, NodeSetUnordered& separator, vector<NodeSetUnordered>& front_components, const Vec3d& sphere_centre) {
+        // Next, we thin out the separator until it becomes minimal (i.e. removing one more node
+        // would make it cease to be a separator. We remove nodes iteratively and always remove the
+        // last visited nodes first.
+        const auto separator_orig = separator;
+        const auto front_components_orig = front_components;
+        
+        auto smpos = g.pos;
+        AttribVec<NodeID, double> center_dist;
+        for(auto n: separator_orig)
+            center_dist[n] = sqr_length(smpos[n]-sphere_centre);
+        node_set_thinning(g, separator, front_components, center_dist);
+        
+        for(int i=0;i<100;++i) {
+            AttribVec<NodeID, double> sep_prob(g.no_nodes(), 1.0);
+            for(auto n: separator)
+                sep_prob[n] = 0.0;
+            smooth_attribute(g, sep_prob, separator_orig, separator.size());
+            separator = separator_orig;
+            front_components = front_components_orig;
+            node_set_thinning(g, separator, front_components, sep_prob);
         }
     }
 
