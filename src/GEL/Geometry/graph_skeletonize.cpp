@@ -474,6 +474,15 @@ namespace  Geometry {
         return component;
     };
 
+    double separator_cost(const AMGraph3D& g, NodeSetUnordered& separator) {
+        double len_sum = 0;
+        for(auto n: separator)
+            for(auto m: g.neighbors(n))
+                if(n<m && separator.count(m))
+                    len_sum += length(g.pos[n]-g.pos[m]);
+        return len_sum;
+    }
+
 
     int optimize_separator(const AMGraph3D& g,
                             const NodeSetUnordered& separator_orig,
@@ -483,49 +492,52 @@ namespace  Geometry {
         
         int total_work = 0;
         int iter=0;
-        for(iter=0; iter<separator_orig.size();++iter) {
-            bool did_work = false;
-            
-            // Since the separator set changes, we iterate over a vector copy instead
-            vector<NodeID> sep(begin(separator), end(separator));
-            // and shuffle it for good measure.
-            shuffle(begin(sep), end(sep), default_random_engine(rand()));
-            for (auto n: sep) {
-                int no_nonzero_fronts = 0;
-
-                // This first block identifies for the separator n which of its
-                // neighbors are also in the current separator, and it identifies
-                // the adjancent front components.
-                NodeSet separator_neighbors;
-                vector<NodeSet> front_neighbors(front_components.size());
-                for (auto m: g.neighbors(n)) {
-                    int comp_id = -1;
-                    for(int i=0;i<front_components.size(); ++i)
+        for (int front_id = 0; front_id < front_components.size(); ++ front_id) {
+            double cost_before = separator_cost(g, separator);
+            const NodeSetUnordered separator_safe = separator;
+            for(iter=0; iter< 3 * separator_orig.size();++iter) {
+                bool did_work = false;
+                
+                // Since the separator set changes, we iterate over a vector copy instead
+                vector<NodeID> sep(begin(separator), end(separator));
+                // and shuffle it for good measure.
+                shuffle(begin(sep), end(sep), default_random_engine(rand()));
+                for (auto n: sep) {
+                    int no_nonzero_fronts = 0;
+                    
+                    // This first block identifies for the separator n which of its
+                    // neighbors are also in the current separator, and it identifies
+                    // the adjancent front components.
+                    NodeSet separator_neighbors;
+                    vector<NodeSet> front_neighbors(front_components.size());
+                    for (auto m: g.neighbors(n)) {
+                        int comp_id = -1;
+                        for(int i=0;i<front_components.size(); ++i)
                         if(front_components[i].count(m)>0) {
                             comp_id = i;
                             break;
                         }
-                    if(comp_id == -1)
-                        separator_neighbors.insert(m);
-                    else {
-                        if(front_neighbors[comp_id].size() == 0)
-                            no_nonzero_fronts += 1;
-                        front_neighbors[comp_id].insert(m);
+                        if(comp_id == -1)
+                            separator_neighbors.insert(m);
+                        else {
+                            if(front_neighbors[comp_id].size() == 0)
+                                no_nonzero_fronts += 1;
+                            front_neighbors[comp_id].insert(m);
+                        }
                     }
-                }
-                
-                // We only optimize nodes that lie between precisely two fronts. Triple junctions stay in place.
-                // The part below will swap node n for one of its neighbors m if three conditions are met:
-                // 1. m is the _only_ neighbor of n that belongs to its (i.e. m's) front component. Otherwise, we would
-                // create a tunnel through the separator.
-                // 2. m and n have exactly the same neighbors in the (current state of the) separator. I am not certain this
-                // condition is essential, but otherwise it seems we can get non-minimal separators
-                // 3. the summed length of edges between m and the separator neighbors is smaller than n's summed length.
-                // This is really what we are trying to minimize here.
-                if(no_nonzero_fronts == 2)
-                    for(int i=0;i<front_neighbors.size(); ++i) {
-                        if(front_neighbors[i].size() == 1) { // If we have only a single neighbor belonging to given front set
-                            NodeID m = *front_neighbors[i].begin();
+                    
+                    // We only optimize nodes that lie between precisely two fronts. Triple junctions stay in place.
+                    // The part below will swap node n for one of its neighbors m if three conditions are met:
+                    // 1. m is the _only_ neighbor of n that belongs to its (i.e. m's) front component. Otherwise,
+                    // we would create a tunnel through the separator.
+                    // 2. m and n have exactly the same neighbors in the (current state of the) separator. I am not
+                    // certain this condition is essential, but otherwise it seems we can get non-minimal separators
+                    // 3. the summed length of edges between m and the separator neighbors is smaller than n's summed
+                    // length. This is really what we are trying to minimize here.
+                    if(no_nonzero_fronts == 2) {
+                        if(front_neighbors[front_id].size() == 1) {    // If we have only a single neighbor belonging to
+                            // a given front set
+                            NodeID m = *front_neighbors[front_id].begin();
                             if (separator_orig.count(m)) { // If this neighbor is part of the original separator.
                                 NodeSet separator_neighbors_m;
                                 for(auto mm: g.neighbors(m)) {
@@ -542,53 +554,51 @@ namespace  Geometry {
                                         len_sum_n += length(g.pos[n]-g.pos[mm]);
                                     for(auto mm: separator_neighbors_m)
                                         len_sum_m += length(g.pos[m]-g.pos[mm]);
-
+                                    
                                     if(len_sum_m<len_sum_n)
                                         do_swap = true;
                                     else if(policy>0) {
-                                        if(((len_sum_m-len_sum_n)/len_sum_n) < 0.1)
+                                        if(((len_sum_m-len_sum_n)/len_sum_n) < 0.3)
                                             do_swap = true;
                                     }
                                     
                                     if(do_swap) {
                                         separator.erase(n);
                                         separator.insert(m);
-                                        front_components[i].erase(m);
+                                        front_components[front_id].erase(m);
                                         for(int j=0; j< front_components.size();++j)
-                                            if(j != i && !front_neighbors[j].empty())
-                                                front_components[j].insert(n);
+                                        if(j != front_id && !front_neighbors[j].empty())
+                                            front_components[j].insert(n);
                                         did_work = true;
                                         ++total_work;
                                     }
-     
-                                        
+                                    
+                                    
                                 }
                             }
                             
                         }
                     }
-            } // End loop over all separators
-            if (!did_work)
-                break;
-        } // End iteration loop
-        
-    //    cout << "tightening separator: " << total_work << " moves in " << iter << " iterations "<< endl;
+                } // End loop over all separators
+                if (!did_work)
+                    break;
+            } // End iteration loop
+            double cost_after = separator_cost(g, separator);
+            if(cost_before <= cost_after)
+                separator = separator_safe;
+            else
+                cout << front_id << " : " << cost_before << "," << cost_after << endl;
 
+        }
+        cout << "----" << endl;
+//        cout << "Total work: " << total_work << "-------------" << endl;
+        //    cout << "tightening separator: " << total_work << " moves in " << iter << " iterations "<< endl;
         return total_work;
     }
 
-    double separator_cost(const AMGraph3D& g, NodeSetUnordered& separator) {
-        double len_sum = 0;
-        for(auto n: separator)
-            for(auto m: g.neighbors(n))
-                if(n<m && separator.count(m))
-                    len_sum += length(g.pos[n]-g.pos[m]);
-        return len_sum;
-    }
-
-
     template<typename T>
     void smooth_attribute(const AMGraph3D& g, AttribVec<NodeID, T>& attrib, const NodeSetUnordered& node_set, int N_iter = 1) {
+        double delta = 0.5;
         auto attrib_new = attrib;
         for(int iter=0;iter<N_iter;++iter) {
             for(auto n: node_set) {
@@ -600,7 +610,6 @@ namespace  Geometry {
                     attrib_new[n] += w*attrib[m];
                     w_sum += w;
                 }
-                double delta = 1.0-attrib_new[n]/w_sum;
                 attrib_new[n] = ((1.0-delta)*attrib[n] + delta*attrib_new[n]/w_sum);
             }
             swap(attrib_new,attrib);
@@ -649,17 +658,9 @@ namespace  Geometry {
         AttribVec<NodeID, double> center_dist;
         for(auto n: separator_orig)
             center_dist[n] = sqr_length(smpos[n]-sphere_centre);
+        smooth_attribute(g, smpos, separator, sqrt(separator.size()));
         node_set_thinning(g, separator, front_components, center_dist);
-        
-        for(int i=0;i<100;++i) {
-            AttribVec<NodeID, double> sep_prob(g.no_nodes(), 1.0);
-            for(auto n: separator)
-                sep_prob[n] = 0.0;
-            smooth_attribute(g, sep_prob, separator_orig, separator.size());
-            separator = separator_orig;
-            front_components = front_components_orig;
-            node_set_thinning(g, separator, front_components, sep_prob);
-        }
+        optimize_separator(g, separator_orig, separator, front_components, 1);
     }
 
     NodeSetUnordered neighbors(AMGraph3D& g, const NodeSetUnordered& s) {
