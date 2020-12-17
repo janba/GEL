@@ -487,39 +487,35 @@ namespace  Geometry {
     int optimize_separator(const AMGraph3D& g,
                             const NodeSetUnordered& separator_orig,
                             NodeSetUnordered& separator,
-                            vector<NodeSetUnordered>& front_components,
-                            int policy=0) {
-        
+                            vector<NodeSetUnordered>& front_components, int policy=0) {
         int total_work = 0;
         int iter=0;
-        for (int front_id = 0; front_id < front_components.size(); ++ front_id) {
+        for (int front_id = 0; front_id < front_components.size(); ++front_id) {
             double cost_before = separator_cost(g, separator);
             const NodeSetUnordered separator_safe = separator;
-            for(iter=0; iter< 3 * separator_orig.size();++iter) {
+            NodeSetUnordered sep = separator;
+            for(iter=0; iter < separator.size();++iter) {
                 bool did_work = false;
-                
-                // Since the separator set changes, we iterate over a vector copy instead
-                vector<NodeID> sep(begin(separator), end(separator));
-                // and shuffle it for good measure.
-                shuffle(begin(sep), end(sep), default_random_engine(rand()));
+                NodeSetUnordered sep_new;
+                for(auto n: sep)
+                    if (separator.count(n))
+                        sep_new.insert(n);
+                swap(sep, sep_new);
                 for (auto n: sep) {
                     int no_nonzero_fronts = 0;
                     
                     // This first block identifies for the separator n which of its
                     // neighbors are also in the current separator, and it identifies
                     // the adjancent front components.
-                    NodeSet separator_neighbors;
                     vector<NodeSet> front_neighbors(front_components.size());
                     for (auto m: g.neighbors(n)) {
                         int comp_id = -1;
                         for(int i=0;i<front_components.size(); ++i)
-                        if(front_components[i].count(m)>0) {
-                            comp_id = i;
-                            break;
-                        }
-                        if(comp_id == -1)
-                            separator_neighbors.insert(m);
-                        else {
+                            if(front_components[i].count(m)>0) {
+                                comp_id = i;
+                                break;
+                            }
+                        if(comp_id != -1) {
                             if(front_neighbors[comp_id].size() == 0)
                                 no_nonzero_fronts += 1;
                             front_neighbors[comp_id].insert(m);
@@ -539,44 +535,45 @@ namespace  Geometry {
                             // a given front set
                             NodeID m = *front_neighbors[front_id].begin();
                             if (separator_orig.count(m)) { // If this neighbor is part of the original separator.
-                                NodeSet separator_neighbors_m;
-                                for(auto mm: g.neighbors(m)) {
-                                    if(mm != n && separator.count(mm))
-                                        separator_neighbors_m.insert(mm);
+                                vector<NodeID> separator_neighbors_m;
+                                for (auto mm: g.neighbors(m)) {
+                                    if(separator.count(mm))
+                                        separator_neighbors_m.push_back(mm);
                                 }
-                                // Now if m has the same neighbors _in the separator_ as n
-                                if(separator_neighbors == separator_neighbors_m) {
-                                    bool do_swap = false;
+                                
+                                double len_sum_before = 0;
+                                double len_sum_after = 0;
+                                vector<bool> separator_node_redundant(separator_neighbors_m.size(), true);
+                                for (int na_idx=0; na_idx<separator_neighbors_m.size(); ++na_idx) {
+                                    auto na = separator_neighbors_m[na_idx];
+                                    for(auto nb: separator_neighbors_m)
+                                        if (g.find_edge(na, nb) != AMGraph::InvalidEdgeID)
+                                            len_sum_before += 0.5*length(g.pos[na]-g.pos[nb]);
                                     
-                                    double len_sum_n = 0;
-                                    double len_sum_m = 0;
-                                    for(auto mm: separator_neighbors)
-                                        len_sum_n += length(g.pos[n]-g.pos[mm]);
-                                    for(auto mm: separator_neighbors_m)
-                                        len_sum_m += length(g.pos[m]-g.pos[mm]);
+                                    for (auto nb: g.neighbors(na))
+                                        if(nb != m && front_components[front_id].count(nb))
+                                            separator_node_redundant[na_idx] = false;
                                     
-                                    if(len_sum_m<len_sum_n)
-                                        do_swap = true;
-                                    else if(policy>0) {
-                                        if(((len_sum_m-len_sum_n)/len_sum_n) < 0.3)
-                                            do_swap = true;
-                                    }
-                                    
-                                    if(do_swap) {
-                                        separator.erase(n);
-                                        separator.insert(m);
-                                        front_components[front_id].erase(m);
-                                        for(int j=0; j< front_components.size();++j)
-                                        if(j != front_id && !front_neighbors[j].empty())
-                                            front_components[j].insert(n);
-                                        did_work = true;
-                                        ++total_work;
-                                    }
-                                    
-                                    
+                                    if(separator_node_redundant[na_idx] == false)
+                                        len_sum_after += length(g.pos[na] - g.pos[m]);
+                                }
+                                
+                                if(((len_sum_after-len_sum_before)/len_sum_before) < 0.15) {
+                                    separator.insert(m);
+                                    front_components[front_id].erase(m);
+
+                                    for (int na_idx=0; na_idx<separator_neighbors_m.size(); ++na_idx)
+                                        if (separator_node_redundant[na_idx]) {
+                                            auto na = separator_neighbors_m[na_idx];
+                                            separator.erase(na);
+                                            for(int j=0; j< front_components.size();++j)
+                                                if(j != front_id && !front_neighbors[j].empty())
+                                                    front_components[j].insert(na);
+                                        }
+                                    did_work = true;
+                                    ++total_work;
                                 }
                             }
-                            
                         }
                     }
                 } // End loop over all separators
@@ -584,21 +581,19 @@ namespace  Geometry {
                     break;
             } // End iteration loop
             double cost_after = separator_cost(g, separator);
-            if(cost_before <= cost_after)
+            if(cost_before < cost_after)
                 separator = separator_safe;
             else
-                cout << front_id << " : " << cost_before << "," << cost_after << endl;
-
+                cout << cost_after << " : " << cost_before << endl;
         }
-        cout << "----" << endl;
-//        cout << "Total work: " << total_work << "-------------" << endl;
-        //    cout << "tightening separator: " << total_work << " moves in " << iter << " iterations "<< endl;
         return total_work;
     }
 
     template<typename T>
-    void smooth_attribute(const AMGraph3D& g, AttribVec<NodeID, T>& attrib, const NodeSetUnordered& node_set, int N_iter = 1) {
+    void smooth_attribute(const AMGraph3D& g, AttribVec<NodeID, T>& attrib, const NodeSetUnordered& node_set,
+                          int N_iter = 1, const AttribVec<NodeID, Vec3d>* _pos = 0) {
         double delta = 0.5;
+        const AttribVec<NodeID, Vec3d>& pos = (_pos == 0) ? g.pos : *_pos;
         auto attrib_new = attrib;
         for(int iter=0;iter<N_iter;++iter) {
             for(auto n: node_set) {
@@ -606,7 +601,7 @@ namespace  Geometry {
                 attrib_new[n] = T(0);
                 double w_sum = 0.0;
                 for(auto m: N) {
-                    double w = 1.0/(1e-30+sqrt(g.sqr_dist(m, n)));
+                    double w = 1.0/(1e-30+length(pos[m]-pos[n]));
                     attrib_new[n] += w*attrib[m];
                     w_sum += w;
                 }
@@ -615,6 +610,8 @@ namespace  Geometry {
             swap(attrib_new,attrib);
         }
     }
+
+
 
 
     void node_set_thinning(const AMGraph3D& g, NodeSetUnordered& separator,
@@ -647,6 +644,40 @@ namespace  Geometry {
     }
 
 
+    void smooth_separator(const AMGraph3D& g,
+                          const NodeSetUnordered& separator_orig,
+                          const vector<NodeSetUnordered>& front_components_orig,
+                          NodeSetUnordered& separator,
+                          vector<NodeSetUnordered>& front_components) {
+        auto pos_sep = g.pos;
+        int N_iter = separator.size();
+        for(int iter =0; iter<N_iter; ++iter) {
+            auto pos_sep_new = pos_sep;
+            for(auto n: separator) {
+                int cnt = 0;
+                Vec3d pn = Vec3d(0);
+                for(auto m: g.neighbors(n))
+                    if(separator.count(m)) {
+                        pn += pos_sep[m];
+                        cnt += 1;
+                    }
+                pos_sep_new[n] = 0.25 * (pn/cnt) + 0.75*pos_sep[n];
+            }
+            swap(pos_sep, pos_sep_new);
+        }
+        AttribVecDouble sep_affinity(g.no_nodes(), 1.0);
+        for(auto n: separator)
+            sep_affinity[n] = 0;
+        
+        smooth_attribute(g, sep_affinity, separator_orig, separator.size(), &pos_sep);
+        
+        separator = separator_orig;
+        front_components = front_components_orig;
+        node_set_thinning(g, separator, front_components, sep_affinity);
+    }
+
+
+
     void shrink_separator(const AMGraph3D& g, NodeSetUnordered& separator, vector<NodeSetUnordered>& front_components, const Vec3d& sphere_centre) {
         // Next, we thin out the separator until it becomes minimal (i.e. removing one more node
         // would make it cease to be a separator. We remove nodes iteratively and always remove the
@@ -660,7 +691,12 @@ namespace  Geometry {
             center_dist[n] = sqr_length(smpos[n]-sphere_centre);
         smooth_attribute(g, smpos, separator, sqrt(separator.size()));
         node_set_thinning(g, separator, front_components, center_dist);
-        optimize_separator(g, separator_orig, separator, front_components, 1);
+        
+//        for(int _ = 0; _ < 100 ; ++_)
+//            smooth_separator(g, separator_orig, front_components_orig, separator, front_components);
+        while(optimize_separator(g, separator_orig, separator, front_components));
+//        optimize_separator(g, separator_orig, separator, front_components);
+//        optimize_separator(g, separator_orig, separator, front_components);
     }
 
     NodeSetUnordered neighbors(AMGraph3D& g, const NodeSetUnordered& s) {
