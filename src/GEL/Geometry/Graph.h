@@ -285,7 +285,8 @@ namespace Geometry {
         Util::AttribVec<AMGraph::NodeID, AMGraph::NodeID> pred;
         Util::AttribVec<AMGraph::NodeID, int> T_in;
         Util::AttribVec<AMGraph::NodeID, int> T_out;
-
+        Util::AttribVec<AMGraph::NodeID, int> mask;
+        
     public:
 
         BreadthFirstSearch(const AMGraph3D& _g, const DistAttribVec& _dist = DistAttribVec(0));

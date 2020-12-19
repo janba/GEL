@@ -84,6 +84,7 @@ namespace Geometry {
         T_in = Util::AttribVec<AMGraph::NodeID,int>(g_ptr->no_nodes(), INT_MAX);
         T_out = Util::AttribVec<AMGraph::NodeID,int>(g_ptr->no_nodes(), INT_MAX);
         pred = Util::AttribVec<AMGraph::NodeID, AMGraph::NodeID>(g_ptr->no_nodes(), AMGraph::InvalidNodeID);
+        mask = Util::AttribVec<AMGraph::NodeID,int>(g_ptr->no_nodes(), 1);
         if(_dist.size() == 0) {
             dist = DistAttribVec(g_ptr->no_nodes(), DBL_MAX);
         }
@@ -124,14 +125,15 @@ namespace Geometry {
             if(last.priority == -dist[n]) {
                 visited.insert(n);
                 did_visit = true;
-                for(auto m: g_ptr->neighbors(n)) {
-                    double d = sqrt(g_ptr->sqr_dist(n,m)) - last.priority;
-                    if(d < dist[m]) {
-                        dist[m] = d;
-                        pred[m] = n;
-                        pq.push(PrimPQElem(-d, m, n));
-                        front.insert(m);
-                        T_in[m] = T;
+                for(auto m: g_ptr->neighbors(n))
+                    if(mask[m]) {
+                        double d = sqrt(g_ptr->sqr_dist(n,m)) - last.priority;
+                        if(d < dist[m]) {
+                            dist[m] = d;
+                            pred[m] = n;
+                            pq.push(PrimPQElem(-d, m, n));
+                            front.insert(m);
+                            T_in[m] = T;
                     }
                 }
             }
@@ -149,12 +151,13 @@ namespace Geometry {
             pq.pop();
             visited.insert(n);
             for(auto m: g_ptr->neighbors(n))
-                if (T<T_in[m]){
-                    pred[m] = n;
-                    pq.push(PrimPQElem(-dist[m], m, n));
-                    front.insert(m);
-                    T_in[m] = T;
-                }
+                if(mask[m])
+                    if (T<T_in[m]){
+                        pred[m] = n;
+                        pq.push(PrimPQElem(-dist[m], m, n));
+                        front.insert(m);
+                        T_in[m] = T;
+                    }
             return true;
         }
         return false;

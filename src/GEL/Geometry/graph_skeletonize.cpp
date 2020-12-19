@@ -663,39 +663,39 @@ int optimize_separator(const AMGraph3D& g,
     }
 
 
-    void smooth_separator(const AMGraph3D& g,
+    void smooth_separator(const AMGraph3D& g, NodeID n0,
                           const NodeSetUnordered& separator_orig,
                           const vector<NodeSetUnordered>& front_components_orig,
                           NodeSetUnordered& separator,
                           vector<NodeSetUnordered>& front_components) {
-        auto pos_sep = g.pos;
-        int N_iter = separator.size();
-        for(int iter =0; iter<N_iter; ++iter) {
-            auto pos_sep_new = pos_sep;
-            for(auto n: separator) {
-                int cnt = 0;
-                Vec3d pn = Vec3d(0);
-                for(auto m: g.neighbors(n))
-                    if(separator.count(m)) {
-                        pn += pos_sep[m];
-                        cnt += 1;
-                    }
-                pos_sep_new[n] = 0.25 * (pn/cnt) + 0.75*pos_sep[n];
-            }
-            swap(pos_sep, pos_sep_new);
-        }
-        AttribVecDouble sep_affinity(g.no_nodes(), 1.0);
-        for(auto n: separator)
-            sep_affinity[n] = 0;
-        
-        smooth_attribute(g, sep_affinity, separator_orig, separator.size(), &pos_sep);
+        BreadthFirstSearch bfs(g);
+        for(auto n: g.node_ids())
+            bfs.mask[n] = 0;
+        for(auto n: separator_orig)
+            bfs.mask[n] = 1;
+
+        bfs.add_init_node(n0);
+        while(bfs.Dijkstra_step());
         
         separator = separator_orig;
         front_components = front_components_orig;
-        node_set_thinning(g, separator, front_components, sep_affinity);
+        node_set_thinning(g, separator, front_components, bfs.dist);
     }
 
 
+    NodeSetUnordered neighbors(const AMGraph3D& g, const NodeSetUnordered& s) {
+        NodeSetUnordered _nbors;
+        for(auto n: s)
+            for(auto m: g.neighbors(n))
+                _nbors.insert(m);
+        
+        NodeSetUnordered nbors;
+        for(auto n: _nbors)
+            if (s.count(n) == 0)
+                nbors.insert(n);
+        
+        return nbors;
+    }
 
     void shrink_separator(const AMGraph3D& g, NodeSetUnordered& separator, vector<NodeSetUnordered>& front_components, const Vec3d& sphere_centre) {
         // Next, we thin out the separator until it becomes minimal (i.e. removing one more node
@@ -710,27 +710,31 @@ int optimize_separator(const AMGraph3D& g,
             center_dist[n] = sqr_length(smpos[n]-sphere_centre);
         smooth_attribute(g, smpos, separator, sqrt(separator.size()));
         node_set_thinning(g, separator, front_components, center_dist);
+
+        NodeID n0;
+        double smallest_center_dist = DBL_MAX;
+        for(auto n: separator)
+            if(center_dist[n] < smallest_center_dist) {
+                smallest_center_dist = center_dist[n];
+                n0 = n;
+            }
         
+        NodeSetUnordered mask = separator;
+        for(int iter=0; iter<2;++iter) {
+            auto nbors = neighbors(g, mask);
+            mask.insert(begin(nbors), end(nbors));
+        }
+        auto mask_front_components = connected_components(g, neighbors(g, mask));
+        smooth_separator(g, n0, mask, mask_front_components, separator, front_components);
+            
 //        for(int _ = 0; _ < 100 ; ++_)
 //            smooth_separator(g, separator_orig, front_components_orig, separator, front_components);
-        optimize_separator(g, separator_orig, separator, front_components);
+//        optimize_separator(g, separator_orig, separator, front_components);
 //        optimize_separator(g, separator_orig, separator, front_components);
 //        optimize_separator(g, separator_orig, separator, front_components);
     }
 
-    NodeSetUnordered neighbors(AMGraph3D& g, const NodeSetUnordered& s) {
-        NodeSetUnordered _nbors;
-        for(auto n: s)
-            for(auto m: g.neighbors(n))
-                _nbors.insert(m);
-        
-        NodeSetUnordered nbors;
-        for(auto n: _nbors)
-            if (s.count(n) == 0)
-                nbors.insert(n);
-        
-        return nbors;
-    }
+
 
 
     NodeSet order(NodeSetUnordered& s) {
