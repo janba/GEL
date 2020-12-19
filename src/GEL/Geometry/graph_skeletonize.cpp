@@ -434,159 +434,178 @@ namespace  Geometry {
     }
 
 
-    NodeSetVec front_separators(AMGraph3D& g, const vector<AttribVecDouble>& dvv)
+NodeSetVec front_separators(AMGraph3D& g, const vector<AttribVecDouble>& dvv)
+{
+    auto process_dist = [](AMGraph3D& g, const AttribVecDouble& dist, int shift) -> NodeSetVec
     {
-        auto process_dist = [](AMGraph3D& g, const AttribVecDouble& dist, int shift) -> NodeSetVec
-        {
-            auto node_set_vec = separating_node_sets(g, dist, shift);
-            return node_set_vec;
-        };
-
-        size_t N = dvv.size();
-        NodeSetVec node_set_vec_global;
-        vector<future<NodeSetVec>> nsvfutures(N);
-        
-        for(int i=0;i<N;++i)
-        nsvfutures[i] = async(launch::async, process_dist, ref(g), dvv[i], 0);
-        
-        for(int i=0;i<N;++i) {
-            NodeSetVec nsv =nsvfutures[i].get();
-            node_set_vec_global.insert(end(node_set_vec_global), begin(nsv), end(nsv));
-        }
-
-        greedy_weighted_packing(g, node_set_vec_global, true);
-        color_graph_node_sets(g,node_set_vec_global);
-        return node_set_vec_global;
-    }
-
-    int find_component(const AMGraph3D& g, NodeID n, const vector<NodeSetUnordered>& front_components) {
-        int component = -1;
-        for(auto m: g.neighbors(n))
-            for(int i=0;i<front_components.size();++i)
-                if(front_components[i].count(m)) {
-                    if(component == -1)
-                        component = i;
-                    else if (component != i) {
-                        component = -1;
-                        return component;
-                    }
-                }
-        return component;
+        auto node_set_vec = separating_node_sets(g, dist, shift);
+        return node_set_vec;
     };
-
-    double separator_cost(const AMGraph3D& g, NodeSetUnordered& separator) {
-        double len_sum = 0;
-        for(auto n: separator)
-            for(auto m: g.neighbors(n))
-                if(n<m && separator.count(m))
-                    len_sum += length(g.pos[n]-g.pos[m]);
-        return len_sum;
+    
+    size_t N = dvv.size();
+    NodeSetVec node_set_vec_global;
+    vector<future<NodeSetVec>> nsvfutures(N);
+    
+    for(int i=0;i<N;++i)
+    nsvfutures[i] = async(launch::async, process_dist, ref(g), dvv[i], 0);
+    
+    for(int i=0;i<N;++i) {
+        NodeSetVec nsv =nsvfutures[i].get();
+        node_set_vec_global.insert(end(node_set_vec_global), begin(nsv), end(nsv));
     }
+    
+    greedy_weighted_packing(g, node_set_vec_global, true);
+    color_graph_node_sets(g,node_set_vec_global);
+    return node_set_vec_global;
+}
 
-
-    int optimize_separator(const AMGraph3D& g,
-                            const NodeSetUnordered& separator_orig,
-                            NodeSetUnordered& separator,
-                            vector<NodeSetUnordered>& front_components, int policy=0) {
-        int total_work = 0;
-        int iter=0;
-        for (int front_id = 0; front_id < front_components.size(); ++front_id) {
-            double cost_before = separator_cost(g, separator);
-            const NodeSetUnordered separator_safe = separator;
-            NodeSetUnordered sep = separator;
-            for(iter=0; iter < separator.size();++iter) {
-                bool did_work = false;
-                NodeSetUnordered sep_new;
-                for(auto n: sep)
-                    if (separator.count(n))
-                        sep_new.insert(n);
-                swap(sep, sep_new);
-                for (auto n: sep) {
-                    int no_nonzero_fronts = 0;
-                    
-                    // This first block identifies for the separator n which of its
-                    // neighbors are also in the current separator, and it identifies
-                    // the adjancent front components.
-                    vector<NodeSet> front_neighbors(front_components.size());
-                    for (auto m: g.neighbors(n)) {
-                        int comp_id = -1;
-                        for(int i=0;i<front_components.size(); ++i)
-                            if(front_components[i].count(m)>0) {
-                                comp_id = i;
-                                break;
-                            }
-                        if(comp_id != -1) {
-                            if(front_neighbors[comp_id].size() == 0)
-                                no_nonzero_fronts += 1;
-                            front_neighbors[comp_id].insert(m);
-                        }
-                    }
-                    
-                    // We only optimize nodes that lie between precisely two fronts. Triple junctions stay in place.
-                    // The part below will swap node n for one of its neighbors m if three conditions are met:
-                    // 1. m is the _only_ neighbor of n that belongs to its (i.e. m's) front component. Otherwise,
-                    // we would create a tunnel through the separator.
-                    // 2. m and n have exactly the same neighbors in the (current state of the) separator. I am not
-                    // certain this condition is essential, but otherwise it seems we can get non-minimal separators
-                    // 3. the summed length of edges between m and the separator neighbors is smaller than n's summed
-                    // length. This is really what we are trying to minimize here.
-                    if(no_nonzero_fronts == 2) {
-                        if(front_neighbors[front_id].size() == 1) {    // If we have only a single neighbor belonging to
-                            // a given front set
-                            NodeID m = *front_neighbors[front_id].begin();
-                            if (separator_orig.count(m)) { // If this neighbor is part of the original separator.
-                                vector<NodeID> separator_neighbors_m;
-                                for (auto mm: g.neighbors(m)) {
-                                    if(separator.count(mm))
-                                        separator_neighbors_m.push_back(mm);
-                                }
-                                
-                                double len_sum_before = 0;
-                                double len_sum_after = 0;
-                                vector<bool> separator_node_redundant(separator_neighbors_m.size(), true);
-                                for (int na_idx=0; na_idx<separator_neighbors_m.size(); ++na_idx) {
-                                    auto na = separator_neighbors_m[na_idx];
-                                    for(auto nb: separator_neighbors_m)
-                                        if (g.find_edge(na, nb) != AMGraph::InvalidEdgeID)
-                                            len_sum_before += 0.5*length(g.pos[na]-g.pos[nb]);
-                                    
-                                    for (auto nb: g.neighbors(na))
-                                        if(nb != m && front_components[front_id].count(nb))
-                                            separator_node_redundant[na_idx] = false;
-                                    
-                                    if(separator_node_redundant[na_idx] == false)
-                                        len_sum_after += length(g.pos[na] - g.pos[m]);
-                                }
-                                
-                                if(((len_sum_after-len_sum_before)/len_sum_before) < 0.15) {
-                                    separator.insert(m);
-                                    front_components[front_id].erase(m);
-
-                                    for (int na_idx=0; na_idx<separator_neighbors_m.size(); ++na_idx)
-                                        if (separator_node_redundant[na_idx]) {
-                                            auto na = separator_neighbors_m[na_idx];
-                                            separator.erase(na);
-                                            for(int j=0; j< front_components.size();++j)
-                                                if(j != front_id && !front_neighbors[j].empty())
-                                                    front_components[j].insert(na);
-                                        }
-                                    did_work = true;
-                                    ++total_work;
-                                }
-                            }
-                        }
-                    }
-                } // End loop over all separators
-                if (!did_work)
-                    break;
-            } // End iteration loop
-            double cost_after = separator_cost(g, separator);
-            if(cost_before < cost_after)
-                separator = separator_safe;
-            else
-                cout << cost_after << " : " << cost_before << endl;
+int find_component(const AMGraph3D& g, NodeID n, const vector<NodeSetUnordered>& front_components) {
+    int component = -1;
+    for(auto m: g.neighbors(n))
+        for(int i=0;i<front_components.size();++i)
+    if(front_components[i].count(m)) {
+        if(component == -1)
+            component = i;
+        else if (component != i) {
+            component = -1;
+            return component;
         }
-        return total_work;
+    }
+    return component;
+};
+
+double separator_cost(const AMGraph3D& g, NodeSetUnordered& separator) {
+    double len_sum = 0;
+    for(auto n: separator)
+        for(auto m: g.neighbors(n))
+            if(n<m && separator.count(m))
+                len_sum += length(g.pos[n]-g.pos[m]);
+    return len_sum;
+}
+
+
+int optimize_separator(const AMGraph3D& g,
+                       const NodeSetUnordered& separator_orig,
+                       NodeSetUnordered& separator,
+                       vector<NodeSetUnordered>& front_components) {
+    int total_work = 0;
+    int iter=0;
+    double cost_before = separator_cost(g, separator);
+    const NodeSetUnordered separator_safe = separator;
+    for(iter=0; iter < separator_orig.size();++iter) {
+        double opt_reduction = 0;
+        int opt_front_id = -1;
+        int opt_other_front = -1;
+        vector<NodeID> opt_sep_nodes_for_removal;
+        NodeID opt_new_sep_node;
+        
+        for (auto n: separator) {
+            int no_nonzero_fronts = 0;
+            
+            // This first block identifies for the separator n which of its
+            // neighbors are also in the current separator, and it identifies
+            // the adjancent front components.
+            vector<NodeSet> front_neighbors(front_components.size());
+            for (auto m: g.neighbors(n)) {
+                int comp_id = -1;
+                for(int i=0;i<front_components.size(); ++i)
+                if(front_components[i].count(m)>0) {
+                    comp_id = i;
+                    break;
+                }
+                if(comp_id != -1) {
+                    if(front_neighbors[comp_id].size() == 0)
+                        no_nonzero_fronts += 1;
+                    front_neighbors[comp_id].insert(m);
+                }
+            }
+            
+            // We only optimize nodes that lie between precisely two fronts. Triple junctions stay in place.
+            // The part below will swap node n for one of its neighbors m if three conditions are met:
+            // 1. m is the _only_ neighbor of n that belongs to its (i.e. m's) front component. Otherwise,
+            // we would create a tunnel through the separator.
+            // 2. m and n have exactly the same neighbors in the (current state of the) separator. I am not
+            // certain this condition is essential, but otherwise it seems we can get non-minimal separators
+            // 3. the summed length of edges between m and the separator neighbors is smaller than n's summed
+            // length. This is really what we are trying to minimize here.
+            if(no_nonzero_fronts == 2)
+                for(int front_id = 0; front_id< front_components.size(); ++ front_id)
+                    if(front_neighbors[front_id].size() == 1) { // If we have only a single neighbor belonging to
+                                                                // a given front set
+                        NodeID m = *front_neighbors[front_id].begin();
+                        if (separator_orig.count(m)) { // If this neighbor is part of the original separator.
+                            vector<NodeID> separator_neighbors_m;
+                            for (auto mm: g.neighbors(m)) {
+                                if(separator.count(mm))
+                                    separator_neighbors_m.push_back(mm);
+                            }
+                            
+                            double len_sum_before = 0;
+                            double len_sum_after = 0;
+                            vector<bool> separator_node_redundant(separator_neighbors_m.size(), true);
+                            for (int na_idx=0; na_idx<separator_neighbors_m.size(); ++na_idx) {
+                                auto na = separator_neighbors_m[na_idx];
+                                for(auto nb: separator_neighbors_m)
+                                    if (g.find_edge(na, nb) != AMGraph::InvalidEdgeID)
+                                        len_sum_before += 0.5*length(g.pos[na]-g.pos[nb]);
+                                
+                                for (auto nb: g.neighbors(na))
+                                    if(nb != m && front_components[front_id].count(nb))
+                                        separator_node_redundant[na_idx] = false;
+                                
+                                if(separator_node_redundant[na_idx] == false)
+                                    len_sum_after += length(g.pos[na] - g.pos[m]);
+                            }
+                            
+                            double reduction = len_sum_after-len_sum_before;
+                            if (reduction < opt_reduction) {
+                                opt_reduction = reduction;
+                                opt_front_id = front_id;
+                                opt_new_sep_node = m;
+                                for (int na_idx=0; na_idx<separator_neighbors_m.size(); ++na_idx)
+                                    if (separator_node_redundant[na_idx])
+                                        opt_sep_nodes_for_removal.push_back(separator_neighbors_m[na_idx]);
+                                opt_other_front = -1;
+                                for(int i=0;i<front_components.size();++i)
+                                    if(i != front_id && front_neighbors[i].size()>0) {
+                                        opt_other_front = i;
+                                        break;
+                                    }
+                            }
+                                
+                        
+                        }
+                    }
+            
+        } // End loop over all separators
+        
+        if(opt_reduction < 0.0 && opt_sep_nodes_for_removal.size()<3) {
+//            cout << "opt " << opt_reduction << endl;
+            int sz0 = separator.size();
+            auto [iter, was_inserted] = separator.insert(opt_new_sep_node);
+            int cnt = was_inserted;
+            front_components[opt_front_id].erase(opt_new_sep_node);
+            
+            int erased = 0;
+            int inserted = 0;
+            for(auto na: opt_sep_nodes_for_removal) {
+                erased += separator.erase(na);
+                auto [iter, was_inserted] = front_components[opt_other_front].insert(na);
+                inserted += was_inserted;
+            }
+            int sz1 = separator.size();
+            cout << sz0 << "::" << sz1 << " > " << (erased - cnt) << endl;
+            ++total_work;
+            if(erased == 3) return total_work;
+        }
+        
+    } // End iteration loop
+    double cost_after = separator_cost(g, separator);
+    if(cost_before < cost_after)
+        separator = separator_safe;
+//    else
+//        cout << cost_after << " : " << cost_before << endl;
+    return total_work;
     }
 
     template<typename T>
@@ -694,7 +713,7 @@ namespace  Geometry {
         
 //        for(int _ = 0; _ < 100 ; ++_)
 //            smooth_separator(g, separator_orig, front_components_orig, separator, front_components);
-        while(optimize_separator(g, separator_orig, separator, front_components));
+        optimize_separator(g, separator_orig, separator, front_components);
 //        optimize_separator(g, separator_orig, separator, front_components);
 //        optimize_separator(g, separator_orig, separator, front_components);
     }

@@ -1307,7 +1307,10 @@ namespace HMesh
                 return false;
             }
         }
-        assert(link0.size() > 1);
+        if(link0.size() <= 1) {
+            cout << "precond_collapse failed: link0 size is <=1" << endl;
+            return false;
+        }
         
         // get the one-ring of v1
         vector<VertexID> link1;
@@ -1324,8 +1327,11 @@ namespace HMesh
                 return false;
             }
         }
-        assert(link1.size() > 1);
-        
+        if(link1.size() <= 1) {
+            cout << "precond_collapse failed: link1 size is <=1" << endl;
+            return false;
+        }
+
         // sort the vertices of the two rings
         sort(link0.begin(), link0.end());
         sort(link1.begin(), link1.end());
