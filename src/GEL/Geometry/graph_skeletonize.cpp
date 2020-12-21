@@ -117,79 +117,6 @@ namespace  Geometry {
         return node_set_vec;
     }
 
-    template<typename IndexType, typename  FuncType>
-    auto minimum(IndexType b, IndexType e, FuncType f)  {
-        using ValueType = decltype(f(*b));
-        IndexType min_idx = b;
-        ValueType min_val = f(*b);
-        for(IndexType i=++b; i != e; ++i) {
-            ValueType val = f(*i);
-            if (val < min_val) {
-                min_val = val;
-                min_idx = i;
-            }
-        }
-        return make_pair(min_idx, min_val);
-    }
-
-
-    NodeSetVec k_means_node_clusters(AMGraph3D& g, int N, int MAX_ITER) {
-        vector<NodeID> seeds(begin(g.node_ids()), end(g.node_ids()));
-        srand(0);
-        shuffle(begin(seeds), end(seeds), default_random_engine(rand()));
-        seeds.resize(N);
-        vector<Vec3d> seed_pos(N);
-        for(int i=0;i<N;++i)
-            seed_pos[i] = g.pos[seeds[i]];
-
-        NodeSetVec clusters(N);
-        for (int iter=0;iter<MAX_ITER;++iter) {
-            KDTree<Vec3d, size_t> seed_tree;
-            for(int i=0;i<N;++i)
-                seed_tree.insert(seed_pos[i], i);
-            seed_tree.build();
-            clusters.clear();
-            clusters.resize(N);
-            for(auto n: g.node_ids())
-            {
-                double dist = DBL_MAX;
-                Vec3d k;
-                size_t idx;
-                if(seed_tree.closest_point(g.pos[n], dist, k, idx))
-                    clusters[idx].second.insert(n);
-            }
-            
-            multimap<double, NodeID> raw_seeds;
-            map<NodeID, Vec3d> cluster_center;
-            for(auto [_, ns]: clusters) {
-                auto nsc_vec = connected_components(g, ns);
-                for(auto nsc: nsc_vec) {
-                    Vec3d avg_pos = accumulate(begin(nsc), end(nsc), Vec3d(0.0), [&](const Vec3d& a, NodeID n){return a+g.pos[n];});
-                    avg_pos /= nsc.size();
-                    
-                    size_t b_cnt = 0;
-                    for(auto n: nsc)
-                        for(auto m: g.neighbors(n))
-                            if (nsc.count(m) == 0)
-                                b_cnt += 1;
-
-                    auto [node_iter, min_dist] = minimum(begin(nsc), end(nsc), [&](NodeID n){return length(g.pos[n]-avg_pos);});
-                    raw_seeds.insert(make_pair(b_cnt/double(nsc.size()), *node_iter));
-                    cluster_center[*node_iter] = avg_pos;
-                }
-            }
-            auto node_iter = raw_seeds.begin();
-            for(int i=0;i<N;++i, ++node_iter) {
-                NodeID n = node_iter->second;
-                seeds[i] = n;
-                seed_pos[i] = cluster_center[n];
-            }
-
-        }
-        
-        color_graph_node_sets(g, clusters);
-        return clusters;
-    }
 
 
     pair<AMGraph3D, Util::AttribVec<AMGraph::NodeID,AMGraph::NodeID>>
@@ -527,22 +454,9 @@ namespace  Geometry {
         while(did_work);
     }
 
-    NodeSetUnordered neighbors(const AMGraph3D& g, const NodeSetUnordered& s) {
-        NodeSetUnordered _nbors;
-        for(auto n: s)
-            for(auto m: g.neighbors(n))
-                _nbors.insert(m);
-        
-        NodeSetUnordered nbors;
-        for(auto n: _nbors)
-            if (s.count(n) == 0)
-                nbors.insert(n);
-        
-        return nbors;
-    }
+ 
 
-
-    void smooth_separator(const AMGraph3D& g, NodeSetUnordered& separator,
+    void optimize_separator(const AMGraph3D& g, NodeSetUnordered& separator,
                           vector<NodeSetUnordered>& front_components) {
         if(separator.size() > 0) {
             NodeID n0 = *begin(separator);
@@ -565,7 +479,10 @@ namespace  Geometry {
 
 
  
-    void shrink_separator(const AMGraph3D& g, NodeSetUnordered& separator, vector<NodeSetUnordered>& front_components, const Vec3d& sphere_centre) {
+    void shrink_separator(const AMGraph3D& g,
+                          NodeSetUnordered& separator,
+                          vector<NodeSetUnordered>& front_components,
+                          const Vec3d& sphere_centre, int opt_steps) {
         // Next, we thin out the separator until it becomes minimal (i.e. removing one more node
         // would make it cease to be a separator. We remove nodes iteratively and always remove the
         // last visited nodes first.
@@ -579,19 +496,10 @@ namespace  Geometry {
         smooth_attribute(g, smpos, separator, sqrt(separator.size()));
         node_set_thinning(g, separator, front_components, center_dist);
         
-        for(int iter=0;iter<4;++iter)
-            smooth_separator(g, separator, front_components);
+        for(int iter=0;iter<opt_steps;++iter)
+            optimize_separator(g, separator, front_components);
     }
 
-
-
-
-    NodeSet order(NodeSetUnordered& s) {
-        NodeSet _s;
-        for(auto n : s)
-            _s.insert(n);
-        return _s;
-    }
 
 
     /** For a given graph, g,  and a given node n0, we compute a local separator.
@@ -602,10 +510,10 @@ namespace  Geometry {
      a local separator.
      The final node set returned is then thinned to the minimal separator.
      */
-    pair<double,NodeSet> local_separator(AMGraph3D& g, NodeID n0, double tau) {
+    pair<double,NodeSet> local_separator(AMGraph3D& g, NodeID n0, double quality_noise_level, int optimization_steps) {
         
         auto front_size_ratio = [](const vector<NodeSetUnordered>& fc) {
-            if(fc.size()<2.0)
+            if(fc.size()<2)
                 return  0.0;
             auto comp_sizes = minmax({fc[0].size(),fc[1].size()});
             return double(comp_sizes.first)/comp_sizes.second;
@@ -634,7 +542,7 @@ namespace  Geometry {
         
         NodeID last_n = AMGraph3D::InvalidNodeID; // Very last node added to separator.
         // Now, proceed by expanding a sphere
-        while (C_F.size()==1 || front_size_ratio(C_F) < tau)
+        while (C_F.size()==1 || front_size_ratio(C_F) < quality_noise_level)
         {
             // Find the node in front closest to the center
             const NodeID n = *min_element(begin(F), end(F), [&](NodeID a, NodeID b) {
@@ -666,8 +574,7 @@ namespace  Geometry {
             C_F = connected_components(g, F);
         }
         double quality = front_size_ratio(C_F);
-
-        shrink_separator(g, Sigma, C_F, centre);
+        shrink_separator(g, Sigma, C_F, centre, optimization_steps);
 
         // We have to check if the local separator is in fact split into two
         // components. If so, get rid of it.
@@ -679,7 +586,7 @@ namespace  Geometry {
 
     using hrc = chrono::high_resolution_clock;
 
-    NodeSetVec local_separators(AMGraph3D& g, bool sampling, double quality_noise_level) {
+    NodeSetVec local_separators(AMGraph3D& g, bool sampling, double quality_noise_level, int optimization_steps) {
         
         // Because we are greedy: all cores belong to this task!
         const int CORES = thread::hardware_concurrency();
@@ -705,7 +612,7 @@ namespace  Geometry {
                 double probability = 1.0/int_pow(2.0, touched[n]);
                 if (n%CORES==core && (!sampling || rand() <= probability*RAND_MAX)) {
                     cnt += 1;
-                    auto ns = local_separator(g, n, quality_noise_level);
+                    auto ns = local_separator(g, n, quality_noise_level, optimization_steps);
                     if(ns.second.size()>0) {
                         nsv.push_back(ns);
                         for(auto m: ns.second)

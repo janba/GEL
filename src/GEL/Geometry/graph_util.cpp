@@ -67,6 +67,30 @@ namespace Geometry {
         return matches;
     }
 
+    NodeSetUnordered neighbors(const AMGraph3D& g, const NodeSetUnordered& s) {
+        NodeSetUnordered _nbors;
+        for(auto n: s)
+            for(auto m: g.neighbors(n))
+                _nbors.insert(m);
+        
+        NodeSetUnordered nbors;
+        for(auto n: _nbors)
+            if (s.count(n) == 0)
+                nbors.insert(n);
+        
+        return nbors;
+    }
+
+
+
+    NodeSet order(NodeSetUnordered& s) {
+        NodeSet _s;
+        for(auto n : s)
+            _s.insert(n);
+        return _s;
+    }
+
+
     Vec3d node_set_barycenter(const AMGraph3D& g, const NodeSet& ns) {
         Vec3d b(0);
         for(auto n: ns)
@@ -125,7 +149,6 @@ namespace Geometry {
     void saturate_graph(AMGraph3D& g, int hops, double rad) {
         AMGraph3D g2 = g;
         using NodeMap = std::map<NodeID, pair<int, double>>;
-        double sq_rad = sqr(rad);
         for(NodeID n0: g.node_ids()) {
             queue<NodeID> Q;
             Q.push(n0);
@@ -441,6 +464,79 @@ namespace  {
 
 
 
+    template<typename IndexType, typename  FuncType>
+    auto minimum(IndexType b, IndexType e, FuncType f)  {
+        using ValueType = decltype(f(*b));
+        IndexType min_idx = b;
+        ValueType min_val = f(*b);
+        for(IndexType i=++b; i != e; ++i) {
+            ValueType val = f(*i);
+            if (val < min_val) {
+                min_val = val;
+                min_idx = i;
+            }
+        }
+        return make_pair(min_idx, min_val);
+    }
+
+
+    NodeSetVec k_means_node_clusters(AMGraph3D& g, int N, int MAX_ITER) {
+        vector<NodeID> seeds(begin(g.node_ids()), end(g.node_ids()));
+        srand(0);
+        shuffle(begin(seeds), end(seeds), default_random_engine(rand()));
+        seeds.resize(N);
+        vector<Vec3d> seed_pos(N);
+        for(int i=0;i<N;++i)
+            seed_pos[i] = g.pos[seeds[i]];
+
+        NodeSetVec clusters(N);
+        for (int iter=0;iter<MAX_ITER;++iter) {
+            KDTree<Vec3d, size_t> seed_tree;
+            for(int i=0;i<N;++i)
+                seed_tree.insert(seed_pos[i], i);
+            seed_tree.build();
+            clusters.clear();
+            clusters.resize(N);
+            for(auto n: g.node_ids())
+            {
+                double dist = DBL_MAX;
+                Vec3d k;
+                size_t idx;
+                if(seed_tree.closest_point(g.pos[n], dist, k, idx))
+                    clusters[idx].second.insert(n);
+            }
+            
+            multimap<double, NodeID> raw_seeds;
+            map<NodeID, Vec3d> cluster_center;
+            for(auto [_, ns]: clusters) {
+                auto nsc_vec = connected_components(g, ns);
+                for(auto nsc: nsc_vec) {
+                    Vec3d avg_pos = accumulate(begin(nsc), end(nsc), Vec3d(0.0), [&](const Vec3d& a, NodeID n){return a+g.pos[n];});
+                    avg_pos /= nsc.size();
+                    
+                    size_t b_cnt = 0;
+                    for(auto n: nsc)
+                        for(auto m: g.neighbors(n))
+                            if (nsc.count(m) == 0)
+                                b_cnt += 1;
+
+                    auto [node_iter, min_dist] = minimum(begin(nsc), end(nsc), [&](NodeID n){return length(g.pos[n]-avg_pos);});
+                    raw_seeds.insert(make_pair(b_cnt/double(nsc.size()), *node_iter));
+                    cluster_center[*node_iter] = avg_pos;
+                }
+            }
+            auto node_iter = raw_seeds.begin();
+            for(int i=0;i<N;++i, ++node_iter) {
+                NodeID n = node_iter->second;
+                seeds[i] = n;
+                seed_pos[i] = cluster_center[n];
+            }
+
+        }
+        
+        color_graph_node_sets(g, clusters);
+        return clusters;
+    }
 
 
     class GraphDist {

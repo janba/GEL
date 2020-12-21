@@ -43,7 +43,8 @@ namespace Geometry {
      needed before we acknowledge that the front has split and a separator been
      found.  The smaller this number, the more spurious branches, but if it is too
      high, we might miss some
-     
+     @param optimization_steps indicates the number of times we run a simple
+     optimization algorithm based on Dijkstra which aims to make the separator thinner.
      
      @returns This function returns a vector of NodeSets containing a
      number of non-overlapping (local) separators
@@ -58,7 +59,9 @@ namespace Geometry {
      by the input parameters, and, finally, the local separators produced are packed
      greedily, and the resulting vector of node sets is returned.
      */
-    NodeSetVec local_separators(AMGraph3D& g, bool sampling=false, double quality_noise_level = 0.09) ;
+    NodeSetVec local_separators(AMGraph3D& g, bool sampling=false,
+                                double quality_noise_level = 0.09,
+                                int optimization_steps = 0);
 
     /**
      @brief Convert a vector of (non-overlapping) node sets to a skeleton graph
@@ -100,19 +103,7 @@ namespace Geometry {
     NodeSetVec maximize_node_set_vec(AMGraph3D& g, const NodeSetVec& node_set_vec);
 
 
-    /**
-     @brief k means clustering of graph nodes
-     @param g is the input graph
-     @param N is the desired number of clusters
-     @param MAX_ITER is the number of iterations
-     @returns a node set vector such that all graph nodes belong to precisely one cluster
-     
-     This function iteratively clusters vertices of g according to the k-means clustering algorithm.
-     each vertex is assigned to the closest cluster (simply using Euclidean distance). To ensure we
-     get precisely N clusters, clusters which have a poor boundary to size ratio are ejected when there
-     are more than N clusters.
-     */
-    NodeSetVec k_means_node_clusters(AMGraph3D& g, int N, int MAX_ITER);
+   
 
 }
 #endif /* graph_skeletonize_hpp */
