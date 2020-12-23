@@ -14,9 +14,10 @@
 
 namespace Geometry {
 
+    using NodeID = AMGraph::NodeID;
     using NodeSet = AMGraph::NodeSet;
     using NodeSetVec = std::vector<std::pair<double,NodeSet>>;
-    using AttribVecDouble = Util::AttribVec<AMGraph::NodeID, double>;
+    using AttribVecDouble = Util::AttribVec<NodeID, double>;
     /**
      @brief Compute separators by marching a front along a scalar field.
      @param g  the graph that we operate on.
@@ -34,6 +35,16 @@ namespace Geometry {
                                 const std::vector<AttribVecDouble>& dvv);
 
 
+    /**
+     For a given graph, g,  and a given node n0, we compute a local separator.
+     The algorithm proceeds in a way similar to Dijkstra, finding a set of nodes separator such that there is anoter set of nodes, front,
+     connected to separator via edges and front consists of two connected components.
+     thick_front indicates whether we want to add a layer of nodes to the front before checking the number of connected  components.
+     persistence is how many iterations the front must have two connected components before we consider the interior
+     a local separator.
+     The final node set returned is then thinned to the minimal separator.
+     */
+    std::pair<double,NodeSet> local_separator(AMGraph3D& g, NodeID n0, double quality_noise_level, int optimization_steps);
 
     /**
      @brief Compute a set of local separators from the input graph

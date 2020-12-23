@@ -574,12 +574,12 @@ namespace  Geometry {
             C_F = connected_components(g, F);
         }
         double quality = front_size_ratio(C_F);
-        shrink_separator(g, Sigma, C_F, centre, optimization_steps);
-
-        // We have to check if the local separator is in fact split into two
-        // components. If so, get rid of it.
-        if(connected_components(g, Sigma).size()>1)
-            return make_pair(0.0, NodeSet());
+//        shrink_separator(g, Sigma, C_F, centre, optimization_steps);
+//
+//        // We have to check if the local separator is in fact split into two
+//        // components. If so, get rid of it.
+//        if(connected_components(g, Sigma).size()>1)
+//            return make_pair(0.0, NodeSet());
         
         return make_pair(quality, order(Sigma));
     }
