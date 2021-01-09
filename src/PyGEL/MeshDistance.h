@@ -27,13 +27,17 @@ extern "C" {
 
     DLLEXPORT void MeshDistance_delete(MeshDistance_ptr);
     
-    DLLEXPORT float MeshDistance_signed_distance(MeshDistance_ptr self,
+    DLLEXPORT void MeshDistance_signed_distance(MeshDistance_ptr self,
+                                                 int no_query_points,
                                                  const float* p,
+                                                 float* d,
                                                  float upper);
 
-    DLLEXPORT bool MeshDistance_ray_inside_test(MeshDistance_ptr self,
-                                                 const float* p,
-                                                 int no_rays);
+    DLLEXPORT void MeshDistance_ray_inside_test(MeshDistance_ptr self,
+                                                int no_query_points,
+                                                const float* p,
+                                                int* d,
+                                                int no_rays);
 
     
 #ifdef __cplusplus

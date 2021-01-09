@@ -146,7 +146,7 @@ namespace Geometry {
         return component_vec;
     }
 
-    void saturate_graph(AMGraph3D& g, int hops, double rad) {
+    void saturate_graph(AMGraph3D& g, int hops, double dist_frac, double rad) {
         AMGraph3D g2 = g;
         using NodeMap = std::map<NodeID, pair<int, double>>;
         for(NodeID n0: g.node_ids()) {
@@ -163,7 +163,7 @@ namespace Geometry {
                     double d_m = d_n + sqrt(g.sqr_dist(n, m));
                     if(node_map.count(m) == 0 || d_m < node_map[m].second) {
                         double d_n0_m = sqrt(g.sqr_dist(n0, m));
-                        if (d_n0_m<0.85*d_m && d_n0_m < rad)
+                        if (d_n0_m<dist_frac*d_m && d_n0_m < rad)
                             g2.connect_nodes(n0, m);
                         if(h_n+1<hops)
                             Q.push(m);

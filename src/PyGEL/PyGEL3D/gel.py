@@ -826,10 +826,8 @@ except AttributeError:
 
 lib_py_gel.MeshDistance_new.restype = ct.c_void_p
 lib_py_gel.MeshDistance_new.argtypes = (ct.c_void_p,)
-lib_py_gel.MeshDistance_signed_distance.restype = ct.c_float
-lib_py_gel.MeshDistance_signed_distance.argtypes = (ct.c_void_p,ct.POINTER(ct.c_float*3),ct.c_float)
-lib_py_gel.MeshDistance_ray_inside_test.restype = ct.c_bool
-lib_py_gel.MeshDistance_ray_inside_test.argtypes = (ct.c_void_p,ct.POINTER(ct.c_float*3),ct.c_int)
+lib_py_gel.MeshDistance_signed_distance.argtypes = (ct.c_void_p,ct.c_int, ct.POINTER(ct.c_float),ct.POINTER(ct.c_float),ct.c_float)
+lib_py_gel.MeshDistance_ray_inside_test.argtypes = (ct.c_void_p,ct.c_int, ct.POINTER(ct.c_float),ct.POINTER(ct.c_int),ct.c_int)
 
 lib_py_gel.MeshDistance_delete.argtypes = (ct.c_void_p,)
 class MeshDistance:
@@ -840,19 +838,29 @@ class MeshDistance:
         self.obj = lib_py_gel.MeshDistance_new(m.obj)
     def __del__(self):
         lib_py_gel.MeshDistance_delete(self.obj)
-    def signed_distance(self,p,upper=1e30):
+    def signed_distance(self,pts,upper=1e30):
         """ Compute the signed distance from p to the mesh stored in this class
         instance. The distance is positive if outside and negative inside. The
         upper parameter can be used to threshold how far away the distance is of
         interest. """
-        p_ct = np.array(p,dtype=ct.c_float).ctypes.data_as(ct.POINTER(ct.c_float*3))
-        return lib_py_gel.MeshDistance_signed_distance(self.obj,p_ct,upper)
-    def ray_inside_test(self,p,no_rays=3):
+        p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
+        n = p.shape[0]
+        d = np.ndarray(n, dtype=ct.c_float)
+        p_ct = p.ctypes.data_as(ct.POINTER(ct.c_float))
+        d_ct = d.ctypes.data_as(ct.POINTER(ct.c_float))
+        lib_py_gel.MeshDistance_signed_distance(self.obj,n,p_ct,d_ct,upper)
+        return d
+    def ray_inside_test(self,pts,no_rays=3):
         """Check whether a point is inside or outside the stored by casting rays.
         Effectively, this is the sign of the distance. In some cases casting (multiple)
         ray is more robust than using the sign computed locally. """
-        p_ct = np.array(p,dtype=ct.c_float).ctypes.data_as(ct.POINTER(ct.c_float*3))
-        return lib_py_gel.MeshDistance_ray_inside_test(self.obj,p_ct,no_rays)
+        p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
+        n = p.shape[0]
+        s = np.ndarray(n, dtype=ct.c_int)
+        p_ct = p.ctypes.data_as(ct.POINTER(ct.c_float))
+        s_ct = s.ctypes.data_as(ct.POINTER(ct.c_int))
+        lib_py_gel.MeshDistance_ray_inside_test(self.obj,n,p_ct,s_ct,no_rays)
+        return s
 
 
 lib_py_gel.Graph_new.restype = ct.c_void_p

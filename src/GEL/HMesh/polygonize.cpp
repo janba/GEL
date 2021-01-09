@@ -87,25 +87,25 @@ namespace HMesh
         if(make_triangles)
             triangulate(mani);
         
-        float avg_edge_len=0;
-        for(HalfEdgeIDIterator h = mani.halfedges_begin(); h != mani.halfedges_end();++h)
-            avg_edge_len += length(mani, *h);
-        avg_edge_len /= mani.no_halfedges();
-        VolumetricImplicit imp(xform, grid);
-        for(int iter=0;iter<4;++iter)
-        {
-            taubin_smooth(mani,5);
-            for(auto v: mani.vertices())
-                if(mani.in_use(v)) {
-                    Vec3d p = mani.pos(v);
-                    if(!std::isnan(p[0]))
-                        imp.push_to_surface(p,tau,2.0*avg_edge_len);
-                    if(std::isnan(p[0]))
-                        mani.remove_vertex(v);
-                    else
-                        mani.pos(v) = p;
-            }
-        }
+//        float avg_edge_len=0;
+//        for(HalfEdgeIDIterator h = mani.halfedges_begin(); h != mani.halfedges_end();++h)
+//            avg_edge_len += length(mani, *h);
+//        avg_edge_len /= mani.no_halfedges();
+//        VolumetricImplicit imp(xform, grid);
+//        for(int iter=0;iter<4;++iter)
+//        {
+//            taubin_smooth(mani,5);
+//            for(auto v: mani.vertices())
+//                if(mani.in_use(v)) {
+//                    Vec3d p = mani.pos(v);
+//                    if(!std::isnan(p[0]))
+//                        imp.push_to_surface(p,tau,2.0*avg_edge_len);
+//                    if(std::isnan(p[0]))
+//                        mani.remove_vertex(v);
+//                    else
+//                        mani.pos(v) = p;
+//            }
+//        }
         mani.cleanup();
 //        cout << "Produced " << mani.no_faces() << " faces " << endl;
     }

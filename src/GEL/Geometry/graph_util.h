@@ -40,7 +40,7 @@ namespace Geometry {
 
     /** Add edges to g. For each vertex in g we visit neighbors at a maximum of `hops' graph hops from the original vertex.
      Saturation is here used differently from the conventional graph theoretical usage.. */
-    void saturate_graph(AMGraph3D& g, int hops, double rad);
+    void saturate_graph(AMGraph3D& g, int hops, double dist_frac = 1.0001, double rad = 1e300);
 
     /** Mean curvature motion smoothing. Simply put this function moves vertices towards the average of their neighbors
      position but it moves more if the largest eigenvalue of the covariance matrix dominates. This means that we smooth

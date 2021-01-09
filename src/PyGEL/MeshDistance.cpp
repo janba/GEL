@@ -69,19 +69,23 @@ void MeshDistance_delete(MeshDistance_ptr _self) {
     delete self;
 }
 
-float MeshDistance_signed_distance(MeshDistance_ptr _self,
-                      const float* _p,
-                      float upper) {
+void MeshDistance_signed_distance(MeshDistance_ptr _self,
+                                   int no_query_points,
+                                   const float* p,
+                                   float* d,
+                                   float upper) {
     MeshDistance* self = reinterpret_cast<MeshDistance*>(_self);
-    const Vec3f* p = reinterpret_cast<const Vec3f*>(_p);
-    return self->signed_distance(*p, upper);
+    for(int i=0; i<no_query_points;++i)
+        d[i] = self->signed_distance(Vec3f(p[3*i],p[3*i+1],p[3*i+2]), upper);
 }
 
-bool MeshDistance_ray_inside_test(MeshDistance_ptr _self,
-                                  const float* _p,
+void MeshDistance_ray_inside_test(MeshDistance_ptr _self,
+                                  int no_query_points,
+                                  const float* p,
+                                  int* s,
                                   int no_rays) {
     MeshDistance* self = reinterpret_cast<MeshDistance*>(_self);
-    const Vec3f* p = reinterpret_cast<const Vec3f*>(_p);
-    return self->ray_inside_test(*p, no_rays);
+    for(int i=0; i<no_query_points;++i)
+        s[i] = self->ray_inside_test(Vec3f(p[3*i],p[3*i+1],p[3*i+2]), no_rays);
 }
 
