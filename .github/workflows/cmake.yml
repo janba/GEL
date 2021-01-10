@@ -28,7 +28,7 @@ jobs:
 
     - if: startsWith(matrix.os, 'ubuntu')
       name: Add GLFW to Ubuntu environment
-      run: apt-get install libgl-dev libglfw3-dev
+      run: sudo apt-get install libgl-dev libglfw3-dev
 
     - if: startsWith(matrix.os, 'macOS')
       name: Add GLFW to MacOS environment
