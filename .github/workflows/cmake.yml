@@ -24,15 +24,15 @@ jobs:
       
     - if: startsWith(matrix.os, 'Windows')
       name: Add GLFW to Windows environment
-      run: vcpkg install glfw3
+      run: vcpkg install glfw3-dev
 
     - if: startsWith(matrix.os, 'ubuntu')
       name: Add GLFW to Ubuntu environment
-      run: brew install --static glfw freeglut
+      run: brew install glfw freeglut
 
     - if: startsWith(matrix.os, 'macOS')
       name: Add GLFW to MacOS environment
-      run: brew install --static glfw
+      run: brew install glfw
 
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
