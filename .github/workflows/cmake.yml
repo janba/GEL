@@ -23,15 +23,15 @@ jobs:
     - uses: actions/checkout@v2
       
     - name: Add GLFW to Windows environment
-      if matrix.os == 'windows-latest':
+      if: startsWith(matrix.os, 'Windows')
         run: vcpkg install glfw
 
     - name: Add GLFW to Ubuntu environment
-      if matrix.os == 'ubuntu-latest':
+      if: startsWith(matrix.os, 'ubuntu')
         run: brew install --static glfw glfw-devel 
 
     - name: Add GLFW to MacOS environment
-      if matrix.os == 'macos-latest':
+      if: startsWith(matrix.os, 'macOS')
         run: brew install --static glfw
 
     - name: Create Build Environment
