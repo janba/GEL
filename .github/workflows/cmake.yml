@@ -24,11 +24,11 @@ jobs:
       
     - if: startsWith(matrix.os, 'Windows')
       name: Add GLFW to Windows environment
-      run: vcpkg install glfw
+      run: vcpkg install glfw3
 
     - if: startsWith(matrix.os, 'ubuntu')
       name: Add GLFW to Ubuntu environment
-      run: brew install --static glfw glfw-devel 
+      run: brew install --static glfw freeglut
 
     - if: startsWith(matrix.os, 'macOS')
       name: Add GLFW to MacOS environment
