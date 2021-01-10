@@ -22,13 +22,15 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       
-    - name: Add GLFW to environment
+    - name: Add GLFW to Windows environment
       if matrix.os == 'windows-latest':
-        run: vcpkg install glfw
+      run: vcpkg install glfw
+    - name: Add GLFW to Ubuntu environment
       if matrix.os == 'ubuntu-latest':
-        run: brew install --static glfw glfw-devel 
+       run: brew install --static glfw glfw-devel 
+    - name: Add GLFW to MacOS environment
       if matrix.os == 'macos-latest':
-        run: brew install --static glfw
+      run: brew install --static glfw
 
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
