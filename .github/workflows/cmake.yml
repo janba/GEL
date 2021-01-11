@@ -26,9 +26,10 @@ jobs:
     #   name: Add GLFW to Windows environment
     #   run: vcpkg install glfw3
 
-    # - if: startsWith(matrix.os, 'ubuntu')
-    #   name: Add GLFW to Ubuntu environment
-    #   run: sudo apt-get install libgl-dev libglu-dev libglfw3-dev
+    - if: startsWith(matrix.os, 'ubuntu')
+      name: Add GLFW to Ubuntu environment
+      run: sudo apt-get install libgl-dev libglu-dev
+      # libglfw3-dev
 
     # - if: startsWith(matrix.os, 'macOS')
     #   name: Add GLFW to MacOS environment
