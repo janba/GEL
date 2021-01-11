@@ -364,7 +364,7 @@ namespace  {
                         is_max=false;
                     d_nn_sum += dist[nn];
                 }
-                if(not (is_max or is_min)) {
+                if(!(is_max || is_min)) {
                     dist_new[n] *= (1.0-wgt);
                     dist_new[n] += d_nn_sum * wgt/N.size();
                 }
