@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Threads)
 
 option(Use_GLGraphics "Compile the OpenGL Viewer" ON)
+include(FetchContent)
 FetchContent_Declare(
   GLFW3
   GIT_REPOSITORY https://github.com/glfw/glfw.git
