@@ -28,7 +28,7 @@ jobs:
 
     - if: startsWith(matrix.os, 'ubuntu')
       name: Add GLFW to Ubuntu environment
-      run: sudo apt-get install libxcursor-dev libxinerama-dev libxrandr-dev libgl-dev libglu-dev
+      run: sudo apt-get install libxi-dev libxcursor-dev libxinerama-dev libxrandr-dev libgl-dev libglu-dev
       # libglfw3-dev
 
     # - if: startsWith(matrix.os, 'macOS')
