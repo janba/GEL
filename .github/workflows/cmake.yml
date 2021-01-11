@@ -22,17 +22,17 @@ jobs:
     steps:
     - uses: actions/checkout@v2
       
-    - if: startsWith(matrix.os, 'Windows')
-      name: Add GLFW to Windows environment
-      run: vcpkg install glfw3
+    # - if: startsWith(matrix.os, 'Windows')
+    #   name: Add GLFW to Windows environment
+    #   run: vcpkg install glfw3
 
-    - if: startsWith(matrix.os, 'ubuntu')
-      name: Add GLFW to Ubuntu environment
-      run: sudo apt-get install libgl-dev libglu-dev libglfw3-dev
+    # - if: startsWith(matrix.os, 'ubuntu')
+    #   name: Add GLFW to Ubuntu environment
+    #   run: sudo apt-get install libgl-dev libglu-dev libglfw3-dev
 
-    - if: startsWith(matrix.os, 'macOS')
-      name: Add GLFW to MacOS environment
-      run: brew install glfw
+    # - if: startsWith(matrix.os, 'macOS')
+    #   name: Add GLFW to MacOS environment
+    #   run: brew install glfw
 
     - name: Create Build Environment
       # Some projects don't allow in-source building, so create a separate build directory
@@ -47,7 +47,7 @@ jobs:
       # Note the current convention is to use the -S and -B options here to specify source 
       # and build directories, but this is only available with CMake 3.13 and higher.  
       # The CMake binaries on the Github Actions machines are (as of this writing) 3.12
-      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE  "-DCMAKE_TOOLCHAIN_FILE=C:\vcpkg\scripts\buildsystems\vcpkg.cmake"
+      run: cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE 
 
     - name: Build
       working-directory: ${{github.workspace}}/build

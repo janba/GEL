@@ -5,12 +5,12 @@ set(CMAKE_CXX_STANDARD 17)
 find_package(Threads)
 
 option(Use_GLGraphics "Compile the OpenGL Viewer" ON)
-if (Use_GLGraphics)
-    find_package(OpenGL REQUIRED)
-if (WIN32)
-    find_package(glfw CONFIG REQUIRED)
-else ()
-    find_package(glfw3 CONFIG REQUIRED)
+FetchContent_Declare(
+  GLFW3
+  GIT_REPOSITORY https://github.com/glfw/glfw.git
+  GIT_TAG        3.3.2
+)
+FetchContent_MakeAvailable(GLFW3)
 endif ()
     if (APPLE)
         FIND_LIBRARY(COCOA_LIBRARY Cocoa)
