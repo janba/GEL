@@ -17,7 +17,7 @@ for py_file in glob("src/PyGEL/PyGEL3D/*.py"):
 
 # Copy the libraries to the right place.	
 libs_data = []
-libs = glob('build/*.dylib')+glob('build/*.so*')+glob('build/*.dll')
+libs = glob('build/*.dylib')+glob('build/*.so*')+glob('build/**/*.dll',recursive=True)
 for lib_file in libs:
     _,fn = path.split(lib_file)
     dst = "build/PyGEL3D/"+fn

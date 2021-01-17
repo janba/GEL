@@ -23,6 +23,8 @@ namespace Geometry
         virtual CGLA::Vec3d grad(const CGLA::Vec3d& p) const = 0;
         void push_to_surface(CGLA::Vec3d& p, double tau=0, double max_dist=FLT_MAX) const;
     };
+
+    float interpolate(const Geometry::RGrid<float>& grid, const CGLA::Vec3d& _v);
     
     XForm grid_sample(const Implicit& imp, const CGLA::Vec3d& llf, const CGLA::Vec3d& urt,
                       Geometry::RGrid<float>& grid);

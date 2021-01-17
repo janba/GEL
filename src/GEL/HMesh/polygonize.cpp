@@ -7,7 +7,9 @@
 //
 
 #include <GEL/Geometry/Implicit.h>
+#include <GEL/Geometry/Neighbours.h>
 #include <GEL/HMesh/polygonize.h>
+#include <GEL/HMesh/mesh_optimization.h>
 #include <GEL/HMesh/smooth.h>
 #include <GEL/HMesh/cleanup.h>
 #include <GEL/HMesh/triangulate.h>
@@ -18,60 +20,83 @@ using namespace Geometry;
 using namespace HMesh;
 
 namespace {
-    Vec3d xmf[] = {Vec3d(0,-0.5,-0.5),Vec3d(0,0.5,-0.5),Vec3d(0,0.5,0.5),Vec3d(0,-0.5,0.5)};
-    Vec3d xpf[] = {Vec3d(0, 0.5,-0.5),Vec3d(0,-0.5,-0.5),Vec3d(0,-0.5,0.5),Vec3d(0,0.5,0.5)};
-    
-    Vec3d ymf[] = {Vec3d( 0.5,0, -0.5),Vec3d(-0.5,0, -0.5),Vec3d(-0.5,0, 0.5),Vec3d(0.5,0, 0.5)};
-    Vec3d ypf[] = {Vec3d(-0.5,0, -0.5),Vec3d(0.5,0, -0.5),Vec3d(0.5,0, 0.5),Vec3d(-0.5,0, 0.5)};
-    
-    Vec3d zmf[] = {Vec3d(-0.5,-0.5,0),Vec3d(0.5,-0.5,0),Vec3d(0.5,0.5,0),Vec3d(-0.5,0.5,0)};
-    Vec3d zpf[] = {Vec3d( 0.5,-0.5,0),Vec3d(-0.5,-0.5,0),Vec3d(-0.5,0.5,0),Vec3d(0.5,0.5,0)};
+Vec3d hex_faces[6][4] = {{Vec3d(0,-0.5,-0.5),Vec3d(0,0.5,-0.5),Vec3d(0,0.5,0.5),Vec3d(0,-0.5,0.5)},
+    {Vec3d(0, 0.5,-0.5),Vec3d(0,-0.5,-0.5),Vec3d(0,-0.5,0.5),Vec3d(0,0.5,0.5)},
+    {Vec3d( 0.5,0, -0.5),Vec3d(-0.5,0, -0.5),Vec3d(-0.5,0, 0.5),Vec3d(0.5,0, 0.5)},
+    {Vec3d(-0.5,0, -0.5),Vec3d(0.5,0, -0.5),Vec3d(0.5,0, 0.5),Vec3d(-0.5,0, 0.5)},
+    {Vec3d(-0.5,-0.5,0),Vec3d(0.5,-0.5,0),Vec3d(0.5,0.5,0),Vec3d(-0.5,0.5,0)},
+    {Vec3d( 0.5,-0.5,0),Vec3d(-0.5,-0.5,0),Vec3d(-0.5,0.5,0),Vec3d(0.5,0.5,0)}};
 }
 
 namespace HMesh
 {
+
     
-    void polygonize(const XForm& xform, const RGrid<float>& grid, std::vector<CGLA::Vec3d>& quad_vertices, float tau)
+    void polygonize(const XForm& xform, const RGrid<float>& grid, std::vector<CGLA::Vec3d>& quad_vertices,
+                    float tau, bool high_is_inside)
     {
+        auto is_inside = [&](const Vec3i& pi) {
+            return high_is_inside == (grid[pi] > tau);
+        };
+        auto is_outside = [&](const Vec3i& pi) {
+            return !grid.in_domain(pi) || (high_is_inside == (grid[pi] <= tau));
+        };
+        
         quad_vertices.clear();
         for(int i=0;i<xform.get_dims()[0];++i)
             for(int j=0;j<xform.get_dims()[1];++j)
                 for(int k=0;k<xform.get_dims()[2];++k)
                 {
-                    Vec3i vox(i,j,k);
-                    if(grid[vox] <= tau)
+                    Vec3i pi(i,j,k);
+                    Vec3d p(pi);
+                    if(is_inside(pi))
                     {
-                        if(grid.in_domain(Vec3i(i+1,j,k)) && grid[Vec3i(i+1,j,k)] > tau)
-                            for(int n=0;n<4;++n)
-                                quad_vertices.push_back(xform.inverse(Vec3d(i+0.5, j,k) + xpf[n]));
-                        if(grid.in_domain(Vec3i(i-1,j,k)) && grid[Vec3i(i-1,j,k)] > tau)
-                            for(int n=0;n<4;++n)
-                                quad_vertices.push_back(xform.inverse(Vec3d(i-0.5, j,k) + xmf[n]));
-                        if(grid.in_domain(Vec3i(i,j+1,k)) && grid[Vec3i(i,j+1,k)] > tau)
-                            for(int n=0;n<4;++n)
-                                quad_vertices.push_back(xform.inverse(Vec3d(i, j+0.5,k) + ypf[n]));
-                        if(grid.in_domain(Vec3i(i,j-1,k)) && grid[Vec3i(i,j-1,k)] > tau)
-                            for(int n=0;n<4;++n)
-                                quad_vertices.push_back(xform.inverse(Vec3d(i, j-0.5,k) + ymf[n]));
-                        if(grid.in_domain(Vec3i(i,j,k+1)) && grid[Vec3i(i,j,k+1)] > tau)
-                            for(int n=0;n<4;++n)
-                                quad_vertices.push_back(xform.inverse(Vec3d(i, j,k+0.5) + zpf[n]));
-                        if(grid.in_domain(Vec3i(i,j,k-1)) && grid[Vec3i(i,j,k-1)] > tau)
-                            for(int n=0;n<4;++n)
-                                quad_vertices.push_back(xform.inverse(Vec3d(i, j,k-0.5) + zmf[n]));
-                        
+                        for (int hf_idx = 0; hf_idx < 6 ; ++ hf_idx) {
+                            Vec3i pni = pi + N6i[hf_idx];
+                            if(is_outside(pni)) {
+                                Vec3d pn = p + 0.5 * N6d[hf_idx];
+                                if(high_is_inside)
+                                    for(int n=0;n<4;++n)
+                                        quad_vertices.push_back(xform.inverse(pn + hex_faces[hf_idx][3-n]));
+                                else
+                                    for(int n=0;n<4;++n)
+                                        quad_vertices.push_back(xform.inverse(pn + hex_faces[hf_idx][n]));
+                            }
+                        }
                     }
                 }
         
     }
+
+
+    bool towards_intersection(const XForm& xform, const Geometry::RGrid<float>& grid, Vec3d& p, const Vec3d& p1, double tau) {
+        auto v0 = interpolate(grid,xform.apply(p));
+        auto v1 = interpolate(grid,xform.apply(p1));
+        double D = v1 - v0;
+        
+        if(abs(D)>1e-30) { // If the value at the two points are the same, we don't move
+            double d = tau - v0;
+            double r = d/D;
+            if(r>1.0) // If the intersection is further out than p1, don't move.
+                return false;
+            if(r>=0.0) { // If the intersection is betweeen p0 and p1, move
+                p = r * p1 + (1.0-r) * p;
+                return true;
+            }
+            // Otherwise, there is no intersection.
+        }
+        return false;
+    }
     
     
     void volume_polygonize(const XForm& xform, const Geometry::RGrid<float>& grid,
-                           HMesh::Manifold& mani, float tau, bool make_triangles)
+                           HMesh::Manifold& mani, float tau, bool make_triangles, bool high_is_inside)
     {
+        const double delta = (sqrt(3.0)/2.0) * xform.inv_scale();
+
         mani.clear();
         vector<Vec3d> quad_vertices;
-        polygonize(xform, grid, quad_vertices, tau);
+        polygonize(xform, grid, quad_vertices, tau, high_is_inside);
         vector<int> indices;
         vector<int> faces(quad_vertices.size()/4,4);
         for(int i=0;i<quad_vertices.size();++i)
@@ -82,32 +107,23 @@ namespace HMesh
                    &faces[0],
                    &indices[0]);
         
-        stitch_more(mani, 1e-5);
+        stitch_more(mani, 0.001 * delta);
         
         if(make_triangles)
             triangulate(mani);
         
-//        float avg_edge_len=0;
-//        for(HalfEdgeIDIterator h = mani.halfedges_begin(); h != mani.halfedges_end();++h)
-//            avg_edge_len += length(mani, *h);
-//        avg_edge_len /= mani.no_halfedges();
-//        VolumetricImplicit imp(xform, grid);
-//        for(int iter=0;iter<4;++iter)
-//        {
-//            taubin_smooth(mani,5);
-//            for(auto v: mani.vertices())
-//                if(mani.in_use(v)) {
-//                    Vec3d p = mani.pos(v);
-//                    if(!std::isnan(p[0]))
-//                        imp.push_to_surface(p,tau,2.0*avg_edge_len);
-//                    if(std::isnan(p[0]))
-//                        mani.remove_vertex(v);
-//                    else
-//                        mani.pos(v) = p;
-//            }
-//        }
         mani.cleanup();
-//        cout << "Produced " << mani.no_faces() << " faces " << endl;
+        
+        laplacian_smooth(mani, .25, 3);
+        for(auto v: mani.vertices()) {
+            Vec3d& p = mani.pos(v);
+            const Vec3d n = normal(mani,v);
+            const Vec3d p1 = p + delta * n;
+            if(!towards_intersection(xform, grid, p, p1, tau)) {
+                const Vec3d p1 = p - delta * n;
+                towards_intersection(xform, grid, p, p1, tau);
+            }
+        }
     }
     
 }

@@ -20,13 +20,14 @@ namespace Geometry
     void Implicit::push_to_surface(Vec3d& p, double tau, double max_dist) const
     {
         Vec3d g = grad(p);
-        
         double sl = sqr_length(g);
-        double d = (eval(p)-tau)/sl;
-        Vec3d disp = g*d;
-        double disp_len = length(disp)+1e-10;
-        double clamped_disp_len = min(max_dist, disp_len);
-        p = p - clamped_disp_len*disp/disp_len;
+        if(sl>1e-6)
+            p -= g*(eval(p)-tau)/sl;
+//        double disp_len = length(disp);
+//        if(disp_len>1e-10) {
+//            double clamped_disp_len = min(max_dist, disp_len);
+//            p = p - clamped_disp_len*disp/disp_len;
+//        }
     }
     
     XForm grid_sample(const Implicit& imp, const CGLA::Vec3d& llf, const CGLA::Vec3d& urt,

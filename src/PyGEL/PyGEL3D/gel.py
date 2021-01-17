@@ -983,7 +983,7 @@ lib_py_gel.graph_to_mesh_cyl.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_float)
 lib_py_gel.graph_to_mesh_cyl.restype = ct.c_void_p
 def graph_to_mesh_cyl(g, fudge):
     """ Creates a Manifold mesh from the graph. The first argument, g, is the
-    mesh we want converted, and fudge is a constant that is used to increase the radius
+    graph we want converted, and fudge is a constant that is used to increase the radius
     of every node. This is useful if the radii are 0. """
     m = Manifold()
     lib_py_gel.graph_to_mesh_cyl(g.obj, m.obj, fudge)
@@ -1003,25 +1003,26 @@ def graph_edge_contract(g, dist_thresh):
     """ Simplified a graph by contracting edges. The first argument, g, is the graph,
     and only edges shorter than dist_thresh are contracted. When an edge is contracted
     the merged vertices are moved to the average of their former positions. Thus,
-    the ordering in which contractions are carried out matters. Hence, edges are contracted
-    in the order of increasing length and edges are only considered if neither end point
-    is the result of a contraction, but the process is then repeated until no more contractions
-    are possible. Returns total number of contractions. """
+    the ordering in which contractions are carried out matters. Hence, edges are
+    contracted in the order of increasing length and edges are only considered if
+    neither end point is the result of a contraction, but the process is then repeated
+    until no more contractions are possible. Returns total number of contractions. """
     return lib_py_gel.graph_edge_contract(g.obj, dist_thresh)
 
 lib_py_gel.graph_prune.argtypes = (ct.c_void_p,)
 def graph_prune(g):
-    """ Prune leaves of a graph. The graph, g, is passed as the argument. This function removes
-    leaf nodes (valency 1) whose only neighbour has valency > 2. In practice such isolated
-    leaves are frequently spurious if the graph is a skeleton. Does not return a value. """
+    """ Prune leaves of a graph. The graph, g, is passed as the argument. This function
+        removes leaf nodes (valency 1) whose only neighbour has valency > 2. In practice
+        such isolated leaves are frequently spurious if the graph is a skeleton. Does not
+        return a value. """
     lib_py_gel.graph_prune(g.obj)
     
 lib_py_gel.graph_LS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_bool)
 def graph_LS_skeleton(g, sampling=True):
-    """ Skeletonize a graph using the local separators approach. The first argument, g, is
-    the graph, and, sampling indicates whether we try to use all vertices (False) as starting
-    points for finding separators or just a sampling (True). The function returns a new graph
-    which is the skeleton of the input graph. """
+    """ Skeletonize a graph using the local separators approach. The first argument,
+        g, is the graph, and, sampling indicates whether we try to use all vertices
+        (False) as starting points for finding separators or just a sampling (True).
+        The function returns a new graph which is the skeleton of the input graph. """
     skel = Graph()
     lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, sampling)
     return skel
