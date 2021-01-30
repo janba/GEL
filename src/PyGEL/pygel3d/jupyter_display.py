@@ -1,5 +1,5 @@
-""" PyGEL.js is a module with a single function, display, that provides functionality for displaying a mesh
-    Manifold as an interactive 3D model in a Jupyter Notebook """
+""" This is a module with a single function, display, that provides functionality for displaying a mesh
+    Manifold as an interactive 3D model in a Jupyter Notebook. """
 from pygel3d import hmesh
 from numpy import array
 import plotly.graph_objs as go

@@ -4,7 +4,9 @@ import ctypes as ct
 class I3DTree:
     """ kD tree specialized for 3D keys and integer values.
     This tree data structure is useful for storing 3D points and
-    associated integer values - typically indices. """
+    associated integer values - typically indices. There is also
+    a more general kd tree in scipy.spatial if this one does not
+    suit your needs. """
     def __init__(self):
         self.obj = lib_py_gel.I3DTree_new()
     def __del__(self):

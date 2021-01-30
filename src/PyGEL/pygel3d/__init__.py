@@ -26,10 +26,10 @@ import numpy as np
 import os
 from sys import platform,prefix
 
-def get_script_path():
+def _get_script_path():
     return os.path.dirname(__file__)
 
-def get_lib_name():
+def _get_lib_name():
     if platform == "darwin":
         return "libPyGEL.dylib"
     if platform == "win32":
@@ -37,7 +37,7 @@ def get_lib_name():
     return "libPyGEL.so"
 
 # Load PyGEL the Python GEL bridge library
-lib_py_gel = ct.cdll.LoadLibrary(get_script_path() + "/" + get_lib_name())
+lib_py_gel = ct.cdll.LoadLibrary(_get_script_path() + "/" + _get_lib_name())
 
 # An InvalidIndex is just a special integer value.
 InvalidIndex = ct.c_size_t.in_dll(lib_py_gel, "InvalidIndex").value
@@ -250,7 +250,7 @@ class IntVector:
     This is a simple class that implements iteration and index based
     retrieval. Allocation happens in a call to libPyGEL. Since memory
     is managed by the PyGEL library, the vector can be resized by library
-    functions."""
+    functions. Generally not used directly by PyGEL3D users."""
     def __init__(self):
         self.obj = lib_py_gel.IntVector_new(0)
     def __del__(self):
@@ -269,7 +269,7 @@ class Vec3dVector:
     This is a simple class that implements iteration and index based
     retrieval. Allocation happens in a call to libPyGEL. Since memory
     is managed by the PyGEL library, the vector can be resized by library
-    functions."""
+    functions. nerally not used directly by PyGEL3D users."""
     def __init__(self):
         self.obj = lib_py_gel.Vec3dVector_new(0)
     def __del__(self):

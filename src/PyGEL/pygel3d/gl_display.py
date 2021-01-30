@@ -69,7 +69,7 @@ try:
                 lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, g.obj, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
             elif isinstance(m,hmesh.Manifold):
                 lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, 0, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
-            elif isinstance(g,hmesh.Graph):
+            elif isinstance(g,graph.Graph):
                 lib_py_gel.GLManifoldViewer_display(self.obj, 0, g.obj, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
                 
         def annotation_points(self):

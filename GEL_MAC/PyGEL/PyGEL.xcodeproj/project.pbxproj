@@ -58,8 +58,6 @@
 		BD27CE6B1F837284002F0FAE /* I3DTree.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = I3DTree.cpp; path = ../../src/PyGEL/I3DTree.cpp; sourceTree = "<group>"; };
 		BD48834F1F82CBB200EC04F0 /* libPyGEL.dylib */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.dylib"; includeInIndex = 0; path = libPyGEL.dylib; sourceTree = BUILT_PRODUCTS_DIR; };
 		BD696D3A21F87AAE0090F7E6 /* __init__.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = __init__.py; path = ../../src/PyGEL/PyGEL3D/__init__.py; sourceTree = "<group>"; };
-		BD696D3B21F87AAE0090F7E6 /* gel.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = gel.py; path = ../../src/PyGEL/PyGEL3D/gel.py; sourceTree = "<group>"; };
-		BD696D3C21F87AAE0090F7E6 /* js.py */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.script.python; name = js.py; path = ../../src/PyGEL/PyGEL3D/js.py; sourceTree = "<group>"; };
 		BD9100EE1F84D0C8003AF93E /* IntVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = IntVector.h; path = ../../src/PyGEL/IntVector.h; sourceTree = "<group>"; };
 		BD9100EF1F84D0C8003AF93E /* Vec3dVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Vec3dVector.h; path = ../../src/PyGEL/Vec3dVector.h; sourceTree = "<group>"; };
 		BD9100F01F84D0C8003AF93E /* Vec3dVector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Vec3dVector.cpp; path = ../../src/PyGEL/Vec3dVector.cpp; sourceTree = "<group>"; };
@@ -73,6 +71,11 @@
 		BDF6F9661FE1D182005568F0 /* MeshDistance.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = MeshDistance.h; path = ../../src/PyGEL/MeshDistance.h; sourceTree = "<group>"; };
 		BDFE55571FE47EA400062448 /* Manifold.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Manifold.cpp; path = ../../src/PyGEL/Manifold.cpp; sourceTree = "<group>"; };
 		BDFE55581FE47EA400062448 /* Manifold.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Manifold.h; path = ../../src/PyGEL/Manifold.h; sourceTree = "<group>"; };
+		E1352F8E25C5C738001204C9 /* hmesh.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = hmesh.py; path = ../../src/PyGEL/pygel3d/hmesh.py; sourceTree = "<group>"; };
+		E1352F8F25C5C738001204C9 /* spatial.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = spatial.py; path = ../../src/PyGEL/pygel3d/spatial.py; sourceTree = "<group>"; };
+		E1352F9025C5C738001204C9 /* gl_display.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = gl_display.py; path = ../../src/PyGEL/pygel3d/gl_display.py; sourceTree = "<group>"; };
+		E1352F9125C5C738001204C9 /* graph.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = graph.py; path = ../../src/PyGEL/pygel3d/graph.py; sourceTree = "<group>"; };
+		E1352F9225C5C738001204C9 /* jupyter_display.py */ = {isa = PBXFileReference; lastKnownFileType = text.script.python; name = jupyter_display.py; path = ../../src/PyGEL/pygel3d/jupyter_display.py; sourceTree = "<group>"; };
 		E176D0092545C659006230B1 /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
 		E188221025630FC600A10643 /* Graph.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; name = Graph.cpp; path = ../../src/PyGEL/Graph.cpp; sourceTree = "<group>"; };
 		E188221125630FC600A10643 /* Graph.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = Graph.h; path = ../../src/PyGEL/Graph.h; sourceTree = "<group>"; };
@@ -151,9 +154,12 @@
 		BD696D3621F878090090F7E6 /* PyGEL3D */ = {
 			isa = PBXGroup;
 			children = (
+				E1352F9025C5C738001204C9 /* gl_display.py */,
+				E1352F9125C5C738001204C9 /* graph.py */,
+				E1352F8E25C5C738001204C9 /* hmesh.py */,
+				E1352F9225C5C738001204C9 /* jupyter_display.py */,
+				E1352F8F25C5C738001204C9 /* spatial.py */,
 				BD696D3A21F87AAE0090F7E6 /* __init__.py */,
-				BD696D3B21F87AAE0090F7E6 /* gel.py */,
-				BD696D3C21F87AAE0090F7E6 /* js.py */,
 			);
 			name = PyGEL3D;
 			sourceTree = "<group>";

@@ -353,6 +353,31 @@ def x3d_load(fn):
         return m
     return None
 
+from os.path import splitext
+def load(fn):
+    """ Load a Manifold from an X3D/OBJ/OFF/PLY file. """
+    name, extension = splitext(fn)
+    if extension.lower() == ".x3d":
+        return x3d_load(fn)
+    if extension.lower() == ".obj":
+        return obj_load(fn)
+    if extension.lower() == ".off":
+        return off_load(fn)
+    if extension.lower() == ".ply":
+        return ply_load(fn)
+    return None
+
+def save(fn, m):
+    """ Save a Manifold to an X3D/OBJ/OFF file. """
+    name, extension = splitext(fn)
+    if extension.lower() == ".x3d":
+        x3d_save(fn, m)
+    elif extension.lower() == ".obj":
+        obj_save(fn, m)
+    elif extension.lower() == ".off":
+        off_save(fn, m)
+
+
 def remove_caps(m, thresh=2.9):
     """ Remove caps from a manifold consisting of only triangles. A cap is a
     triangle with two very small angles and an angle close to pi, however a cap
