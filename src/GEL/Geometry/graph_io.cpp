@@ -17,6 +17,7 @@
 #include <GEL/Geometry/GridAlgorithm.h>
 #include <GEL/Geometry/graph_util.h>
 #include <GEL/Geometry/graph_io.h>
+#include <GEL/Geometry/rply.h>
 
 using namespace CGLA;
 using namespace HMesh;
@@ -288,6 +289,57 @@ namespace Geometry {
                 }
         stitch_mesh(m, 1e-7);
     }
+
+namespace
+{
+    AMGraph3D *graph;
+
+    int vertex_cb(p_ply_argument argument) {
+        static int idx=0;
+        static Vec3d p;
+        int eol;
+        ply_get_argument_user_data(argument, NULL, &eol);
+        if(idx<3)
+            p[idx] = ply_get_argument_value(argument);
+        ++idx;
+        if (eol)
+        {
+            graph->add_node(p);
+            idx=0;
+        }
+        return 1;
+    }
+
+    int edge_cb(p_ply_argument argument) {
+        static NodeID vertex1;
+        int eol;
+        ply_get_argument_user_data(argument, NULL, &eol);
+        if (eol==0)
+            vertex1 = NodeID(ply_get_argument_value(argument));
+        else {
+            NodeID vertex2 = NodeID(ply_get_argument_value(argument));
+            graph->connect_nodes(vertex1, vertex2);
+        }
+        return 1;
+    }
+}
+
+bool ply_load(const std::string& fn, AMGraph3D& _graph)
+{
+    graph = &_graph;
+    graph->clear();
+    p_ply ply = ply_open(fn.c_str(), NULL);
+    if (!ply) return false;
+    if (!ply_read_header(ply)) return false;
+    ply_set_read_cb(ply, "vertex", "x", vertex_cb, NULL, 0);
+    ply_set_read_cb(ply, "vertex", "y", vertex_cb, NULL, 0);
+    ply_set_read_cb(ply, "vertex", "z", vertex_cb, NULL, 1);
+    ply_set_read_cb(ply, "edge", "vertex1", edge_cb, NULL, 0);
+    ply_set_read_cb(ply, "edge", "vertex2", edge_cb, NULL, 1);
+    ply_read(ply);
+    ply_close(ply);
+    return true;
+}
 }
 
 

@@ -7,36 +7,74 @@
 #include <vector>
 #include <GEL/HMesh/ply_load.h>
 
+#include <GEL/Geometry/rply.h>
 #include <GEL/Geometry/ply_load.h>
 #include <GEL/Geometry/TriMesh.h>
 
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/HMesh/load.h>
+#include <GEL/HMesh/cleanup.h>
+
+using namespace CGLA;
+using namespace std;
 
 namespace HMesh
 {
     using std::string;
     using Geometry::ply_load;
-    using Geometry::TriMesh;
-    using namespace CGLA;
-    bool ply_load(const string& filename, Manifold& m)
-    {
-        TriMesh mesh;
-        if(Geometry::ply_load(filename, mesh))
-        {
-            std::vector<Vec3d> vertices_as_doubles(mesh.geometry.no_vertices());
-            for(auto idx=0;idx<mesh.geometry.no_vertices(); ++idx)
-                vertices_as_doubles[idx] = Vec3d(mesh.geometry.vertex(idx));
-            
-            std::vector<int> faces(mesh.geometry.no_faces(),3);
+    vector<Vec3d> vertices;
+    Manifold* mani;
 
-            build(m, static_cast<size_t>(mesh.geometry.no_vertices()),
-                    reinterpret_cast<const double*>(&vertices_as_doubles[0]),
-                    static_cast<size_t>(mesh.geometry.no_faces()),
-                    static_cast<const int*>(&faces[0]),
-                    reinterpret_cast<const int*>(&mesh.geometry.face(0)));
-            return true;
+    int vertex_cb(p_ply_argument argument) {
+        static int idx=0;
+        static Vec3d p;
+        int eol;
+        ply_get_argument_user_data(argument, NULL, &eol);
+        if(idx<3)
+            p[idx] = ply_get_argument_value(argument);
+        ++idx;
+        if (eol)
+        {
+            vertices.push_back(p);
+            idx=0;
         }
-        return false;
+        return 1;
+    }
+
+    int face_cb(p_ply_argument argument) {
+        static vector<int> f;
+        int length, value_index;
+        ply_get_argument_property(argument, NULL, &length, &value_index);
+        if(value_index==-1)
+            f.resize(length);
+        else
+        {
+            f[value_index] = ply_get_argument_value(argument);
+            if(value_index==(length-1))
+            {
+                vector<Vec3d> pts(f.size());
+                int i=0;
+                for(int idx: f)
+                    pts[i++] = vertices[idx];
+                mani->add_face(pts);
+            }
+        }
+        return 1;
+    }
+
+    bool ply_load(const string& fn, Manifold& m) {
+        mani = &m;
+        p_ply ply = ply_open(fn.c_str(), NULL);
+        if (!ply) return false;
+        if (!ply_read_header(ply)) return false;
+        ply_set_read_cb(ply, "vertex", "x", vertex_cb, NULL, 0);
+        ply_set_read_cb(ply, "vertex", "y", vertex_cb, NULL, 0);
+        ply_set_read_cb(ply, "vertex", "z", vertex_cb, NULL, 1);
+        ply_set_read_cb(ply, "face", "vertex_indices", face_cb, NULL, 0);
+        ply_read(ply);
+        ply_close(ply);
+        stitch_mesh(m, 1e-30);
+        m.cleanup();
+        return true;
     }
 }

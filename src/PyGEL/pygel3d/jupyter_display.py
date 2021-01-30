@@ -1,6 +1,6 @@
 """ PyGEL.js is a module with a single function, display, that provides functionality for displaying a mesh
     Manifold as an interactive 3D model in a Jupyter Notebook """
-from PyGEL3D import gel
+from pygel3d import hmesh
 from numpy import array
 import plotly.graph_objs as go
 import plotly.offline as py
@@ -26,8 +26,8 @@ def display(m,wireframe=True,smooth=True,data=None):
         mesh is shown in a light grey color. If data contains an array of scalar values
         per vertex, these are mapped to colors used to color the mesh."""
     xyz = array([ p for p in m.positions()])
-    m_tri = gel.Manifold(m)
-    gel.triangulate(m_tri)
+    m_tri = hmesh.Manifold(m)
+    hmesh.triangulate(m_tri)
     ijk = array([[ idx for idx in m_tri.circulate_face(f,'v')] for f in m_tri.faces()])
     mesh = go.Mesh3d(x=xyz[:,0],y=xyz[:,1],z=xyz[:,2],
             i=ijk[:,0],j=ijk[:,1],k=ijk[:,2],color='#dddddd',flatshading=not smooth)

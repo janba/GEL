@@ -1,6 +1,6 @@
 import setuptools
 from glob import glob
-from shutil import copyfile
+from shutil import copyfile, copytree
 from setuptools import setup
 from os import path,makedirs
 
@@ -8,26 +8,24 @@ with open("README.md", "r") as fh:
     long_description = fh.read()
 
 # Create the build directory
-makedirs("build/PyGEL3D",exist_ok=True)
+makedirs("build/pygel3d",exist_ok=True)
 
 # Now copy the python files to build directory
-for py_file in glob("src/PyGEL/PyGEL3D/*.py"):
-    _,fn = path.split(py_file)
-    copyfile(py_file,"build/PyGEL3D/"+fn)
+copytree("src/PyGEL/pygel3d","build/pygel3d",dirs_exist_ok=True)
 
 # Copy the libraries to the right place.	
 libs_data = []
 libs = glob('build/*.dylib')+glob('build/*.so*')+glob('build/**/*.dll',recursive=True)
 for lib_file in libs:
     _,fn = path.split(lib_file)
-    dst = "build/PyGEL3D/"+fn
+    dst = "build/pygel3d/"+fn
     copyfile(lib_file,dst)
     libs_data += [fn]
 print("Found these libraries: ", libs_data)
 
 setuptools.setup(
     name="PyGEL3D",
-    version="0.0.27",
+    version="0.1.00",
     author="Andreas Baerentzen",
     author_email="janba@dtu.dk",
     description="PyGEL 3D (Python Bindings for GEL) contains tools for polygonal mesh based geometry processing",

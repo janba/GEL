@@ -308,6 +308,7 @@ namespace GLGraphics {
             {
                 float rad;
                 bsphere(me->active_mesh(), t, rad);
+                t = -t;
             }
             else {
                 if(args.size() > 0){
@@ -325,7 +326,7 @@ namespace GLGraphics {
             }
             
             me->save_active_mesh();
-            transform_mesh(me->active_mesh(),translation_Mat4x4d(-t));
+            transform_mesh(me->active_mesh(),translation_Mat4x4d(t));
         }
 
         

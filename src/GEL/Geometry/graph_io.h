@@ -77,5 +77,9 @@ namespace  Geometry {
      need it for comparison. */
     bool graph_save_ply(const std::string& fn, const AMGraph3D& g);
 
+    /** Load the graph from a PLY file - assuming the edges are explcitly encoded!*/
+    bool ply_load(const std::string& fn, AMGraph3D& _graph);
+
+
 }
 #endif /* graph_io_hpp */

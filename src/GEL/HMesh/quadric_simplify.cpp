@@ -328,7 +328,7 @@ namespace HMesh
         long int max_work = max(static_cast<long int>(0), F- static_cast<long int>(keep_fraction * F));
         QuadricSimplifier qsim(m, mask, singular_thresh, choose_optimal_positions);
         qsim.reduce(max_work);
-        valid(m);
+//        valid(m);
     }
     
     void quadric_simplify(Manifold& m, VertexAttributeVector<int> mask, double keep_fraction, double singular_thresh, bool choose_optimal_positions)
