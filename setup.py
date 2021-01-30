@@ -32,9 +32,9 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="http://www2.compute.dtu.dk/projects/GEL/PyGEL/",
-    packages = ['PyGEL3D'],
+    packages = ['pygel3d'],
     package_dir = {'':'build'},
-    package_data = {'PyGEL3D':libs_data},
+    package_data = {'pygel3d':libs_data},
     install_requires = ['numpy','plotly'],
     classifiers=[
         "Programming Language :: Python :: 3",

@@ -62,14 +62,14 @@ try:
             data_a = data_ct.data_as(ct.POINTER(ct.c_double))
             bg_col_ct = np.array(bg_col,dtype=ct.c_float).ctypes
             bg_col_a = bg_col_ct.data_as(ct.POINTER(ct.c_float*3))
-            if isinstance(m,Graph):
+            if isinstance(m,graph.Graph):
                 g = m
                 m = None
-            if isinstance(m,Manifold) and isinstance(g,Graph):
+            if isinstance(m,hmesh.Manifold) and isinstance(g,graph.Graph):
                 lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, g.obj, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
-            elif isinstance(m,Manifold):
+            elif isinstance(m,hmesh.Manifold):
                 lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, 0, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
-            elif isinstance(g,Graph):
+            elif isinstance(g,hmesh.Graph):
                 lib_py_gel.GLManifoldViewer_display(self.obj, 0, g.obj, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
                 
         def annotation_points(self):
