@@ -22,9 +22,13 @@
 \begin{document}
 \maketitle
 \tableofcontents
-\newpage\section{Introduction}
+\newpage
+%
+%
+\section{Introduction}
+%
+%
 \sloppy
-
 GEL is an abbreviation of GEometry and Linear algebra. GEL is a C++ library with tools for manipulating digital representations of geometry such as polygonal meshes, triangle meshes, point clouds, and voxel grids. Since linear algebra tools are invariably needed for this, GEL also contains tools for linear algebra. Finally, GEL contains tools for drawing geometry using OpenGL and various utilities.
 
 This document pertains to the version of GEL which is distributed on CampusNet for 02585. This version of GEL comes with project files for Visual Studio 9 and XCode and examples relevant for the course are included in the distribution.
@@ -46,9 +50,11 @@ There are two packages for linear algebra: \texttt{CGLA} is strictly for small v
 \texttt{GLGraphics} contains facilities for drawing entities from other parts of GEL via OpenGL. Especially \texttt{TriMesh} and Manifold have good support. For instance, there is a nice wireframe drawing class. There are also two virtual trackballs for interactive programs and some tools for viewing in interactive programs and SOIL a small open source library for image loading by Jonathan Dummer.
 
 Finally there are some utilities in \texttt{Util}: Getting command line arguments, hash table classes, a 2D grid class, a resource manager, an XML parser by Jeppe Frisvad and other tools.
-
+%
+%
 \section{CGLA}
-
+%
+%
 \texttt{CGLA} is a set of numerical C++ vector and matrix classes and class
 templates designed with computer graphics in mind. \texttt{CGLA} stands for
 ``Computer Graphics Linear Algebra''. Let us get right down to the obvious question: Why create another
@@ -292,9 +298,11 @@ float in the 3D vector \texttt{p}. This can be used with OpenGL's
 \begin{verbatim}
   glVertex3fv(p.get());
 \end{verbatim}
-
+%
+%
 \section{HMesh}
-
+%
+%
 HMesh's \texttt{Manifold} class is a halfedge based mesh data structure. To use the basic functionality you need to include the Manifold.h header and use the appropriate name space:
 \begin{verbatim}
 #include <Manifold.h>
@@ -531,9 +539,11 @@ This example may not serve much of a purpose but illustrates how we can iterate 
 \subsection{HMesh tools}
 
 The HMesh directory contains not only the basic data structure and functionality for traversing a mesh. There are also tools for mesh optimization through energy minimization, several algorithms for mesh smoothing, a number of tools for cleaning meshes as well as tools for simplifying meshes.
-
+%
+%
 \section{GLGraphics}
-
+%
+%
 \texttt{GLGraphics} contains a set of tools needed for visualization of geometrical objects. In particular, this namespace contains mesh rendering facilities, and in the following, a very simple example is given. This section is basically a walk through of the simplest GEL program that draws a mesh. Apart from GEL, we also use OpenGL and that requires a toolkit for connecting with the window system. With GEL programs, one generally uses GLUT, and this example is not an exception.
 
 For starters, we need to include some files mostly from \texttt{GLGraphics} but also the header file for the mesh load function of \texttt{HMesh} and the \texttt{GLEW} header. Why incude \texttt{glew.h} rather than just \texttt{gl.h}? Well, \texttt{HMesh/draw.h} contains some draw functions which rely on shaders, and since \texttt{gl.h} is normally not up to date, it makes sense to use \texttt{glew.h} instead of \texttt{gl.h} even though it inflicts a dependency. We include \texttt{GLGraphics/gel\_glut.h} rather than the normal \texttt{glut.h}. That is because the GEL version works the same on Windows, OSX, Linux and probably other platforms.
@@ -666,30 +676,11 @@ glUseProgram(prog_P0);
 glUniform2f(glGetUniformLocation(prog_P0,"WIN_SCALE"), 
   win_size_x/2.0, win_size_y/2.0);
 \end{verbatim}
-
-\section{LinAlg}
-Sometimes the simple 2,3,4 dimensional vectors from CGLA just don't cut it. We often need to solve large linear systems. The LinAlg namespace contains some vector and matrix classes and an interface to Lapack. This provides fairly easy way to do many numerical computations.
-
-In the example below, we  find coefficients for $a x^2 + b y^2 +cxy + dx + ey + f$ such that the surface contains six specific points. The coefficients are found by solving the linear system $\mathbf A \mathbf x = \mathbf b$ where the rows of the $\mathbf A$ matrix contains $x^2 \; y^2 \; xy \; x \; y \; 1$ computed from the $xy$ positions of each point, $\mathbf x$ contains the unknown coefficients, and $\mathbf b$ on the right hand side contains the $z$ values of the six points. Using LinAlg, we implement it as follows: 
-\begin{verbatim}
-    CMatrix A(6,6);
-    CVector b(6);
-    
-    for(int i=0;i<6;++i)
-    {
-        A.set(i,0,pts[i][0]*pts[i][0]);
-        A.set(i,1,pts[i][1]*pts[i][1]);
-        A.set(i,2,pts[i][0]*pts[i][1]);
-        A.set(i,3,pts[i][0]);
-        A.set(i,4,pts[i][1]);
-        A.set(i,5,1);
-        b[i] = pts[i][2];
-    }
-    CVector x;
-    LinearSolve(A,b,x);
-\end{verbatim}
-While this example shows only the function for solving a system which should have a solution, there are also functions for solving overdetermined systems in the least square sense and finding the minimum norm solution to underdetermined systems using singular value decomposition. There is also a function for finding eigenvalues and eigenvectors of symmetric matrices and more.
+%
+%
 \section{Geometry}
+%
+%
 The Geometry namespace contains many different classes and functions. Roughly, we can divide the contents into
 \begin{itemize}
 \item Spatial data structures such as kd tress, bounding box hierarchies, and BSP trees.
@@ -720,11 +711,11 @@ Note also, that before we use the tree it needs to be built. This is because the
 This will find all points in a radius of 1.95 units from \texttt{p0}. The keys and values are stored in \texttt{keys} and \texttt{vals} when the functions returns. The return value of the function is the number of points found within the radius. 
 
 Sometimes, we simply want the point closest to a given point \texttt{p0} which is done using \texttt{tree.closest\_point(p0, d, pos, x)} where the two first arguments indicate the point and the maximum search radius. The two last arguments are set to the key and data of the point found to be closest to \texttt{p0}. The function returns true if a closest point was found.
-
-
-
-
+%
+%
 \section{Util}
+%
+%
 The Util namespace contains a rather mixed bag of utilities many of which are quite useful and very diverse. 
 \begin{trivlist}
 \item The XML parser for instance is written from scratch and the basis for our X3D loader although it will load any XML file. 
@@ -734,19 +725,24 @@ The Util namespace contains a rather mixed bag of utilities many of which are qu
 \item There is more - for instance a resource manager template, some string utility templates and a hash table implementation.
 \end{trivlist}
 Arguably, it would be more pretty if these pieces had been more thematically linked, but many are used a lot, and it seemed reasonable to have somewhere to stick various functions and classes that did not naturally belong elsewhere.
-
-
+%
+%
 \section{Authors}  
+%
+%
 \begin{trivlist}
 \item Andreas B{\ae}rentzen created the library and has written most of the code not contributed by the people below.
 \item Jeppe Revall Frisvad has contributed greatly to the CGLA part of GEL and elsewhere.
 \item Christian Thode Larsen rewrote the classes in HMesh. They are much nicer for it.
 \item Anders Wang Kristensen has been a great help in the process of reworking HMesh and also contributed some code for an OpenGL console.
-\item Henrik Aan{\ae}s provided the original LinAlg package, which is a set of simple but very useful Lapack bindings.
+\item Henrik Aan{\ae}s provided the original LinAlg package, which is a set of simple but very useful Lapack bindings. However, these were later removed. GEL and PyGEL do not require a numerics library, and we now use Eigen in applications that use GEL.
 \item Rasmus Paulsen, Bjarke Jakobsen, Marek Misztal helped with structure and compilation on various platforms with testing and ideas.
 \end{trivlist}
-
+%
+%
 \section{License}  
+%
+%
 \begin{trivlist}
 \item
 You are allowed to use GEL for academic or commercial purposes. In particular, you are welcome to give GEL to students as a basis for academic work or to use it in your own applications.
@@ -761,8 +757,11 @@ THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLI
 \item
 If anything is unclear, please send an email to jab@imm.dtu.dk. 
 \end{trivlist}
+%
+%
 \section{Open Source Code used in GEL}  
-
+%
+%
 Source code from other projects have been incorporated in GEL.
 \begin{trivlist}
 \item From Graphics Gems, two functions for inverting matrices and Jules Bloomenthal's polygonizer which I reworked from C to C++. This is allowed according to the license.
