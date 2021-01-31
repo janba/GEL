@@ -39,5 +39,6 @@ setuptools.setup(
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: Microsoft :: Windows",
-        "Operating System :: MacOS"
+        "Operating System :: MacOS",
+        "Operating System :: POSIX :: Linux"
     ],)

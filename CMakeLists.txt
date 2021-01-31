@@ -37,6 +37,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if (LINUX)
   set(CMAKE_CXX_FLAGS, "-std=c++1z")
+  set(CMAKE_SHARED_LINKER_FLAGS, "-static-libgcc -static-libstdc++")
 endif ()
 
 if (WIN32)
