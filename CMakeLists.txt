@@ -83,6 +83,11 @@ else ()
     list(REMOVE_ITEM PYG_SRC_LIST "./src/PyGEL/Viewer.cpp")
     add_library(PyGEL SHARED ${PYG_SRC_LIST})
     target_link_libraries(PyGEL GEL)
+    if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+        set(CMAKE_SHARED_LINKER_FLAGS, "-static-libgcc -static-libstdc++")
+    endif ()
+endif ()
+
 endif ()
 
 install(TARGETS PyGEL GEL
