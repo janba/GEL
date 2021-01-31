@@ -84,7 +84,7 @@ else ()
     add_library(PyGEL SHARED ${PYG_SRC_LIST})
     target_link_libraries(PyGEL GEL)
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-        set(CMAKE_SHARED_LINKER_FLAGS, "-static-libgcc -static-libstdc++")
+        target_link_options(PyGEL PRIVATE "LINKER:-static-libgcc -static-libstdc++")
     endif ()
 endif ()
 
