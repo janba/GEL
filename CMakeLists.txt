@@ -88,8 +88,6 @@ else ()
     endif ()
 endif ()
 
-endif ()
-
 install(TARGETS PyGEL GEL
         LIBRARY DESTINATION PyGEL
         ARCHIVE DESTINATION PyGEL)
