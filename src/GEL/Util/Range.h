@@ -9,6 +9,8 @@
 #ifndef NumericRange_h
 #define NumericRange_h
 
+#include <cstddef>
+
 namespace Util {
     class Range {
     public:
