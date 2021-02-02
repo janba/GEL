@@ -1,3 +1,5 @@
+""" This module provides a kD-tree implementation but specialized to 3D """
+
 from pygel3d import lib_py_gel, Vec3dVector, IntVector
 import ctypes as ct
 

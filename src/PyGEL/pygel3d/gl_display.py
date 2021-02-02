@@ -1,3 +1,4 @@
+""" This modules provides an OpenGL based viewer for graphs and meshes """
 from pygel3d import hmesh, graph, lib_py_gel
 import ctypes as ct
 import numpy as np

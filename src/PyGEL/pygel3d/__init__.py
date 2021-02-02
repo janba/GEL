@@ -1,23 +1,32 @@
-""" PyGEL.gel is a collection of classes and functions that expose features in the
+""" PyGEL is a collection of classes and functions that expose features in the
 GEL library. The primary purpose of PyGEL (and GEL) is to be useful for geometry
-processing tasks. Especially tasks that involve 3D polygonal meshes.
+processing tasks. Especially tasks that involve 3D polygonal meshes, but there is
+also a graph component useful e.g. for skeletonization. The PyGEL package is called
+pygel3d and it contains five modules:
 
-Since the representation of meshes is halfedge based, we are not restricted to
-triangles. On the other hand, the library must keep the connectivity information
-up to date.
+hmesh provides Manifold which is a class that represents polygonal meshes using the
+halfedge representation. hmesh also provides a slew of functions for manipulating
+polygonal meshes and the MeshDistance class which makes it simple to compute the
+distance to a triangle mesh.
 
-The principal features of PyGEL are
+graph contains the Graph class which is used for graphs: i.e. collections of
+vertices (in 3D) connected by edges. Unlike a Manifold, a Graph does not have to
+represent a surface. There are also some associated functions which may be useful:
+in particular, there is the LS_skeletonize function which computes a curve skeleton
+from a Graph and returns the result as a new Graph.
 
-1. Manifold class: a halfedge mesh representation.
-2. GLManifoldViewer class: an OpenGL based viewer for Manifold.
-3. I3DTree class: a kD-tree data structure for 3D point clouds.
-4. MeshDistance class: a data structure for distance queries.
-5. A fairly rich library of functions are available for the
-Manifold class, allowing users to simplify, optimize, triangulate, refine,
-or otherwise manipulate general polygon meshes.
-6. A Graph class which interacts with the mesh class, i.e. you
-can convert a mesh to a graph. There are also graph helper functions,
-and in particular you can skeletonize a graph.
+gl_display provides the Viewer class which makes it simple to visualize meshes and
+graphs.
+
+jupyter_display makes it easy to use PyGEL in the context of a Jupyter Notebook.
+This module contains a function that allows you to create a widget for interactively
+visualizing a mesh or a graph in a Notebook. The feature is based on the Plotly
+library and it is possible to export the resulting notebooks to HTML while preserving
+the interactive 3D graphics in the notebook.
+
+spatial contains the I3DTree class which is simply a kD-tree specialized for mapping
+3D points to integers - typically indices. Of course, scipy.spatial has a more
+generic class, so this is perhaps not the most important part of PyGEL.
 """
 __all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial"]
 
