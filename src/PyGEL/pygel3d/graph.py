@@ -6,7 +6,9 @@ import numpy as np
 class Graph:
     """ This class is for representing graphs embedded in 3D. The class does not in
     itself come with many features: it contains methods for creating, accessing, and
-    housekeeping. """
+    housekeeping. When vertices are used as parameters in the functions below, we usually
+    use the parameter name n (for node). n is simply an index (i.e. an integer) that
+    refers to a node (aka vertex)."""
     def __init__(self,orig=None):
         if orig == None:
             self.obj = lib_py_gel.Graph_new()
@@ -109,7 +111,7 @@ def smooth(g, iter=1, alpha=1.0):
     lib_py_gel.graph_smooth(g.obj, iter, alpha)
 
 def edge_contract(g, dist_thresh):
-    """ Simplified a graph by contracting edges. The first argument, g, is the graph,
+    """ Simplifies a graph by contracting edges. The first argument, g, is the graph,
     and only edges shorter than dist_thresh are contracted. When an edge is contracted
     the merged vertices are moved to the average of their former positions. Thus,
     the ordering in which contractions are carried out matters. Hence, edges are

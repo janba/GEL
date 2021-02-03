@@ -11,6 +11,11 @@ class Manifold:
     ignore a few corner cases) unlike some other representations. This class contains a number of
     methods for mesh manipulation and inspection. Note also that numerous further functions are
     available to manipulate meshes stored as Manifolds.
+    
+    Many of the functions below accept arguments called hid, fid, or vid. These are simply indices
+    of halfedges, faces and vertices, respectively: integer numbers that identify the corresponding
+    mesh element. Using a plain integer to identify a mesh entity means that, for instance, a
+    vertex index can also be used as an index into, say, a NumPy array without any conversion.
     """
     def __init__(self,orig=None):
         if orig == None:
@@ -19,11 +24,18 @@ class Manifold:
             self.obj = lib_py_gel.Manifold_copy(orig.obj)
     @classmethod
     def from_triangles(cls,vertices, faces):
+        """ Given a list of vertices and triangles (faces), this function produces 
+        a Manifold mesh."""
         m = cls()
         m.obj = lib_py_gel.Manifold_from_triangles(len(vertices),len(faces),np.array(vertices,dtype=np.float64), np.array(faces,dtype=ct.c_int))
         return m
     @classmethod
     def from_points(cls,pts,xaxis=np.array([1,0,0]),yaxis=np.array([0,1,0])):
+        """ This function computes the Delaunay triangulation of pts. You need
+        to specify xaxis and yaxis if they are not canonical. The function returns
+        a Manifold with the resulting triangles. Clearly, this function will
+        give surprising results if the surface represented by the points is not
+        well represented as a 2.5D surface, aka a height field. """
         m = cls()
         m.obj = lib_py_gel.Manifold_from_points(len(pts),np.array(pts,dtype=np.float64), np.array(xaxis,dtype=np.float64), np.array(yaxis,dtype=np.float64))
         return m
@@ -31,33 +43,34 @@ class Manifold:
         lib_py_gel.Manifold_delete(self.obj)
     def add_face(self,pts):
         """ Add a face to the Manifold.
-        This function takes a list of points, pts, as argument and creates a face
-        in the mesh with those points as vertices.
+        This function takes a list of 3D points, pts, as argument and creates a face
+        in the mesh with those points as vertices. The function returns the index
+        of the created face.
         """
-        lib_py_gel.Manifold_add_face(self.obj, len(pts), np.array(pts))
+        return lib_py_gel.Manifold_add_face(self.obj, len(pts), np.array(pts))
     def positions(self):
-        """ Retrieve an array containing vertex positions. It is not a copy:
-        any changes that are made directly affect vertex positions. """
+        """ Retrieve an array containing the vertex positions of the Manifold.
+        It is not a copy: any changes are made to the actual vertex positions. """
         pos = ct.POINTER(ct.c_double)()
         n = lib_py_gel.Manifold_positions(self.obj, ct.byref(pos))
         return np.ctypeslib.as_array(pos,(n,3))
     def no_allocated_vertices(self):
         """ Number of vertices.
         This number could be higher than the number of actually
-        used vertices, but corresponds to the number of slots
-        allocated."""
+        used vertices, but corresponds to the size of the array allocated
+        for vertices."""
         return lib_py_gel.Manifold_no_allocated_vertices(self.obj)
     def no_allocated_faces(self):
         """ Number of faces.
         This number could be higher than the number of actually
-        used faces, but corresponds to the number of slots
-        allocated."""
+        used faces, but corresponds to the size of the array allocated
+        for faces."""
         return lib_py_gel.Manifold_no_allocated_faces(self.obj)
     def no_allocated_halfedges(self):
         """ Number of halfedges.
         This number could be higher than the number of actually
-        used halfedges, but corresponds to the number of slots
-        allocated."""
+        used halfedges, but corresponds to the size of the array allocated
+        for halfedges."""
         return lib_py_gel.Manifold_no_allocated_halfedges(self.obj)
     def vertices(self):
         """ Returns an iterable containing all vertex indices"""
@@ -74,23 +87,23 @@ class Manifold:
         hedges = IntVector()
         n = lib_py_gel.Manifold_halfedges(self.obj, hedges.obj)
         return hedges
-    def circulate_vertex(self,v,mode='v'):
-        """ Circulate a vertex. Passed a vertex index, v, and second argument,
+    def circulate_vertex(self, vid, mode='v'):
+        """ Circulate a vertex. Passed a vertex index, vid, and second argument,
         mode='f', this function will return an iterable with all faces incident
-        on v arranged in counter clockwise order. Similarly, if mode is 'h',
+        on vid arranged in counter clockwise order. Similarly, if mode is 'h',
         incident halfedges (outgoing) are returned, and for mode = 'v', all
         neighboring vertices are returned. """
         nbrs = IntVector()
-        n = lib_py_gel.Manifold_circulate_vertex(self.obj, v, ct.c_char(mode.encode('ascii')), nbrs.obj)
+        n = lib_py_gel.Manifold_circulate_vertex(self.obj, vid, ct.c_char(mode.encode('ascii')), nbrs.obj)
         return nbrs
-    def circulate_face(self,f,mode='v'):
-        """ Circulate a face. Passed a face index, f, and second argument,
+    def circulate_face(self, fid, mode='v'):
+        """ Circulate a face. Passed a face index, fid, and second argument,
         mode='f', this function will return an iterable with all faces that
-        share an edge with f (in counter clockwise order). If the argument is
+        share an edge with fid (in counter clockwise order). If the argument is
         mode='h', the halfedges themselves are returned. For mode='v', the
         incident vertices of the face are returned. """
         nbrs = IntVector()
-        n = lib_py_gel.Manifold_circulate_face(self.obj, f, ct.c_char(mode.encode('ascii')), nbrs.obj)
+        n = lib_py_gel.Manifold_circulate_face(self.obj, fid, ct.c_char(mode.encode('ascii')), nbrs.obj)
         return nbrs
     def next_halfedge(self,hid):
         """ Returns next halfedge to hid. """
@@ -238,11 +251,6 @@ class Manifold:
     def edge_length(self, hid):
         """ Returns length of edge given by halfedge hid which is passed as argument. """
         return lib_py_gel.length(self.obj, hid)
-    # def boundary_edge(self,vid):
-    #     hid = 0
-    #     if not lib_py_gel.boundary_edge(self.obj,vid,hid):
-    #         return None
-    #     return hid
     def valency(self,vid):
         """ Returns valency of vid, i.e. number of incident edges."""
         return lib_py_gel.valency(self.obj,vid)
@@ -327,7 +335,8 @@ def x3d_save(fn, m):
     lib_py_gel.x3d_save(s, m.obj)
 
 def obj_load(fn):
-    """ Load and return Manifold from Wavefront obj file. """
+    """ Load and return Manifold from Wavefront obj file.
+    Returns None if loading failed. """
     m = Manifold()
     s = ct.c_char_p(fn.encode('utf-8'))
     if lib_py_gel.obj_load(s, m.obj):
@@ -335,7 +344,8 @@ def obj_load(fn):
     return None
 
 def off_load(fn):
-    """ Load and return Manifold from OFF file. """
+    """ Load and return Manifold from OFF file.
+    Returns None if loading failed."""
     m = Manifold()
     s = ct.c_char_p(fn.encode('utf-8'))
     if lib_py_gel.off_load(s, m.obj):
@@ -343,7 +353,8 @@ def off_load(fn):
     return None
 
 def ply_load(fn):
-    """ Load and return Manifold from Stanford PLY file. """
+    """ Load and return Manifold from Stanford PLY file.
+    Returns None if loading failed. """
     m = Manifold()
     s = ct.c_char_p(fn.encode('utf-8'))
     if lib_py_gel.ply_load(s, m.obj):
@@ -351,7 +362,8 @@ def ply_load(fn):
     return None
 
 def x3d_load(fn):
-    """ Load and return Manifold from X3D file. """
+    """ Load and return Manifold from X3D file.
+    Returns None if loading failed."""
     m = Manifold()
     s = ct.c_char_p(fn.encode('utf-8'))
     if lib_py_gel.x3d_load(s, m.obj):
@@ -361,7 +373,7 @@ def x3d_load(fn):
 from os.path import splitext
 def load(fn):
     """ Load a Manifold from an X3D/OBJ/OFF/PLY file. Return the
-    loaded Manifold."""
+    loaded Manifold. Returns None if loading failed."""
     name, extension = splitext(fn)
     if extension.lower() == ".x3d":
         return x3d_load(fn)

@@ -46,7 +46,7 @@ extern "C" {
     DLLEXPORT size_t Manifold_circulate_vertex(Manifold_ptr self, size_t v, char mode, IntVector_ptr nverts);
     DLLEXPORT size_t Manifold_circulate_face(Manifold_ptr self, size_t f, char mode, IntVector_ptr nverts);
     
-    DLLEXPORT void Manifold_add_face(Manifold_ptr self, size_t no_verts, double* pos);
+    DLLEXPORT size_t Manifold_add_face(Manifold_ptr self, size_t no_verts, double* pos);
 
     DLLEXPORT bool Manifold_remove_face(Manifold_ptr self,size_t fid);
     DLLEXPORT bool Manifold_remove_edge(Manifold_ptr self,size_t hid);

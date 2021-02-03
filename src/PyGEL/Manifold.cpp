@@ -151,7 +151,7 @@ size_t Manifold_circulate_face(Manifold_ptr _self, size_t _f, char mode, IntVect
     return N;
 }
 
-void Manifold_add_face(Manifold_ptr _self, size_t no_verts, double* pos) {
+size_t Manifold_add_face(Manifold_ptr _self, size_t no_verts, double* pos) {
     Manifold* self = reinterpret_cast<Manifold*>(_self);
 
     vector<Vec3d> pts(no_verts);
@@ -159,7 +159,8 @@ void Manifold_add_face(Manifold_ptr _self, size_t no_verts, double* pos) {
         auto v = Vec3d(pos[3*i],pos[3*i+1],pos[3*i+2]);
         pts[i] = v;
     }
-    self->add_face(pts);
+    FaceID f = self->add_face(pts);
+    return f.get_index();
 }
 
 bool Manifold_remove_face(Manifold_ptr _self,size_t fid) {
