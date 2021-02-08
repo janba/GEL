@@ -40,11 +40,11 @@ namespace HMesh
         /// prefix increment 
         IDIterator& operator ++();		
         /// postfix increment
-        IDIterator& operator ++(int);
+        IDIterator operator ++(int);
         /// prefix decrement
         IDIterator& operator --();
         /// postfix decrement
-        IDIterator& operator --(int);
+        IDIterator operator --(int);
 
         /// equal to
         bool operator ==(const IDIterator& other) const;
@@ -82,7 +82,7 @@ namespace HMesh
         : item_vector(&_item_vector), id(_id), skip(_skip){}
 
     template<typename ITEM>
-    inline IDIterator<ITEM>& IDIterator<ITEM>::operator ++(int)
+    inline IDIterator<ITEM> IDIterator<ITEM>::operator ++(int)
     {
         auto tmp(*this);
         ++(*this);
@@ -90,7 +90,7 @@ namespace HMesh
     }
 
     template<typename ITEM>
-    inline IDIterator<ITEM>& IDIterator<ITEM>::operator --(int)
+    inline IDIterator<ITEM> IDIterator<ITEM>::operator --(int)
     {
         auto tmp(*this);
         --(*this);

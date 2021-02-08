@@ -35,7 +35,7 @@ namespace HMesh {
             return *this;
         }
         
-        VertexCirculator& operator++(int) {
+        VertexCirculator operator++(int) {
             auto tmp(*this);
             ++(*this);
             return tmp;
@@ -84,9 +84,7 @@ namespace HMesh {
         FaceCirculator(const ConnectivityKernel& _ck, HalfEdgeID _he, bool _begun=false):
             ck(&_ck), he(_he), begun(_begun) {}
         
-        value_type operator*() const {
-            return ck->vert(he);
-        }
+        value_type operator*() const;
         
         FaceCirculator& operator++() {
             begun = true;
@@ -94,8 +92,8 @@ namespace HMesh {
             return *this;
         }
         
-        FaceCirculator& operator++(int) {
-            auto tmp(*this);
+        FaceCirculator operator++(int) {
+            auto tmp = *this;
             ++(*this);
             return tmp;
         }

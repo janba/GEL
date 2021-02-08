@@ -14,6 +14,7 @@
 #include <GEL/CGLA/Vec3d.h>
 #include <GEL/CGLA/Quatd.h>
 #include <GEL/Util/Timer.h>
+#include <GEL/Util/Range.h>
 
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/HMesh/AttributeVector.h>
@@ -22,35 +23,7 @@ namespace HMesh
 {
     using namespace std;
     using namespace CGLA;
-    
-    
-    class range {
-    public:
-        class iterator {
-            friend class range;
-        public:
-            long int operator *() const { return i_; }
-            const iterator &operator ++() { ++i_; return *this; }
-            iterator operator ++(int) { iterator copy(*this); ++i_; return copy; }
-            
-            bool operator ==(const iterator &other) const { return i_ == other.i_; }
-            bool operator !=(const iterator &other) const { return i_ != other.i_; }
-            
-        protected:
-            iterator(long int start) : i_ (start) { }
-            
-        private:
-            unsigned long i_;
-        };
-        
-        iterator begin() const { return begin_; }
-        iterator end() const { return end_; }
-        range(long int  begin, long int end) : begin_(begin), end_(end) {}
-    private:
-        iterator begin_;
-        iterator end_;
-    };
-    
+
     void for_each_vertex(Manifold& m, function<void(VertexID)> f) { for(auto v : m.vertices()) f(v); }
     void for_each_face(Manifold& m, function<void(FaceID)> f) { for(auto p : m.faces()) f(p); }
     void for_each_halfedge(Manifold& m, function<void(HalfEdgeID)> f) { for(auto h : m.halfedges()) f(h); }
@@ -63,9 +36,9 @@ namespace HMesh
     template<typename  T>
     void for_each_vertex_parallel(int no_threads, const VertexIDBatches& batches, const T& f) {
         vector<thread> t_vec(no_threads);
-        for(auto t : range(0, no_threads))
+        for(auto t : Util::Range(0, no_threads))
             t_vec[t] = thread(f, ref(batches[t]));
-        for(auto t : range(0, no_threads))
+        for(auto t : Util::Range(0, no_threads))
             t_vec[t].join();
     }
     
