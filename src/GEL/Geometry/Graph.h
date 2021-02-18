@@ -227,9 +227,15 @@ namespace Geometry {
         }
      
         /** Merge two nodes, the first is removed and the second inherits all connections,
-            the new position becomes the average. */
-        void merge_nodes(NodeID n0, NodeID n1, bool avg_pos=true); 
-        
+            the new position becomes the average. The return value is the node id of the second
+         node. */
+        NodeID merge_nodes(NodeID n0, NodeID n1, bool avg_pos=true);
+
+        /** Merge all nodes in the vector passed as argument.  The nodes are invalidated, and a
+         new node is created at the average position of the nodes given as argument. The NodeID of
+         the created node is returned. */
+        NodeID merge_nodes(const std::vector<NodeID>& nodes);
+
         /// Compute sqr distance between two nodes - not necessarily connected.
         double sqr_dist(NodeID n0, NodeID n1) const {
             if(valid_node_id(n0) && valid_node_id(n1))
