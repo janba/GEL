@@ -16,7 +16,7 @@ namespace Geometry {
     using namespace CGLA;
     using namespace std;
     
-    void AMGraph3D::merge_nodes(NodeID n0, NodeID n1, bool avg_pos) {
+    AMGraph3D::NodeID AMGraph3D::merge_nodes(NodeID n0, NodeID n1, bool avg_pos) {
         CGLA::Vec3d p_new = pos[n1];
         if(avg_pos) {
             p_new += pos[n0];
@@ -31,6 +31,24 @@ namespace Geometry {
                 connect_nodes(n, n1);
         }
         edge_map[n0].clear();
+        return n1;
+    }
+
+    AMGraph3D::NodeID AMGraph3D::merge_nodes(const vector<NodeID>& nodes) {
+        NodeID n_new = AMGraph::add_node();
+        node_color[n_new] = CGLA::Vec3f(0);
+        pos[n_new] = Vec3d(0);
+        for(auto n: nodes) {
+            pos[n_new] += pos[n];
+            for(auto nn : neighbors(n)) {
+                edge_map[nn].erase(n);
+                connect_nodes(nn, n_new);
+            }
+            edge_map[n].clear();
+            pos[n] = Vec3d(CGLA_NAN);
+        }
+        pos[n_new] /= nodes.size();
+        return n_new;
     }
 
     
