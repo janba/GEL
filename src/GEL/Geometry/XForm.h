@@ -14,7 +14,7 @@
 namespace Geometry
 {
     
-    /** Class that allows transformations between a voxel space and object coordinates */
+    /** Class that allows transformations between a voxel grid and object coordinates. */
     class XForm
     {
         CGLA::Vec3d llf;
@@ -24,50 +24,56 @@ namespace Geometry
     public:
         XForm() {}
         
+        XForm(const CGLA::Vec3i& _DIM):
+        llf(0), urt(_DIM-CGLA::Vec3i(1)),
+        scale(1), margin(0),
+        DIM(_DIM) {}
+        
         /** Construct from the corners of the object's bounding volume (lower, left, front) and
             (upper, right, top), the volume dimensions and optionally margin. */
         XForm(const CGLA::Vec3d& _llf, const CGLA::Vec3d& _urt, const CGLA::Vec3i& _DIM, double _margin=0.1):
         llf(_llf), urt(_urt), DIM(_DIM)
         {
-            if(urt[0]<llf[0])
-            {
+            if(urt[0]<llf[0]) {
                 margin = 0.0;
                 scale = 1;
                 llf = CGLA::Vec3d(0);
-                urt = CGLA::Vec3d(DIM);
+                urt = CGLA::Vec3d(DIM-CGLA::Vec3i(1));
             }
-            else
-            {
+            else {
                 CGLA::Vec3d d = urt - llf;
                 margin = d.max_coord() * _margin;
-                double scale_x = (DIM[0])/(d[0] + 2.0 * margin);
-                double scale_y = (DIM[1])/(d[1] + 2.0 * margin);
-                double scale_z = (DIM[2])/(d[2] + 2.0 * margin);
+                double scale_x = (DIM[0]-1)/(d[0] + 2.0 * margin);
+                double scale_y = (DIM[1]-1)/(d[1] + 2.0 * margin);
+                double scale_z = (DIM[2]-1)/(d[2] + 2.0 * margin);
                 scale = fmin(fmin(scale_x, scale_y), scale_z);
             }
         }
         
         /// Get volume dimensions
-        CGLA::Vec3i get_dims() const {return DIM;}
+        CGLA::Vec3i get_dims() const {
+            return DIM;
+        }
         
         /// Apply: transform from object to voxel coords.
-        const CGLA::Vec3d apply(const CGLA::Vec3d& p) const
-        {
+        const CGLA::Vec3d apply(const CGLA::Vec3d& p) const {
             return scale*(p-llf+CGLA::Vec3d(margin));
         }
         
         /// Apply inverse: transform from voxel to object coords.
-        const CGLA::Vec3d inverse(const CGLA::Vec3d& p) const
-        {
+        const CGLA::Vec3d inverse(const CGLA::Vec3d& p) const {
             return p/scale + llf - CGLA::Vec3d(margin);
         }
         
         /// Return the inverse scale: ratio of object to voxel size.
-        double inv_scale() const {return 1.0/scale;}
+        double inv_scale() const {
+            return 1.0/scale;
+        }
 
         /// Return the scale: ratio of voxel size to object size.
-        double get_scale() const {return scale;}
-        
+        double get_scale() const {
+            return scale;
+        }
         
         /// Printout information about the transformation
         void print()
