@@ -16,6 +16,7 @@
 #include <cassert>
 #include <vector>
 #include <map>
+#include <GEL/Util/Serialization.h>
 
 namespace HMesh 
 {
@@ -89,6 +90,17 @@ namespace HMesh
             }
             std::swap(items, new_items);
         }
+        
+        void serialize(Util::Serialization& ser) const {
+            ser.write(items);
+            ser.write(default_value);
+        }
+        
+        void deserialize(Util::Serialization& ser) {
+            ser.read(items);
+            ser.read(default_value);
+        }
+
 
     private:
         std::vector<ITEM> items;

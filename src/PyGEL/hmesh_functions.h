@@ -30,7 +30,8 @@ extern "C" {
     DLLEXPORT void bbox(const Manifold_ptr m_ptr, double* pmin, double* pmax);
     DLLEXPORT void bsphere(const Manifold_ptr m_ptr, double* c, double* r);
 
-    DLLEXPORT bool obj_load(const char*, Manifold_ptr);
+    DLLEXPORT bool load(const char*, Manifold_ptr m_ptr);
+    DLLEXPORT bool obj_load(const char*, Manifold_ptr m_ptr);
     DLLEXPORT bool off_load(const char*, Manifold_ptr m_ptr);
     DLLEXPORT bool ply_load(const char*, Manifold_ptr m_ptr);
     DLLEXPORT bool x3d_load(const char*, Manifold_ptr m_ptr);

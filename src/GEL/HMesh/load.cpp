@@ -16,8 +16,11 @@
 #include <GEL/HMesh/off_load.h>
 #include <GEL/HMesh/cleanup.h>
 
+#include <GEL/Util/Serialization.h>
+
 using namespace std;
 using namespace CGLA;
+using namespace Util;
 
 namespace HMesh
 {
@@ -27,17 +30,26 @@ namespace HMesh
         if(file_name.length()<5){
             return false;
         }
-        if(file_name.substr(file_name.length()-4,file_name.length())==".obj"){
+        string ext = file_name.substr(file_name.length()-4,file_name.length());
+        if(ext==".obj"){
             return obj_load(file_name, mani);
         }
-        else if(file_name.substr(file_name.length()-4,file_name.length())==".x3d"){
+        else if(ext==".x3d"){
             return x3d_load(file_name, mani);
         }
-        else if(file_name.substr(file_name.length()-4,file_name.length())==".ply"){
+        else if(ext==".ply"){
             return ply_load(file_name, mani);
         }
-        else if(file_name.substr(file_name.length()-4,file_name.length())==".off"){
+        else if(ext==".off"){
             return off_load(file_name, mani);
+        }
+        else if(ext==".off"){
+            return off_load(file_name, mani);
+        }
+        else if(ext==".bhm") {
+            Serialization ser(file_name, std::ios_base::in);
+            mani.deserialize(ser);
+            return true;
         }
         return false;
     }

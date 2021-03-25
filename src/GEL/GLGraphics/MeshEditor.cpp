@@ -588,20 +588,23 @@ namespace GLGraphics {
                 return;
             }
             const string& file_name = args[0];
+            const string extension = file_name.substr(file_name.length()-4,file_name.length());
             if(args.size() == 1){
-                if(file_name.substr(file_name.length()-4,file_name.length())==".obj"){
+                if(extension==".obj"){
                     obj_save(file_name, me->active_mesh());
-                    
                     return;
                 }
-                else if(file_name.substr(file_name.length()-4,file_name.length())==".off"){
+                else if(extension==".off"){
                     off_save(file_name, me->active_mesh());
-                    
                     return;
                 }
-                else if(file_name.substr(file_name.length()-4,file_name.length())==".x3d"){
+                else if(extension==".x3d"){
                     x3d_save(file_name, me->active_mesh());
-                    
+                    return;
+                }
+                else if(extension==".bhm") {
+                    Serialization ser(file_name, std::ios_base::out);
+                    me->active_mesh().serialize(ser);
                     return;
                 }
                 me->printf("unknown format");

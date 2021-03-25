@@ -1578,4 +1578,5 @@ namespace HMesh
         Walker w = m.walker(h);
         return (m.pos(w.vertex()) - m.pos(w.opp().vertex())).length();
     }
+
 }

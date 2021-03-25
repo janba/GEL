@@ -194,6 +194,19 @@ namespace HMesh
         /// clear the kernel
         void clear();
         
+        void serialize(Util::Serialization& ser) const {
+            vertices.serialize(ser);
+            faces.serialize(ser);
+            halfedges.serialize(ser);
+        }
+        
+        void deserialize(Util::Serialization& ser) {
+            vertices.deserialize(ser);
+            faces.deserialize(ser);
+            halfedges.deserialize(ser);
+        }
+
+        
     private:
 
         ItemVector<Vertex> vertices;

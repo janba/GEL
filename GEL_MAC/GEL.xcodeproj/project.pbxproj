@@ -241,6 +241,7 @@
 		E1246E0D242CF7F500653E54 /* bounding_sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */; };
 		E1246E0E242D0A5000653E54 /* bounding_sphere.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1246E0C242CF7F500653E54 /* bounding_sphere.h */; };
 		E166EB952544BE09008DE5C0 /* Circulators.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E166EB932544B074008DE5C0 /* Circulators.h */; };
+		E19C2F4A260BE3ED003950DE /* Serialization.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDAC7CAA201885F600197925 /* Serialization.h */; };
 		E1FDAF9725650C10007114CD /* graph_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1FDAF9125650C10007114CD /* graph_util.cpp */; };
 		E1FDAF9825650C10007114CD /* graph_skeletonize.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1FDAF9325650C10007114CD /* graph_skeletonize.cpp */; };
 		E1FDAF9925650C10007114CD /* graph_io.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1FDAF9525650C10007114CD /* graph_io.cpp */; };
@@ -442,6 +443,7 @@
 			dstPath = ../Headers/Util;
 			dstSubfolderSpec = 7;
 			files = (
+				E19C2F4A260BE3ED003950DE /* Serialization.h in CopyFiles */,
 				0D37DF941C8591FF00CD0A07 /* AttribVec.h in CopyFiles */,
 				0D1028361C74D1BC00250431 /* Range.h in CopyFiles */,
 				0D52EC4A197D1E23002C7150 /* ArgExtracter.h in CopyFiles */,
@@ -855,7 +857,6 @@
 			children = (
 				0D52EBB7197D196D002C7150 /* header */,
 				0D52EB53197D18C1002C7150 /* Parse.cpp */,
-				BDAC7CAA201885F600197925 /* Serialization.h */,
 				0D52EB56197D18C1002C7150 /* string_utils.cpp */,
 				0D52EB59197D18C1002C7150 /* XmlParser.cpp */,
 			);
@@ -1041,6 +1042,7 @@
 		0D52EBB7197D196D002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				BDAC7CAA201885F600197925 /* Serialization.h */,
 				0D52EB4E197D18C1002C7150 /* ArgExtracter.h */,
 				0D37DF931C85905A00CD0A07 /* AttribVec.h */,
 				0D52EB4F197D18C1002C7150 /* Grid2D.h */,

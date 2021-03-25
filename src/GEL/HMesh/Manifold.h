@@ -262,6 +262,17 @@ namespace HMesh
         IteratorPair<FaceCirculator<Face>> incident_faces(FaceID id) const;
 
 
+        void serialize(Util::Serialization& ser) const {
+            kernel.serialize(ser);
+            positions.serialize(ser);
+        }
+        
+        void deserialize(Util::Serialization& ser) {
+            kernel.deserialize(ser);
+            positions.deserialize(ser);
+        }
+
+
     private:
         
         ConnectivityKernel kernel;
@@ -586,5 +597,5 @@ namespace HMesh
     {
         return circulate_face_cw(m, f, static_cast<std::function<void(Walker&)>>([&](Walker& w){g(w.halfedge());}));
     }
-   
+
 }

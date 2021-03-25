@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 J. Andreas Bærentzen. All rights reserved.
 //
 
+#include <GEL/Geometry/GridAlgorithm.h>
 #include <GEL/Geometry/Implicit.h>
 #include <GEL/Geometry/Neighbours.h>
 #include <GEL/HMesh/polygonize.h>
@@ -30,9 +31,38 @@ Vec3d hex_faces[6][4] = {{Vec3d(0,-0.5,-0.5),Vec3d(0,0.5,-0.5),Vec3d(0,0.5,0.5),
 
 namespace HMesh
 {
+    float clamp_interpolate(const RGrid<float>& grid, CGLA::Vec3d& v)
+    {
+        v = v_min(Vec3d(grid.get_dims()-Vec3i(1)), v_max(v,Vec3d(0)));
+        
+        Vec3i c0i(v);
+        
+        const float alpha = v[0] - float(c0i[0]);
+        const float beta  = v[1] - float(c0i[1]);
+        const float gamm  = v[2] - float(c0i[2]);
+        float m_alpha = 1.0 - alpha;
+        float m_beta  = 1.0 - beta;
+        float m_gamm  = 1.0 - gamm;
+        float weights[8];
+        weights[0] = (m_alpha*m_beta*m_gamm);
+        weights[1] = (alpha*m_beta*m_gamm);
+        weights[2] = (m_alpha*beta*m_gamm);
+        weights[3] = (alpha*beta*m_gamm);
+        weights[4] = (m_alpha*m_beta*gamm);
+        weights[5] = (alpha*m_beta*gamm);
+        weights[6] = (m_alpha*beta*gamm);
+        weights[7] = (alpha*beta*gamm);
+        
+        float f = 0;
+        for(int i=0;i<8;++i)
+            if(weights[i]>1e-10)
+                f += weights[i]*grid[c0i+Geometry::CubeCorners8i[i]];
+        
+        return f;
+    }
 
     
-    void polygonize(const XForm& xform, const RGrid<float>& grid, std::vector<CGLA::Vec3d>& quad_vertices,
+    void polygonize(const RGrid<float>& grid, std::vector<CGLA::Vec3d>& quad_vertices,
                     float tau, bool high_is_inside)
     {
         auto is_inside = [&](const Vec3i& pi) {
@@ -43,35 +73,31 @@ namespace HMesh
         };
         
         quad_vertices.clear();
-        for(int i=0;i<xform.get_dims()[0];++i)
-            for(int j=0;j<xform.get_dims()[1];++j)
-                for(int k=0;k<xform.get_dims()[2];++k)
-                {
-                    Vec3i pi(i,j,k);
-                    Vec3d p(pi);
-                    if(is_inside(pi))
-                    {
-                        for (int hf_idx = 0; hf_idx < 6 ; ++ hf_idx) {
-                            Vec3i pni = pi + N6i[hf_idx];
-                            if(is_outside(pni)) {
-                                Vec3d pn = p + 0.5 * N6d[hf_idx];
-                                if(high_is_inside)
-                                    for(int n=0;n<4;++n)
-                                        quad_vertices.push_back(xform.inverse(pn + hex_faces[hf_idx][3-n]));
-                                else
-                                    for(int n=0;n<4;++n)
-                                        quad_vertices.push_back(xform.inverse(pn + hex_faces[hf_idx][n]));
-                            }
-                        }
+        for(Vec3i pi: Range3D(grid.get_dims())) {
+            if(is_inside(pi)) {
+                Vec3d p(pi);
+                for (int nbr_idx = 0; nbr_idx < 6 ; ++ nbr_idx) {
+                    Vec3i pni = pi + N6i[nbr_idx];
+                    if(is_outside(pni)) {
+                        Vec3d pn = p + 0.5 * N6d[nbr_idx];
+                        if(high_is_inside)
+                            for(int n=0;n<4;++n)
+                                quad_vertices.push_back(pn + hex_faces[nbr_idx][3-n]);
+                        else
+                            for(int n=0;n<4;++n)
+                                quad_vertices.push_back(pn + hex_faces[nbr_idx][n]);
                     }
                 }
+            }
+        }
         
     }
 
 
-    bool towards_intersection(const XForm& xform, const Geometry::RGrid<float>& grid, Vec3d& p, const Vec3d& p1, double tau) {
-        auto v0 = interpolate(grid,xform.apply(p));
-        auto v1 = interpolate(grid,xform.apply(p1));
+    bool towards_intersection(const Geometry::RGrid<float>& grid, Vec3d& p, const Vec3d& _p1, double tau) {
+        Vec3d p1 = _p1;
+        auto v0 = clamp_interpolate(grid, p);
+        auto v1 = clamp_interpolate(grid, p1);
         double D = v1 - v0;
         
         if(abs(D)>1e-30) { // If the value at the two points are the same, we don't move
@@ -96,7 +122,7 @@ namespace HMesh
 
         mani.clear();
         vector<Vec3d> quad_vertices;
-        polygonize(xform, grid, quad_vertices, tau, high_is_inside);
+        polygonize(grid, quad_vertices, tau, high_is_inside);
         vector<int> indices;
         vector<int> faces(quad_vertices.size()/4,4);
         for(int i=0;i<quad_vertices.size();++i)
@@ -114,16 +140,20 @@ namespace HMesh
         
         mani.cleanup();
         
-        laplacian_smooth(mani, .25, 3);
-        for(auto v: mani.vertices()) {
-            Vec3d& p = mani.pos(v);
-            const Vec3d n = normal(mani,v);
-            const Vec3d p1 = p + delta * n;
-            if(!towards_intersection(xform, grid, p, p1, tau)) {
-                const Vec3d p1 = p - delta * n;
-                towards_intersection(xform, grid, p, p1, tau);
+        for(int iter=0;iter<3; ++iter) {
+            laplacian_smooth(mani, .25, 1);
+            for(auto v: mani.vertices()) {
+                Vec3d& p = mani.pos(v);
+                const Vec3d n = normal(mani,v);
+                const Vec3d p1 = p + delta * n;
+                if(!towards_intersection(grid, p, p1, tau)) {
+                    const Vec3d p1 = p - delta * n;
+                    towards_intersection(grid, p, p1, tau);
+                }
             }
         }
+        for(auto v: mani.vertices())
+            mani.pos(v) = xform.inverse(mani.pos(v));
     }
     
 }

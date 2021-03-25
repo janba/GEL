@@ -36,6 +36,11 @@ int stitch_mesh(Manifold_ptr m_ptr, double rad) {
     return stitch_mesh(*(reinterpret_cast<Manifold*>(m_ptr)), rad);
 }
 
+bool load(const char* fn, Manifold_ptr m_ptr) {
+    return load(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
+}
+
+
 bool obj_load(const char* fn, Manifold_ptr m_ptr) {
     return obj_load(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
 }

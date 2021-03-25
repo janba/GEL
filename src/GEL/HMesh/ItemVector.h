@@ -14,6 +14,7 @@
 #include <cassert>
 #include <vector>
 #include <GEL/HMesh/ItemID.h>
+#include <GEL/Util/Serialization.h>
 
 namespace HMesh
 {
@@ -73,6 +74,19 @@ namespace HMesh
 
         /// get the previous index (default: skip to first active index)
         IDType index_prev(IDType index, bool skip = true) const;
+        
+        void serialize(Util::Serialization& ser) const {
+            ser.write(size_active);
+            ser.write(items);
+            ser.write(active_items);
+        }
+        
+        void deserialize(Util::Serialization& ser) {
+            ser.read(size_active);
+            ser.read(items);
+            ser.read(active_items);
+        }
+
 
     private:
 
