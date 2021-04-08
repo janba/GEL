@@ -47,7 +47,6 @@ namespace HMesh
         auto batch_size = m.no_vertices()/CORES;
         int cnt = 0;
         for_each_vertex(m, [&](VertexID v) {
-            if (!boundary(m, v))
                 vertex_ids[(cnt++/batch_size)%CORES].push_back(v);
         });
         return vertex_ids;
@@ -61,7 +60,6 @@ namespace HMesh
             for(VertexID v: vids)
                 new_pos[v] = m.pos(v)+weight*laplacian(m, v);
         };
-
         for(int i=0; i < max_iter; ++i) {
             for_each_vertex_parallel(CORES, vertex_ids, f);
             swap(m.positions_attribute_vector(), new_pos);
@@ -101,8 +99,7 @@ namespace HMesh
         auto new_pos = m.positions_attribute_vector();
         for(int iter = 0; iter < 2*max_iter; ++iter) {
             for(VertexID v : m.vertices())
-                if(!boundary(m, v))
-                    new_pos[v] = (iter%2 == 0 ? +0.5 : -0.52) * laplacian(m, v) + m.pos(v);
+                new_pos[v] = (iter%2 == 0 ? +0.5 : -0.52) * laplacian(m, v) + m.pos(v);
             swap(m.positions_attribute_vector(), new_pos);
         }
     }

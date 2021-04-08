@@ -64,6 +64,7 @@ namespace HMesh
 
     bool ply_load(const string& fn, Manifold& m) {
         mani = &m;
+        vertices.clear();
         p_ply ply = ply_open(fn.c_str(), NULL);
         if (!ply) return false;
         if (!ply_read_header(ply)) return false;

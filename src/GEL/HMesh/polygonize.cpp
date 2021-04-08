@@ -66,10 +66,12 @@ namespace HMesh
                     float tau, bool high_is_inside)
     {
         auto is_inside = [&](const Vec3i& pi) {
-            return high_is_inside == (grid[pi] > tau);
+            float val = grid[pi];
+            return !isnan(val) && (high_is_inside == (val > tau));
         };
         auto is_outside = [&](const Vec3i& pi) {
-            return !grid.in_domain(pi) || (high_is_inside == (grid[pi] <= tau));
+            float val = grid[pi];
+            return !grid.in_domain(pi) || (!isnan(val) && (high_is_inside == (val <= tau)));
         };
         
         quad_vertices.clear();
@@ -80,17 +82,12 @@ namespace HMesh
                     Vec3i pni = pi + N6i[nbr_idx];
                     if(is_outside(pni)) {
                         Vec3d pn = p + 0.5 * N6d[nbr_idx];
-                        if(high_is_inside)
                             for(int n=0;n<4;++n)
                                 quad_vertices.push_back(pn + hex_faces[nbr_idx][3-n]);
-                        else
-                            for(int n=0;n<4;++n)
-                                quad_vertices.push_back(pn + hex_faces[nbr_idx][n]);
                     }
                 }
             }
         }
-        
     }
 
 
@@ -118,7 +115,7 @@ namespace HMesh
     void volume_polygonize(const XForm& xform, const Geometry::RGrid<float>& grid,
                            HMesh::Manifold& mani, float tau, bool make_triangles, bool high_is_inside)
     {
-        const double delta = (sqrt(3.0)/2.0) * xform.inv_scale();
+        const double delta = sqrt(3.0);
 
         mani.clear();
         vector<Vec3d> quad_vertices;
@@ -133,15 +130,15 @@ namespace HMesh
                    &faces[0],
                    &indices[0]);
         
-        stitch_more(mani, 0.001 * delta);
-        
+        stitch_mesh(mani, 0.001 * delta);
+
         if(make_triangles)
             triangulate(mani);
-        
+
         mani.cleanup();
-        
-        for(int iter=0;iter<3; ++iter) {
-            laplacian_smooth(mani, .25, 1);
+
+        for(int iter=0;iter<5; ++iter) {
+            laplacian_smooth(mani,0.5);
             for(auto v: mani.vertices()) {
                 Vec3d& p = mani.pos(v);
                 const Vec3d n = normal(mani,v);
