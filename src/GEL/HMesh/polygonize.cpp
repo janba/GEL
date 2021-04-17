@@ -70,8 +70,12 @@ namespace HMesh
             return !isnan(val) && (high_is_inside == (val > tau));
         };
         auto is_outside = [&](const Vec3i& pi) {
-            float val = grid[pi];
-            return !grid.in_domain(pi) || (!isnan(val) && (high_is_inside == (val <= tau)));
+            if (grid.in_domain(pi)) {
+                float val = grid[pi];
+                return isnan(val) || (high_is_inside == (val <= tau));
+            }
+            return true;
+
         };
         
         quad_vertices.clear();

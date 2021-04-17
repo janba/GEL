@@ -104,23 +104,38 @@ void animate()
 
 void mouse(int button, int state, int x, int y)
 {
-    Vec2i pos(x,y);
+    int WINW = glutGet(GLUT_WINDOW_WIDTH);
+    int WINH = glutGet(GLUT_WINDOW_HEIGHT);
+    Vec2i pos(x,WINH-y);
     if (state==GLUT_DOWN)
     {
-        if (button==GLUT_LEFT_BUTTON && glutGetModifiers() == 0)
-           me.grab_ball(ROTATE_ACTION,pos);
-        else if (button==GLUT_MIDDLE_BUTTON || glutGetModifiers() == GLUT_ACTIVE_CTRL)
+        if (button==GLUT_LEFT_BUTTON ) {
+            if(glutGetModifiers() == GLUT_ACTIVE_SHIFT)
+                me.select(pos);
+            else
+                me.grab_ball(ROTATE_ACTION,pos);
+        }
+        else if (button==GLUT_MIDDLE_BUTTON )
             me.grab_ball(ZOOM_ACTION,pos);
-        else if (button==GLUT_RIGHT_BUTTON || glutGetModifiers() == GLUT_ACTIVE_ALT)
-            me.grab_ball(PAN_ACTION,pos);
+        else if (button==GLUT_RIGHT_BUTTON ) {
+            if(glutGetModifiers() == GLUT_ACTIVE_SHIFT)
+                me.grab_mesh(pos);
+            else
+                me.grab_ball(PAN_ACTION,pos);
+        }
     }
-    else if (state==GLUT_UP)
+    else if (state==GLUT_UP) {
         me.release_ball();
+        me.release_mesh();
+    }
 }
 
 void motion(int x, int y) {
-    Vec2i pos(x,y);
-    me.roll_ball(Vec2i(x,y));
+    int WINW = glutGet(GLUT_WINDOW_WIDTH);
+    int WINH = glutGet(GLUT_WINDOW_HEIGHT);
+    Vec2i pos(x,WINH-y);
+    if(!me.drag_mesh(pos))
+        me.roll_ball(pos);
 }
 
 
