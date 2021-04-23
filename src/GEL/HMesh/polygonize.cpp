@@ -43,25 +43,75 @@ namespace HMesh
         float m_alpha = 1.0 - alpha;
         float m_beta  = 1.0 - beta;
         float m_gamm  = 1.0 - gamm;
-        float weights[8];
-        weights[0] = (m_alpha*m_beta*m_gamm);
-        weights[1] = (alpha*m_beta*m_gamm);
-        weights[2] = (m_alpha*beta*m_gamm);
-        weights[3] = (alpha*beta*m_gamm);
-        weights[4] = (m_alpha*m_beta*gamm);
-        weights[5] = (alpha*m_beta*gamm);
-        weights[6] = (m_alpha*beta*gamm);
-        weights[7] = (alpha*beta*gamm);
+        array<float, 8> weights = {
+            m_alpha*m_beta*m_gamm,
+            alpha*m_beta*m_gamm,
+            m_alpha*beta*m_gamm,
+            alpha*beta*m_gamm,
+            m_alpha*m_beta*gamm,
+            alpha*m_beta*gamm,
+            m_alpha*beta*gamm,
+            alpha*beta*gamm};
         
         float f = 0;
         for(int i=0;i<8;++i)
-            if(weights[i]>1e-10)
-                f += weights[i]*grid[c0i+Geometry::CubeCorners8i[i]];
+            f += weights[i]*grid[c0i+Geometry::CubeCorners8i[i]];
         
         return f;
     }
 
-    
+    Vec3f clamp_trilin_grad(const RGrid<float>& grid, CGLA::Vec3d& v)
+    {
+        v = v_min(Vec3d(grid.get_dims()-Vec3i(1)), v_max(v,Vec3d(0)));
+        
+        Vec3i c0i(v);
+        
+        const float alpha = v[0] - float(c0i[0]);
+        const float beta  = v[1] - float(c0i[1]);
+        const float gamm  = v[2] - float(c0i[2]);
+        float m_alpha = 1.0 - alpha;
+        float m_beta  = 1.0 - beta;
+        float m_gamm  = 1.0 - gamm;
+        array<float, 8> dxweights = {
+            -m_beta*m_gamm,
+            m_beta*m_gamm,
+            -beta*m_gamm,
+            beta*m_gamm,
+            -m_beta*gamm,
+            m_beta*gamm,
+            -beta*gamm,
+            beta*gamm};
+
+        array<float, 8> dyweights = {
+            -m_alpha*m_gamm,
+            -alpha*m_gamm,
+            m_alpha*m_gamm,
+            alpha*m_gamm,
+            -m_alpha*gamm,
+            -alpha*gamm,
+            m_alpha*gamm,
+            alpha*gamm};
+
+        array<float, 8> dzweights = {
+            -m_alpha*m_beta,
+            -alpha*m_beta,
+            -m_alpha*beta,
+            -alpha*beta,
+            m_alpha*m_beta,
+            alpha*m_beta,
+            m_alpha*beta,
+            alpha*beta};
+
+        Vec3f gf(0);
+        for(int i=0;i<8;++i) {
+            gf[0] += dxweights[i]*grid[c0i+Geometry::CubeCorners8i[i]];
+            gf[1] += dyweights[i]*grid[c0i+Geometry::CubeCorners8i[i]];
+            gf[2] += dzweights[i]*grid[c0i+Geometry::CubeCorners8i[i]];
+        }
+        return gf;
+    }
+
+      
     void polygonize(const RGrid<float>& grid, std::vector<CGLA::Vec3d>& quad_vertices,
                     float tau, bool high_is_inside)
     {
@@ -72,7 +122,7 @@ namespace HMesh
         auto is_outside = [&](const Vec3i& pi) {
             if (grid.in_domain(pi)) {
                 float val = grid[pi];
-                return isnan(val) || (high_is_inside == (val <= tau));
+                return !isnan(val) && (high_is_inside == (val <= tau));
             }
             return true;
 
@@ -94,32 +144,10 @@ namespace HMesh
         }
     }
 
-
-    bool towards_intersection(const Geometry::RGrid<float>& grid, Vec3d& p, const Vec3d& _p1, double tau) {
-        Vec3d p1 = _p1;
-        auto v0 = clamp_interpolate(grid, p);
-        auto v1 = clamp_interpolate(grid, p1);
-        double D = v1 - v0;
-        
-        if(abs(D)>1e-30) { // If the value at the two points are the same, we don't move
-            double d = tau - v0;
-            double r = d/D;
-            if(r>1.0) // If the intersection is further out than p1, don't move.
-                return false;
-            if(r>=0.0) { // If the intersection is betweeen p0 and p1, move
-                p = r * p1 + (1.0-r) * p;
-                return true;
-            }
-            // Otherwise, there is no intersection.
-        }
-        return false;
-    }
-    
-    
     void volume_polygonize(const XForm& xform, const Geometry::RGrid<float>& grid,
                            HMesh::Manifold& mani, float tau, bool make_triangles, bool high_is_inside)
     {
-        const double delta = sqrt(3.0);
+        const double delta = sqrt(3.0)/2.0;
 
         mani.clear();
         vector<Vec3d> quad_vertices;
@@ -140,18 +168,17 @@ namespace HMesh
             triangulate(mani);
 
         mani.cleanup();
-
-        for(int iter=0;iter<5; ++iter) {
-            laplacian_smooth(mani,0.5);
-            for(auto v: mani.vertices()) {
-                Vec3d& p = mani.pos(v);
-                const Vec3d n = normal(mani,v);
-                const Vec3d p1 = p + delta * n;
-                if(!towards_intersection(grid, p, p1, tau)) {
-                    const Vec3d p1 = p - delta * n;
-                    towards_intersection(grid, p, p1, tau);
-                }
+        laplacian_smooth(mani, 0.1, 5);
+        for(auto v: mani.vertices()) {
+            Vec3d p = mani.pos(v);
+            Vec3d p_new = p;
+            for(int iter=0;iter<3; ++iter) {
+                const Vec3d g = Vec3d(clamp_trilin_grad(grid, p_new));
+                float v = clamp_interpolate(grid, p_new);
+                p_new -= g*(v-tau)/(1e-10+sqr_length(g));
+                p_new = v_min(p+Vec3d(0.5), v_max(p-Vec3d(0.5), p_new));
             }
+            mani.pos(v) = p_new;
         }
         for(auto v: mani.vertices())
             mani.pos(v) = xform.inverse(mani.pos(v));
