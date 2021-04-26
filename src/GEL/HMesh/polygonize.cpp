@@ -21,12 +21,14 @@ using namespace Geometry;
 using namespace HMesh;
 
 namespace {
-Vec3d hex_faces[6][4] = {{Vec3d(0,-0.5,-0.5),Vec3d(0,0.5,-0.5),Vec3d(0,0.5,0.5),Vec3d(0,-0.5,0.5)},
-    {Vec3d(0, 0.5,-0.5),Vec3d(0,-0.5,-0.5),Vec3d(0,-0.5,0.5),Vec3d(0,0.5,0.5)},
-    {Vec3d( 0.5,0, -0.5),Vec3d(-0.5,0, -0.5),Vec3d(-0.5,0, 0.5),Vec3d(0.5,0, 0.5)},
-    {Vec3d(-0.5,0, -0.5),Vec3d(0.5,0, -0.5),Vec3d(0.5,0, 0.5),Vec3d(-0.5,0, 0.5)},
-    {Vec3d(-0.5,-0.5,0),Vec3d(0.5,-0.5,0),Vec3d(0.5,0.5,0),Vec3d(-0.5,0.5,0)},
-    {Vec3d( 0.5,-0.5,0),Vec3d(-0.5,-0.5,0),Vec3d(-0.5,0.5,0),Vec3d(0.5,0.5,0)}};
+    Vec3d hex_faces[6][4] = {
+        {Vec3d(-0.5,-0.5,-0.5), Vec3d(-0.5,0.5,-0.5),   Vec3d(-0.5,0.5,0.5),    Vec3d(-0.5,-0.5,0.5)},
+        {Vec3d(0.5, 0.5,-0.5),  Vec3d(0.5,-0.5,-0.5),   Vec3d(0.5,-0.5,0.5),    Vec3d(0.5,0.5,0.5)},
+        {Vec3d( 0.5,-0.5, -0.5),Vec3d(-0.5,-0.5, -0.5), Vec3d(-0.5,-0.5, 0.5),  Vec3d(0.5,-0.5, 0.5)},
+        {Vec3d(-0.5,0.5, -0.5), Vec3d(0.5,0.5, -0.5),   Vec3d(0.5,0.5, 0.5),    Vec3d(-0.5,0.5, 0.5)},
+        {Vec3d(-0.5,-0.5,-0.5), Vec3d(0.5,-0.5,-0.5),   Vec3d(0.5,0.5,-0.5),    Vec3d(-0.5,0.5,-0.5)},
+        {Vec3d( 0.5,-0.5,0.5),  Vec3d(-0.5,-0.5,0.5),   Vec3d(-0.5,0.5,0.5),    Vec3d(0.5,0.5,0.5)}
+    };
 }
 
 namespace HMesh
@@ -132,11 +134,9 @@ namespace HMesh
                 Vec3d p(pi);
                 for (int nbr_idx = 0; nbr_idx < 6 ; ++ nbr_idx) {
                     Vec3i pni = pi + N6i[nbr_idx];
-                    if(is_outside(pni)) {
-                        Vec3d pn = p + 0.5 * N6d[nbr_idx];
-                            for(int n=0;n<4;++n)
-                                quad_vertices.push_back(pn + hex_faces[nbr_idx][3-n]);
-                    }
+                    if(is_outside(pni))
+                        for(int n=0;n<4;++n)
+                            quad_vertices.push_back(p + hex_faces[nbr_idx][3-n]);
                 }
             }
         }
@@ -175,6 +175,7 @@ namespace HMesh
                 float v = clamp_interpolate(grid, p_new);
                 p_new -= g*(v-tau)/(1e-10+sqr_length(g));
                 p_new = v_min(p+Vec3d(0.5), v_max(p-Vec3d(0.5), p_new));
+                p_new = v_min(Vec3d(grid.get_dims()-Vec3i(1)), v_max(Vec3d(0), p_new));
             }
             mani.pos(v) = p_new;
         }
