@@ -33,9 +33,8 @@ namespace HMesh
 {
     float clamp_interpolate(const RGrid<float>& grid, CGLA::Vec3d& v)
     {
+        Vec3i c0i = v_min(grid.get_dims()-Vec3i(2), v_max(Vec3i(v), Vec3i(0)));
         v = v_min(Vec3d(grid.get_dims()-Vec3i(1)), v_max(v,Vec3d(0)));
-        
-        Vec3i c0i(v);
         
         const float alpha = v[0] - float(c0i[0]);
         const float beta  = v[1] - float(c0i[1]);
@@ -62,10 +61,9 @@ namespace HMesh
 
     Vec3f clamp_trilin_grad(const RGrid<float>& grid, CGLA::Vec3d& v)
     {
+        Vec3i c0i = v_min(grid.get_dims()-Vec3i(2), v_max(Vec3i(v), Vec3i(0)));
         v = v_min(Vec3d(grid.get_dims()-Vec3i(1)), v_max(v,Vec3d(0)));
-        
-        Vec3i c0i(v);
-        
+
         const float alpha = v[0] - float(c0i[0]);
         const float beta  = v[1] - float(c0i[1]);
         const float gamm  = v[2] - float(c0i[2]);
