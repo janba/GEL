@@ -1087,7 +1087,7 @@ namespace HMesh
             vector<Vec3d> pts(facevec[i]);
             for(int j=0;j<facevec[i]; ++j) {
                 const float_type* v = &vertvec[3*indices[j+k]];
-                pts[j] = Vec3d(v[0],v[1],v[2]);
+                pts[j] = Vec3d(v[0], v[1], v[2]);
             }
             FaceID f = m.add_face(pts);
             int j=0;
