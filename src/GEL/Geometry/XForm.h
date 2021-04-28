@@ -14,7 +14,12 @@
 namespace Geometry
 {
     
-    /** Class that allows transformations between object coordinates and a voxel grid. */
+    /** Class that allows transformations between object coordinates and a voxel grid.
+     The object coordinates is simply the coordinate system that contains some data, and
+     this class maps them to a coordinate system where voxels are at integer positions.
+     While this seems trivial, there are several ways to do it and also pitfalls. This class is
+     not meant as a simple solution to the challenge of getting this transformation right but
+     as a flexible tool for setting up the transformations. */
     class XForm
     {
         CGLA::Vec3d llf;
@@ -25,12 +30,16 @@ namespace Geometry
     public:
         XForm() {}
         
-        /** Construct an XForm suitable for when the voxels (i.e. grid points) are at half integeger coordinates.*/
+        /** Construct an XForm with no margin and where the scale and offset are controlled by the user.
+         The _DIM argument is the dimensions of the voxel grid.
+         The scale multiplied onto a vector should transform it from the object coordinate scale to the voxel
+         grid scale. Likewise, the offset translates a point from object coordinates to voxel grid coordinates.
+         */
         XForm(const CGLA::Vec3i& _DIM, double _scale = 1.0, const CGLA::Vec3d&  _offset = CGLA::Vec3d(-0.5)):
         llf(0), urt(_DIM), scale(_scale), offset(_offset), DIM(_DIM) {}
         
         /** Construct from the corners of the object's bounding volume (lower, left, front) and
-            (upper, right, top), the volume dimensions and optionally margin. */
+            (upper, right, top), the volume dimensions and optionally a margin. */
         XForm(const CGLA::Vec3d& _llf, const CGLA::Vec3d& _urt, const CGLA::Vec3i& _DIM, double _margin=0.1):
         llf(_llf), urt(_urt), DIM(_DIM)
         {
@@ -50,12 +59,7 @@ namespace Geometry
                 offset = CGLA::Vec3d(margin);
             }
         }
-        
-        /// Get volume dimensions
-        CGLA::Vec3i get_dims() const {
-            return DIM;
-        }
-        
+                
         /// Apply: transform from object to voxel coords.
         const CGLA::Vec3d apply(const CGLA::Vec3d& p) const {
             return scale*(p - llf + offset);
@@ -70,11 +74,29 @@ namespace Geometry
         double inv_scale() const {
             return 1.0/scale;
         }
+        
+        /// Get volume dimensions
+        CGLA::Vec3i get_dims() const {
+            return DIM;
+        }
 
         /// Return the scale: ratio of voxel size to object size.
         double get_scale() const {
             return scale;
         }
+        
+        /** Return the lower, left, front corner of the bounding box. Note this is in object
+        coordinates. */
+        const CGLA::Vec3d& get_llf() const {
+            return llf;
+        }
+        
+        /** Return the upper, right, top corner of the bounding box. Note this is in object
+        coordinates. */
+        const CGLA::Vec3d& get_urt() const {
+            return urt;
+        }
+
         
     };
 }

@@ -146,6 +146,9 @@ namespace HMesh
                            HMesh::Manifold& mani, float tau, bool make_triangles, bool high_is_inside)
     {
         const double delta = sqrt(3.0)/2.0;
+        
+        Vec3d llf_vc = xform.apply(xform.get_llf());
+        Vec3d urt_vc = xform.apply(xform.get_urt());
 
         mani.clear();
         vector<Vec3d> quad_vertices;
@@ -175,7 +178,7 @@ namespace HMesh
                 float v = clamp_interpolate(grid, p_new);
                 p_new -= g*(v-tau)/(1e-10+sqr_length(g));
                 p_new = v_min(p+Vec3d(0.5), v_max(p-Vec3d(0.5), p_new));
-                p_new = v_min(Vec3d(grid.get_dims()-Vec3i(1)), v_max(Vec3d(0), p_new));
+                p_new = v_min(urt_vc, v_max(llf_vc, p_new));
             }
             mani.pos(v) = p_new;
         }
