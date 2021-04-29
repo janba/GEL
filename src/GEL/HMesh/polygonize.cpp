@@ -33,10 +33,10 @@ namespace {
 
 namespace HMesh
 {
-    float clamp_interpolate(const RGrid<float>& grid, CGLA::Vec3d& v)
+    float clamp_interpolate(const RGrid<float>& grid, const CGLA::Vec3d& _v)
     {
-        Vec3i c0i = v_min(grid.get_dims()-Vec3i(2), v_max(Vec3i(v), Vec3i(0)));
-        v = v_min(Vec3d(grid.get_dims()-Vec3i(1)), v_max(v,Vec3d(0)));
+        const Vec3i c0i = v_min(grid.get_dims()-Vec3i(2), v_max(Vec3i(_v), Vec3i(0)));
+        const Vec3d v = v_min(Vec3d(grid.get_dims()-Vec3i(1)), v_max(_v,Vec3d(0)));
         
         const float alpha = v[0] - float(c0i[0]);
         const float beta  = v[1] - float(c0i[1]);
@@ -61,10 +61,10 @@ namespace HMesh
         return f;
     }
 
-    Vec3f clamp_trilin_grad(const RGrid<float>& grid, CGLA::Vec3d& v)
+    Vec3f clamp_trilin_grad(const RGrid<float>& grid, const CGLA::Vec3d& _v)
     {
-        Vec3i c0i = v_min(grid.get_dims()-Vec3i(2), v_max(Vec3i(v), Vec3i(0)));
-        v = v_min(Vec3d(grid.get_dims()-Vec3i(1)), v_max(v,Vec3d(0)));
+        const Vec3i c0i = v_min(grid.get_dims()-Vec3i(2), v_max(Vec3i(_v), Vec3i(0)));
+        const Vec3d v = v_min(Vec3d(grid.get_dims()-Vec3i(1)), v_max(_v,Vec3d(0)));
 
         const float alpha = v[0] - float(c0i[0]);
         const float beta  = v[1] - float(c0i[1]);
@@ -169,9 +169,8 @@ namespace HMesh
             triangulate(mani);
 
         mani.cleanup();
-        laplacian_smooth(mani, 0.1, 5);
         for(auto v: mani.vertices()) {
-            Vec3d p = mani.pos(v);
+            const Vec3d p = mani.pos(v);
             Vec3d p_new = p;
             for(int iter=0;iter<3; ++iter) {
                 const Vec3d g = Vec3d(clamp_trilin_grad(grid, p_new));

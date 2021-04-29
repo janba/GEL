@@ -17,6 +17,9 @@
 
 namespace HMesh
 {
+    float clamp_interpolate(const Geometry::RGrid<float>& grid, const CGLA::Vec3d& v);
+    CGLA::Vec3f clamp_trilin_grad(const Geometry::RGrid<float>& grid, const CGLA::Vec3d& v);
+
     /**
      @brief Computes a polygonal mesh from a volumetric isocontour
      @param xform is the transformation from voxel indices back to the domain of the implicit being polygonized.
