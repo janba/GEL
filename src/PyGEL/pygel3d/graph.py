@@ -133,5 +133,18 @@ def LS_skeleton(g, sampling=True):
         (False) as starting points for finding separators or just a sampling (True).
         The function returns a new graph which is the skeleton of the input graph. """
     skel = Graph()
-    lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, sampling)
+    mapping = IntVector()
+    lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, mapping.obj, sampling)
     return skel
+    
+def LS_skeleton_and_map(g, sampling=True):
+    """ Skeletonize a graph using the local separators approach. The first argument,
+        g, is the graph, and, sampling indicates whether we try to use all vertices
+        (False) as starting points for finding separators or just a sampling (True).
+        The function returns a tuple containing a new graph which is the skeleton of
+        the input graph and a map from the graph nodes to the skeletal nodes. """
+    skel = Graph()
+    mapping = IntVector()
+    lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, mapping.obj, sampling)
+    return skel, mapping
+

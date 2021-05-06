@@ -9,6 +9,8 @@
 #ifndef graph_functions_hpp
 #define graph_functions_hpp
 
+#include "IntVector.h"
+
 #if defined(__APPLE__) || defined(__linux__)
 #define DLLEXPORT __attribute__ ((visibility ("default")))
 #else
@@ -33,7 +35,7 @@ DLLEXPORT void graph_smooth(Graph_ptr g_ptr, const int iter, const float alpha);
 DLLEXPORT int graph_edge_contract(Graph_ptr g_ptr, double dist_thresh);
 DLLEXPORT void graph_prune(Graph_ptr g_ptr);
 
-DLLEXPORT void graph_LS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, bool sampling=false);
+DLLEXPORT void graph_LS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, bool sampling=false);
 
 #ifdef __cplusplus
 }

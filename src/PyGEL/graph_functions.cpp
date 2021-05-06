@@ -71,10 +71,18 @@ void graph_prune(Graph_ptr _g_ptr) {
     prune(*g_ptr);
 }
 
-void graph_LS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, bool sampling) {
+void graph_LS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map_ptr, bool sampling) {
+    using IntVector = vector<size_t>;
+
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
+    IntVector* map_ptr = reinterpret_cast<IntVector*>(_map_ptr);
+    map_ptr->resize(g_ptr->no_nodes());
+
     auto seps = local_separators(*g_ptr, sampling);
     auto [skel, mapping]  = skeleton_from_node_set_vec(*g_ptr, seps);
     *skel_ptr = skel;
+
+    for(auto n: g_ptr->node_ids())
+        (*map_ptr)[n] = mapping[n];
 }
