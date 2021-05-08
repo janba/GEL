@@ -44,6 +44,11 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_definitions(-DGLEW_STATIC)
 endif ()
 
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(CMAKE_OSX_ARCHITECTURES, "arm64;x86_64")
+endif ()
+
+
 aux_source_directory(./src/GEL/CGLA CGLA_SRC_LIST)
 aux_source_directory(./src/GEL/Geometry GEO_SRC_LIST)
 aux_source_directory(./src/GEL/HMesh MSH_SRC_LIST)
