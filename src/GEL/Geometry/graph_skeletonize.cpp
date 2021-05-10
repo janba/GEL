@@ -128,6 +128,8 @@ namespace  Geometry {
             
         // Skeleton graph
         AMGraph3D skel;
+        
+        
         Util::AttribVec<AMGraph::NodeID, double> node_size;
         
         // Map from g nodes to skeleton nodes
@@ -156,7 +158,7 @@ namespace  Geometry {
                 skel.pos[skel_node] = avg_pos;
                 skel_node_weight[skel_node] = (ns.size());
             }
-        
+
         // If two graph nodes are connected and belong to different skeleton nodes,
         // we also connect their respective skeleton nodes.
         for(NodeID n0: g.node_ids())
@@ -183,22 +185,13 @@ namespace  Geometry {
                         cliques.push_back({s0,s1,s2});
         }
         
-    #define MULTI_PASS_SKELETONIZATION 0
-        
-    #if MULTI_PASS_SKELETONIZATION
-        vector<pair<int,int>> adjacent_cliques;
-    #endif
         // If two cliques intersect with more than a single node, we join them.
         for(int i = 0; i< cliques.size(); ++i)
             for(int j = 0; j< cliques.size(); ++j)
                 if (i != j) {
                     if(test_intersection(cliques[i], cliques[j])>1) {
-    #if MULTI_PASS_SKELETONIZATION
-                        adjacent_cliques.push_back(make_pair(i, j));
-    #else
                         cliques[i].insert(begin(cliques[j]),end(cliques[j]));
                         cliques[j].clear();
-    #endif
                     }
                 }
         
@@ -206,10 +199,7 @@ namespace  Geometry {
         // merged clique
         vector<NodeID> branch_nodes;
         for(auto& ns: cliques)
-    #if MULTI_PASS_SKELETONIZATION
-            if(ns.size()>0)
-    #endif
-            {
+            if(! ns.empty()) {
                 Vec3d avg_pos(0);
                 double wsum = 0;
                 double rad=0;
@@ -238,12 +228,6 @@ namespace  Geometry {
                 for(auto nm: N)
                     skel.disconnect_nodes(nn, nm);
         }
-        
-    #if MULTI_PASS_SKELETONIZATION
-        for(auto np: adjacent_cliques) {
-            skel.connect_nodes(branch_nodes[np.first], branch_nodes[np.second]);
-        }
-    #endif
 
         // Smooth gently
         for(int iter=0;iter< smooth_steps;++iter) {
