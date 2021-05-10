@@ -1,8 +1,21 @@
-project(GEL)
 cmake_minimum_required(VERSION 3.2)
-set(CMAKE_CXX_STANDARD 17)
-
+project(GEL)
 find_package(Threads)
+set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+  set(CMAKE_CXX_FLAGS "-std=c++1z")
+endif ()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+    include_directories(./src/GEL)
+    add_definitions(-DGLEW_STATIC)
+endif ()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+endif ()
 
 option(Use_GLGraphics "Compile the OpenGL Viewer" ON)
 if (Use_GLGraphics)
@@ -32,22 +45,6 @@ if (Use_GLGraphics)
         SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
     endif ()
 endif ()
-
-set(CMAKE_POSITION_INDEPENDENT_CODE ON)
-
-if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  set(CMAKE_CXX_FLAGS, "-std=c++1z")
-endif ()
-
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-    include_directories(./src/GEL)
-    add_definitions(-DGLEW_STATIC)
-endif ()
-
-if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_OSX_ARCHITECTURES, "arm64;x86_64")
-endif ()
-
 
 aux_source_directory(./src/GEL/CGLA CGLA_SRC_LIST)
 aux_source_directory(./src/GEL/Geometry GEO_SRC_LIST)
