@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.2)
+cmake_minimum_required(VERSION 3.11)
 project(GEL)
 find_package(Threads)
 set(CMAKE_CXX_STANDARD 17)
