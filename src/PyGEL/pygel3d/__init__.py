@@ -241,7 +241,7 @@ lib_py_gel.Graph_connect_nodes.restype = ct.c_size_t
 lib_py_gel.Graph_disconnect_nodes.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_size_t)
 lib_py_gel.Graph_merge_nodes.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_size_t, ct.c_bool)
 
-# Graph functions below
+# Graph functions
 lib_py_gel.graph_from_mesh.argtypes = (ct.c_void_p, ct.c_void_p)
 lib_py_gel.graph_load.argtypes = (ct.c_void_p, ct.c_char_p)
 lib_py_gel.graph_load.restype = ct.c_void_p
