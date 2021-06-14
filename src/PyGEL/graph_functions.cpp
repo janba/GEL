@@ -86,3 +86,28 @@ void graph_LS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map
     for(auto n: g_ptr->node_ids())
         (*map_ptr)[n] = mapping[n];
 }
+
+DLLEXPORT void graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map_ptr, int N_col, double* colors){
+    using IntVector = vector<size_t>;
+    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
+    AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
+    IntVector* map_ptr = reinterpret_cast<IntVector*>(_map_ptr);
+
+    const size_t N = g_ptr->no_nodes();
+    map_ptr->resize(N);
+    
+    vector<AttribVecDouble> dvv(N_col);
+    for(int i=0;i<N_col; ++i) {
+        dvv[i] = AttribVecDouble(g_ptr->no_nodes());
+        for(auto n: g_ptr->node_ids())
+            dvv[i][n] = colors[i*N+n];
+    }
+    
+    auto seps = front_separators(*g_ptr, dvv);
+
+    auto [skel, mapping]  = skeleton_from_node_set_vec(*g_ptr, seps);
+    *skel_ptr = skel;
+
+    for(auto n: g_ptr->node_ids())
+        (*map_ptr)[n] = mapping[n];
+} 

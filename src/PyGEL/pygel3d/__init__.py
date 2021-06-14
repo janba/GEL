@@ -253,6 +253,7 @@ lib_py_gel.graph_smooth.argtypes = (ct.c_void_p, ct.c_int, ct.c_float)
 lib_py_gel.graph_edge_contract.argtypes = (ct.c_void_p, ct.c_double)
 lib_py_gel.graph_prune.argtypes = (ct.c_void_p,)
 lib_py_gel.graph_LS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_bool)
+lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ct.POINTER(ct.c_double))
 
 class IntVector:
     """ Vector of integer values.

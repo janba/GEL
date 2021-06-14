@@ -148,3 +148,18 @@ def LS_skeleton_and_map(g, sampling=True):
     lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, mapping.obj, sampling)
     return skel, mapping
 
+def front_skeleton_and_map(g, colors):
+    """ Skeletonize a graph using the front separators approach. The first argument,
+        g, is the graph, and, colors is a 2D array where each row contains a sequence
+        of floating point values - one for each node. We can have as many rows as needed
+        for the front separator computation. We can think of this as a coloring
+        of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
+        of the nodes or some other function that indicates something about the structure of the
+        graph. The function returns a tuple containing a new graph which is the
+        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
+    skel = Graph()
+    mapping = IntVector()
+    colors_flat = np.asarray(colors, dtype=np.float64)
+    N_col = colors_flat.shape[0]
+    lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)))
+    return skel, mapping
