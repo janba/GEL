@@ -80,7 +80,14 @@ else ()
     target_link_libraries(PyGEL GEL)
 endif ()
 
+install(TARGETS GEL)
+
 install(TARGETS PyGEL GEL
         LIBRARY DESTINATION PyGEL
         ARCHIVE DESTINATION PyGEL)
 
+# Install Header Files
+install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/GEL
+    DESTINATION include
+    FILES_MATCHING PATTERN "*.h"
+    )
