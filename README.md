@@ -33,7 +33,7 @@ Since GEL is primarily developed on Mac OS, the Xcode projects are actively main
 ### Building with CMake
 If you are using a unix-like command line, build with
 ```
-mkdir build; cd build; cmake ..; make -j 8 ; cd ..
+mkdir build; cd build; cmake ..; make -j 8 ; sudo make install; cd ..
 ```
 ### Creating a PyGEL3D package and installing it
 You can next issue the command
