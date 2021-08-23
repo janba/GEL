@@ -42,11 +42,6 @@ namespace Geometry {
      Saturation is here used differently from the conventional graph theoretical usage.. */
     void saturate_graph(AMGraph3D& g, int hops, double dist_frac = 1.0001, double rad = 1e300);
 
-    /** Mean curvature motion smoothing. Simply put this function moves vertices towards the average of their neighbors
-     position but it moves more if the largest eigenvalue of the covariance matrix dominates. This means that we smooth
-     most if things are anistotropic and less in isotropi areas of the graph.*/
-    void mcm_smooth_graph(AMGraph3D& g, const int iter, const float alpha);
-
     /// Simple Laplacian graph smoothing. iter specifies number of iterations, and alpha in range [0..1] is the weight.
     void smooth_graph(AMGraph3D& g, const int iter, const float alpha);
 

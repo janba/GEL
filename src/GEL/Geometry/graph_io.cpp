@@ -111,65 +111,65 @@ namespace Geometry {
                     g.connect_nodes(n, nn.v);
         }
         
-        int cnt = 0;
-        cout << "Disconnecting nodes ..." << endl;
-        for(auto n : g.node_ids())
-        {
-            auto nbors = tree.m_closest(N_closest, g.pos[n], rad);
-            if(nbors.size()<5) {
-                g.remove_node(n);
-                cnt++;
-            }
-    //        else
-    //        {
-    //            Vec3d c = g.pos[n];
-    //            vector<Vec3d> pts;
-    //            for(const auto& nn: nbors)
-    //                if(nn.v != n) {
-    //                    Vec3d p = g.pos[nn.v];
-    //                    if(std::isnan(p[0])) {
-    //                        cout << "--- Nan: " << endl;
-    //                        cout << nn.k << " " << nn.v << " " << nn.d << " " << g.pos[n] << endl;
-    //                    }
-    //                    else
-    //                        pts.push_back(p);
-    //                }
-    //            Mat3x3d Cov, Q, L;
-    //            auto mean = covariance(pts, Cov);
-    //            int no_eig_sols = power_eigensolution(Cov, Q, L);
-    //
-    //            if(no_eig_sols==0) {
-    //                g.remove_node(n);
-    //                continue;
-    //            }
-    //            else if (no_eig_sols==1) {
-    //                orthogonal(Q[0], Q[1], Q[2]);
-    //            }
-    //            else if (no_eig_sols==2) {
-    //                Q[2] = normalize(cross(Q[0], Q[1]));
-    //            }
-    //
-    //            Vec3d l(L[0][0], L[1][1], L[2][2]);
-    //            l += Vec3d(0.1);
-    //            l /= l.max_coord();
-    //            for(const auto& nn: nbors) {
-    //                Vec3d v = (g.pos[nn.v]-mean);
-    //                if (adjust) {
-    //                    v = Q * v;
-    //                    v /= l;
-    //                }
-    //                if(length(v)>rad) {
-    //                    auto N = g.neighbors(n);
-    //                    if(find(begin(N),end(N),nn.v) != end(N)) {
-    //                        g.disconnect_nodes(n, nn.v);
-    //                        ++cnt;
-    //                    }
-    //                }
-    //            }
-    //        }
-        }
-        
-        cout << "disconnected " << cnt << endl;
+//        int cnt = 0;
+//        cout << "Disconnecting nodes ..." << endl;
+//        for(auto n : g.node_ids())
+//        {
+//            auto nbors = tree.m_closest(N_closest, g.pos[n], rad);
+//            if(nbors.size()<5) {
+//                g.remove_node(n);
+//                cnt++;
+//            }
+//    //        else
+//    //        {
+//    //            Vec3d c = g.pos[n];
+//    //            vector<Vec3d> pts;
+//    //            for(const auto& nn: nbors)
+//    //                if(nn.v != n) {
+//    //                    Vec3d p = g.pos[nn.v];
+//    //                    if(std::isnan(p[0])) {
+//    //                        cout << "--- Nan: " << endl;
+//    //                        cout << nn.k << " " << nn.v << " " << nn.d << " " << g.pos[n] << endl;
+//    //                    }
+//    //                    else
+//    //                        pts.push_back(p);
+//    //                }
+//    //            Mat3x3d Cov, Q, L;
+//    //            auto mean = covariance(pts, Cov);
+//    //            int no_eig_sols = power_eigensolution(Cov, Q, L);
+//    //
+//    //            if(no_eig_sols==0) {
+//    //                g.remove_node(n);
+//    //                continue;
+//    //            }
+//    //            else if (no_eig_sols==1) {
+//    //                orthogonal(Q[0], Q[1], Q[2]);
+//    //            }
+//    //            else if (no_eig_sols==2) {
+//    //                Q[2] = normalize(cross(Q[0], Q[1]));
+//    //            }
+//    //
+//    //            Vec3d l(L[0][0], L[1][1], L[2][2]);
+//    //            l += Vec3d(0.1);
+//    //            l /= l.max_coord();
+//    //            for(const auto& nn: nbors) {
+//    //                Vec3d v = (g.pos[nn.v]-mean);
+//    //                if (adjust) {
+//    //                    v = Q * v;
+//    //                    v /= l;
+//    //                }
+//    //                if(length(v)>rad) {
+//    //                    auto N = g.neighbors(n);
+//    //                    if(find(begin(N),end(N),nn.v) != end(N)) {
+//    //                        g.disconnect_nodes(n, nn.v);
+//    //                        ++cnt;
+//    //                    }
+//    //                }
+//    //            }
+//    //        }
+//        }
+//        
+//        cout << "disconnected " << cnt << endl;
         
         g = clean_graph(g);
         

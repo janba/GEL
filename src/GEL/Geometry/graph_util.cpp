@@ -198,39 +198,6 @@ namespace Geometry {
     }
 
 
-    void mcm_smooth_graph(AMGraph3D& g, const int iter, const float alpha) {
-        for(int _ =0; _ < iter ; ++_) {
-            AttribVec<AMGraph::NodeID, Vec3d> new_pos(g.no_nodes(), Vec3d(0));
-            for(auto n: g.node_ids())
-                if(1 /*!is_separator(g, n)*/) {
-                    Vec3d avg(0);
-                    for(auto nn: g.neighbors(n))
-                        avg += g.pos[nn];
-                    avg /= g.neighbors(n).size();
-                    Mat3x3d C(0);
-                    for(auto nn: g.neighbors(n)) {
-                        Vec3d v = g.pos[nn]-avg;
-                        Mat3x3d Cnn;
-                        outer_product(v, v, Cnn);
-                        C += (1.0/g.neighbors(nn).size()) * Cnn;
-                    }
-                    Mat3x3d Q,L;
-                    int n_sol = power_eigensolution(C,Q,L);
-                    Vec3d norm = cond_normalize(g.pos[n]-avg);
-                    
-                    double sigma = sqrt(L[0][0] / (L[0][0]+L[1][1]+L[2][2]));
-                    if(n_sol > 0) {
-                        new_pos[n] = sigma * g.pos[n] + (1.0-sigma) * avg;
-                    }
-                    else
-                        new_pos[n] = g.pos[n];
-                }
-                else new_pos[n] = g.pos[n];
-            
-            g.pos = new_pos;
-        }
-    }
-
     void smooth_graph(AMGraph3D& g, const int iter, const float alpha) {
         auto lsmooth = [](AMGraph3D& g, float _alpha){
             AttribVec<AMGraph::NodeID, Vec3d> new_pos(g.no_nodes(), Vec3d(0));
@@ -290,7 +257,7 @@ namespace Geometry {
         return total_work;
     }
 
-namespace  {
+    namespace  {
     const Vec3f& get_color(int i)
     {
         static Vec3f ctable[100000];
@@ -301,7 +268,7 @@ namespace  {
             was_here = true;
             ctable[0] = Vec3f(0);
             for(int j=1;j<100000;++j)
-            ctable[j] = Vec3f(0.3)+0.7*normalize(Vec3f(gel_rand(),gel_rand(),gel_rand()));
+                ctable[j] = Vec3f(0.3)+0.7*normalize(Vec3f(gel_rand(),gel_rand(),gel_rand()));
             ctable[3] = Vec3f(1,0,0);
             ctable[4] = Vec3f(0,1,0);
             ctable[5] = Vec3f(0,0,1);
@@ -309,7 +276,7 @@ namespace  {
         }
         return ctable[i%100000];
     }
-}
+    }
 
     void color_graph_node_sets(AMGraph3D& g, const NodeSetVec& node_set_vec) {
         double w_max = 0;
@@ -488,7 +455,7 @@ namespace  {
         vector<Vec3d> seed_pos(N);
         for(int i=0;i<N;++i)
             seed_pos[i] = g.pos[seeds[i]];
-
+        
         NodeSetVec clusters(N);
         for (int iter=0;iter<MAX_ITER;++iter) {
             KDTree<Vec3d, size_t> seed_tree;
@@ -519,7 +486,7 @@ namespace  {
                         for(auto m: g.neighbors(n))
                             if (nsc.count(m) == 0)
                                 b_cnt += 1;
-
+                    
                     auto [node_iter, min_dist] = minimum(begin(nsc), end(nsc), [&](NodeID n){return length(g.pos[n]-avg_pos);});
                     raw_seeds.insert(make_pair(b_cnt/double(nsc.size()), *node_iter));
                     cluster_center[*node_iter] = avg_pos;
@@ -531,7 +498,7 @@ namespace  {
                 seeds[i] = n;
                 seed_pos[i] = cluster_center[n];
             }
-
+            
         }
         
         color_graph_node_sets(g, clusters);
