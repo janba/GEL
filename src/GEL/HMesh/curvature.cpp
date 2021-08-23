@@ -122,8 +122,7 @@ namespace HMesh
         Vec3d curv_normal;
         double w_sum;
         unnormalized_mean_curvature_normal(m, v, curv_normal, w_sum);
-
-        return curv_normal / (4*mixed_area(m, v));
+        return curv_normal / (4.0*mixed_area(m, v));
     }
 
     double sum_curvatures(const Manifold& m, VertexAttributeVector<double>& curvature)

@@ -229,11 +229,14 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
         mean_curvatures(mani, scalars, smoothing);
         double max_G = -1e32;
         double min_G = 1e32;
+        double avg_G = 0.0;
         for(VertexID v: mani.vertices()) {
             //                cout << scalars[v] << endl;
             max_G = max((scalars[v]), max_G);
             min_G = min((scalars[v]), min_G);
+            avg_G += scalars[v];
         }
+        cout << "avg " << avg_G / mani.no_vertices() << endl;
         renderer = new ScalarFieldRenderer();
         dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth, scalars, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
     }
