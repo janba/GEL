@@ -78,45 +78,45 @@ namespace HMesh
         if(!in_use(fid))
             return false;
         
-        HalfEdgeID he = kernel.last(fid);
-        HalfEdgeID last = he;
-        
+        HalfEdgeID h = kernel.last(fid);
+        HalfEdgeID last = h;
         vector<HalfEdgeID> halfedges;
-        do
-        {
-            halfedges.push_back(he);
-            kernel.set_face(he, InvalidFaceID);
-            he = kernel.next(he);
+        do {
+            halfedges.push_back(h);
+            kernel.set_face(h, InvalidFaceID);
+            h = kernel.next(h);
         }
-        while(he != last);
+        while(h != last);
         
         vector<HalfEdgeID> halfedges_garbage;
         vector<VertexID> vertices_garbage;
         for(size_t i=0;i<halfedges.size(); ++i)
         {
             HalfEdgeID h = halfedges[i];
-            HalfEdgeID hopp = kernel.opp(h);
-            if(kernel.face(hopp) == InvalidFaceID)
-            {
+            HalfEdgeID ho = kernel.opp(h);
+            HalfEdgeID hn = kernel.next(h);
+            HalfEdgeID hno = kernel.opp(hn);
+            bool f_ho_invalid = kernel.face(ho) == InvalidFaceID;
+            bool f_hno_invalid = kernel.face(hno) == InvalidFaceID;
+
+            if(f_ho_invalid) {
                 halfedges_garbage.push_back(h);
-                VertexID v0 = kernel.vert(hopp);
-                if(valency(*this, v0) <= 2 )
-                    vertices_garbage.push_back(v0);
-                else {
-                    link(kernel.prev(h), kernel.next(hopp));
-                    kernel.set_out(v0, kernel.opp(kernel.prev(h)));
+                halfedges_garbage.push_back(ho);
+            }
+            
+            VertexID v1 = kernel.vert(h);
+            if (f_ho_invalid || f_hno_invalid) {
+                if (valency(*this, v1) > 2) {
+                    HalfEdgeID h_v1in = f_ho_invalid ? kernel.prev(ho) : h;
+                    HalfEdgeID h_v1out = f_hno_invalid ? kernel.next(hno) : hn;
+                    link(h_v1in, h_v1out);
+                    kernel.set_out(v1, h_v1out);
                 }
-                VertexID v1 = kernel.vert(h);
-                if(valency(*this, v1)>2)
-                {
-                    link(kernel.prev(hopp),kernel.next(h));
-                    kernel.set_out(v1, kernel.opp(kernel.prev(hopp)));
-                }
-                
+                else vertices_garbage.push_back(v1);
             }
         }
+
         for(size_t i=0;i<halfedges_garbage.size();++i){
-            kernel.remove_halfedge(kernel.opp(halfedges_garbage[i]));
             kernel.remove_halfedge(halfedges_garbage[i]);
         }
         for(size_t i=0;i<vertices_garbage.size(); ++i)
@@ -149,12 +149,17 @@ namespace HMesh
             return false;
     
         vector<FaceID> faces;
-        int N = circulate_vertex_ccw(*this, vid, static_cast<std::function<void(FaceID)>>([&](FaceID f) {
-            faces.push_back(f);
+        circulate_vertex_ccw(*this, vid, static_cast<std::function<void(FaceID)>>([&](FaceID f) {
+            if(in_use(f))
+                faces.push_back(f);
         }));
-        for(size_t i=0;i<N;++i)
-            remove_face(faces[i]);
-            
+        cout << "---" << endl;
+        for(auto f: faces) {
+            remove_face(f);
+            cout << "Removed face " << f << endl;
+        }
+        cout << "---" << endl;
+
         return true;
     }
 
@@ -419,10 +424,9 @@ namespace HMesh
     {
         // Cannot stitch an edge with itself
         if(h0 == h1) {
-            cout << "Trying to stitch an edge with itself" << endl;
+            cout << "Stupid, you are stitching edge with self!" << endl;
             return false;
         }
-        
         // Only stitch a pair of boundary edges.
         if(kernel.face(h0) == InvalidFaceID && kernel.face(h1) == InvalidFaceID)
         {
@@ -432,30 +436,39 @@ namespace HMesh
             VertexID v0b = kernel.vert(kernel.opp(h1));
             VertexID v1b = kernel.vert(h1);
             VertexID v1a = kernel.vert(kernel.opp(h0));
-            
-            //If the vertices are already connected, welding them together will be awkward.
-            if(connected(*this, v0a, v0b)){
-//                cout << "0 end points are distinct but connected" << endl;
+            FaceID f0 = kernel.face(h0o);
+            FaceID f1 = kernel.face(h1o);
+
+            // We refuse to stitch two boundary edges belonging to the same face.
+            if (f0 == f1) {
+                cout << "Douche it is the same face!" << endl;
                 return false;
             }
-            if(connected(*this, v1a, v1b)){
-//                cout << "1 end points are distinct but connected" << endl;
+
+            //If the vertices are already connected, welding them together will be awkward.
+            if(connected(*this, v0a, v0b) ||
+               connected(*this, v1a, v1b)) {
+                cout << "Stupid, end points are connected!" << endl;
+                return false;
+            }
+            if((v0a != v0b && v1a != v1b) &&
+               (connected(*this, v0a, v1b) || connected(*this, v1a, v0b))) {
+                cout << "Stupid, end points are distinct and cross connected!" << endl;
                 return false;
             }
             
             // This check ensures that we do not create a valency 1 vertex by welding
             // two edges whose opposite edges have the property that second one is the next
             // edge of the first one or vice versa.
-            if(v1a == v1b && kernel.next(h0o) == h1o){
-//                cout << "Would have created val 1 vertex" << endl;
+            if(v1a == v1b && kernel.next(h0o) == h1o) {
+                cout << "Silly: would have made val 1" << endl;
                 return false;
             }
-            if(v0a == v0b && kernel.next(h1o) == h0o){
-//                cout << "Would have created val 1 vertex" << endl;
+            if(v0a == v0b && kernel.next(h1o) == h0o) {
+                cout << "WE CANT HAVE VALENCE 1!" << endl;
                 return false;
             }
-            
-            
+
             if(v0b != v0a)
                 circulate_vertex_ccw(*this, v0b, static_cast<std::function<void(Walker&)>>([&](Walker& hew) {
                     kernel.set_vert(hew.opp().halfedge(), v0a);
@@ -508,7 +521,7 @@ namespace HMesh
             
             return true;
         }
-        cout << "Trying to stitch non-boundary edges" << endl;
+        cout << "Idiot! Those are not both boundary edges" << endl;
         return false;
     }
     
@@ -1228,7 +1241,17 @@ namespace HMesh
             // count edges on face
             Walker j = m.walker(f);
             
+            vector<VertexID> face_verts;
             for(; !j.full_circle(); j = j.circulate_face_cw()){
+                if(find(begin(face_verts), end(face_verts), j.vertex()) == face_verts.end())
+                    face_verts.push_back(j.vertex());
+                else {
+                    cout << "Face contains same vertex twice" << endl;
+                    valid = false;
+                    fs.insert(f);
+                    break;
+                }
+                     
                 // test that all halfedges in faces bind properly to their face
                 if(j.face() != f){
                     cout << "Face is inconsistent, halfedge is not bound to face" << endl;
@@ -1459,9 +1482,10 @@ namespace HMesh
     
     HalfEdgeID boundary_edge(const Manifold& m, VertexID v)
     {
-        HalfEdgeID h = InvalidHalfEdgeID;
-        circulate_vertex_ccw(m, v, static_cast<std::function<void(Walker&)>>([&](Walker& w){if(w.face()==InvalidFaceID) h = w.halfedge();}));
-        return h;
+        for (Walker w= m.walker(v); !w.full_circle(); w = w.circulate_vertex_ccw())
+            if(w.face()==InvalidFaceID)
+                return w.halfedge();
+        return InvalidHalfEdgeID;
     }
     
     bool boundary(const Manifold& m, VertexID v)
@@ -1493,9 +1517,14 @@ namespace HMesh
     
     bool connected(const Manifold& m, VertexID v0, VertexID v1)
     {
-        bool c=false;
-        circulate_vertex_ccw(m, v0, static_cast<std::function<void(VertexID)>>([&](VertexID v){ c |= (v==v1);}));
-        return c;
+        int k=0;
+        for(VertexID v: m.incident_vertices(v0)) {
+            if (v==v1)
+                return true;
+            if(++k == m.no_vertices())
+                return false;
+        }
+        return false;
     }
 
     

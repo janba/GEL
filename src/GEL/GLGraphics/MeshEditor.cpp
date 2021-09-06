@@ -726,6 +726,20 @@ namespace GLGraphics {
 
 
         
+        void console_remove_val1(MeshEditor* me, const std::vector<std::string> & args)
+        {
+            if(wantshelp(args)) {
+                me->printf("usage: cleanup.remove_val1");
+                me->printf("Removes valence 1 vertices");
+                
+                return;
+            }
+            me->save_active_mesh();
+            Manifold& m = me->active_mesh();
+            remove_valence_one_vertices(m);
+            return;
+        }
+
         void console_remove_val2(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)) {
@@ -2043,6 +2057,7 @@ namespace GLGraphics {
         register_console_function("add_mesh", console_add_mesh,"");
         
         register_console_function("cleanup.stitch", console_stitch,"");
+        register_console_function("cleanup.remove_val1", console_remove_val1, "");
         register_console_function("cleanup.remove_val2", console_remove_val2, "");
         register_console_function("cleanup.flip_orientation", console_flip_orientation,"");
         register_console_function("cleanup.remove_caps", console_remove_caps,"");

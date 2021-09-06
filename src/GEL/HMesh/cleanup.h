@@ -50,6 +50,9 @@ namespace HMesh
      counter clockwise */
     void flip_orientation(Manifold& m);
     
+    /** Remove valence one vertices. */
+    void remove_valence_one_vertices(Manifold & m);
+
     /** Remove valence two vertices. */
     void remove_valence_two_vertices(Manifold & m);
 
