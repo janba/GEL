@@ -47,6 +47,8 @@ namespace HMesh
     double sum_curvatures(  const Manifold& m, 
                             VertexAttributeVector<double>& curvature);
 
+    double angle_defect(const Manifold& m, VertexID v);
+
 
     double gaussian_curvature_angle_defect( const Manifold& m, 
                                             VertexID v);

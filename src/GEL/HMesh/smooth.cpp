@@ -99,7 +99,7 @@ namespace HMesh
         auto new_pos = m.positions_attribute_vector();
         for(int iter = 0; iter < 2*max_iter; ++iter) {
             for(VertexID v : m.vertices())
-                new_pos[v] = (iter%2 == 0 ? +0.5 : -0.52) * laplacian(m, v) + m.pos(v);
+                new_pos[v] = (iter%2 == 0 ? +0.5 : -0.52) * cot_laplacian(m, v) + m.pos(v);
             swap(m.positions_attribute_vector(), new_pos);
         }
     }

@@ -136,6 +136,29 @@ namespace HMesh
         return sum;
     }
 
+    double angle_defect(const Manifold& m, VertexID v)
+    {
+        if(boundary(m, v))
+            return 0;
+        
+        Vec3d vertex(m.pos(v));
+        vector<Vec3d> edges;
+        for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()){
+            Vec3d e(normalize(m.pos(w.vertex()) - vertex));
+            edges.push_back(e);
+        }
+        size_t N=edges.size();
+        double angle_sum = 0;
+        for(size_t i = 0; i < N; ++i)
+        {
+            double dot_prod =
+            std::max(-1.0, std::min(1.0, dot(edges[i],edges[(i+1)%N])));
+            angle_sum += acos(dot_prod);
+        }
+        return (2*M_PI - angle_sum);
+        
+    }
+
 
     double gaussian_curvature_angle_defect(const Manifold& m, VertexID v)
     {
