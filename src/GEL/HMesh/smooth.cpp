@@ -84,7 +84,8 @@ namespace HMesh
             double a_left  = acos(min(1.0, max(-1.0, d_left)));
             double a_right = acos(min(1.0, max(-1.0, d_right)));
             
-            double w = sin(a_left + a_right) / (1e-10+sin(a_left)*sin(a_right));
+//            double w = sin(a_left + a_right) / (0.001+sin(a_left)*sin(a_right));
+            double w = cos(a_left)/(0.0001+sin(a_left)) + cos(a_right)/(0.0001+sin(a_right));
             p += w * nbr;
             w_sum += w;
         });
