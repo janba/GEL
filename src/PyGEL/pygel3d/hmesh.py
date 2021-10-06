@@ -533,10 +533,12 @@ class MeshDistance:
     def __del__(self):
         lib_py_gel.MeshDistance_delete(self.obj)
     def signed_distance(self,pts,upper=1e30):
-        """ Compute the signed distance from p to the mesh stored in this class
-        instance. The distance is positive if outside and negative inside. The
-        upper parameter can be used to threshold how far away the distance is of
-        interest. """
+        """ Compute the signed distance from each point in pts to the mesh stored in 
+        this class instance. pts should be convertible to a length N>=1 array of 3D 
+        points. The function returns an array of N distance values with a single distance 
+        for each point. The distance corresponding to a point is positive if the point 
+        is outside and negative if inside. The upper parameter can be used to threshold 
+        how far away the distance is of interest. """
         p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
         n = p.shape[0]
         d = np.ndarray(n, dtype=ct.c_float)
@@ -545,9 +547,12 @@ class MeshDistance:
         lib_py_gel.MeshDistance_signed_distance(self.obj,n,p_ct,d_ct,upper)
         return d
     def ray_inside_test(self,pts,no_rays=3):
-        """Check whether a point is inside or outside the stored by casting rays.
+        """Check whether each point in pts is inside or outside the stored mesh by 
+        casting rays. pts should be convertible to a length N>=1 array of 3D points.
         Effectively, this is the sign of the distance. In some cases casting (multiple)
-        ray is more robust than using the sign computed locally. """
+        ray is more robust than using the sign computed locally. Returns an array of 
+        N integers which are either 1 or 0 depending on whether the corresponding point
+        is inside (1) or outside (0). """
         p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
         n = p.shape[0]
         s = np.ndarray(n, dtype=ct.c_int)
