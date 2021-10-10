@@ -153,12 +153,8 @@ namespace HMesh
             if(in_use(f))
                 faces.push_back(f);
         }));
-        cout << "---" << endl;
-        for(auto f: faces) {
+        for(auto f: faces)
             remove_face(f);
-            cout << "Removed face " << f << endl;
-        }
-        cout << "---" << endl;
 
         return true;
     }
@@ -424,7 +420,7 @@ namespace HMesh
     {
         // Cannot stitch an edge with itself
         if(h0 == h1) {
-            cout << "Stupid, you are stitching edge with self!" << endl;
+//            cout << "Stupid, you are stitching edge with self!" << endl;
             return false;
         }
         // Only stitch a pair of boundary edges.
@@ -441,19 +437,19 @@ namespace HMesh
 
             // We refuse to stitch two boundary edges belonging to the same face.
             if (f0 == f1) {
-                cout << "Douche it is the same face!" << endl;
+//                cout << "Douche it is the same face!" << endl;
                 return false;
             }
 
             //If the vertices are already connected, welding them together will be awkward.
             if(connected(*this, v0a, v0b) ||
                connected(*this, v1a, v1b)) {
-                cout << "Stupid, end points are connected!" << endl;
+//                cout << "Stupid, end points are connected!" << endl;
                 return false;
             }
             if((v0a != v0b && v1a != v1b) &&
                (connected(*this, v0a, v1b) || connected(*this, v1a, v0b))) {
-                cout << "Stupid, end points are distinct and cross connected!" << endl;
+//                cout << "Stupid, end points are distinct and cross connected!" << endl;
                 return false;
             }
             
@@ -461,11 +457,11 @@ namespace HMesh
             // two edges whose opposite edges have the property that second one is the next
             // edge of the first one or vice versa.
             if(v1a == v1b && kernel.next(h0o) == h1o) {
-                cout << "Silly: would have made val 1" << endl;
+//                cout << "Silly: would have made val 1" << endl;
                 return false;
             }
             if(v0a == v0b && kernel.next(h1o) == h0o) {
-                cout << "WE CANT HAVE VALENCE 1!" << endl;
+//                cout << "WE CANT HAVE VALENCE 1!" << endl;
                 return false;
             }
 
@@ -521,7 +517,7 @@ namespace HMesh
             
             return true;
         }
-        cout << "Idiot! Those are not both boundary edges" << endl;
+//        cout << "Idiot! Those are not both boundary edges" << endl;
         return false;
     }
     
