@@ -21,7 +21,5 @@ namespace HMesh
     If choose_optimal_positions is true, we reposition vertices. Otherwise the vertices are a subset
     of the old vertices. */
     void quadric_simplify(Manifold& m, double keep_fraction, double singular_thresh = 0.0001, bool choose_optimal_positions = true);
-    void quadric_simplify(Manifold& m, VertexAttributeVector<int> mask, double keep_fraction, double singular_thresh = 0.0001, bool choose_optimal_positions = true);
-
 }
 #endif

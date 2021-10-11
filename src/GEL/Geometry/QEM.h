@@ -31,7 +31,7 @@ namespace
 
 namespace Geometry
 {
-	class QEM
+        class QEM
 		{
 			CGLA::Mat3x3d A;
 			CGLA::Vec3d   b;
