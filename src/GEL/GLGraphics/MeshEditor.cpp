@@ -1144,9 +1144,10 @@ namespace GLGraphics {
         {
             if(wantshelp(args))
             {
-                me->printf("usage: simplify <fraction> ");
+                me->printf("usage: simplify <fraction> <singular_thresh>");
                 me->printf("Performs Garland Heckbert (quadric based) mesh simplification.");
-                me->printf("The only argument is the fraction of vertices to keep.");
+                me->printf("The first argument is the fraction of vertices to keep.");
+                me->printf("The second argument is the threshold for singular values.");
                 return;
             }
             me->save_active_mesh();
@@ -1160,11 +1161,11 @@ namespace GLGraphics {
             istringstream a0(args[0]);
             a0 >> keep_fraction;
 
-            bool optimal_positions = true;
+            double singular_thresh = 1e-4;
             if(args.size() == 2)
             {
                 istringstream a1(args[1]);
-                a1 >> optimal_positions;
+                a1 >> singular_thresh;
             }
             
             Vec3d p0, p7;
@@ -1183,7 +1184,7 @@ namespace GLGraphics {
             timer.start();
             
             //simplify
-            quadric_simplify(me->active_mesh(),keep_fraction,0.0001f,optimal_positions);
+            quadric_simplify(me->active_mesh(),keep_fraction,singular_thresh,true);
             
             cout << "Simplification complete, process time: " << timer.get_secs() << " seconds" << endl;
             

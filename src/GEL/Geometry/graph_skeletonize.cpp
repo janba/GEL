@@ -296,7 +296,7 @@ namespace  Geometry {
         vector<vector<NodeID>> separators;
         AttribVec<NodeID, int> separator_idx(g.no_nodes(), -1);
         int first_T0 = shift;
-        for(const auto [T0,n0] : nodes_by_tin)
+        for(const auto& [T0,n0] : nodes_by_tin)
             if(/*T0 >= first_T0 &&*/ separator_idx[n0]==-1){
                 int new_sep_idx = separators.size();
                 separator_idx[n0] = new_sep_idx;
