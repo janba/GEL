@@ -143,7 +143,7 @@ namespace HMesh
     }
 
     void volume_polygonize(const XForm& xform, const Geometry::RGrid<float>& grid,
-                           HMesh::Manifold& mani, float tau, bool make_triangles, bool high_is_inside)
+                           HMesh::Manifold& mani, float tau, bool make_triangles, bool high_is_inside, int pre_smooth_steps)
     {
         const double delta = sqrt(3.0)/2.0;
         
@@ -167,8 +167,9 @@ namespace HMesh
 
         if(make_triangles)
             triangulate(mani);
-
         mani.cleanup();
+        if(pre_smooth_steps>0)
+            taubin_smooth(mani, pre_smooth_steps);
         for(auto v: mani.vertices()) {
             const Vec3d p = mani.pos(v);
             Vec3d p_new = p;

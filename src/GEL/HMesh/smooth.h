@@ -38,6 +38,9 @@ namespace HMesh
     /// Taubin smoothing is similar to laplacian smoothing but reduces shrinkage
     void taubin_smooth(HMesh::Manifold& m, int iter=1);
 
+    /// Taubin smoothing is similar to laplacian smoothing but reduces shrinkage. This version uses the cotan weights.
+    void taubin_smooth_cot(HMesh::Manifold& m, int iter=1);
+
     /** Smooth meshes by first filtering normals and then refitting the mesh */
     void anisotropic_smooth(HMesh::Manifold& m, int iter, NormalSmoothMethod nsm);
 

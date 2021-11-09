@@ -28,6 +28,7 @@ namespace HMesh
      @param tau is the threshold (or isovalue)
      @param make_triangles tells whether we output triangles (default: true) or quads (false)
      @param high_is_inside tells whether values greater than @tau (defalut: true) are interior or exterior
+     @param pre_smooth_steps is how many steps of (Taubin) smoothing to apply before projecting vertices onto surface.
      @returns Nothing
      
      This function computes an iso surface using the method of dual contouring. For each voxel that is inside,
@@ -37,7 +38,7 @@ namespace HMesh
      cubes. On the flip side, the vertex placement is arguably a bit more ad hoc.
      */
     void volume_polygonize(const Geometry::XForm& xform, const Geometry::RGrid<float>& grid,
-                           HMesh::Manifold& mani, float tau, bool make_triangles=true, bool high_is_inside=true );
+                           HMesh::Manifold& mani, float tau, bool make_triangles=true, bool high_is_inside=true,  int pre_smooth_steps=0 );
 }
 
 #endif /* defined(__PointReconstruction__polygonize__) */

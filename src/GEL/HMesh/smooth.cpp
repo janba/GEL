@@ -81,11 +81,11 @@ namespace HMesh
                                 cond_normalize(vertex-left));
             double d_right = dot(cond_normalize(nbr-right),
                                  cond_normalize(vertex-right));
-            double a_left  = acos(min(1.0, max(-1.0, d_left)));
-            double a_right = acos(min(1.0, max(-1.0, d_right)));
+            double a_left  = acos(min(0.99, max(-0.99, d_left)));
+            double a_right = acos(min(0.99, max(-0.99, d_right)));
             
 //            double w = sin(a_left + a_right) / (0.001+sin(a_left)*sin(a_right));
-            double w = cos(a_left)/(0.0001+sin(a_left)) + cos(a_right)/(0.0001+sin(a_right));
+            double w = cos(a_left)/sin(a_left) + cos(a_right)/sin(a_right);
             p += w * nbr;
             w_sum += w;
         });
@@ -100,10 +100,21 @@ namespace HMesh
         auto new_pos = m.positions_attribute_vector();
         for(int iter = 0; iter < 2*max_iter; ++iter) {
             for(VertexID v : m.vertices())
+                new_pos[v] = (iter%2 == 0 ? +0.5 : -0.52) * laplacian(m, v) + m.pos(v);
+            swap(m.positions_attribute_vector(), new_pos);
+        }
+    }
+
+    void taubin_smooth_cot(Manifold& m, int max_iter)
+    {
+        auto new_pos = m.positions_attribute_vector();
+        for(int iter = 0; iter < 2*max_iter; ++iter) {
+            for(VertexID v : m.vertices())
                 new_pos[v] = (iter%2 == 0 ? +0.5 : -0.52) * cot_laplacian(m, v) + m.pos(v);
             swap(m.positions_attribute_vector(), new_pos);
         }
     }
+
     
     void face_neighbourhood(Manifold& m, FaceID f, vector<FaceID>& nbrs)
     {
