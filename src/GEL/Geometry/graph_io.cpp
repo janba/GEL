@@ -219,7 +219,7 @@ namespace Geometry {
         Vec3d ratios = pmax-pmin;
         double long_side = ratios.max_coord();
         ratios /= long_side;
-        Vec3i dim = Vec3i(double(grid_res)*ratios);
+        Vec3i dim = Vec3i(v_max(Vec3d(2.0*fudge), double(grid_res)*ratios));
         RGrid<float> grid(dim,1e32);
         XForm xform(pmin, pmax, dim, 0.1);
 
@@ -255,7 +255,7 @@ namespace Geometry {
                 
         cout << "Done!" << endl;
         cout << "Meshing ..." << endl;
-
+        cout << grid.get_dims() << endl;
         volume_polygonize(xform, grid, m, tau, false);
         cout << "Done!" << endl;
     }

@@ -429,7 +429,7 @@ namespace Geometry {
             if (v > w) std::swap(v, w);
 
             // Edge already exists - early return
-            if (edgeSet.find(UndirectedEdge(v, w)) != edgeSet.end()) {
+            if (edgeSet.find(UndirectedEdge<T>(v, w)) != edgeSet.end()) {
                 return;
             }
 
@@ -449,7 +449,7 @@ namespace Geometry {
             if (v > w) std::swap(v, w);
 
             // Early return if edge doesn't exist
-            auto search = edgeSet.find(UndirectedEdge(v, w));
+            auto search = edgeSet.find(UndirectedEdge<T>(v, w));
             if (search == edgeSet.end()) return true;
 
             auto e = search->second;
