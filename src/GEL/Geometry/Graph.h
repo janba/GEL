@@ -301,7 +301,8 @@ namespace Geometry {
 
         bool Dijkstra_step();
         bool step();
-        
+        bool Prim_step();
+
         AMGraph::NodeID get_last() const { return last.node; }
         AMGraph::NodeSet get_front() const { return front; }
         AMGraph::NodeSet get_interior() const { return visited; }

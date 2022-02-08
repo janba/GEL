@@ -181,6 +181,30 @@ namespace Geometry {
         return false;
     }
 
+bool BreadthFirstSearch::Prim_step() {
+    bool did_visit = false;
+    while(!pq.empty() && !did_visit) {
+        ++T;
+        last = pq.top();
+        auto n = last.node;
+        pq.pop();
+        if(T < T_out[n]) {
+            front.erase(n);
+            T_out[n] = T;
+            visited.insert(n);
+            did_visit = true;
+            for(auto m: g_ptr->neighbors(n))
+                if(mask[m]) {
+                    pred[m] = n;
+                    pq.push(PrimPQElem(- g_ptr->sqr_dist(n,m), m, n));
+                    front.insert(m);
+                    T_in[m] = T;
+            }
+        }
+    }
+    return did_visit;
+}
+
 
     
     AMGraph3D minimum_spanning_tree(const AMGraph3D& g, AMGraph::NodeID root)
@@ -194,7 +218,7 @@ namespace Geometry {
 
         BreadthFirstSearch bfs(g);
         bfs.add_init_node(root);
-        while(bfs.Dijkstra_step()) {
+        while(bfs.Prim_step()) {
             auto last = bfs.get_last();
             gn.connect_nodes(last, bfs.pred[last]);
         }
