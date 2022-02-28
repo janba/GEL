@@ -126,6 +126,30 @@ bool VisObj::select_halfedge(const CGLA::Vec2i& pos)
     return select_entity(pos, half_edge_vec, InvalidHalfEdgeID, halfedge_selection);
 }
 
+struct AttribStats {
+    double mean=0, min=1e300, max=-1e300, std_dev=0;
+};
+
+AttribStats attribute_statistics(const Manifold& m, const VertexAttributeVector<double>& attrib) {
+    AttribStats stats;
+    
+    for(auto v: m.vertices()) {
+        stats.mean += attrib[v];
+        stats.min = min(attrib[v], stats.min);
+        stats.max = max(attrib[v], stats.max);
+    }
+    stats.mean /= m.no_vertices();
+    
+    double variance = 0;
+    for(auto v: m.vertices()) {
+        variance += sqr(attrib[v]-stats.mean);
+    }
+    variance /= m.no_vertices();
+    
+    stats.std_dev = sqrt(variance);
+    
+    return stats;
+}
 
 void VisObj::produce_renderer(const std::string& display_method , Console& cs, bool smooth, float gamma)
 {
@@ -211,12 +235,9 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
         smoothing.reg(cs, "display.gaussian_curvature_renderer.smoothing", "");
         VertexAttributeVector<double> scalars(mani.allocated_vertices());
         gaussian_curvature_angle_defects(mani, scalars, smoothing);
-        double max_G = -1e32;
-        double min_G = 1e32;
-        for(VertexID v: mani.vertices()) {
-            max_G = max((scalars[v]), max_G);
-            min_G = min((scalars[v]), min_G);
-        }
+        auto stats = attribute_statistics(mani, scalars);
+        double min_G = stats.mean - 3 * stats.std_dev;
+        double max_G = stats.mean + 3 * stats.std_dev;
         renderer = new ScalarFieldRenderer();
         dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth, scalars, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
         
@@ -227,16 +248,10 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
         
         VertexAttributeVector<double> scalars(mani.allocated_vertices());
         mean_curvatures(mani, scalars, smoothing);
-        double max_G = -1e32;
-        double min_G = 1e32;
-        double avg_G = 0.0;
-        for(VertexID v: mani.vertices()) {
-            //                cout << scalars[v] << endl;
-            max_G = max((scalars[v]), max_G);
-            min_G = min((scalars[v]), min_G);
-            avg_G += scalars[v];
-        }
-        cout << "avg " << avg_G / mani.no_vertices() << endl;
+        
+        auto stats = attribute_statistics(mani, scalars);
+        double min_G = stats.mean - 3 * stats.std_dev;
+        double max_G = stats.mean + 3 * stats.std_dev;
         renderer = new ScalarFieldRenderer();
         dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth, scalars, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
     }
@@ -269,12 +284,9 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
     }
     else if(short_name == "sca")
     {
-        double max_G = scalar_field[*mani.vertices_begin()];
-        double min_G = scalar_field[*mani.vertices_begin()];
-        for(VertexIDIterator v = mani.vertices_begin(); v != mani.vertices_end(); ++v) {
-            max_G = max((scalar_field[*v]), max_G);
-            min_G = min((scalar_field[*v]), min_G);
-        }
+        auto stats = attribute_statistics(mani, scalar_field);
+        double min_G = stats.mean - 3 * stats.std_dev;
+        double max_G = stats.mean + 3 * stats.std_dev;
         renderer = new ScalarFieldRenderer();
         dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth,scalar_field, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
     }
