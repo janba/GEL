@@ -213,13 +213,13 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
         if(string(method) == "tensors")
         {
             curvature_tensors_from_edges(mani, curvature_tensors);
-            for(int i=0;i<smoothing_iter; ++i)
-                smooth_curvature_tensors(mani,curvature_tensors);
             
             curvature_from_tensors(mani, curvature_tensors,
                                    min_curv_direction,
                                    max_curv_direction,
                                    curvature);
+
+            smooth_vectors_on_mesh(mani, lines, smoothing_iter);
         }
         else
             curvature_paraboloids(mani,

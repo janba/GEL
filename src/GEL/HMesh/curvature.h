@@ -30,6 +30,9 @@ namespace HMesh
     template<typename ITEM>
     class VertexAttributeVector;
 
+    void smooth_vectors_on_mesh(const Manifold& m, VertexAttributeVector<CGLA::Vec3d>& vec, int smooth_steps);
+
+
     double mixed_area(const Manifold& m,
                         VertexID v);
 

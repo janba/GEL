@@ -776,20 +776,29 @@ namespace GLGraphics
         glBindTexture(GL_TEXTURE_3D, get_noise_texture_id());
 
         VertexAttributeVector<double> phase;
+        VertexAttributeVector<Vec2d> wave;
         double ael = average_edge_length(m);
+
         
         for(auto v: m.vertices()) {
-//            Vec3d dir = normalize(cross(normal(m, v), lines[v]));
             phase[v] = 0;
+            wave[v] = Vec2d(1,0);
+        }
 
-            Vec2d wave(1,0);
-            for(auto vn: m.incident_vertices(v)) {
-                Vec3d dir = normalize(cross(normal(m, vn), lines[vn]));
-                Vec3d vec = m.pos(v) - m.pos(vn );
-                float a = dot(dir, vec) / ael;
-                wave += exp(-3.0*dot(vec,vec)/sqr(ael))*Vec2d(cos(a), sin(a));
+        for(int iter=0;iter<10;++iter) {
+            for(auto v: m.vertices()) {
+                Vec3d dir = lines[v];
+                if(sqr_length(dir)> 0.001)
+                    for(auto vn: m.incident_vertices(v)) {
+                        Vec3d vec = m.pos(vn) - m.pos(v);
+                        float a = M_PI * dot(dir, vec) / ael + phase[v];
+                        wave[vn] += 0.5 * Vec2d(cos(a), sin(a));
+                    }
             }
-            phase[v] = atan2(wave[1], wave[0]);
+            for(auto v: m.vertices()) {
+                phase[v] = atan2(wave[v][1], wave[v][0]);
+                wave[v] = Vec2d(cos(phase[v]), sin(phase[v]));
+            }
         }
         
         
@@ -810,7 +819,7 @@ namespace GLGraphics
                 Vec3d d = lines[w.vertex()];
                 d = normalize(d-n*dot(n,d));
                 if(dot(d,d0)<0) d=-d;
-                Vec4d dd(d[0], d[1], d[2], phase[w.vertex()]);
+                Vec4d dd(wave[w.vertex()][0], wave[w.vertex()][1], 0, phase[w.vertex()]);
                 glVertexAttrib4dv(direction, dd.get());
                 glVertex3dv(m.pos(w.vertex()).get());
             }
@@ -849,7 +858,10 @@ namespace GLGraphics
     "float tex(vec3 p) {return smoothstep(0.2,0.4,texture3D(noise_tex, p).x);}\n"
     "void main(void)\n"
     "{\n"
-    "    gl_FragColor.rgb = vec3(cos(30.0 * dir_obj.w));\n"
+    "    vec3 n = normalize(_n);\n"
+    "    float a = 2.0*atan(dir_obj.y, dir_obj.x);\n"
+    "    gl_FragColor.rgb = vec3(1.0-smoothstep(0.5,1.0,cos(a)));\n"
+    "    gl_FragColor.rgb *= max(0.0,dot(n,vec3(0.0, 0.0, 1.0)));\n"
     "    gl_FragColor.a = 1.0;\n"
 
 //    "   vec3 n = normalize(_n);\n"
