@@ -130,8 +130,7 @@ namespace GLGraphics {
         /// Align means that we sync view controllers.
         void align(int src, int dst)
         {
-            vo[dst].view_control() =
-            vo[src].view_control();
+            vo[dst].sync_view_control(vo[src]);
         }
         
         /// Make sure the object fits in the window.

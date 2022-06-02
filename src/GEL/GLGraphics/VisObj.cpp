@@ -27,19 +27,21 @@ using namespace Geometry;
 
 namespace GLGraphics {
 
+std::vector<GLGraphics::GLViewController> VisObj::view_ctrl_vec;
+
 void VisObj::refit(const Vec3d& _bsc, double _bsr)
 {
     bsphere_center = _bsc;
     bsphere_radius = _bsr;
-    view_ctrl.set_centre(Vec3f(bsphere_center));
-    view_ctrl.set_eye_dist(2*bsphere_radius);
+    view_ctrl_vec[view_ctrl_id].set_centre(Vec3f(bsphere_center));
+    view_ctrl_vec[view_ctrl_id].set_eye_dist(2*bsphere_radius);
 }
 
 void VisObj::refit()
 {
     bsphere(mani, bsphere_center, bsphere_radius);
-    view_ctrl.set_centre(Vec3f(bsphere_center));
-    view_ctrl.set_eye_dist(2*bsphere_radius);
+    view_ctrl_vec[view_ctrl_id].set_centre(Vec3f(bsphere_center));
+    view_ctrl_vec[view_ctrl_id].set_eye_dist(2*bsphere_radius);
 }
 
 bool VisObj::reload(string _file)
@@ -127,27 +129,38 @@ bool VisObj::select_halfedge(const CGLA::Vec2i& pos)
 }
 
 struct AttribStats {
-    double mean=0, min=1e300, max=-1e300, std_dev=0;
+    double mean=0, min_val=1e300, max_val=-1e300, std_dev=0;
+    
+    pair<double,double> get_range() const {
+        return make_pair(max(min_val, mean - 3 * std_dev), min(max_val, mean + 3 * std_dev));
+        
+    }
 };
 
 AttribStats attribute_statistics(const Manifold& m, const VertexAttributeVector<double>& attrib) {
     AttribStats stats;
     
-    for(auto v: m.vertices()) {
-        stats.mean += attrib[v];
-        stats.min = min(attrib[v], stats.min);
-        stats.max = max(attrib[v], stats.max);
+    if (attrib.size()>0) {
+        int cnt = 0;
+        for(auto v: m.vertices()) {
+            if (v.get_index() < attrib.size()) {
+                stats.mean += attrib[v];
+                stats.min_val = min(attrib[v], stats.min_val);
+                stats.max_val = max(attrib[v], stats.max_val);
+                ++cnt;
+            }
+        }
+        stats.mean /= cnt;
+        
+        double variance = 0;
+        for(auto v: m.vertices())
+            if (v.get_index() < attrib.size()) {
+                variance += sqr(attrib[v]-stats.mean);
+            }
+        variance /= cnt;
+        
+        stats.std_dev = sqrt(variance);
     }
-    stats.mean /= m.no_vertices();
-    
-    double variance = 0;
-    for(auto v: m.vertices()) {
-        variance += sqr(attrib[v]-stats.mean);
-    }
-    variance /= m.no_vertices();
-    
-    stats.std_dev = sqrt(variance);
-    
     return stats;
 }
 
@@ -195,9 +208,9 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
     
     
     else if(short_name == "cur"){
-        static Console::variable<string> line_direction("min");
+        static Console::variable<string> line_direction("max");
         static Console::variable<string> method("tensors");
-        static Console::variable<int> smoothing_iter(1);
+        static Console::variable<int> smoothing_iter(0);
         
         line_direction.reg(cs,"display.curvature_lines.direction", "");
         method.reg(cs, "display.curvature_lines.method", "");
@@ -219,14 +232,15 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
                                    max_curv_direction,
                                    curvature);
 
-            smooth_vectors_on_mesh(mani, lines, smoothing_iter);
         }
         else
             curvature_paraboloids(mani,
                                   min_curv_direction,
                                   max_curv_direction,
                                   curvature);
-        
+
+        smooth_vectors_on_mesh(mani, lines, smoothing_iter);
+
         renderer = new LineFieldRenderer();
         dynamic_cast<LineFieldRenderer*>(renderer)->compile_display_list(mani, lines);
     }
@@ -236,8 +250,7 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
         VertexAttributeVector<double> scalars(mani.allocated_vertices());
         gaussian_curvature_angle_defects(mani, scalars, smoothing);
         auto stats = attribute_statistics(mani, scalars);
-        double min_G = stats.mean - 3 * stats.std_dev;
-        double max_G = stats.mean + 3 * stats.std_dev;
+        auto [min_G, max_G] = stats.get_range();
         renderer = new ScalarFieldRenderer();
         dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth, scalars, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
         
@@ -250,8 +263,7 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
         mean_curvatures(mani, scalars, smoothing);
         
         auto stats = attribute_statistics(mani, scalars);
-        double min_G = stats.mean - 3 * stats.std_dev;
-        double max_G = stats.mean + 3 * stats.std_dev;
+        auto [min_G, max_G] = stats.get_range();
         renderer = new ScalarFieldRenderer();
         dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth, scalars, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
     }
@@ -285,8 +297,7 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
     else if(short_name == "sca")
     {
         auto stats = attribute_statistics(mani, scalar_field);
-        double min_G = stats.mean - 3 * stats.std_dev;
-        double max_G = stats.mean + 3 * stats.std_dev;
+        auto [min_G, max_G] = stats.get_range();
         renderer = new ScalarFieldRenderer();
         dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth,scalar_field, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
     }
@@ -321,7 +332,7 @@ void VisObj::draw_selection()
     //        Vec3d c;
     //        float r;
     //        bsphere(mani, c, r);
-    float r = view_ctrl.get_eye_dist();
+    float r = view_ctrl_vec[view_ctrl_id].get_eye_dist();
     r *= 0.003;
     glDisable(GL_LIGHTING);
     glDepthFunc(GL_LEQUAL);
@@ -385,7 +396,7 @@ void VisObj::display(const std::string& display_method , Console& cs, bool smoot
             draw(graph);
         glEndList();
     }
-    view_ctrl.set_gl_modelview();
+    view_ctrl_vec[view_ctrl_id].set_gl_modelview();
     renderer->draw();
     if(!vertex_selection.empty() ||
        !face_selection.empty() ||

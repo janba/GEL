@@ -26,11 +26,12 @@ namespace GLGraphics {
 
 class VisObj
 {
+    static std::vector<GLGraphics::GLViewController> view_ctrl_vec;
+
     std::string file = "";
-    GLGraphics::GLViewController view_ctrl;
     bool create_display_list = true;
     GLuint graph_list=0;
-
+    int view_ctrl_id;
     
     HMesh::Manifold mani;
     HMesh::Manifold old_mani;
@@ -65,7 +66,10 @@ class VisObj
     
 public:
     
-    VisObj() {}
+    VisObj() {
+        view_ctrl_id = view_ctrl_vec.size();
+        view_ctrl_vec.push_back(GLViewController());
+    }
     
     
     HMesh::VertexSet& get_vertex_selection() {
@@ -121,7 +125,11 @@ public:
     void save_old() {old_mani = mani;}
     void restore_old() {mani = old_mani;}
     
-    GLGraphics::GLViewController& view_control() {return view_ctrl;}
+    GLGraphics::GLViewController& view_control() {return view_ctrl_vec[view_ctrl_id];}
+    
+    void sync_view_control(const VisObj& vo) {
+        view_ctrl_id = vo.view_ctrl_id;
+    }
     
     void refit(const CGLA::Vec3d& _bsc, double _bsr);
     void refit();

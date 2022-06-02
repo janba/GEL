@@ -48,10 +48,10 @@ namespace HMesh
 
     void smooth_vectors_on_mesh(const Manifold& m, VertexAttributeVector<Vec3d>& vec, int smooth_steps)
     {
-        for(int iter=0;iter<smooth_steps;++iter){
+        for(int iter=0; iter<smooth_steps; ++iter){
             VertexAttributeVector<Vec3d> new_vec = vec;
             for(auto v: m.vertices()){
-                for(auto vn: m.incident_vertices(v)){
+                for(auto vn: m.incident_vertices(v)) {
                     double sgn = dot(vec[vn], vec[v]) < 0 ? -1: 1;
                     new_vec[v] += sgn*vec[vn];
                 }
