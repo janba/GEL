@@ -757,7 +757,7 @@ namespace GLGraphics
     }
     
     
-    void LineFieldRenderer::compile_display_list(const HMesh::Manifold& m,HMesh::VertexAttributeVector<CGLA::Vec3d>& lines)
+    void LineFieldRenderer::compile_display_list(const HMesh::Manifold& m,HMesh::VertexAttributeVector<CGLA::Vec3d>& _lines)
     {
         float r;
         Vec3d c;
@@ -784,16 +784,25 @@ namespace GLGraphics
             phase[v] = 0;
             wave[v] = Vec2d(1,0);
         }
+        
+        VertexAttributeVector<CGLA::Vec3d> lines;
+        for(auto v: m.vertices()) {
+            lines[v] = normalize(cross(_lines[v], normal(m,v)));
+        }
 
-        for(int iter=0;iter<10;++iter) {
+        for(int iter=0;iter<100;++iter) {
             for(auto v: m.vertices()) {
                 Vec3d dir = lines[v];
-                if(sqr_length(dir)> 0.001)
-                    for(auto vn: m.incident_vertices(v)) {
-                        Vec3d vec = m.pos(vn) - m.pos(v);
-                        float a = M_PI * dot(dir, vec) / ael + phase[v];
-                        wave[vn] += 0.5 * Vec2d(cos(a), sin(a));
+                if(sqr_length(dir)> 0.001){
+                    for(auto h: m.incident_halfedges(v)) {
+                        Walker w = m.walker(h);
+                        for(VertexID vn : {w.vertex(), w.next().opp().next().vertex()}) {
+                            Vec3d vec = m.pos(vn) - m.pos(v);
+                            float a = 0.5 * M_PI * dot(dir, vec) / ael + phase[v];
+                            wave[vn] += Vec2d(cos(a), sin(a)) / (1e-7+length(vec));
+                        }
                     }
+            }
             }
             for(auto v: m.vertices()) {
                 phase[v] = atan2(wave[v][1], wave[v][0]);
@@ -855,35 +864,13 @@ namespace GLGraphics
     "varying vec4 dir_obj;\n"
     "varying vec3 v_obj;\n"
     "\n"
-    "float tex(vec3 p) {return smoothstep(0.2,0.4,texture3D(noise_tex, p).x);}\n"
     "void main(void)\n"
     "{\n"
     "    vec3 n = normalize(_n);\n"
-    "    float a = 2.0*atan(dir_obj.y, dir_obj.x);\n"
-    "    gl_FragColor.rgb = vec3(1.0-smoothstep(0.5,1.0,cos(a)));\n"
+    "    float a = 4.0*atan(dir_obj.y, dir_obj.x);\n"
+    "    gl_FragColor.rgb = vec3(0.5+0.5*smoothstep(-.1,0.1,cos(a)));\n"
     "    gl_FragColor.rgb *= max(0.0,dot(n,vec3(0.0, 0.0, 1.0)));\n"
     "    gl_FragColor.a = 1.0;\n"
-
-//    "   vec3 n = normalize(_n);\n"
-//    "   vec3 d = normalize(dir_obj);\n"
-//    "   float I = "
-//    "             tex(noise_scale*v_obj + 6.0*line_scale*d) + \n"
-//    "             tex(noise_scale*v_obj - 6.0*line_scale*d) + \n"
-//    "             tex(noise_scale*v_obj + 5.0*line_scale*d) + \n"
-//    "             tex(noise_scale*v_obj - 5.0*line_scale*d) + \n"
-//    "             tex(noise_scale*v_obj + 4.0*line_scale*d) + \n"
-//    "             tex(noise_scale*v_obj - 4.0*line_scale*d) + \n"
-//    "             tex(noise_scale*v_obj + 3.0*line_scale*d) + \n"
-//    "             tex(noise_scale*v_obj - 3.0*line_scale*d) + \n"
-//    "             tex(noise_scale*v_obj + 2.0*line_scale*d) + \n"
-//    "             tex(noise_scale*v_obj - 2.0*line_scale*d) + \n"
-//    "             tex(noise_scale*v_obj + 1.0*line_scale*d) + \n"
-//    "             tex(noise_scale*v_obj - 1.0*line_scale*d) + \n"
-//    "			  tex(noise_scale*v_obj); \n"
-//    "	\n"
-//    "   float diff = max(0.0,dot(n,vec3(0.0, 0.0, 1.0)));\n"
-//    "	gl_FragColor.rgb = vec3(diff*I/13.0);\n"
-//    "	gl_FragColor.a = 1.0;\n"
     "}\n";
     
 }
