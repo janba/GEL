@@ -72,6 +72,7 @@ namespace HMesh
         ply_set_read_cb(ply, "vertex", "y", vertex_cb, NULL, 0);
         ply_set_read_cb(ply, "vertex", "z", vertex_cb, NULL, 1);
         ply_set_read_cb(ply, "face", "vertex_indices", face_cb, NULL, 0);
+        ply_set_read_cb(ply, "face", "vertex_index", face_cb, NULL, 0);
         ply_read(ply);
         ply_close(ply);
         stitch_mesh(m, 1e-30);

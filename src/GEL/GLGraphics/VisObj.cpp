@@ -252,6 +252,7 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
         auto stats = attribute_statistics(mani, scalars);
         double min_G = stats.mean - 3 * stats.std_dev;
         double max_G = stats.mean + 3 * stats.std_dev;
+        cout << "Mean mean curvature " << stats.mean << endl;
         renderer = new ScalarFieldRenderer();
         dynamic_cast<ScalarFieldRenderer*>(renderer)->compile_display_list(mani, smooth, scalars, min_G, max_G, gamma,use_stripes,color_sign,use_shading);
     }

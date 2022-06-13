@@ -238,7 +238,7 @@ namespace Geometry {
                 }
             }
             
-            while(!Q.empty()) {
+            while(!Q.empty()) { 
                 auto skel_rec = Q.top();
                 Q.pop();
                 if(touched[skel_rec.n0]==0 && touched[skel_rec.n1]==0) {
