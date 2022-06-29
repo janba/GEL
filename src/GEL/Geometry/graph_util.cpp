@@ -245,7 +245,8 @@ namespace Geometry {
                     auto e = g.find_edge(skel_rec.n0, skel_rec.n1);
                     if( e != AMGraph::InvalidEdgeID) {
                         g.merge_nodes(skel_rec.n0,skel_rec.n1, true);
-                        touched[skel_rec.n0] = touched[skel_rec.n1] = 1;
+                        touched[skel_rec.n0] = 1;
+                        touched[skel_rec.n1] = 1;
                         ++cntr;
                     }
                 }

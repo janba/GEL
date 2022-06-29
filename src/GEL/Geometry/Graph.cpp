@@ -17,20 +17,25 @@ namespace Geometry {
     using namespace std;
     
     AMGraph3D::NodeID AMGraph3D::merge_nodes(NodeID n0, NodeID n1, bool avg_pos) {
-        CGLA::Vec3d p_new = pos[n1];
-        if(avg_pos) {
-            p_new += pos[n0];
-            p_new *= 0.5;
+        if (n0 == n1) {
+            edge_map[n1].erase(n1);
         }
-        pos[n0] = Vec3d(CGLA_NAN);
-        pos[n1] = p_new;
-        
-        for(auto n : neighbors(n0)) {
-            edge_map[n].erase(n0);
-            if(n != n1)
-                connect_nodes(n, n1);
+        else {
+            CGLA::Vec3d p_new = pos[n1];
+            if(avg_pos) {
+                p_new += pos[n0];
+                p_new *= 0.5;
+            }
+            pos[n0] = Vec3d(CGLA_NAN);
+            pos[n1] = p_new;
+            
+            for(auto n:  neighbors(n0)) {
+                edge_map[n].erase(n0);
+                if(n != n1 && n != n0)
+                    connect_nodes(n, n1);
+            }
+            edge_map[n0].clear();
         }
-        edge_map[n0].clear();
         return n1;
     }
 
@@ -38,16 +43,26 @@ namespace Geometry {
         NodeID n_new = AMGraph::add_node();
         node_color[n_new] = CGLA::Vec3f(0);
         pos[n_new] = Vec3d(0);
-        for(auto n: nodes) {
+        
+        NodeSet ns(begin(nodes), end(nodes));
+        NodeSet nsn;
+        
+        for(auto n: ns) {
             pos[n_new] += pos[n];
-            for(auto nn : neighbors(n)) {
-                edge_map[nn].erase(n);
-                connect_nodes(nn, n_new);
-            }
+            for(auto nn : neighbors(n))
+                if (ns.count(nn) == 0)
+                    nsn.insert(nn);
             edge_map[n].clear();
             pos[n] = Vec3d(CGLA_NAN);
         }
-        pos[n_new] /= nodes.size();
+        
+        for (auto nn: nsn) {
+            connect_nodes(nn, n_new);
+            for(auto n: ns)
+                edge_map[nn].erase(n);
+        }
+        
+        pos[n_new] /= ns.size();
         return n_new;
     }
 
