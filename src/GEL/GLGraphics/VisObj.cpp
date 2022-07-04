@@ -27,8 +27,6 @@ using namespace Geometry;
 
 namespace GLGraphics {
 
-std::vector<GLGraphics::GLViewController> VisObj::view_ctrl_vec;
-
 void VisObj::refit(const Vec3d& _bsc, double _bsr)
 {
     bsphere_center = _bsc;

@@ -26,7 +26,7 @@ namespace GLGraphics {
 
 class VisObj
 {
-    static std::vector<GLGraphics::GLViewController> view_ctrl_vec;
+    inline static std::vector<GLGraphics::GLViewController> view_ctrl_vec;
 
     std::string file = "";
     bool create_display_list = true;
