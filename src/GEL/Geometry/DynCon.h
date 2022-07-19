@@ -1,7 +1,6 @@
 #ifndef dyncon_hpp
 #define dyncon_hpp
 
-#include "DynCon.h"
 #include <iostream>
 #include <list>
 #include <stack>
