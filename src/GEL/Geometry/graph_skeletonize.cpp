@@ -18,7 +18,7 @@
 #include <GEL/Util/AttribVec.h>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/graph_util.h>
-#include <GEL/Geometry/DynConRAII.h>
+#include <GEL/Geometry/DynCon.h>
 
 using namespace std;
 using namespace CGLA;
