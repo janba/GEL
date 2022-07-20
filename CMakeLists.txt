@@ -5,7 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  set(CMAKE_CXX_FLAGS "-std=c++1z -O3")
+  set(CMAKE_CXX_FLAGS "-std=c++1z")
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
@@ -91,6 +91,3 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/GEL
     DESTINATION include
     FILES_MATCHING PATTERN "*.h"
     )
-
-add_executable(skeltal driver.cpp)
-target_link_libraries(skeltal GEL PyGEL)
