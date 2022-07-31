@@ -53,7 +53,7 @@ InvalidIndex = ct.c_size_t.in_dll(lib_py_gel, "InvalidIndex").value
 
 # The following many lines explitize the arguments and return types of the C API
 
-# IntVector 
+# IntVector
 lib_py_gel.IntVector_new.restype = ct.c_void_p
 lib_py_gel.IntVector_get.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.IntVector_size.argtypes = (ct.c_void_p,)
@@ -61,7 +61,7 @@ lib_py_gel.IntVector_size.restype = ct.c_size_t
 lib_py_gel.IntVector_delete.argtypes = (ct.c_void_p,)
 
 
-# Vec3dVector 
+# Vec3dVector
 lib_py_gel.Vec3dVector_new.restype = ct.c_void_p
 lib_py_gel.Vec3dVector_get.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.Vec3dVector_get.restype = ct.POINTER(ct.c_double)
@@ -210,6 +210,11 @@ lib_py_gel.cc_smooth.argtypes = (ct.c_void_p,)
 lib_py_gel.loop_smooth.argtypes = (ct.c_void_p,)
 lib_py_gel.ear_clip_triangulate.argtypes = (ct.c_void_p,)
 lib_py_gel.shortest_edge_triangulate.argtypes = (ct.c_void_p,)
+lib_py_gel.graph_to_feq.argtypes = (ct.c_void_p, ct.c_void_p)
+lib_py_gel.graph_to_feq.restype = ct.c_void_p
+lib_py_gel.graph_to_feq_radius.argtypes = (ct.c_void_p, ct.c_void_p, ct.POINTER(ct.c_double))
+lib_py_gel.graph_to_feq_radius.restype = ct.c_void_p
+
 
 # MeshDistance allows us to compute the signed distance to a mesh
 lib_py_gel.MeshDistance_new.restype = ct.c_void_p
@@ -293,4 +298,3 @@ class Vec3dVector:
         for i in range(0,n):
             data = lib_py_gel.Vec3dVector_get(self.obj, i)
             yield [data[0], data[1], data[2]]
-
