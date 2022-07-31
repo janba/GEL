@@ -9,10 +9,19 @@
 #include "hmesh_functions.h"
 #include <string>
 #include <GEL/HMesh/HMesh.h>
+#include <GEL/Geometry/Graph.h>
+#include <GEL/Geometry/graph_io.h>
+#include <GEL/Geometry/graph_skeletonize.h>
+#include <GEL/Geometry/graph_util.h>
+#include "Graph.h"
+#include "Manifold.h"
+
+
 
 using namespace std;
 using namespace HMesh;
 using namespace CGLA;
+using namespace Geometry;
 
 bool valid(const Manifold_ptr m_ptr) {
     return valid(*(reinterpret_cast<Manifold*>(m_ptr)));
@@ -167,5 +176,21 @@ void ear_clip_triangulate(Manifold_ptr m_ptr) {
     triangulate(*(reinterpret_cast<Manifold*>(m_ptr)), CLIP_EAR);
 }
 
+void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr) {
+    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    *m_ptr = graph_to_FEQ(*g_ptr);
+}
 
+void graph_to_feq_radius(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double *node_radii) {
+    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    vector<double> node_rs;
+    const size_t N = g_ptr->no_nodes();
+    node_rs.resize(N);
 
+    for(auto n : g_ptr->node_ids())
+        node_rs[n] = node_radii[n];
+
+    *m_ptr = graph_to_FEQ_radius(*g_ptr, node_rs);
+}

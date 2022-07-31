@@ -11,7 +11,7 @@ class Manifold:
     ignore a few corner cases) unlike some other representations. This class contains a number of
     methods for mesh manipulation and inspection. Note also that numerous further functions are
     available to manipulate meshes stored as Manifolds.
-    
+
     Many of the functions below accept arguments called hid, fid, or vid. These are simply indices
     of halfedges, faces and vertices, respectively: integer numbers that identify the corresponding
     mesh element. Using a plain integer to identify a mesh entity means that, for instance, a
@@ -24,7 +24,7 @@ class Manifold:
             self.obj = lib_py_gel.Manifold_copy(orig.obj)
     @classmethod
     def from_triangles(cls,vertices, faces):
-        """ Given a list of vertices and triangles (faces), this function produces 
+        """ Given a list of vertices and triangles (faces), this function produces
         a Manifold mesh."""
         m = cls()
         m.obj = lib_py_gel.Manifold_from_triangles(len(vertices),len(faces),np.array(vertices,dtype=np.float64), np.array(faces,dtype=ct.c_int))
@@ -523,6 +523,20 @@ def triangulate(m, clip_ear=True):
     else:
         lib_py_gel.shortest_edge_triangulate(m.obj)
 
+def skeleton_to_feq(g):
+    """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m. """
+    m = Manifold()
+    lib_py_gel.graph_to_feq(g.obj , m.obj)
+    return m
+
+def skeleton_to_feq_radius(g, node_radii):
+    """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node. """
+    m = Manifold()
+    node_rs_flat = np.asarray(node_radii, dtype=np.float64)
+    lib_py_gel.graph_to_feq_radius(g.obj , m.obj, node_rs_flat.ctypes.data_as(ct.POINTER(ct.c_double)))
+    return m
+
+
 
 class MeshDistance:
     """ This class allows you to compute the distance from any point in space to
@@ -533,11 +547,11 @@ class MeshDistance:
     def __del__(self):
         lib_py_gel.MeshDistance_delete(self.obj)
     def signed_distance(self,pts,upper=1e30):
-        """ Compute the signed distance from each point in pts to the mesh stored in 
-        this class instance. pts should be convertible to a length N>=1 array of 3D 
-        points. The function returns an array of N distance values with a single distance 
-        for each point. The distance corresponding to a point is positive if the point 
-        is outside and negative if inside. The upper parameter can be used to threshold 
+        """ Compute the signed distance from each point in pts to the mesh stored in
+        this class instance. pts should be convertible to a length N>=1 array of 3D
+        points. The function returns an array of N distance values with a single distance
+        for each point. The distance corresponding to a point is positive if the point
+        is outside and negative if inside. The upper parameter can be used to threshold
         how far away the distance is of interest. """
         p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
         n = p.shape[0]
@@ -547,10 +561,10 @@ class MeshDistance:
         lib_py_gel.MeshDistance_signed_distance(self.obj,n,p_ct,d_ct,upper)
         return d
     def ray_inside_test(self,pts,no_rays=3):
-        """Check whether each point in pts is inside or outside the stored mesh by 
+        """Check whether each point in pts is inside or outside the stored mesh by
         casting rays. pts should be convertible to a length N>=1 array of 3D points.
         Effectively, this is the sign of the distance. In some cases casting (multiple)
-        ray is more robust than using the sign computed locally. Returns an array of 
+        ray is more robust than using the sign computed locally. Returns an array of
         N integers which are either 1 or 0 depending on whether the corresponding point
         is inside (1) or outside (0). """
         p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
@@ -560,4 +574,3 @@ class MeshDistance:
         s_ct = s.ctypes.data_as(ct.POINTER(ct.c_int))
         lib_py_gel.MeshDistance_ray_inside_test(self.obj,n,p_ct,s_ct,no_rays)
         return s
-
