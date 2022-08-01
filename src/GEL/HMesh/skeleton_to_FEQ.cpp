@@ -1585,7 +1585,7 @@ HMesh::Manifold graph_to_FEQ(Geometry::AMGraph3D& g) {
             one_ring_face_vertex[f_id] = InvalidVertexID;
     }
 
-    branchface.end()->second = InvalidFaceID;
+//    branchface.end()->second = InvalidFaceID;
 
     bool debug_break = false;
 
