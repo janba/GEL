@@ -9,6 +9,7 @@
 #include <vector>
 #include <list>
 #include <map>
+#include <random>
 
 #include <GEL/CGLA/Vec3d.h>
 #include "SphereDelaunay.h"
@@ -20,10 +21,11 @@ namespace
 
 const Vec3d rand_unit_vector()
 {
+    static std::default_random_engine rgen;
+    std::uniform_real_distribution<double> urd(-1.0,1.0);
     Vec3d p;
-    do
-    {
-        p=2.0*Vec3d(random()/double(RAND_MAX),random()/double(RAND_MAX),random()/double(RAND_MAX))-Vec3d(1);
+    do {
+        p=Vec3d(urd(rgen), urd(rgen), urd(rgen));
     }
     while(sqr_length(p)>1.0);
     return normalize(p);
