@@ -1683,7 +1683,7 @@ HMesh::Manifold graph_to_FEQ_radius(Geometry::AMGraph3D& g, vector<double> node_
             one_ring_face_vertex[f_id] = InvalidVertexID;
     }
 
-    branchface.end()->second = InvalidFaceID;
+//    branchface.end()->second = InvalidFaceID;
 
     bool has_junction = false;
 
