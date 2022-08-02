@@ -697,6 +697,7 @@
 		BD4ACED7214A605E004EEC2F /* Delaunay_triangulate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Delaunay_triangulate.h; sourceTree = "<group>"; };
 		BD4E9FA8201CB17B0029AEA2 /* GEL copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GEL copy-Info.plist"; path = "/Users/janba/GEL/GEL_MAC/GEL copy-Info.plist"; sourceTree = "<absolute>"; };
 		BDAC7CAA201885F600197925 /* Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serialization.h; sourceTree = "<group>"; };
+		BDDDC05F289912F8005AC97C /* DynCon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DynCon.h; sourceTree = "<group>"; };
 		E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bounding_sphere.cpp; sourceTree = "<group>"; };
 		E1246E0C242CF7F500653E54 /* bounding_sphere.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bounding_sphere.h; sourceTree = "<group>"; };
 		E166EB932544B074008DE5C0 /* Circulators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Circulators.h; sourceTree = "<group>"; };
@@ -921,6 +922,7 @@
 		0D52EBB2197D1901002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				BDDDC05F289912F8005AC97C /* DynCon.h */,
 				0D52EAAE197D18C1002C7150 /* AABox.h */,
 				0D52EAAF197D18C1002C7150 /* AncestorGrid.h */,
 				0D52EAB1197D18C1002C7150 /* BBox.h */,
