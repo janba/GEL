@@ -529,10 +529,12 @@ def skeleton_to_feq(g):
     lib_py_gel.graph_to_feq(g.obj , m.obj)
     return m
 
-def skeleton_to_feq_radius(g, node_radii):
+def skeleton_to_feq_radius(g, node_radii = np.array([])):
     """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node. """
     m = Manifold()
     node_rs_flat = np.asarray(node_radii, dtype=np.float64)
+    if(len(node_rs_flat) == 0):
+        node_rs_flat = np.full(len(g.nodes()), 0.5 * g.average_edge_length())
     lib_py_gel.graph_to_feq_radius(g.obj , m.obj, node_rs_flat.ctypes.data_as(ct.POINTER(ct.c_double)))
     return m
 
