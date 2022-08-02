@@ -210,10 +210,8 @@ lib_py_gel.cc_smooth.argtypes = (ct.c_void_p,)
 lib_py_gel.loop_smooth.argtypes = (ct.c_void_p,)
 lib_py_gel.ear_clip_triangulate.argtypes = (ct.c_void_p,)
 lib_py_gel.shortest_edge_triangulate.argtypes = (ct.c_void_p,)
-lib_py_gel.graph_to_feq.argtypes = (ct.c_void_p, ct.c_void_p)
+lib_py_gel.graph_to_feq.argtypes = (ct.c_void_p, ct.c_void_p, ct.POINTER(ct.c_double))
 lib_py_gel.graph_to_feq.restype = ct.c_void_p
-lib_py_gel.graph_to_feq_radius.argtypes = (ct.c_void_p, ct.c_void_p, ct.POINTER(ct.c_double))
-lib_py_gel.graph_to_feq_radius.restype = ct.c_void_p
 
 
 # MeshDistance allows us to compute the signed distance to a mesh

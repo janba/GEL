@@ -176,13 +176,7 @@ void ear_clip_triangulate(Manifold_ptr m_ptr) {
     triangulate(*(reinterpret_cast<Manifold*>(m_ptr)), CLIP_EAR);
 }
 
-void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr) {
-    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
-    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
-    *m_ptr = graph_to_FEQ(*g_ptr);
-}
-
-void graph_to_feq_radius(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double *node_radii) {
+void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double *node_radii) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     vector<double> node_rs;
@@ -192,5 +186,5 @@ void graph_to_feq_radius(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double *node_rad
     for(auto n : g_ptr->node_ids())
         node_rs[n] = node_radii[n];
 
-    *m_ptr = graph_to_FEQ_radius(*g_ptr, node_rs);
+    *m_ptr = graph_to_FEQ(*g_ptr, node_rs);
 }
