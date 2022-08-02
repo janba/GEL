@@ -89,9 +89,7 @@ extern "C" {
 
     DLLEXPORT void ear_clip_triangulate(Manifold_ptr m_ptr);
 
-    DLLEXPORT void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr);
-
-    DLLEXPORT void graph_to_feq_radius(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double* node_radii);
+    DLLEXPORT void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double* node_radii);
 
 
 #ifdef __cplusplus
