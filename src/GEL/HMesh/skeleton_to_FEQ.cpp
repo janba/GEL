@@ -276,6 +276,30 @@ bool check_convex(HMesh::Manifold &m, HalfEdgeID h) {
         return true;
 }
 
+bool check_planar_pts(vector<Vec3d> pts, double thresh) {
+
+  if(pts.size() < 3)
+    return true;
+
+  Vec3d p1 = pts[0];
+  Vec3d p2 = pts[1];
+  Vec3d p3 = pts[2];
+
+  Vec3d normal = normalize(cross(p2 - p1, p3 - p2));
+
+  double max_dot_val = 0;
+
+  for (auto pt : pts) {
+      double curr_dot = abs(dot(normalize(pt - p1), normal));
+      if(curr_dot > max_dot_val)
+        max_dot_val = curr_dot;
+  }
+  if(max_dot_val < thresh)
+    return true;
+
+  return false;
+}
+
 void stellate_face_set_retopo(HMesh::Manifold &m, HMesh::FaceSet fs, HMesh::HalfEdgeSet hs) {
 
   HalfEdgeSet interior_edges;
@@ -846,9 +870,6 @@ void construct_bnps(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::Attrib
 
               r = r_arr[n];
 
-              //if(r_arr[n] > base_r)
-              //  r = r_arr[n];
-
               auto project_to_sphere = [&]() {
                   for(int iter=0;iter<1;++iter) {
                       auto new_pos = m.positions_attribute_vector();
@@ -898,16 +919,11 @@ void construct_bnps(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::Attrib
                 }
                 spts.push_back(normalize(centroid_ghost_pt + cross(nb_pt_1 - nb_pt_3, - nb_pt_1 + nb_pt_2)));
                 ghost_added = true;
+              }
 
-                  /**Vec3d centroid_ghost_pt(0);
-                  for (auto nn : N)
-                      centroid_ghost_pt+=g.pos[nn];
-                  centroid_ghost_pt/=3;
-                  spts.push_back(normalize(0.5*(g.pos[N[0]] + g.pos[N[1]]) - g.pos[n]));
-                  spts.push_back(normalize(0.5*(g.pos[N[1]] + g.pos[N[2]]) - g.pos[n]));
-                  spts.push_back(normalize(0.5*(g.pos[N[0]] + g.pos[N[2]]) - g.pos[n]));
-                  ghost_added = true;**/
-
+              if(spts.size() > 3 && check_planar_pts(spts, 0.2)) {
+                spts.push_back(normalize(cross(spts[0] - spts[1], spts[2] - spts[0])));
+                spts.push_back(-normalize(cross(spts[0] - spts[1], spts[2] - spts[0])));
               }
 
 
@@ -967,7 +983,6 @@ void construct_bnps(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::Attrib
                       node2fs[n].insert(f);
           }
     }
-    //id_preserving_cc(m_out);
     m_out.cleanup();
     stitch_mesh(m_out, 1e-10);
 }
@@ -1572,14 +1587,9 @@ HMesh::Manifold graph_to_FEQ(Geometry::AMGraph3D& g, vector<double> node_radii) 
 
     clear_global_arrays();
 
-    if(node_radii.empty())
-      for (auto n : g.node_ids())
-          node_radii[n] == r;
-
     for(auto n : g.node_ids())
       if(node_radii[n] == 0)
           node_radii[n] = r;
-
 
     construct_bnps(m_out, g, node2fs, node_radii);
 
