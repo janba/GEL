@@ -540,7 +540,7 @@ def laplacian_matrix(m):
 
     num_verts = m.no_allocated_vertices()
     laplacian = np.full((num_verts,num_verts), 0.0)
-    for i in range(num_verts):
+    for i in m.vertices():
         nb_verts = m.circulate_vertex(i)
         deg = len(nb_verts)
         laplacian[i][i] = 1.0
@@ -550,7 +550,6 @@ def laplacian_matrix(m):
 
 def inv_correspondence_leqs(m, ref_mesh, dist_obj):
     """ Helper function to compute correspondences between a skeletal mesh m and a reference mesh ref_mesh, given a MeshDistance object dist_obj for the ref mesh. """
-
 
     v_pos = m.positions()
     num_verts = m.no_allocated_vertices()
@@ -570,7 +569,7 @@ def inv_correspondence_leqs(m, ref_mesh, dist_obj):
 
     m_tree.build()
 
-    for v_id in range(len(ref_mesh.positions())):
+    for v_id in ref_mesh.vertices():
         closest_pt_obj = m_tree.closest_point(ref_mesh.positions()[v_id],1000)
         if (closest_pt_obj is not None):
             key,index = closest_pt_obj[0],closest_pt_obj[1]
@@ -583,7 +582,7 @@ def inv_correspondence_leqs(m, ref_mesh, dist_obj):
             inv_close_points[index].append((v_id,dot_val))
 
 
-    for i in range(len(v_pos)):
+    for i in m.vertices():
         curr_v = v_pos[i]
         normal = m.vertex_normal(i)
         cp_add_flag = 0
@@ -624,33 +623,20 @@ def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 0.25, lap_wt = 1.0):
     """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
 
     v_pos = m.positions()
-
     ref_pos = ref_mesh.positions()
-
     max_iter = local_iter
-
     lap_matrix = laplacian_matrix(m)
-
     dist_obj = MeshDistance(ref_mesh)
 
     for i in range(max_iter):
-
         dist_wt -= 0.001
-
         A, b = inv_correspondence_leqs(m, ref_mesh, dist_obj)
-
         final_A = vstack([lap_wt*lap_matrix, dist_wt*A])
-
         b_add = np.zeros((final_A.shape[0] - b.shape[0],3))
-
         final_b = np.vstack([b_add, dist_wt*b])
-
         opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
-
         opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
-
         opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
-
         v_pos[:,0] = opt_x
         v_pos[:,1] = opt_y
         v_pos[:,2] = opt_z
