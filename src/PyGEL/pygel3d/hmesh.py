@@ -620,7 +620,7 @@ def inv_correspondence_leqs(m, ref_mesh, dist_obj):
         b[i][2] = weight*weights[i]*close_pts[i][2]
     return csc_matrix(A),b
 
-def fit_mesh_to_ref(m, ref_mesh, local_iter = 10, dist_wt = 0.25, lap_wt = 1.0):
+def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 0.25, lap_wt = 1.0):
     """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
 
     v_pos = m.positions()
