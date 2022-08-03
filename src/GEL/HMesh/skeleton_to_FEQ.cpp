@@ -870,9 +870,6 @@ void construct_bnps(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::Attrib
 
               r = r_arr[n];
 
-              //if(r_arr[n] > base_r)
-              //  r = r_arr[n];
-
               auto project_to_sphere = [&]() {
                   for(int iter=0;iter<1;++iter) {
                       auto new_pos = m.positions_attribute_vector();
@@ -986,7 +983,6 @@ void construct_bnps(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::Attrib
                       node2fs[n].insert(f);
           }
     }
-    //id_preserving_cc(m_out);
     m_out.cleanup();
     stitch_mesh(m_out, 1e-10);
 }
@@ -1591,14 +1587,9 @@ HMesh::Manifold graph_to_FEQ(Geometry::AMGraph3D& g, vector<double> node_radii) 
 
     clear_global_arrays();
 
-    if(node_radii.empty())
-      for (auto n : g.node_ids())
-          node_radii[n] == r;
-
     for(auto n : g.node_ids())
       if(node_radii[n] == 0)
           node_radii[n] = r;
-
 
     construct_bnps(m_out, g, node2fs, node_radii);
 
