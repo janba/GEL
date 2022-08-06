@@ -897,6 +897,13 @@ void construct_bnps(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::Attrib
 
               }
               bool ghost_added = false;
+
+              if(check_planar_pts(spts, 0.2)) {
+                spts.push_back(normalize(cross(spts[0] - spts[1], spts[2] - spts[0])));
+                spts.push_back(-normalize(cross(spts[0] - spts[1], spts[2] - spts[0])));
+              }
+
+
               if(spts.size()==3) {
 
                 Vec3d centroid_ghost_pt(0);
@@ -920,12 +927,6 @@ void construct_bnps(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::Attrib
                 spts.push_back(normalize(centroid_ghost_pt + cross(nb_pt_1 - nb_pt_3, - nb_pt_1 + nb_pt_2)));
                 ghost_added = true;
               }
-
-              if(spts.size() > 3 && check_planar_pts(spts, 0.2)) {
-                spts.push_back(normalize(cross(spts[0] - spts[1], spts[2] - spts[0])));
-                spts.push_back(-normalize(cross(spts[0] - spts[1], spts[2] - spts[0])));
-              }
-
 
               std::vector<CGLA::Vec3i> stris = SphereDelaunay(spts);
 
@@ -1412,7 +1413,7 @@ vector<pair<VertexID, VertexID>> face_match_careful(HMesh::Manifold& m, FaceID &
     return connections;
 }
 
-vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID &f0, FaceID &f1) {
+vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID &f0, FaceID &f1, Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
 
     vector<pair<VertexID, VertexID> > connections;
     if(!m.in_use(f0) || !m.in_use(f1))
@@ -1422,6 +1423,9 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
     VertexID face_vertex_1 = one_ring_face_vertex[f1];
 
     bool fv_flag = false;
+
+    Vec3d v_n_nn = normalize(g.pos[n] - g.pos[nn]);
+
 
     if(face_vertex_0 != InvalidVertexID && face_vertex_1 != InvalidVertexID)
       fv_flag = true;
@@ -1457,13 +1461,16 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
 
     size_t L = L0;
 
-    float min_len = FLT_MAX;
     int j_off_min_len = -1;
-    float max_dot_sum = -10000;
 
-    for(int j_off = 0; j_off < L; j_off = j_off + 1) {
+    if(one_ring_face_vertex[f0] == InvalidVertexID || one_ring_face_vertex[f1] == InvalidVertexID) {
+
+      float min_len = FLT_MAX;
+      float max_dot_sum = -FLT_MAX;
+
+      for(int j_off = 0; j_off < L; j_off = j_off + 1) {
         Vec3d bridge_edge_i, bridge_edge_j;
-        float dot_sum = 100000;
+        float dot_sum = FLT_MAX;
         float len = 0;
 
         for(int i=0;i<L;++i) {
@@ -1473,16 +1480,14 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
             j_off_min_len = j_off;
             min_len = len;
            }
-  }
+      }
 
-    int found_flag = 0;
-    for(int i=0;i<L;++i)
-        connections.push_back(pair<VertexID, VertexID>(loop0[i],loop1[(L+ j_off_min_len - i)%L]));
+      int found_flag = 0;
 
-    if(one_ring_face_vertex[f0] != InvalidVertexID && one_ring_face_vertex[f1] != InvalidVertexID)
-        return connections;
+      //if(one_ring_face_vertex[f0] != InvalidVertexID || one_ring_face_vertex[f1] != InvalidVertexID)
+      //  return connections;
 
-    for (int i = 0; i < L; i++) {
+      for (int i = 0; i < L; i++) {
 
         VertexID v0 = loop0[i];
         VertexID v1 = loop1[(L + j_off_min_len - i)%L];
@@ -1500,16 +1505,65 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
             one_ring_face_vertex[m.walker(w.halfedge()).opp().face()] = v1;
             found_flag = 1;
         }
-    }
+      }
 
-    if(found_flag == 0 && (one_ring_face_vertex[f0] != InvalidVertexID || one_ring_face_vertex[f1] != InvalidVertexID)) {
+      if(found_flag == 0 && (one_ring_face_vertex[f0] != InvalidVertexID || one_ring_face_vertex[f1] != InvalidVertexID)) {
         connections.clear();
         return connections;
+      }
     }
+    else {
+
+      for(int j_off = 0; j_off < L; j_off = j_off + 1) {
+
+        bool center_match = false;
+
+        for(int i=0;i<L;++i) {
+            if(loop0[i] == one_ring_face_vertex[f0] && loop1[(L + j_off - i)%L] == one_ring_face_vertex[f1])
+                center_match = true;
+
+        }
+        if(center_match) {
+            j_off_min_len = j_off;
+        }
+
+      }
+
+      float min_len = FLT_MAX;
 
 
+      float max_dot_sum = 0;
+      for(int j_off = j_off_min_len; j_off < 2*L; j_off = j_off + 2) {
 
-    return connections;
+        float len = 0;
+        Vec3d bridge_edge_i, bridge_edge_j;
+        float dot_sum = FLT_MAX;
+
+        for(int i=0;i<L;++i) {
+          bridge_edge_i = normalize(m.pos(loop0[i]) - m.pos(loop1[(L+j_off - i)%L]));
+          double curr_dot_sum = abs(dot(bridge_edge_i, v_n_nn));// + abs(dot(bridge_edge_i, v_n_nn));
+          if(curr_dot_sum < dot_sum)
+              dot_sum = curr_dot_sum;
+          for(int j=0;j<L;j++) {
+              bridge_edge_j = normalize(m.pos(loop0[j]) - m.pos(loop1[(L+j_off - j)%L]));
+              curr_dot_sum = abs(dot(bridge_edge_i, bridge_edge_j));
+              if(curr_dot_sum < dot_sum)
+                dot_sum = curr_dot_sum;
+        }
+      }
+
+      if(dot_sum > max_dot_sum) {
+          j_off_min_len = j_off;
+          max_dot_sum = dot_sum;
+      }
+     }
+   }
+
+   for(int i=0;i<L;++i)
+    connections.push_back(pair<VertexID, VertexID>(loop0[i],loop1[(L+ j_off_min_len - i)%L]));
+
+
+   return connections;
 }
 
 FaceID find_bridge_face(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, NodeID start_node, NodeID next_node, Util::AttribVec<NodeID, FaceSet>& node2fs) {
@@ -1558,7 +1612,7 @@ vector<pair<VertexID, VertexID>> find_bridge_connections(HMesh::Manifold &m_out,
     return connections;
 
   if(face_vertex[f0] == InvalidVertexID && face_vertex[f1] == InvalidVertexID)
-    connections = face_match_one_ring(m_out, f0, f1);
+    connections = face_match_one_ring(m_out, f0, f1, g, n, nn);
 
   else if (f0 != InvalidFaceID && f1 != InvalidFaceID)
     connections = face_match_careful(m_out, f0, f1, g, n, nn);
