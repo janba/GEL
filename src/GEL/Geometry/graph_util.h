@@ -116,6 +116,17 @@ namespace Geometry {
         }
     };
 
+    class GraphDist {
+        std::vector<LineSegment> segments;
+        double R = 0.0;
+        Geometry::KDTree<CGLA::Vec3d, size_t> seg_tree;
+        
+    public:
+        
+        GraphDist(const Geometry::AMGraph3D& g);
+        double dist(const CGLA::Vec3d& p);
+    };
+
     /** Computes the distance at samples points from graph g0 to g1 and vice versa. H is for Hausdorff. */
     std::pair<double,double> graph_H_dist(const AMGraph3D& g0, const AMGraph3D& g1, size_t samples = 10000);
 }
