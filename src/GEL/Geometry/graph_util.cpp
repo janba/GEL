@@ -506,7 +506,6 @@ namespace Geometry {
         return clusters;
     }
 
-
     GraphDist::GraphDist(const AMGraph3D& g) {
         for(auto n : g.node_ids())
             if(g.in_use(n))
