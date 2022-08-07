@@ -25,7 +25,7 @@ print("Found these libraries: ", libs_data)
 
 setuptools.setup(
     name="PyGEL3D",
-    version="0.2.1",
+    version="0.3.0",
     author="Andreas Baerentzen",
     author_email="janba@dtu.dk",
     description="PyGEL 3D (Python Bindings for GEL) contains tools for polygonal mesh based geometry processing",
@@ -35,7 +35,7 @@ setuptools.setup(
     packages = ['pygel3d'],
     package_dir = {'':'build'},
     package_data = {'pygel3d':libs_data},
-    install_requires = ['numpy','plotly'],
+    install_requires = ['numpy','plotly','scipy'],
     classifiers=[
         "Programming Language :: Python :: 3",
         "Operating System :: Microsoft :: Windows",

@@ -44,7 +44,7 @@ void clear_global_arrays() {
 
 //Graph util functions
 
-vector<NodeID> next_neighbours(Geometry::AMGraph3D& g, NodeID prev, NodeID curr) {
+vector<NodeID> next_neighbours(const Geometry::AMGraph3D& g, NodeID prev, NodeID curr) {
 
     vector<NodeID> neighbour_list;
     auto N = g.neighbors(curr);
@@ -56,7 +56,7 @@ vector<NodeID> next_neighbours(Geometry::AMGraph3D& g, NodeID prev, NodeID curr)
 
 }
 
-NodeID next_jn(Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
+NodeID next_jn(const Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
   auto N = next_neighbours(g, n, nn);
   NodeID curr_node = nn;
   NodeID prev_node = n;
@@ -72,7 +72,7 @@ NodeID next_jn(Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
 
 }
 
-double graph_length(Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
+double graph_length(const Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
   vector<NodeID> branch_path;
   NodeID curr_node = nn;
   NodeID prev_node = n;
@@ -210,7 +210,7 @@ VertexID split_LIE(Manifold& mani, HalfEdgeID h) {
     return vid;
 }
 
-bool check_planar(HMesh::Manifold &m, HalfEdgeID h) {
+bool check_planar(const HMesh::Manifold &m, HalfEdgeID h) {
 
     FaceID face_1 = m.walker(h).face();
     FaceID face_2 = m.walker(h).opp().face();
@@ -239,7 +239,7 @@ bool check_planar(HMesh::Manifold &m, HalfEdgeID h) {
         return true;
 }
 
-bool check_convex(HMesh::Manifold &m, HalfEdgeID h) {
+bool check_convex(const HMesh::Manifold &m, HalfEdgeID h) {
 
     auto v1 = m.walker(h).vertex();
     auto v2 = m.walker(h).opp().vertex();
@@ -268,7 +268,7 @@ bool check_convex(HMesh::Manifold &m, HalfEdgeID h) {
         return true;
 }
 
-bool check_planar_pts(vector<Vec3d> pts, double thresh) {
+bool check_planar_pts(const vector<Vec3d>& pts, double thresh) {
 
   if(pts.size() < 3)
     return true;
@@ -292,7 +292,7 @@ bool check_planar_pts(vector<Vec3d> pts, double thresh) {
   return false;
 }
 
-void stellate_face_set_retopo(HMesh::Manifold &m, HMesh::FaceSet fs, HMesh::HalfEdgeSet hs) {
+void stellate_face_set_retopo(HMesh::Manifold &m, const HMesh::FaceSet& fs, const HMesh::HalfEdgeSet& hs) {
 
   HalfEdgeSet interior_edges;
 
@@ -415,7 +415,8 @@ vector<FaceSet> retopologize_planar_regions(HMesh::Manifold &m) {
 
 //Graph - Mesh relationship Functions
 
-VertexID branch2vertex (HMesh::Manifold &m_out, Geometry::AMGraph3D& g, NodeID n, NodeID nn, Util::AttribVec<NodeID, FaceSet> node2fs) {
+VertexID branch2vertex (HMesh::Manifold &m_out, const Geometry::AMGraph3D& g,
+                        NodeID n, NodeID nn, const Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
     Vec3d vert_pos = branch2vert.find(std::make_pair(n,nn))->second;
 
@@ -427,7 +428,8 @@ VertexID branch2vertex (HMesh::Manifold &m_out, Geometry::AMGraph3D& g, NodeID n
 
 }
 
-void init_branch_degree(HMesh::Manifold &m, Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet> node2fs) {
+void init_branch_degree(HMesh::Manifold &m, const Geometry::AMGraph3D& g,
+                        const Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
 
     for (auto n:g.node_ids()) {
@@ -520,7 +522,9 @@ void init_branch_degree(HMesh::Manifold &m, Geometry::AMGraph3D& g, Util::Attrib
 
 }
 
-FaceID branch2face (HMesh::Manifold &m_out, Geometry::AMGraph3D& g, NodeID n, NodeID nn, Util::AttribVec<NodeID, FaceSet> node2fs) {
+FaceID branch2face (HMesh::Manifold &m_out,
+                    const Geometry::AMGraph3D& g, NodeID n, NodeID nn,
+                    Util::AttribVec<NodeID, FaceSet> node2fs) {
 
     VertexID v = branch2vertex(m_out, g, n, nn, node2fs);
     vector<FaceID> face_set;
@@ -561,7 +565,7 @@ FaceID branch2face (HMesh::Manifold &m_out, Geometry::AMGraph3D& g, NodeID n, No
 
 }
 
-double face_dist(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, NodeID n, NodeID nn, FaceID f) {
+double face_dist(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, NodeID n, NodeID nn, FaceID f) {
     Vec3d pn = g.pos[n];
     Vec3d pnn = g.pos[nn];
     Vec3d v_n_nn = pnn - pn;
@@ -586,7 +590,7 @@ double face_dist(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, NodeID n, NodeI
 
 }
 
-void init_branch_face_pairs(HMesh::Manifold &m, Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet> node2fs) {
+void init_branch_face_pairs(HMesh::Manifold &m, const Geometry::AMGraph3D& g, const Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
     for (auto n:g.node_ids()) {
 
@@ -616,7 +620,8 @@ void init_branch_face_pairs(HMesh::Manifold &m, Geometry::AMGraph3D& g, Util::At
     }
 }
 
-double graph_unique_score(HMesh::Manifold &m, Geometry::AMGraph3D& g, NodeID n, NodeID nn, VertexID curr_vert, Util::AttribVec<NodeID, FaceSet> node2fs) {
+double graph_unique_score(HMesh::Manifold &m, const Geometry::AMGraph3D& g, NodeID n, NodeID nn, VertexID curr_vert,
+                          const Util::AttribVec<NodeID, FaceSet>& node2fs) {
   auto curr_nbs = next_neighbours(g, nn, n);
   vector<double> graph_lens;
   for (auto nb : curr_nbs) {
@@ -638,7 +643,7 @@ double graph_unique_score(HMesh::Manifold &m, Geometry::AMGraph3D& g, NodeID n, 
 return -1;
 }
 
-std::map<VertexID,int> val_diff_map(HMesh::Manifold &m, Geometry::AMGraph3D& g) {
+std::map<VertexID,int> val_diff_map(HMesh::Manifold &m, const Geometry::AMGraph3D& g) {
 
     Util::AttribVec<NodeID, FaceSet> node2fs;
     map<VertexID,int> vertex2val;
@@ -759,7 +764,9 @@ vector<FaceID> create_face_pair(Manifold& m, const Vec3d& pos, const Mat3x3d& _R
     return fvec;
 }
 
-void val2nodes_to_boxes(Geometry::AMGraph3D& g, HMesh::Manifold& mani, Util::AttribVec<NodeID, FaceSet>& n2fs, vector<double> r) {
+void val2nodes_to_boxes(const Geometry::AMGraph3D& g, HMesh::Manifold& mani,
+                        Util::AttribVec<NodeID, FaceSet>& n2fs,
+                        const vector<double>& r) {
     Vec3d c(0);
     for(auto n: g.node_ids())
         c += g.pos[n];
@@ -838,7 +845,7 @@ void val2nodes_to_boxes(Geometry::AMGraph3D& g, HMesh::Manifold& mani, Util::Att
 
 }
 
-void construct_bnps(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet>& node2fs, vector<double> r_arr) {
+void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet>& node2fs, vector<double> r_arr) {
 
   map<int, pair<NodeID,NodeID>> spts2branch;
   map <int, VertexID> spts2vertexid;
@@ -972,7 +979,8 @@ void construct_bnps(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::Attrib
     stitch_mesh(m_out, 1e-10);
 }
 
-void refine_BNPs(HMesh::Manifold &m, Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet> node2fs) {
+void refine_BNPs(HMesh::Manifold &m, const Geometry::AMGraph3D& g,
+                 const Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
     map<VertexID, int> vertex2valdiff = val_diff_map(m,g);
     bool work_done = false;
@@ -1056,7 +1064,8 @@ void refine_BNPs(HMesh::Manifold &m, Geometry::AMGraph3D& g, Util::AttribVec<Nod
     return;
 }
 
-void merge_branch_faces(HMesh::Manifold &m, Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet> node2fs) {
+void merge_branch_faces(HMesh::Manifold &m, const Geometry::AMGraph3D& g,
+                        const Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
     VertexID v;
     FaceID f, face_1, face_2;
@@ -1169,7 +1178,8 @@ void merge_branch_faces(HMesh::Manifold &m, Geometry::AMGraph3D& g, Util::Attrib
 
 //Bridging Functions
 
-FaceID rotate_bridge_face_set(HMesh::Manifold& m, FaceID f0, FaceID f1, Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
+FaceID rotate_bridge_face_set(HMesh::Manifold& m, FaceID f0, FaceID f1,
+                              const Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
     VertexID central_vertex_0 = face_vertex[f0];
     VertexID central_vertex_1 = face_vertex[f1];
 
@@ -1265,7 +1275,8 @@ FaceID rotate_bridge_face_set(HMesh::Manifold& m, FaceID f0, FaceID f1, Geometry
     return f0;
 }
 
-vector<pair<VertexID, VertexID>> face_match_careful(HMesh::Manifold& m, FaceID &f0, FaceID &f1, Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
+vector<pair<VertexID, VertexID>> face_match_careful(HMesh::Manifold& m, FaceID &f0, FaceID &f1,
+                                                    const Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
 
     vector<pair<VertexID, VertexID> > connections;
     if(!m.in_use(f0) || !m.in_use(f1))
@@ -1381,7 +1392,8 @@ vector<pair<VertexID, VertexID>> face_match_careful(HMesh::Manifold& m, FaceID &
     return connections;
 }
 
-vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID &f0, FaceID &f1, Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
+vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID &f0, FaceID &f1,
+                                                     const Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
 
     vector<pair<VertexID, VertexID> > connections;
     if(!m.in_use(f0) || !m.in_use(f1))
@@ -1528,7 +1540,8 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
    return connections;
 }
 
-FaceID find_bridge_face(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, NodeID start_node, NodeID next_node, Util::AttribVec<NodeID, FaceSet>& node2fs) {
+FaceID find_bridge_face(HMesh::Manifold &m_out,
+                        const Geometry::AMGraph3D& g, NodeID start_node, NodeID next_node, Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
   FaceID f0;
 
@@ -1567,7 +1580,8 @@ FaceID find_bridge_face(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, NodeID s
 
 }
 
-vector<pair<VertexID, VertexID>> find_bridge_connections(HMesh::Manifold &m_out, FaceID &f0, FaceID &f1, Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
+vector<pair<VertexID, VertexID>> find_bridge_connections(HMesh::Manifold &m_out, FaceID &f0, FaceID &f1,
+                                                         const Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
   vector<pair<VertexID, VertexID>> connections;
 
   if(f0 == InvalidFaceID || f1 == InvalidFaceID)
@@ -1585,7 +1599,7 @@ vector<pair<VertexID, VertexID>> find_bridge_connections(HMesh::Manifold &m_out,
 
 //Setup Global arrays
 
-void init_graph_arrays(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet>& node2fs) {
+void init_graph_arrays(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet>& node2fs) {
   init_branch_degree(m_out, g, node2fs);
   init_branch_face_pairs(m_out, g, node2fs);
   merge_branch_faces(m_out, g, node2fs);
@@ -1593,7 +1607,7 @@ void init_graph_arrays(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::Att
 
 //Main functions
 
-HMesh::Manifold graph_to_FEQ(Geometry::AMGraph3D& g, vector<double> node_radii) {
+HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>& _node_radii) {
 
     double r = 0.5 * g.average_edge_length();
     Manifold m_out;
@@ -1601,8 +1615,10 @@ HMesh::Manifold graph_to_FEQ(Geometry::AMGraph3D& g, vector<double> node_radii) 
 
     clear_global_arrays();
 
+    vector node_radii = _node_radii;
+    node_radii.resize(g.no_nodes());
     for(auto n : g.node_ids())
-      if(node_radii[n] == 0)
+      if(node_radii[n] == 0.0)
           node_radii[n] = r;
 
     construct_bnps(m_out, g, node2fs, node_radii);

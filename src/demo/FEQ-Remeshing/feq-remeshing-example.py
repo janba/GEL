@@ -31,7 +31,7 @@ for g_file, o_file, iter in zip(graphs, objs, iters):
 
     print('Building FEQ')
     s = graph.load(skel_dir + g_file)
-    m_skel = hmesh.skeleton_to_feq(s)
+    m_skel = hmesh.skeleton_to_feq(s)#, [5.0]*len(s.nodes()))
     hmesh.cc_split(m_skel)
     hmesh.cc_smooth(m_skel)
 
