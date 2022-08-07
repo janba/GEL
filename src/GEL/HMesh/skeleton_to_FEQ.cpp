@@ -154,9 +154,6 @@ void quad_mesh_leaves(HMesh::Manifold& m) {
     vector<FaceID> base_faces;
     vector<HalfEdgeID> new_edges;
 
-    int dissolve_flag = 0;
-
-
     for(auto f: m.faces())
         if(no_edges(m, f) != 4  || (val2_faces.count(f) && one_ring_face_vertex.count(f))) {
              HalfEdgeID ref_h;
@@ -219,20 +216,15 @@ bool check_planar(HMesh::Manifold &m, HalfEdgeID h) {
     FaceID face_2 = m.walker(h).opp().face();
 
     Vec3d normal_1 = normal(m, face_1);
-
     Vec3d normal_2 = normal(m, face_2);
-
     Vec3d center_1 = centre(m, face_1);
-
     Vec3d center_2 = centre(m, face_2);
 
     float dot_val_1 = dot(normal_1, center_2 - center_1);
-
     float dot_val_2 = dot(normal_2, center_1 - center_2);
 
     if(dot_val_1 > 0 && dot_val_2 > 0)
         return true;
-
 
     float dot_val = dot(normal_1 , normal_2);
 
@@ -637,7 +629,7 @@ double graph_unique_score(HMesh::Manifold &m, Geometry::AMGraph3D& g, NodeID n, 
         double curr_len = graph_length(g, n, nb);
         for (auto graph_len : graph_lens) {
           double curr_diff = abs(curr_len - graph_len);
-          if(curr_diff < max_diff and curr_diff != 0)
+          if(curr_diff < max_diff && curr_diff != 0)
               max_diff = curr_diff;
         }
     return max_diff;
@@ -720,17 +712,12 @@ vector<Vec3d> get_face_points(int n) {
 }
 
 vector<FaceID> create_face_pair(Manifold& m, const Vec3d& pos, const Mat3x3d& _R, int axis, int num_sides) {
-    double h = 0.5;
     if(num_sides == 0) {
         vector<FaceID>fvec;
         return fvec;
     }
 
     vector<Vec3d> face_points = get_face_points(num_sides);
-
-
-
-
     Mat3x3d R = _R;
     double det = determinant(R);
     if(abs(det))
@@ -934,9 +921,6 @@ void construct_bnps(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::Attrib
                   vector<Vec3d> triangle_pts;
                   for(int i=0;i<3; ++i) {
                       triangle_pts.push_back(spts[tri[i]]);
-                      auto key = spts2branch.find(tri[i])->second;
-                      auto value = tri[i];
-
                       node_vertex_count++;
 
                   }
@@ -1186,19 +1170,11 @@ void merge_branch_faces(HMesh::Manifold &m, Geometry::AMGraph3D& g, Util::Attrib
 //Bridging Functions
 
 FaceID rotate_bridge_face_set(HMesh::Manifold& m, FaceID f0, FaceID f1, Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
-
-    FaceID best_face = f0;
-
     VertexID central_vertex_0 = face_vertex[f0];
     VertexID central_vertex_1 = face_vertex[f1];
 
     int central_valency = valency(m, central_vertex_0);
 
-    float min_len = FLT_MAX;
-
-    Vec3d pn = g.pos[n];
-    Vec3d pnn = g.pos[nn];
-    Vec3d v_n_nn = normalize(pn - pnn);
     Vec3d cv_edge = normalize(m.pos(central_vertex_0) - m.pos(central_vertex_1));
 
     float max_dot_sum = -FLT_MAX;
@@ -1230,7 +1206,6 @@ FaceID rotate_bridge_face_set(HMesh::Manifold& m, FaceID f0, FaceID f1, Geometry
                 split_vertex = vloop0[(i+3)%L];
         }
 
-        int j_off_min_len = -1;
         float dot_sum = 0;
         float len = 0;
         for(int j_off = 0; j_off < L; ++j_off) {
@@ -1296,10 +1271,6 @@ vector<pair<VertexID, VertexID>> face_match_careful(HMesh::Manifold& m, FaceID &
     if(!m.in_use(f0) || !m.in_use(f1))
         return connections;
 
-    VertexID v0 = face_vertex[f0];
-    VertexID v1 = face_vertex[f1];
-
-
     vector<VertexID> loop0;
     circulate_face_ccw(m, f0, std::function<void(VertexID)>([&](VertexID v){
         loop0.push_back(v);
@@ -1315,9 +1286,6 @@ vector<pair<VertexID, VertexID>> face_match_careful(HMesh::Manifold& m, FaceID &
 
     if (L0 != L1)
         return connections;
-
-    NodeID start_node = next_jn(g, nn, n);
-    NodeID end_node = next_jn(g, n, nn);
 
     size_t L = L0;
 
@@ -1466,11 +1434,9 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
     if(one_ring_face_vertex[f0] == InvalidVertexID || one_ring_face_vertex[f1] == InvalidVertexID) {
 
       float min_len = FLT_MAX;
-      float max_dot_sum = -FLT_MAX;
 
       for(int j_off = 0; j_off < L; j_off = j_off + 1) {
         Vec3d bridge_edge_i, bridge_edge_j;
-        float dot_sum = FLT_MAX;
         float len = 0;
 
         for(int i=0;i<L;++i) {
@@ -1529,13 +1495,9 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
 
       }
 
-      float min_len = FLT_MAX;
-
-
       float max_dot_sum = 0;
       for(int j_off = j_off_min_len; j_off < 2*L; j_off = j_off + 2) {
 
-        float len = 0;
         Vec3d bridge_edge_i, bridge_edge_j;
         float dot_sum = FLT_MAX;
 
@@ -1625,9 +1587,7 @@ vector<pair<VertexID, VertexID>> find_bridge_connections(HMesh::Manifold &m_out,
 
 void init_graph_arrays(HMesh::Manifold &m_out, Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet>& node2fs) {
   init_branch_degree(m_out, g, node2fs);
-
   init_branch_face_pairs(m_out, g, node2fs);
-
   merge_branch_faces(m_out, g, node2fs);
 }
 
@@ -1646,15 +1606,11 @@ HMesh::Manifold graph_to_FEQ(Geometry::AMGraph3D& g, vector<double> node_radii) 
           node_radii[n] = r;
 
     construct_bnps(m_out, g, node2fs, node_radii);
-
     refine_BNPs(m_out, g, node2fs);
-
     id_preserving_cc(m_out);
-
     init_graph_arrays(m_out, g, node2fs);
 
     FaceAttributeVector<int> ftouched(m_out.allocated_faces(),-1);
-
     val2nodes_to_boxes(g, m_out, node2fs, node_radii);
 
     for(auto f_id: m_out.faces()) {
@@ -1662,8 +1618,6 @@ HMesh::Manifold graph_to_FEQ(Geometry::AMGraph3D& g, vector<double> node_radii) 
         if(one_ring_face_vertex.find(f_id) == one_ring_face_vertex.end())
             one_ring_face_vertex[f_id] = InvalidVertexID;
     }
-
-//    branchface.end()->second = InvalidFaceID;
 
     bool has_junction = false;
 
@@ -1673,9 +1627,7 @@ HMesh::Manifold graph_to_FEQ(Geometry::AMGraph3D& g, vector<double> node_radii) 
     }
 
     for (auto n: g.node_ids()) {
-
         FaceID f0 = InvalidFaceID;
-        FaceID f1 = InvalidFaceID;
         VertexID v0, v1;
 
         auto N = g.neighbors(n);
@@ -1684,13 +1636,8 @@ HMesh::Manifold graph_to_FEQ(Geometry::AMGraph3D& g, vector<double> node_radii) 
             continue;
 
         for(auto nn: N) {
-
             auto key = std::make_pair(n,nn);
             f0 = branchface.find(key)->second;
-
-            VertexID central_v = branch_best_vertex.find(key)->second;
-
-
 
             if(branchdeg.find(key)->second < 1 && has_junction)
                 continue;
@@ -1703,7 +1650,6 @@ HMesh::Manifold graph_to_FEQ(Geometry::AMGraph3D& g, vector<double> node_radii) 
             do {
 
                 FaceID f0 = find_bridge_face(m_out, g, start_node, next_node, node2fs);
-
                 FaceID f1 = find_bridge_face(m_out, g, next_node, start_node, node2fs);
 
                 nbd_list = next_neighbours(g, start_node, next_node);
