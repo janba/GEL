@@ -2,6 +2,7 @@
 from pygel3d import hmesh, graph, lib_py_gel
 import ctypes as ct
 import numpy as np
+from os import getcwd, chdir
 
 try:
     lib_py_gel.GLManifoldViewer_new.restype = ct.c_void_p
@@ -19,7 +20,9 @@ try:
         GLManifoldViewer and hence also several windows showing different
         visualizations. """
         def __init__(self):
+            current_directory = getcwd()
             self.obj = lib_py_gel.GLManifoldViewer_new()
+            chdir(current_directory) # Necessary because init_glfw changes cwd
         def __del__(self):
             lib_py_gel.GLManifoldViewer_delete(self.obj)
         def display(self, m, g=None, mode='w', smooth=True, bg_col=[0.3,0.3,0.3], data=None, reset_view=False, once=False):

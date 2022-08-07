@@ -24,9 +24,16 @@
 
 namespace GLGraphics {
 
+using ViewCtrlVec = std::vector<GLGraphics::GLViewController>;
+
+inline ViewCtrlVec& get_view_ctrl_vec() {
+    static ViewCtrlVec vcv;
+    return vcv;
+}
+
 class VisObj
 {
-    inline static std::vector<GLGraphics::GLViewController> view_ctrl_vec;
+    ViewCtrlVec& view_ctrl_vec;
 
     std::string file = "";
     bool create_display_list = true;
@@ -66,7 +73,7 @@ class VisObj
     
 public:
     
-    VisObj() {
+    VisObj(): view_ctrl_vec(get_view_ctrl_vec()) {
         view_ctrl_id = view_ctrl_vec.size();
         view_ctrl_vec.push_back(GLViewController());
     }

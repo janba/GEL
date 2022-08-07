@@ -506,18 +506,6 @@ namespace Geometry {
         return clusters;
     }
 
-
-    class GraphDist {
-        std::vector<LineSegment> segments;
-        double R = 0.0;
-        Geometry::KDTree<CGLA::Vec3d, size_t> seg_tree;
-        
-    public:
-        
-        GraphDist(const Geometry::AMGraph3D& g);
-        double dist(const CGLA::Vec3d& p);
-    };
-
     GraphDist::GraphDist(const AMGraph3D& g) {
         for(auto n : g.node_ids())
             if(g.in_use(n))

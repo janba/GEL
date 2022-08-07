@@ -2,7 +2,10 @@
 import ctypes as ct
 import numpy as np
 from numpy.linalg import norm
-from pygel3d import lib_py_gel, IntVector, Vec3dVector
+from pygel3d import lib_py_gel, IntVector, Vec3dVector, spatial
+from scipy.sparse import csc_matrix, vstack
+from scipy.sparse.linalg import lsqr
+from collections import defaultdict
 
 
 class Manifold:
@@ -11,7 +14,7 @@ class Manifold:
     ignore a few corner cases) unlike some other representations. This class contains a number of
     methods for mesh manipulation and inspection. Note also that numerous further functions are
     available to manipulate meshes stored as Manifolds.
-    
+
     Many of the functions below accept arguments called hid, fid, or vid. These are simply indices
     of halfedges, faces and vertices, respectively: integer numbers that identify the corresponding
     mesh element. Using a plain integer to identify a mesh entity means that, for instance, a
@@ -24,7 +27,7 @@ class Manifold:
             self.obj = lib_py_gel.Manifold_copy(orig.obj)
     @classmethod
     def from_triangles(cls,vertices, faces):
-        """ Given a list of vertices and triangles (faces), this function produces 
+        """ Given a list of vertices and triangles (faces), this function produces
         a Manifold mesh."""
         m = cls()
         m.obj = lib_py_gel.Manifold_from_triangles(len(vertices),len(faces),np.array(vertices,dtype=np.float64), np.array(faces,dtype=ct.c_int))
@@ -523,6 +526,123 @@ def triangulate(m, clip_ear=True):
     else:
         lib_py_gel.shortest_edge_triangulate(m.obj)
 
+def skeleton_to_feq(g, node_radii = np.array([])):
+    """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node. """
+    m = Manifold()
+    node_rs_flat = np.asarray(node_radii, dtype=np.float64)
+    if(len(node_rs_flat) == 0):
+        node_rs_flat = np.full(len(g.nodes()), 0.5 * g.average_edge_length())
+    lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat.ctypes.data_as(ct.POINTER(ct.c_double)))
+    return m
+
+def laplacian_matrix(m):
+    """ Returns the sparse uniform laplacian matrix for a polygonal mesh m. """
+
+    num_verts = m.no_allocated_vertices()
+    laplacian = np.full((num_verts,num_verts), 0.0)
+    for i in m.vertices():
+        nb_verts = m.circulate_vertex(i)
+        deg = len(nb_verts)
+        laplacian[i][i] = 1.0
+        for nb in nb_verts:
+            laplacian[i][nb] = -1/deg
+    return csc_matrix(laplacian)
+
+def inv_correspondence_leqs(m, ref_mesh, dist_obj):
+    """ Helper function to compute correspondences between a skeletal mesh m and a reference mesh ref_mesh, given a MeshDistance object dist_obj for the ref mesh. """
+
+    v_pos = m.positions()
+    num_verts = m.no_allocated_vertices()
+    control_points = []
+    close_pts = []
+    weights = []
+    cp_add_flag = 0
+
+    inv_close_points = defaultdict(list)
+
+    m_tree = spatial.I3DTree()
+    m_tree_index_set = []
+
+    for v in m.vertices():
+        m_tree.insert(v_pos[v],v)
+        m_tree_index_set.append(v)
+
+    m_tree.build()
+
+    for v_id in ref_mesh.vertices():
+        closest_pt_obj = m_tree.closest_point(ref_mesh.positions()[v_id],1000)
+        if (closest_pt_obj is not None):
+            key,index = closest_pt_obj[0],closest_pt_obj[1]
+            normal = ref_mesh.vertex_normal(v_id)
+            dir_vec = v_pos[index] - ref_mesh.positions()[v_id]
+            if((np.linalg.norm(dir_vec,2)*np.linalg.norm(normal,2)) == 0):
+                continue
+            else:
+                dot_val = np.dot(dir_vec,normal)/(np.linalg.norm(dir_vec,2)*np.linalg.norm(normal,2))
+            inv_close_points[index].append((v_id,dot_val))
+
+
+    for i in m.vertices():
+        curr_v = v_pos[i]
+        normal = m.vertex_normal(i)
+        cp_add_flag = 0
+        if(i in inv_close_points.keys()):
+            cp_cands = inv_close_points[i]
+            max_dot_val = 0
+            max_inv_dot_val = 0
+            max_index = -1
+            max_dist = 0
+            max_dist_index = -1
+            max_dist_dot_val = 0
+            curr_dist = dist_obj.signed_distance(curr_v)
+            for cp in cp_cands:
+                cp_pt = ref_mesh.positions()[cp[0]]
+                inv_dot_val = np.dot(normal , cp_pt - curr_v)/np.linalg.norm(cp_pt - curr_v,2)
+
+                if((cp[1] > 0 or inv_dot_val < 0) and curr_dist < 0):
+                    continue
+                if((cp[1] < 0 or inv_dot_val > 0) and curr_dist > 0):
+                    continue
+
+                control_points.append(i)
+                cp_add_flag = 1
+                close_pts.append(cp_pt)
+                weights.append((abs(cp[1])))
+
+    weight = 1.0
+    A = np.full((len(control_points),num_verts), 0.0)
+    b = np.full((len(control_points),3),0.0)
+    for i in range(len(control_points)):
+        A[i][control_points[i]] = weight*weights[i]
+        b[i][0] = weight*weights[i]*close_pts[i][0]
+        b[i][1] = weight*weights[i]*close_pts[i][1]
+        b[i][2] = weight*weights[i]*close_pts[i][2]
+    return csc_matrix(A),b
+
+def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 0.25, lap_wt = 1.0):
+    """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
+
+    v_pos = m.positions()
+    ref_pos = ref_mesh.positions()
+    max_iter = local_iter
+    lap_matrix = laplacian_matrix(m)
+    dist_obj = MeshDistance(ref_mesh)
+
+    for i in range(max_iter):
+        dist_wt -= 0.001
+        A, b = inv_correspondence_leqs(m, ref_mesh, dist_obj)
+        final_A = vstack([lap_wt*lap_matrix, dist_wt*A])
+        b_add = np.zeros((final_A.shape[0] - b.shape[0],3))
+        final_b = np.vstack([b_add, dist_wt*b])
+        opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
+        opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
+        opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
+        v_pos[:,0] = opt_x
+        v_pos[:,1] = opt_y
+        v_pos[:,2] = opt_z
+
+    return m
+
 
 class MeshDistance:
     """ This class allows you to compute the distance from any point in space to
@@ -533,11 +653,11 @@ class MeshDistance:
     def __del__(self):
         lib_py_gel.MeshDistance_delete(self.obj)
     def signed_distance(self,pts,upper=1e30):
-        """ Compute the signed distance from each point in pts to the mesh stored in 
-        this class instance. pts should be convertible to a length N>=1 array of 3D 
-        points. The function returns an array of N distance values with a single distance 
-        for each point. The distance corresponding to a point is positive if the point 
-        is outside and negative if inside. The upper parameter can be used to threshold 
+        """ Compute the signed distance from each point in pts to the mesh stored in
+        this class instance. pts should be convertible to a length N>=1 array of 3D
+        points. The function returns an array of N distance values with a single distance
+        for each point. The distance corresponding to a point is positive if the point
+        is outside and negative if inside. The upper parameter can be used to threshold
         how far away the distance is of interest. """
         p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
         n = p.shape[0]
@@ -547,10 +667,10 @@ class MeshDistance:
         lib_py_gel.MeshDistance_signed_distance(self.obj,n,p_ct,d_ct,upper)
         return d
     def ray_inside_test(self,pts,no_rays=3):
-        """Check whether each point in pts is inside or outside the stored mesh by 
+        """Check whether each point in pts is inside or outside the stored mesh by
         casting rays. pts should be convertible to a length N>=1 array of 3D points.
         Effectively, this is the sign of the distance. In some cases casting (multiple)
-        ray is more robust than using the sign computed locally. Returns an array of 
+        ray is more robust than using the sign computed locally. Returns an array of
         N integers which are either 1 or 0 depending on whether the corresponding point
         is inside (1) or outside (0). """
         p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
@@ -560,4 +680,3 @@ class MeshDistance:
         s_ct = s.ctypes.data_as(ct.POINTER(ct.c_int))
         lib_py_gel.MeshDistance_ray_inside_test(self.obj,n,p_ct,s_ct,no_rays)
         return s
-
