@@ -354,12 +354,12 @@ namespace  Geometry {
             return node_set_vec;
         };
         
-        size_t N = dvv.size();
+        size_t N = 50;//dvv.size();
         NodeSetVec node_set_vec_global;
         vector<future<NodeSetVec>> nsvfutures(N);
         
         for(int i=0;i<N;++i)
-        nsvfutures[i] = async(launch::async, process_dist, ref(g), dvv[i], 0);
+            nsvfutures[i] = async(launch::async, process_dist, ref(g), dvv[0], i);
         
         for(int i=0;i<N;++i) {
             NodeSetVec nsv =nsvfutures[i].get();
