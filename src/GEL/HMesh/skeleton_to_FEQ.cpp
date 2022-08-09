@@ -271,7 +271,7 @@ bool check_convex(const HMesh::Manifold &m, HalfEdgeID h) {
 bool check_planar_pts(const vector<Vec3d>& pts, double thresh) {
     if(pts.size() < 3)
         return true;
-    
+
     Vec3d avg(0.0);
     for (auto p: pts) {
         avg += p;
@@ -287,7 +287,7 @@ bool check_planar_pts(const vector<Vec3d>& pts, double thresh) {
     int N = power_eigensolution(m, Q, L);
     if(N<2)
         return false;
-    
+
     double max_dot_val = 0;
     Vec3d norm = normalize(cross(Q[0],Q[1]));
     for (const auto& pt : pts) {
@@ -1606,15 +1606,16 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
         }
 
       }
-
-      float max_dot_sum = 0;
+      float min_len = FLT_MAX;
       for(int j_off = j_off_min_len; j_off < 2*L; j_off = j_off + 2) {
 
-        Vec3d bridge_edge_i, bridge_edge_j;
-        float dot_sum = FLT_MAX;
+        //Vec3d bridge_edge_i, bridge_edge_j;
+        //float dot_sum = FLT_MAX;
+        float len = 0;
 
         for(int i=0;i<L;++i) {
-          bridge_edge_i = normalize(m.pos(loop0[i]) - m.pos(loop1[(L+j_off - i)%L]));
+          len += sqr_length(m.pos(loop0[i]) - m.pos(loop1[(L+j_off - i)%L]));
+          /**bridge_edge_i = normalize(m.pos(loop0[i]) - m.pos(loop1[(L+j_off - i)%L]));
           double curr_dot_sum = abs(dot(bridge_edge_i, v_n_nn));// + abs(dot(bridge_edge_i, v_n_nn));
           if(curr_dot_sum < dot_sum)
               dot_sum = curr_dot_sum;
@@ -1623,13 +1624,19 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
               curr_dot_sum = abs(dot(bridge_edge_i, bridge_edge_j));
               if(curr_dot_sum < dot_sum)
                 dot_sum = curr_dot_sum;
-        }
+        }**/
       }
 
-      if(dot_sum > max_dot_sum) {
+      if(len < min_len)   {
+       j_off_min_len = j_off;
+       min_len = len;
+      }
+
+
+/**      if(dot_sum > max_dot_sum) {
           j_off_min_len = j_off;
           max_dot_sum = dot_sum;
-      }
+      }**/
      }
    }
 
@@ -1639,6 +1646,7 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
 
    return connections;
 }
+
 FaceID find_bridge_face(HMesh::Manifold &m_out,
                         const Geometry::AMGraph3D& g, NodeID start_node, NodeID next_node, Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
