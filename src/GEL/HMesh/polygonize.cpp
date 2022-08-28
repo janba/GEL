@@ -21,7 +21,7 @@ using namespace Geometry;
 using namespace HMesh;
 
 namespace {
-    Vec3d hex_faces[6][4] = {
+    const Vec3d hex_faces[6][4] = {
         {Vec3d(-0.5,-0.5,-0.5), Vec3d(-0.5,0.5,-0.5),   Vec3d(-0.5,0.5,0.5),    Vec3d(-0.5,-0.5,0.5)},
         {Vec3d(0.5, 0.5,-0.5),  Vec3d(0.5,-0.5,-0.5),   Vec3d(0.5,-0.5,0.5),    Vec3d(0.5,0.5,0.5)},
         {Vec3d( 0.5,-0.5, -0.5),Vec3d(-0.5,-0.5, -0.5), Vec3d(-0.5,-0.5, 0.5),  Vec3d(0.5,-0.5, 0.5)},
@@ -29,6 +29,9 @@ namespace {
         {Vec3d(-0.5,-0.5,-0.5), Vec3d(0.5,-0.5,-0.5),   Vec3d(0.5,0.5,-0.5),    Vec3d(-0.5,0.5,-0.5)},
         {Vec3d( 0.5,-0.5,0.5),  Vec3d(-0.5,-0.5,0.5),   Vec3d(-0.5,0.5,0.5),    Vec3d(0.5,0.5,0.5)}
     };
+
+    const vector<Vec3i> diag_a = {Vec3i(0,0,0), Vec3i(1,0,0), Vec3i(0,1,0), Vec3i(0,0,1)};
+    const vector<Vec3i> diag_b = {Vec3i(1,1,1), Vec3i(0,1,1), Vec3i(1,0,1), Vec3i(1,1,0)};
 }
 
 namespace HMesh
@@ -168,21 +171,26 @@ namespace HMesh
         if(make_triangles)
             triangulate(mani);
         mani.cleanup();
-        if(pre_smooth_steps>0)
-            taubin_smooth(mani, pre_smooth_steps);
+
         for(auto v: mani.vertices()) {
-            const Vec3d p = mani.pos(v);
-            Vec3d p_new = p;
-            for(int iter=0;iter<3; ++iter) {
-                const Vec3d g = Vec3d(clamp_trilin_grad(grid, p_new));
-                float v = clamp_interpolate(grid, p_new);
-                p_new -= g*(v-tau)/(1e-10+sqr_length(g));
-                p_new = v_min(p+Vec3d(0.5), v_max(p-Vec3d(0.5), p_new));
-                p_new = v_min(urt_vc, v_max(llf_vc, p_new));
+            const Vec3i pi(mani.pos(v));
+            if(grid.in_domain(pi) && grid.in_domain(pi+diag_b[0])) {
+                int cnt = 0;
+                Vec3d p(0);
+                for(int i=0;i<4;++i) {
+                    float va = grid[pi + diag_a[i]];
+                    float vb = grid[pi + diag_b[i]];
+                    if(max(va,vb)>tau && min(va,vb)<=tau) {
+                        p += Vec3d(pi + diag_a[i]) * (vb-tau)/(vb-va);
+                        p += Vec3d(pi + diag_b[i]) * (va-tau)/(va-vb);
+                        cnt += 1;
+                    }
+                }
+                if (cnt>0)
+                    mani.pos(v) = p / cnt;
             }
-            mani.pos(v) = p_new;
         }
-        for(auto v: mani.vertices())
+            for(auto v: mani.vertices())
             mani.pos(v) = xform.inverse(mani.pos(v));
     }
     
