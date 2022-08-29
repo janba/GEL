@@ -1,5 +1,6 @@
 #include <array>
 #include <cmath>
+#include <algorithm>
 
 #include <GEL/CGLA/CGLA.h>
 #include <GEL/Geometry/KDTree.h>
@@ -832,6 +833,35 @@ void val2nodes_to_boxes(const Geometry::AMGraph3D& g, HMesh::Manifold& mani,
 }
 
 int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
+    
+    /* This function creates extra points to add to the BNP vertices for a branch node.
+     These extra points are called ghost points because they do not correspond to an outgoing
+     edge.
+     
+     To do this, we categorize nodes according to three categories
+     
+     Type A (flat): All outgoing edges lie more or less in a plane for this type of nodes, and
+     the BNP becomes very flat.
+     
+     Type B (semi flat): All outgoing edges again lie more or less in a plane, but on one side of
+     the BNP one or more additional outgoing edges emanate.
+     
+     Type C (general): This type comprises everything else. For type C nodes, it is hard to say
+     something meaningful about the configuration of outgoing edges.
+     
+     The idea behind this function is to add two ghost points to Type A nodes, a single for Type B
+     and 0 for Type C. This heuristic is based on the observation that for Type A this will lead to
+     valence 4 vertices generally since most of the vertices will be connected to two neighbouring
+     points and the two ghosts. For Type B, the same is true if there is a single outgoing edge
+     perpendicular to the edges that form a flat region.
+     
+     Procedure:
+     Initially, we add a ghost point for every triangle in the
+     initial BNP where the smallest pairwise dot product between the vertices
+     is less than -0.1. The ghost point is the normal of the triangle.
+     Intuitively, this adds what corresponds to a new outgoing edge in a direction
+     of the sphere that is otherwise not well covered.
+     */
     vector<Vec3d> ghost_pts;
     for(auto t: tris) {
         const auto& p0 = pts[t[0]];
@@ -840,30 +870,55 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         Vec3d v1 = pts[t[1]]-pts[t[0]];
         Vec3d v2 = pts[t[2]]-pts[t[0]];
         double l = min(dot(p0, p1), min( dot(p1,p2), dot(p2,p0)));
-        if (l<-0.5) {
+        if (l<-0.1) {
             ghost_pts.push_back(normalize(cross(v1, v2)));
         }
     }
     
-    vector<Vec3d> ghost_pts_new;
-    vector<int> used(ghost_pts.size(), 0);
-    for(int i=0;i<ghost_pts.size(); ++i)
-        if (!used[i]) {
-            Vec3d g = ghost_pts[i];
-            for(int j=i+1; j<ghost_pts.size(); ++j)
-                if (!used[j]) {
-                    auto g2 = ghost_pts[j];
-                    if (dot(g, g2) > -0.01) {
-                        g = normalize(g+g2);
-                        used[j] = 1;
-                    }
-                }
-            ghost_pts_new.push_back(g);
+    /* Next, we cluster the ghost points. This is because in flatish
+     configurations we could have several quite similar ghost points.
+     The threshold -0.1 is very loose to avoid adding too many ghosts */
+    vector<int> cluster_id(ghost_pts.size(), -1);
+    int max_id = 0;
+    for(int i=0;i<ghost_pts.size(); ++i) {
+        if (cluster_id[i] == -1) {
+            cluster_id[i] = max_id++;
         }
-    for (auto g: ghost_pts_new)
+        for(int j=i+1; j<ghost_pts.size(); ++j) {
+            if (cluster_id[j] == -1) {
+                if (dot(ghost_pts[i], ghost_pts[j]) > -0.1)
+                    cluster_id[j] = cluster_id[i];
+            }
+        }
+    }
+    
+    vector<Vec3d> ghost_pts_new(max_id, Vec3d(0));
+    for(int i=0;i<ghost_pts.size(); ++i) {
+        ghost_pts_new[cluster_id[i]] += ghost_pts[i];
+    }
+      
+    /* Finally, we cull ghost points too close to an existing non-ghost point.
+     The threshold of 0.4 allows ghost points to be a little closer to other
+     points than each other. */
+    ghost_pts.resize(0);
+    for(auto& p: ghost_pts_new) {
+        p.normalize();
+        vector<double> dots;
+        for(const auto& p_orig: pts)
+            dots.push_back(dot(p,p_orig));
+        if(*max_element(begin(dots), end(dots))<0.4)
+            ghost_pts.push_back(p);
+    }
+    
+    /* If there are more than three ghost points, it is a Type C BNP, and
+     we do nothing. */
+    if(ghost_pts.size()>2)
+        return 0;
+        
+    for (auto g: ghost_pts)
         pts.push_back(g);
     
-    return ghost_pts_new.size();
+    return ghost_pts.size();
 }
 
 void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet>& node2fs, vector<double> r_arr) {

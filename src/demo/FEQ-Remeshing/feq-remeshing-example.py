@@ -43,4 +43,5 @@ for g_file, o_file, iter in zip(graphs, objs, iters):
     print("Displaying. HIT ESC IN GRAPHICS WINDOW TO PROCEED...")
     viewer.display(fit_mesh, reset_view=True)
 
+    # viewer.display(m_skel, reset_view=True)
 
