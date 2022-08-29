@@ -840,7 +840,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         Vec3d v1 = pts[t[1]]-pts[t[0]];
         Vec3d v2 = pts[t[2]]-pts[t[0]];
         double l = min(dot(p0, p1), min( dot(p1,p2), dot(p2,p0)));
-        if (l<-0.65) {
+        if (l<-0.5) {
             ghost_pts.push_back(normalize(cross(v1, v2)));
         }
     }
@@ -853,7 +853,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
             for(int j=i+1; j<ghost_pts.size(); ++j)
                 if (!used[j]) {
                     auto g2 = ghost_pts[j];
-                    if (dot(g, g2) > -0.1) {
+                    if (dot(g, g2) > -0.01) {
                         g = normalize(g+g2);
                         used[j] = 1;
                     }
