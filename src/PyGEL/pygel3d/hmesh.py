@@ -538,9 +538,9 @@ def volumetric_isocontouring(dims, data,
     quads into triangles. Finally, high_is_inside means that values greater than tau are
     interior. """
     m = Manifold()
-    data_float = np.asarray(data, dtype=np.float).ctypes
-    bbox_min_d = np.asarray(bbox_min, dtype=np.float64).ctypes
-    bbox_max_d = np.asarray(bbox_max, dtype=np.float64).ctypes
+    data_float = np.asarray(data, dtype=np.float, order='C').ctypes
+    bbox_min_d = np.asarray(bbox_min, dtype=np.float64, order='C').ctypes
+    bbox_max_d = np.asarray(bbox_max, dtype=np.float64, order='C').ctypes
     lib_py_gel.volumetric_isocontouring(m.obj, dims[0], dims[1], dims[2],
                                         data_float.data_as(ct.POINTER(ct.c_float)),
                                         bbox_min_d.data_as(ct.POINTER(ct.c_double)),
