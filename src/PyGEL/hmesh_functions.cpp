@@ -176,6 +176,24 @@ void ear_clip_triangulate(Manifold_ptr m_ptr) {
     triangulate(*(reinterpret_cast<Manifold*>(m_ptr)), CLIP_EAR);
 }
 
+void taubin_smooth(Manifold_ptr m_ptr, int iter) {
+    taubin_smooth(*(reinterpret_cast<Manifold*>(m_ptr)), iter);
+}
+
+void laplacian_smooth(Manifold_ptr m_ptr, float weight, int iter) {
+    laplacian_smooth(*(reinterpret_cast<Manifold*>(m_ptr)), weight, iter);
+}
+
+void volumetric_isocontouring(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim, float* data,
+                     double* pmin, double* pmax, float tau, bool make_triangles, bool high_is_inside) {
+    Vec3i dims(x_dim, y_dim, z_dim);
+    XForm xform(*(reinterpret_cast<Vec3d*>(pmin)), *(reinterpret_cast<Vec3d*>(pmax)), dims);
+    RGrid<float> grid(dims);
+    memcpy(grid.get(), data, grid.get_size() * sizeof(float));
+    volume_polygonize(xform, grid, *(reinterpret_cast<Manifold*>(m_ptr)), tau, make_triangles, high_is_inside);
+}
+
+
 void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double *node_radii) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);

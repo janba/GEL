@@ -146,12 +146,9 @@ namespace HMesh
     }
 
     void volume_polygonize(const XForm& xform, const Geometry::RGrid<float>& grid,
-                           HMesh::Manifold& mani, float tau, bool make_triangles, bool high_is_inside, int pre_smooth_steps)
+                           HMesh::Manifold& mani, float tau, bool make_triangles, bool high_is_inside)
     {
         const double delta = sqrt(3.0)/2.0;
-        
-        Vec3d llf_vc = xform.apply(xform.get_llf());
-        Vec3d urt_vc = xform.apply(xform.get_urt());
 
         mani.clear();
         vector<Vec3d> quad_vertices;

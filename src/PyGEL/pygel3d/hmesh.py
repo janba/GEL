@@ -517,6 +517,36 @@ def loop_smooth(m):
     """ If called after Loop split, this function completes a step of Loop
     subdivision of m. """
     lib_py_gel.loop_smooth(m.obj)
+    
+def taubin_smooth(m, iter=1):
+    """ This function performs Taubin smoothing on the mesh m for iter number
+    of iterations. """
+    lib_py_gel.taubin_smooth(m.obj, iter)
+
+def laplacian_smooth(m, w=0.5, iter=1):
+    """ This function performs Laplacian smoothing on the mesh m for iter number
+    of iterations. w is the weight applied. """
+    lib_py_gel.laplacian_smooth(m.obj, w, iter)
+    
+def volumetric_isocontouring(dims, data,
+                            bbox_min = [0.0, 0.0, 0.0],
+                            bbox_max = [1.0, 1.0, 1.0],
+                            tau=0.0, make_triangles=True, high_is_inside=True):
+    """ Creates a polygonal mesh by contouring volumetric data. The dimensions are given by
+    dims, bbox_min and bbox_max are the corners of the bounding box in R^3 that corresponds
+    to the volumetric grid, tau is the iso value. If make_triangles is true, we turn the
+    quads into triangles. Finally, high_is_inside means that values greater than tau are
+    interior. """
+    m = Manifold()
+    data_float = np.asarray(data, dtype=np.float).ctypes
+    bbox_min_d = np.asarray(bbox_min, dtype=np.float64).ctypes
+    bbox_max_d = np.asarray(bbox_max, dtype=np.float64).ctypes
+    lib_py_gel.volumetric_isocontouring(m.obj, dims[0], dims[1], dims[2],
+                                        data_float.data_as(ct.POINTER(ct.c_float)),
+                                        bbox_min_d.data_as(ct.POINTER(ct.c_double)),
+                                        bbox_max_d.data_as(ct.POINTER(ct.c_double)), tau,
+                                        make_triangles, high_is_inside)
+    return m
 
 def triangulate(m, clip_ear=True):
     """ Turn a general polygonal mesh, m, into a triangle mesh by repeatedly
