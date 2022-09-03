@@ -13,6 +13,7 @@
 #include <GEL/Geometry/graph_io.h>
 #include <GEL/Geometry/graph_skeletonize.h>
 #include <GEL/Geometry/graph_util.h>
+#include <GEL/Geometry/GridAlgorithm.h>
 #include "Graph.h"
 #include "Manifold.h"
 
@@ -185,11 +186,19 @@ void laplacian_smooth(Manifold_ptr m_ptr, float weight, int iter) {
 }
 
 void volumetric_isocontouring(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim, float* data,
-                     double* pmin, double* pmax, float tau, bool make_triangles, bool high_is_inside) {
+                     double* _pmin, double* _pmax, float tau, bool make_triangles, bool high_is_inside) {
     Vec3i dims(x_dim, y_dim, z_dim);
-    XForm xform(*(reinterpret_cast<Vec3d*>(pmin)), *(reinterpret_cast<Vec3d*>(pmax)), dims);
+    const Vec3d pmin = *(reinterpret_cast<Vec3d*>(_pmin));
+    const Vec3d pmax = *(reinterpret_cast<Vec3d*>(_pmax));
+    XForm xform(pmin, pmax, dims);
     RGrid<float> grid(dims);
     memcpy(grid.get(), data, grid.get_size() * sizeof(float));
+    float minval=FLT_MAX,maxval=-FLT_MAX;
+    for (const auto pi: Range3D(dims)) {
+        minval = min(minval, grid[pi]);
+        maxval = max(maxval, grid[pi]);
+        Vec3d p(pi);
+    }
     volume_polygonize(xform, grid, *(reinterpret_cast<Manifold*>(m_ptr)), tau, make_triangles, high_is_inside);
 }
 

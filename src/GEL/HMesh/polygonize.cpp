@@ -168,26 +168,47 @@ namespace HMesh
         if(make_triangles)
             triangulate(mani);
         mani.cleanup();
-
+        
+        struct Corner {
+            float val;
+            bool inside;
+            Vec3d pos;
+        };
+        array<Corner,8> corners;
         for(auto v: mani.vertices()) {
             const Vec3i pi(mani.pos(v));
-            if(grid.in_domain(pi) && grid.in_domain(pi+diag_b[0])) {
-                int cnt = 0;
-                Vec3d p(0);
-                for(int i=0;i<4;++i) {
-                    float va = grid[pi + diag_a[i]];
-                    float vb = grid[pi + diag_b[i]];
+            int cnt = 0;
+            float va=0;
+            Vec3d pa(0.0);
+            for (int i=0;i<8;++i) {
+                Vec3i pbi = pi + CubeCorners8i[i];
+                if (grid.in_domain(pbi)) {
+                    corners[i].inside = true;
+                    va += corners[i].val = grid[pbi];
+                    pa += corners[i].pos = Vec3d(pbi);
+                    ++cnt;
+                }
+                else corners[i].inside = false;
+            }
+            pa /= cnt;
+            va /= cnt;
+            
+            Vec3d p(0.0);
+            cnt = 0;
+            for (int i=0;i<8;++i)
+                if (corners[i].inside) {
+                    float vb = corners[i].val;
                     if(max(va,vb)>tau && min(va,vb)<=tau) {
-                        p += Vec3d(pi + diag_a[i]) * (vb-tau)/(vb-va);
-                        p += Vec3d(pi + diag_b[i]) * (va-tau)/(va-vb);
-                        cnt += 1;
+                        float delta = vb - va;
+                        Vec3d pb = corners[i].pos;
+                        p += pa * (vb-tau)/delta - pb * (va-tau)/delta;
+                        ++cnt;
                     }
                 }
-                if (cnt>0)
-                    mani.pos(v) = p / cnt;
-            }
+            mani.pos(v) = (cnt>0)? p / cnt : pa;
+
         }
-            for(auto v: mani.vertices())
+        for(auto v: mani.vertices())
             mani.pos(v) = xform.inverse(mani.pos(v));
     }
     

@@ -528,23 +528,26 @@ def laplacian_smooth(m, w=0.5, iter=1):
     of iterations. w is the weight applied. """
     lib_py_gel.laplacian_smooth(m.obj, w, iter)
     
-def volumetric_isocontouring(dims, data,
-                            bbox_min = [0.0, 0.0, 0.0],
-                            bbox_max = [1.0, 1.0, 1.0],
+def volumetric_isocontouring(data, dims, bbox_min = None, bbox_max = None,
                             tau=0.0, make_triangles=True, high_is_inside=True):
-    """ Creates a polygonal mesh by contouring volumetric data. The dimensions are given by
-    dims, bbox_min and bbox_max are the corners of the bounding box in R^3 that corresponds
-    to the volumetric grid, tau is the iso value. If make_triangles is true, we turn the
-    quads into triangles. Finally, high_is_inside means that values greater than tau are
-    interior. """
+    """ Creates a polygonal mesh by dual contouring of the volumetric data. The dimensions
+    are given by dims, bbox_min (defaults to [0,0,0] ) and bbox_max (defaults to dims) are
+    the corners of the bounding box in R^3 that corresponds to the volumetric grid, tau is
+    the iso value (defaults to 0). If make_triangles is True (default), we turn the quads
+    into triangles. Finally, high_is_inside=True (default) means that values greater than
+    tau are interior and smaller values are exterior. """
     m = Manifold()
-    data_float = np.asarray(data, dtype=np.float, order='C').ctypes
-    bbox_min_d = np.asarray(bbox_min, dtype=np.float64, order='C').ctypes
-    bbox_max_d = np.asarray(bbox_max, dtype=np.float64, order='C').ctypes
+    if bbox_min is None:
+        bbox_min = [0,0,0]
+    if bbox_max is None:
+        bbox_max = dims
+    data_float = np.asarray(data.flatten(order='F'), dtype=ct.c_float)
+    bbox_min_d = np.asarray(bbox_min, dtype=np.float64, order='C')
+    bbox_max_d = np.asarray(bbox_max, dtype=np.float64, order='C')
     lib_py_gel.volumetric_isocontouring(m.obj, dims[0], dims[1], dims[2],
-                                        data_float.data_as(ct.POINTER(ct.c_float)),
-                                        bbox_min_d.data_as(ct.POINTER(ct.c_double)),
-                                        bbox_max_d.data_as(ct.POINTER(ct.c_double)), tau,
+                                        data_float.ctypes.data_as(ct.POINTER(ct.c_float)),
+                                        bbox_min_d.ctypes.data_as(ct.POINTER(ct.c_double)),
+                                        bbox_max_d.ctypes.data_as(ct.POINTER(ct.c_double)), tau,
                                         make_triangles, high_is_inside)
     return m
 
