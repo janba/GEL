@@ -29,9 +29,6 @@ namespace {
         {Vec3d(-0.5,-0.5,-0.5), Vec3d(0.5,-0.5,-0.5),   Vec3d(0.5,0.5,-0.5),    Vec3d(-0.5,0.5,-0.5)},
         {Vec3d( 0.5,-0.5,0.5),  Vec3d(-0.5,-0.5,0.5),   Vec3d(-0.5,0.5,0.5),    Vec3d(0.5,0.5,0.5)}
     };
-
-    const vector<Vec3i> diag_a = {Vec3i(0,0,0), Vec3i(1,0,0), Vec3i(0,1,0), Vec3i(0,0,1)};
-    const vector<Vec3i> diag_b = {Vec3i(1,1,1), Vec3i(0,1,1), Vec3i(1,0,1), Vec3i(1,1,0)};
 }
 
 namespace HMesh
