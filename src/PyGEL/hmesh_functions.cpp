@@ -190,15 +190,9 @@ void volumetric_isocontouring(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_di
     Vec3i dims(x_dim, y_dim, z_dim);
     const Vec3d pmin = *(reinterpret_cast<Vec3d*>(_pmin));
     const Vec3d pmax = *(reinterpret_cast<Vec3d*>(_pmax));
-    XForm xform(pmin, pmax, dims);
+    XForm xform(pmin, pmax, dims, 0.0);
     RGrid<float> grid(dims);
     memcpy(grid.get(), data, grid.get_size() * sizeof(float));
-    float minval=FLT_MAX,maxval=-FLT_MAX;
-    for (const auto pi: Range3D(dims)) {
-        minval = min(minval, grid[pi]);
-        maxval = max(maxval, grid[pi]);
-        Vec3d p(pi);
-    }
     volume_polygonize(xform, grid, *(reinterpret_cast<Manifold*>(m_ptr)), tau, make_triangles, high_is_inside);
 }
 
