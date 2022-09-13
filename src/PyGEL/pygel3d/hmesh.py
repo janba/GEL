@@ -528,8 +528,8 @@ def laplacian_smooth(m, w=0.5, iter=1):
     of iterations. w is the weight applied. """
     lib_py_gel.laplacian_smooth(m.obj, w, iter)
     
-def volumetric_isocontouring(data, dims, bbox_min = None, bbox_max = None,
-                            tau=0.0, make_triangles=True, high_is_inside=True):
+def volumetric_isocontour(data, bbox_min = None, bbox_max = None,
+                          tau=0.0, make_triangles=True, high_is_inside=True):
     """ Creates a polygonal mesh by dual contouring of the volumetric data. The dimensions
     are given by dims, bbox_min (defaults to [0,0,0] ) and bbox_max (defaults to dims) are
     the corners of the bounding box in R^3 that corresponds to the volumetric grid, tau is
@@ -537,18 +537,19 @@ def volumetric_isocontouring(data, dims, bbox_min = None, bbox_max = None,
     into triangles. Finally, high_is_inside=True (default) means that values greater than
     tau are interior and smaller values are exterior. """
     m = Manifold()
+    dims = data.shape
     if bbox_min is None:
-        bbox_min = [0,0,0]
+        bbox_min = (0,0,0)
     if bbox_max is None:
         bbox_max = dims
     data_float = np.asarray(data.flatten(order='F'), dtype=ct.c_float)
     bbox_min_d = np.asarray(bbox_min, dtype=np.float64, order='C')
     bbox_max_d = np.asarray(bbox_max, dtype=np.float64, order='C')
-    lib_py_gel.volumetric_isocontouring(m.obj, dims[0], dims[1], dims[2],
-                                        data_float.ctypes.data_as(ct.POINTER(ct.c_float)),
-                                        bbox_min_d.ctypes.data_as(ct.POINTER(ct.c_double)),
-                                        bbox_max_d.ctypes.data_as(ct.POINTER(ct.c_double)), tau,
-                                        make_triangles, high_is_inside)
+    lib_py_gel.volumetric_isocontour(m.obj, dims[0], dims[1], dims[2],
+                                     data_float.ctypes.data_as(ct.POINTER(ct.c_float)),
+                                     bbox_min_d.ctypes.data_as(ct.POINTER(ct.c_double)),
+                                     bbox_max_d.ctypes.data_as(ct.POINTER(ct.c_double)), tau,
+                                     make_triangles, high_is_inside)
     return m
 
 def triangulate(m, clip_ear=True):
@@ -581,92 +582,61 @@ def laplacian_matrix(m):
             laplacian[i][nb] = -1/deg
     return csc_matrix(laplacian)
 
-def inv_correspondence_leqs(m, ref_mesh, dist_obj):
+
+def inv_correspondence_leqs(m, ref_mesh):
     """ Helper function to compute correspondences between a skeletal mesh m and a reference mesh ref_mesh, given a MeshDistance object dist_obj for the ref mesh. """
 
-    v_pos = m.positions()
-    num_verts = m.no_allocated_vertices()
-    control_points = []
-    close_pts = []
-    weights = []
-    cp_add_flag = 0
-
-    inv_close_points = defaultdict(list)
+    m_pos = m.positions()
+    ref_pos = ref_mesh.positions()
 
     m_tree = spatial.I3DTree()
     m_tree_index_set = []
-
     for v in m.vertices():
-        m_tree.insert(v_pos[v],v)
+        m_tree.insert(m_pos[v],v)
         m_tree_index_set.append(v)
-
     m_tree.build()
 
-    for v_id in ref_mesh.vertices():
-        closest_pt_obj = m_tree.closest_point(ref_mesh.positions()[v_id],1000)
-        if (closest_pt_obj is not None):
-            key,index = closest_pt_obj[0],closest_pt_obj[1]
-            normal = ref_mesh.vertex_normal(v_id)
-            dir_vec = v_pos[index] - ref_mesh.positions()[v_id]
-            if((np.linalg.norm(dir_vec,2)*np.linalg.norm(normal,2)) == 0):
-                continue
-            else:
-                dot_val = np.dot(dir_vec,normal)/(np.linalg.norm(dir_vec,2)*np.linalg.norm(normal,2))
-            inv_close_points[index].append((v_id,dot_val))
+    m_target_pos = np.zeros(m.positions().shape)
+    m_cnt = np.zeros(m.no_allocated_vertices())
+    for r_id in ref_mesh.vertices():
+        query_pt = ref_pos[r_id]
+        closest_pt_obj = m_tree.closest_point(query_pt,1e32)
+        if closest_pt_obj is not None:
+            key,m_id = closest_pt_obj
+            r_norm = ref_mesh.vertex_normal(r_id)
+            m_norm = m.vertex_normal(m_id)
+            if m_norm @ r_norm > 0.75:
+                m_target_pos[m_id] += query_pt
+                m_cnt[m_id] += 1
+                
+    N = m.no_allocated_vertices()
+    A_list = []
+    b_list = []
+    for vid in m.vertices():
+        if m_cnt[vid] > 0.0:
+            row_a = np.zeros(N)
+            row_a[vid] = 1.0
+            A_list.append(row_a)
+            pt_target = m_target_pos[vid] / m_cnt[vid]
+            b_list.append(pt_target)
+    return csc_matrix(np.array(A_list)), np.array(b_list)
 
 
-    for i in m.vertices():
-        curr_v = v_pos[i]
-        normal = m.vertex_normal(i)
-        cp_add_flag = 0
-        if(i in inv_close_points.keys()):
-            cp_cands = inv_close_points[i]
-            max_dot_val = 0
-            max_inv_dot_val = 0
-            max_index = -1
-            max_dist = 0
-            max_dist_index = -1
-            max_dist_dot_val = 0
-            curr_dist = dist_obj.signed_distance(curr_v)
-            for cp in cp_cands:
-                cp_pt = ref_mesh.positions()[cp[0]]
-                inv_dot_val = np.dot(normal , cp_pt - curr_v)/np.linalg.norm(cp_pt - curr_v,2)
-
-                if((cp[1] > 0 or inv_dot_val < 0) and curr_dist < 0):
-                    continue
-                if((cp[1] < 0 or inv_dot_val > 0) and curr_dist > 0):
-                    continue
-
-                control_points.append(i)
-                cp_add_flag = 1
-                close_pts.append(cp_pt)
-                weights.append((abs(cp[1])))
-
-    weight = 1.0
-    A = np.full((len(control_points),num_verts), 0.0)
-    b = np.full((len(control_points),3),0.0)
-    for i in range(len(control_points)):
-        A[i][control_points[i]] = weight*weights[i]
-        b[i][0] = weight*weights[i]*close_pts[i][0]
-        b[i][1] = weight*weights[i]*close_pts[i][1]
-        b[i][2] = weight*weights[i]*close_pts[i][2]
-    return csc_matrix(A),b
-
-def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 0.25, lap_wt = 1.0):
+def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 0.75, lap_wt = 1.0):
     """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
 
     v_pos = m.positions()
     ref_pos = ref_mesh.positions()
     max_iter = local_iter
     lap_matrix = laplacian_matrix(m)
-    dist_obj = MeshDistance(ref_mesh)
 
     for i in range(max_iter):
-        dist_wt -= 0.001
-        A, b = inv_correspondence_leqs(m, ref_mesh, dist_obj)
+        cc_smooth(m)
+        cc_smooth(m)
+        lap_b = lap_matrix @ v_pos
+        A, b = inv_correspondence_leqs(m, ref_mesh)
         final_A = vstack([lap_wt*lap_matrix, dist_wt*A])
-        b_add = np.zeros((final_A.shape[0] - b.shape[0],3))
-        final_b = np.vstack([b_add, dist_wt*b])
+        final_b = np.vstack([lap_wt * lap_b, dist_wt*b])
         opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
         opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
         opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]

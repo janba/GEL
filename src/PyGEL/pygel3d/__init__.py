@@ -214,7 +214,7 @@ lib_py_gel.graph_to_feq.argtypes = (ct.c_void_p, ct.c_void_p, ct.POINTER(ct.c_do
 lib_py_gel.graph_to_feq.restype = ct.c_void_p
 lib_py_gel.taubin_smooth.argtypes = (ct.c_void_p, ct.c_int)
 lib_py_gel.laplacian_smooth.argtypes = (ct.c_void_p, ct.c_float, ct.c_int)
-lib_py_gel.volumetric_isocontouring.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_int, ct.POINTER(ct.c_float), ct.POINTER(ct.c_double), ct.POINTER(ct.c_double), ct.c_float, ct.c_bool, ct.c_bool )
+lib_py_gel.volumetric_isocontour.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_int, ct.POINTER(ct.c_float), ct.POINTER(ct.c_double), ct.POINTER(ct.c_double), ct.c_float, ct.c_bool, ct.c_bool )
 
 
 # MeshDistance allows us to compute the signed distance to a mesh

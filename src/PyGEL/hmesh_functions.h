@@ -89,8 +89,8 @@ extern "C" {
 
     DLLEXPORT void laplacian_smooth(Manifold_ptr m_ptr, float weight, int iter);
 
-    DLLEXPORT void volumetric_isocontouring(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim, float* data,
-                                            double* pmin, double* pmax, float tau, bool make_triangles, bool high_is_inside);
+    DLLEXPORT void volumetric_isocontour(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim, float* data,
+                                         double* pmin, double* pmax, float tau, bool make_triangles, bool high_is_inside);
 
     DLLEXPORT void shortest_edge_triangulate(Manifold_ptr m_ptr);
 

@@ -1,4 +1,5 @@
 #!/opt/local/bin/python
+from this import d
 from pygel3d import hmesh, graph, gl_display as gl
 from os import getcwd
 
@@ -38,10 +39,10 @@ for g_file, o_file, iter in zip(graphs, objs, iters):
     print('Fitting to reference mesh')
     ref_mesh = hmesh.load(mesh_dir + o_file)
     fit_mesh = hmesh.Manifold(m_skel)
-    fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, local_iter=iter)
+    fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, local_iter=iter, dist_wt=0.75, lap_wt=1.0)
 
     print("Displaying. HIT ESC IN GRAPHICS WINDOW TO PROCEED...")
     viewer.display(fit_mesh, reset_view=True)
-
+    hmesh.save(o_file + "-out.obj", fit_mesh)
     # viewer.display(m_skel, reset_view=True)
 
