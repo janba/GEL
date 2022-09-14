@@ -633,6 +633,7 @@ def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 0.75, lap_wt = 1.0):
     for i in range(max_iter):
         cc_smooth(m)
         cc_smooth(m)
+        cc_smooth(m)
         lap_b = lap_matrix @ v_pos
         A, b = inv_correspondence_leqs(m, ref_mesh)
         final_A = vstack([lap_wt*lap_matrix, dist_wt*A])
