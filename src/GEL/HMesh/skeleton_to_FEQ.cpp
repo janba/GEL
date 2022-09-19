@@ -870,7 +870,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         Vec3d v1 = pts[t[1]]-pts[t[0]];
         Vec3d v2 = pts[t[2]]-pts[t[0]];
         double l = min(dot(p0, p1), min( dot(p1,p2), dot(p2,p0)));
-        if (l<-0.1) {
+        if (l<0.25) {
             ghost_pts.push_back(normalize(cross(v1, v2)));
         }
     }
@@ -886,7 +886,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         }
         for(int j=i+1; j<ghost_pts.size(); ++j) {
             if (cluster_id[j] == -1) {
-                if (dot(ghost_pts[i], ghost_pts[j]) > -0.1)
+                if (dot(ghost_pts[i], ghost_pts[j]) > 0.25)
                     cluster_id[j] = cluster_id[i];
             }
         }
@@ -906,14 +906,14 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         vector<double> dots;
         for(const auto& p_orig: pts)
             dots.push_back(dot(p,p_orig));
-        if(*max_element(begin(dots), end(dots))<0.4)
+        if(*max_element(begin(dots), end(dots))<0.25)
             ghost_pts.push_back(p);
     }
     
-    /* If there are more than three ghost points, it is a Type C BNP, and
-     we do nothing. */
-    if(ghost_pts.size()>2)
-        return 0;
+//    /* If there are more than three ghost points, it is a Type C BNP, and
+//     we do nothing. */
+//    if(ghost_pts.size()>2)
+//        return 0;
         
     for (auto g: ghost_pts)
         pts.push_back(g);
@@ -966,14 +966,12 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
                   spts_vertex_count++;
 
               }
-              bool ghost_added = false;
-
               std::vector<CGLA::Vec3i> stris = SphereDelaunay(spts);
-
-              if (!ghost_added)
-                  if (add_ghosts(stris, spts)>0) {
-                      stris = SphereDelaunay(spts);
-                  }
+              bool ghost_added = false;
+              if (add_ghosts(stris, spts)>0) {
+                  stris = SphereDelaunay(spts);
+                  ghost_added = true;
+              }
 
               for(auto tri: stris) {
                   vector<Vec3d> triangle_pts;
@@ -994,8 +992,8 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
                           spts2vertexid.insert(std::make_pair(i, v));
 
 
-              if(N.size() > 3 && !ghost_added)
-                vector<FaceSet> planar_regions = retopologize_planar_regions(m);
+//              if(N.size() > 3 && !ghost_added)
+//                vector<FaceSet> planar_regions = retopologize_planar_regions(m);
 
               taubin_smooth(m, 1);
 
