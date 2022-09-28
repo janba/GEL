@@ -598,85 +598,6 @@ void init_branch_face_pairs(HMesh::Manifold &m, const Geometry::AMGraph3D& g,
     }
 }
 
-double graph_unique_score(HMesh::Manifold &m, const Geometry::AMGraph3D& g, NodeID n, NodeID nn, VertexID curr_vert,
-                          const Util::AttribVec<NodeID, FaceSet>& node2fs) {
-  auto curr_nbs = next_neighbours(g, nn, n);
-  vector<double> graph_lens;
-  for (auto nb : curr_nbs) {
-    double curr_len = graph_length(g, n, nb);
-    graph_lens.push_back(curr_len);
-  }
-  double max_diff = FLT_MAX;
-  for (auto nb : curr_nbs) {
-    if(branch2vertex(m, g, n, nb, node2fs) == curr_vert) {
-        double curr_len = graph_length(g, n, nb);
-        for (auto graph_len : graph_lens) {
-          double curr_diff = abs(curr_len - graph_len);
-          if(curr_diff < max_diff && curr_diff != 0)
-              max_diff = curr_diff;
-        }
-    return max_diff;
-  }
-}
-return -1;
-}
-
-std::map<VertexID,int> val_diff_map(HMesh::Manifold &m, const Geometry::AMGraph3D& g) {
-
-    Util::AttribVec<NodeID, FaceSet> node2fs;
-    map<VertexID,int> vertex2val;
-    for (auto n:g.node_ids()) {
-        auto N = g.neighbors(n);
-
-            //for all branch nodes
-
-        if(N.size() > 2) {
-
-
-            // for each outgoing arc
-
-            for (auto nn: N) {
-
-                VertexID src_vertex = branch2vertex(m, g, n,nn, node2fs);
-                int src_branch_degree = valency(m, src_vertex);
-                vector<NodeID> branch_path;
-                NodeID curr_node = nn;
-                NodeID prev_node = n;
-
-                int leaf_flag = 0;
-
-                //traverse val 2 nodes route to next branch node
-
-
-                while(true) {
-                    auto curr_nbs = next_neighbours(g, prev_node, curr_node);
-                    if(curr_nbs.size() > 1)
-                        break;
-                    else if(curr_nbs.size() == 0) {
-                        branch_path.push_back(curr_node); leaf_flag = 1; break;
-                    }
-                    else {
-                        branch_path.push_back(curr_node);
-                        prev_node = curr_node;
-                        curr_node = curr_nbs[0];
-                    }
-                }
-
-                int dest_branch_degree;
-                if(leaf_flag == 1) {
-                    dest_branch_degree = 0;
-                    vertex2val.insert(std::make_pair(src_vertex, 0));
-                }
-                else {
-                    dest_branch_degree = valency(m, branch2vertex(m, g, curr_node, prev_node, node2fs));
-                    vertex2val.insert(std::make_pair(src_vertex, dest_branch_degree - src_branch_degree));
-                }
-            }
-        }
-    }
-    return vertex2val;
-}
-
 //Functions for constructing / editing mesh elements from skeletal nodes
 
 vector<Vec3d> get_face_points(int n) {
@@ -833,28 +754,28 @@ void val2nodes_to_boxes(const Geometry::AMGraph3D& g, HMesh::Manifold& mani,
 }
 
 int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
-    
+
     /* This function creates extra points to add to the BNP vertices for a branch node.
      These extra points are called ghost points because they do not correspond to an outgoing
      edge.
-     
+
      To do this, we categorize nodes according to three categories
-     
+
      Type A (flat): All outgoing edges lie more or less in a plane for this type of nodes, and
      the BNP becomes very flat.
-     
+
      Type B (semi flat): All outgoing edges again lie more or less in a plane, but on one side of
      the BNP one or more additional outgoing edges emanate.
-     
+
      Type C (general): This type comprises everything else. For type C nodes, it is hard to say
      something meaningful about the configuration of outgoing edges.
-     
+
      The idea behind this function is to add two ghost points to Type A nodes, a single for Type B
      and 0 for Type C. This heuristic is based on the observation that for Type A this will lead to
      valence 4 vertices generally since most of the vertices will be connected to two neighbouring
      points and the two ghosts. For Type B, the same is true if there is a single outgoing edge
      perpendicular to the edges that form a flat region.
-     
+
      Procedure:
      Initially, we add a ghost point for every triangle in the
      initial BNP where the smallest pairwise dot product between the vertices
@@ -874,7 +795,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
             ghost_pts.push_back(normalize(cross(v1, v2)));
         }
     }
-    
+
     /* Next, we cluster the ghost points. This is because in flatish
      configurations we could have several quite similar ghost points.
      The threshold -0.1 is very loose to avoid adding too many ghosts */
@@ -891,12 +812,12 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
             }
         }
     }
-    
+
     vector<Vec3d> ghost_pts_new(max_id, Vec3d(0));
     for(int i=0;i<ghost_pts.size(); ++i) {
         ghost_pts_new[cluster_id[i]] += ghost_pts[i];
     }
-      
+
     /* Finally, we cull ghost points too close to an existing non-ghost point.
      The threshold of 0.4 allows ghost points to be a little closer to other
      points than each other. */
@@ -909,15 +830,15 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         if(*max_element(begin(dots), end(dots))<0.25)
             ghost_pts.push_back(p);
     }
-    
+
 //    /* If there are more than three ghost points, it is a Type C BNP, and
 //     we do nothing. */
 //    if(ghost_pts.size()>2)
 //        return 0;
-        
+
     for (auto g: ghost_pts)
         pts.push_back(g);
-    
+
     return ghost_pts.size();
 }
 
@@ -1026,91 +947,6 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
     }
     m_out.cleanup();
     stitch_mesh(m_out, 1e-10);
-}
-
-void refine_BNPs(HMesh::Manifold &m, const Geometry::AMGraph3D& g,
-                 const Util::AttribVec<NodeID, FaceSet>& node2fs) {
-
-    map<VertexID, int> vertex2valdiff = val_diff_map(m,g);
-    bool work_done = false;
-    int count = 0;
-    VertexSet new_vertices;
-    VertexSet end_vertices;
-    do {
-
-        count++;
-
-        if(count > 1)
-            return;
-
-        work_done = false;
-        for (auto n:g.node_ids()) {
-            auto N = g.neighbors(n);
-
-            //for all branch nodes
-
-            if(N.size() > 2) {
-
-                for (auto nn: N) {
-
-                    VertexID src_vertex = branch2vertex(m, g, n, nn, node2fs);
-
-                    int refine_number = vertex2valdiff.find(src_vertex)->second;
-
-                    HalfEdgeID h_split = InvalidHalfEdgeID;
-
-                    VertexID end_vertex_split = InvalidVertexID;
-
-                    if(refine_number > 1 || refine_number < 1)
-                        continue;
-
-                    for (int i = 0; i < refine_number; i++) {
-                        double best_split_score = FLT_MAX;
-                        h_split = InvalidHalfEdgeID;
-
-                        circulate_vertex_ccw(m, branch2vertex(m,g,n,nn,node2fs), std::function<void(HalfEdgeID)>([&](HalfEdgeID h) {
-                            double curr_split_score;
-                            HalfEdgeID curr_link_edge;
-                            if(m.walker(h).vertex() == branch2vertex(m,g,n,nn,node2fs))
-                                curr_link_edge = m.walker(h).prev().halfedge();
-                            else if(m.walker(h).opp().vertex() == branch2vertex(m,g,n,nn,node2fs))
-                                curr_link_edge = m.walker(h).next().halfedge();
-                            VertexID new_vertex = m.walker(curr_link_edge).opp().next().vertex();
-                            if(vertex2valdiff.find(new_vertex) != vertex2valdiff.end()) {
-                                if(vertex2valdiff.find(new_vertex)->second == 0) {
-                                    double unique_score = graph_unique_score(m, g, n, nn, new_vertex, node2fs);
-                                    curr_split_score = refine_number + 1.0 / (1 + abs(unique_score));
-                                }
-                                else
-                                    curr_split_score = abs(refine_number - vertex2valdiff.find(new_vertex)->second);
-                                if(new_vertices.find(m.walker(curr_link_edge).vertex()) != new_vertices.end() || new_vertices.find(m.walker(curr_link_edge).opp().vertex()) != new_vertices.end())
-                                    curr_split_score += 1;
-                                if(end_vertices.find(new_vertex) != end_vertices.end()) {
-                                    curr_split_score += 1;
-                                }
-                                if(curr_split_score < best_split_score) {
-                                    best_split_score = curr_split_score;
-                                    h_split = curr_link_edge;
-                                    end_vertex_split = new_vertex;
-                                }
-                            }
-                        }));
-                        if(h_split != InvalidHalfEdgeID) {
-                            VertexID split_vertex = split_LIE(m, h_split);
-                            new_vertices.insert(split_vertex);
-                            end_vertices.insert(end_vertex_split);
-                            if(split_vertex != InvalidVertexID) {
-                                work_done = true;
-                                vertex2valdiff = val_diff_map(m,g);
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-    } while (work_done);
-    return;
 }
 
 void merge_branch_faces(HMesh::Manifold &m, const Geometry::AMGraph3D& g,
@@ -1337,105 +1173,6 @@ double compute_torsion_score(HMesh::Manifold& m, FaceID f0, FaceID f1) {
      return dot_sum;
    }
    return len;
-}
-
-FaceID rotate_bridge_face_set(HMesh::Manifold& m, FaceID f0, FaceID f1,
-                              const Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
-    VertexID central_vertex_0 = face_vertex[f0];
-    VertexID central_vertex_1 = face_vertex[f1];
-    int central_valency = valency(m, central_vertex_0);
-    Vec3d cv_edge = normalize(m.pos(central_vertex_0) - m.pos(central_vertex_1));
-    float max_dot_sum = -FLT_MAX;
-    double min_len = FLT_MAX;
-
-    for(int iter = 0; iter <= 2*central_valency; iter++) {
-
-        vector<VertexID> vloop0;
-        circulate_face_ccw(m, f0, std::function<void(VertexID)>([&](VertexID v){
-            vloop0.push_back(v);
-        }) );
-
-        vector<VertexID> vloop1;
-        circulate_face_ccw(m, f1, std::function<void(VertexID)>([&](VertexID v){
-            vloop1.push_back(v);
-        }) );
-
-        HalfEdgeID bd_edge;
-        circulate_face_ccw(m, f0, std::function<void(HalfEdgeID)>([&](HalfEdgeID h){
-            if(m.walker(h).vertex() == central_vertex_0)
-                bd_edge = h;
-        }) );
-
-        size_t L= vloop0.size();
-        VertexID split_vertex;
-
-        for(int i = 0; i < L; i++) {
-            if(vloop0[i] == central_vertex_0)
-                split_vertex = vloop0[(i+3)%L];
-        }
-
-        float dot_sum = 0;
-        float len = 0;
-        for(int j_off = 0; j_off < L; ++j_off) {
-            bool center_match = false;
-            for(int i=0;i<L;++i) {
-                if(vloop0[i] == central_vertex_0 && vloop1[(L + j_off - i)%L] == central_vertex_1)
-                    center_match = true;
-            }
-            if(center_match) {
-                len = -FLT_MAX;
-                dot_sum = FLT_MAX;
-                Vec3d bridge_edge_i, bridge_edge_j;
-                for(int i=0;i<L;i++) {
-                    if(abs(length(m.pos(vloop0[i]) - m.pos(vloop1[(L+j_off - i)%L]))) > len)
-                      len = abs(length(m.pos(vloop0[i]) - m.pos(vloop1[(L+j_off - i)%L])));
-                    bridge_edge_i = normalize(m.pos(vloop0[i]) - m.pos(vloop1[(L+j_off - i)%L]));
-                    double curr_dot_sum = abs(dot(bridge_edge_i, cv_edge));// + abs(dot(bridge_edge_i, v_n_nn));
-                    if(curr_dot_sum < dot_sum)
-                        dot_sum = curr_dot_sum;
-                    for(int j=0;j<L;j++) {
-                        bridge_edge_j = normalize(m.pos(vloop0[j]) - m.pos(vloop1[(L+j_off - j)%L]));
-                        curr_dot_sum = abs(dot(bridge_edge_i, bridge_edge_j));
-                        if(curr_dot_sum < dot_sum)
-                          dot_sum = curr_dot_sum;
-                    }
-                }
-
-            }
-        }
-        dot_sum = dot_sum;
-        if(iter < central_valency){
-            if(dot_sum > max_dot_sum)
-                max_dot_sum = dot_sum;
-            if(len < min_len)
-                min_len = len;
-        }
-        else if (iter >= central_valency){
-            //if(dot_sum == max_dot_sum)
-            //    return f0;
-            if(len == min_len)
-                return f0;
-
-       }
-
-       FaceID new_face = f0;
-       if(L == 4) {
-           if(m.walker(bd_edge).face() == f0)
-               new_face = m.walker(bd_edge).opp().face();
-           else
-               new_face = m.walker(bd_edge).face();
-       }
-       else {
-       new_face = m.split_face_by_edge(f0, central_vertex_0, split_vertex);
-
-       if(m.in_use(bd_edge))
-           m.merge_faces(m.walker(bd_edge).face(),bd_edge);
-      }
-
-        f0 = new_face;
-
-    }
-    return f0;
 }
 
 vector<pair<VertexID, VertexID>> face_match_careful(HMesh::Manifold& m, FaceID &f0, FaceID &f1,
@@ -1695,9 +1432,6 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
 
       int found_flag = 0;
 
-      //if(one_ring_face_vertex[f0] != InvalidVertexID || one_ring_face_vertex[f1] != InvalidVertexID)
-      //  return connections;
-
       for (int i = 0; i < L; i++) {
 
         VertexID v0 = loop0[i];
@@ -1742,34 +1476,17 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
       float min_len = FLT_MAX;
       for(int j_off = j_off_min_len; j_off < 2*L; j_off = j_off + 2) {
 
-        //Vec3d bridge_edge_i, bridge_edge_j;
-        //float dot_sum = FLT_MAX;
         float len = 0;
 
-        for(int i=0;i<L;++i) {
+        for(int i=0;i<L;++i)
           len += sqr_length(m.pos(loop0[i]) - m.pos(loop1[(L+j_off - i)%L]));
-          /**bridge_edge_i = normalize(m.pos(loop0[i]) - m.pos(loop1[(L+j_off - i)%L]));
-          double curr_dot_sum = abs(dot(bridge_edge_i, v_n_nn));// + abs(dot(bridge_edge_i, v_n_nn));
-          if(curr_dot_sum < dot_sum)
-              dot_sum = curr_dot_sum;
-          for(int j=0;j<L;j++) {
-              bridge_edge_j = normalize(m.pos(loop0[j]) - m.pos(loop1[(L+j_off - j)%L]));
-              curr_dot_sum = abs(dot(bridge_edge_i, bridge_edge_j));
-              if(curr_dot_sum < dot_sum)
-                dot_sum = curr_dot_sum;
-        }**/
-      }
+
 
       if(len < min_len)   {
        j_off_min_len = j_off;
        min_len = len;
       }
 
-
-/**      if(dot_sum > max_dot_sum) {
-          j_off_min_len = j_off;
-          max_dot_sum = dot_sum;
-      }**/
      }
    }
 
@@ -1862,7 +1579,6 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
           node_radii[n] = r;
 
     construct_bnps(m_out, g, node2fs, node_radii);
-    //refine_BNPs(m_out, g, node2fs);
     id_preserving_cc(m_out);
     init_graph_arrays(m_out, g, node2fs);
 
