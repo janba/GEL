@@ -827,7 +827,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         vector<double> dots;
         for(const auto& p_orig: pts)
             dots.push_back(dot(p,p_orig));
-        if(*max_element(begin(dots), end(dots))<0.25)
+        if(*max_element(begin(dots), end(dots))<0.35)
             ghost_pts.push_back(p);
     }
     

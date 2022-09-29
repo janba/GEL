@@ -20,7 +20,7 @@ objs = [
 'warrior.obj'
 ]
 
-iters = [150, 75, 50, 50, 50, 50]
+iters = [200, 75, 50, 50, 50, 50]
 
 mesh_dir = '../../../data/ReferenceMeshes/' 
 skel_dir = '../../../data/Graphs/'
