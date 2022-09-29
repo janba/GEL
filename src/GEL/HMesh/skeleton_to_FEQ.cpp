@@ -910,10 +910,10 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
             ghost_pts.push_back(p);
     }
     
-//    /* If there are more than three ghost points, it is a Type C BNP, and
-//     we do nothing. */
-//    if(ghost_pts.size()>2)
-//        return 0;
+    /* If there are more than three ghost points, it is a Type C BNP, and
+     we do nothing. */
+    if(ghost_pts.size()>2)
+        return 0;
         
     for (auto g: ghost_pts)
         pts.push_back(g);
