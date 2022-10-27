@@ -20,6 +20,6 @@ namespace HMesh
     small singular values from the SVD we accept. It is relative to the greatest singular value. 
     If choose_optimal_positions is true, we reposition vertices. Otherwise the vertices are a subset
     of the old vertices. */
-    void quadric_simplify(Manifold& m, double keep_fraction, double singular_thresh = 0.0001, bool choose_optimal_positions = true);
+    void quadric_simplify(Manifold& m, double keep_fraction, double singular_thresh = 0.0001, bool choose_optimal_positions = true, double err_thresh=0.0);
 }
 #endif
