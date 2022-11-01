@@ -159,7 +159,7 @@ namespace HMesh
             Vec3d opt_origin = Vec3d(m_ptr->pos(hv) + m_ptr->pos(hov)) * 0.5;
             Vec3d opt_pos = q.opt_pos(singular_thresh, opt_origin);
             
-            float err = q.error(opt_pos) +  singular_thresh * max(0, val_hv+val_hov-12);
+            float err = q.error(opt_pos);// +  singular_thresh * max(0, val_hv+val_hov-12);
 //
             // Create SimplifyRec
             return SimplifyRec(opt_pos, h, err, time_stamp[h]);

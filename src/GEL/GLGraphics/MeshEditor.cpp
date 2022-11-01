@@ -1164,19 +1164,20 @@ namespace GLGraphics {
             a0 >> keep_fraction;
 
             double err_thresh = 1e5;
-            if(args.size() == 2)
+            if(args.size() >1)
             {
                 istringstream a1(args[1]);
                 a1 >> err_thresh;
             }
 
             double singular_thresh = 1e-4;
-            if(args.size() == 3)
+            if(args.size() >2)
             {
                 istringstream a2(args[2]);
                 a2 >> singular_thresh;
             }
 
+            cout << "err thresh " << err_thresh << " , sing " << singular_thresh << endl;
         
             
             Vec3d p0, p7;
