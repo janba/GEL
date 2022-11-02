@@ -150,8 +150,6 @@ namespace HMesh
             
             VertexID hv = w.vertex();
             VertexID hov = w.opp().vertex();
-            int val_hv = valency(*m_ptr, hv);
-            int val_hov = valency(*m_ptr, hov);
             
             QEM q = qem_vec[hv];
             q += qem_vec[hov];
@@ -159,10 +157,8 @@ namespace HMesh
             Vec3d opt_origin = Vec3d(m_ptr->pos(hv) + m_ptr->pos(hov)) * 0.5;
             Vec3d opt_pos = q.opt_pos(singular_thresh, opt_origin);
             
-            float err = q.error(opt_pos);// +  singular_thresh * max(0, val_hv+val_hov-12);
-//
             // Create SimplifyRec
-            return SimplifyRec(opt_pos, h, err, time_stamp[h]);
+            return SimplifyRec(opt_pos, h, q.error(opt_pos), time_stamp[h]);
         }
         
         
