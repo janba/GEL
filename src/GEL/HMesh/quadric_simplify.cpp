@@ -207,7 +207,7 @@ namespace HMesh
     } // end of anonymous namespace
 
 
-    void quadric_simplify(Manifold& m, double keep_fraction, double singular_thresh, bool choose_optimal_positions, double _err_thresh)
+    void quadric_simplify(Manifold& m, double keep_fraction, double singular_thresh, double _err_thresh)
     {
         int n = m.no_vertices();
         int max_work = max(0, int(n - keep_fraction * n));

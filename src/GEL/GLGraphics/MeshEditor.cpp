@@ -1196,7 +1196,7 @@ namespace GLGraphics {
             timer.start();
             
             //simplify
-            quadric_simplify(me->active_mesh(),keep_fraction,singular_thresh,true,err_thresh);
+            quadric_simplify(me->active_mesh(),keep_fraction,singular_thresh,err_thresh);
             
             cout << "Simplification complete, process time: " << timer.get_secs() << " seconds" << endl;
             

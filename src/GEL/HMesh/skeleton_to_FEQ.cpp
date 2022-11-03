@@ -807,7 +807,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         }
         for(int j=i+1; j<ghost_pts.size(); ++j) {
             if (cluster_id[j] == -1) {
-                if (dot(ghost_pts[i], ghost_pts[j]) > 0.25)
+                if (dot(ghost_pts[i], ghost_pts[j]) > 0.3)
                     cluster_id[j] = cluster_id[i];
             }
         }
@@ -827,7 +827,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         vector<double> dots;
         for(const auto& p_orig: pts)
             dots.push_back(dot(p,p_orig));
-        if(*max_element(begin(dots), end(dots))<0.35)
+        if(*max_element(begin(dots), end(dots))<0.3)
             ghost_pts.push_back(p);
     }
     

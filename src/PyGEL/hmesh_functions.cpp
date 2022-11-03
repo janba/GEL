@@ -125,8 +125,8 @@ void randomize_mesh(Manifold_ptr m_ptr, int max_iter) {
 
 void quadric_simplify(Manifold_ptr m_ptr, double keep_fraction,
                       double singular_thresh,
-                      bool choose_optimal_positions) {
-    quadric_simplify(*(reinterpret_cast<Manifold*>(m_ptr)), keep_fraction, singular_thresh, choose_optimal_positions);
+                      double error_thresh) {
+    quadric_simplify(*(reinterpret_cast<Manifold*>(m_ptr)), keep_fraction, singular_thresh, error_thresh);
 }
 
 float average_edge_length(const Manifold_ptr m_ptr) {

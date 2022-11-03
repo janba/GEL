@@ -20,14 +20,15 @@ objs = [
 'warrior.obj'
 ]
 
-iters = [200, 75, 50, 50, 50, 50]
+iters = [(250,0.9,1.0), (50,0.5,1.0), (50,0.5,1.0), (50,0.5,1.0), (50,0.5,1.0), (50,0.5,1.0)]
 
 mesh_dir = '../../../data/ReferenceMeshes/' 
 skel_dir = '../../../data/Graphs/'
 
 viewer = gl.Viewer()
 
-for g_file, o_file, iter in zip(graphs, objs, iters):
+for g_file, o_file, params in zip(graphs, objs, iters):
+    iter, dist_wt, lap_wt = params
     print("Remeshing " + o_file)
 
     print('Building FEQ')
@@ -39,7 +40,7 @@ for g_file, o_file, iter in zip(graphs, objs, iters):
     print('Fitting to reference mesh')
     ref_mesh = hmesh.load(mesh_dir + o_file)
     fit_mesh = hmesh.Manifold(m_skel)
-    fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, local_iter=iter, dist_wt=0.75, lap_wt=1.0)
+    fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, local_iter=iter, dist_wt=dist_wt, lap_wt=lap_wt)
 
     print("Displaying. HIT ESC IN GRAPHICS WINDOW TO PROCEED...")
     viewer.display(fit_mesh, reset_view=True)
