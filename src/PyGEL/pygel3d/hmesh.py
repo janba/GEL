@@ -460,13 +460,16 @@ def randomize_mesh(m,max_iter=1):
     """  Make random flips in m. Useful for generating synthetic test cases. """
     lib_py_gel.randomize_mesh(m.obj, max_iter)
 
-def quadric_simplify(m,keep_fraction,singular_thresh=1e-4,optimal_positions=True):
-    """ Garland Heckbert simplification of mesh m in our own implementation. keep_fraction
-    is the fraction of vertices to retain. The singular_thresh defines how small
-    singular values from the SVD we accept. It is relative to the greatest
-    singular value. If optimal_positions is true, we reposition vertices.
-    Otherwise the vertices are a subset of the old vertices."""
-    lib_py_gel.quadric_simplify(m.obj, keep_fraction, singular_thresh,optimal_positions)
+def quadric_simplify(m,keep_fraction,singular_thresh=1e-4,error_thresh=1):
+    """ Garland Heckbert simplification of mesh m. keep_fraction is the fraction of vertices
+    to retain. The singular_thresh determines how subtle features are preserved. For values
+    close to 1 the surface is treated as smooth even in the presence of sharp edges of low
+    dihedral angle (angle between normals). Close to zero, the method preserves even subtle
+    sharp features better. The error_thresh is the value of the QEM error at which
+    simplification stops. It is relative to the bounding box size. The default value is 1
+    meaning that simplification continues until the model has been simplified to a number of
+    vertices approximately equal to keep_fraction times the original number of vertices."""
+    lib_py_gel.quadric_simplify(m.obj, keep_fraction, singular_thresh,error_thresh)
 
 def average_edge_length(m,max_iter=1):
     """ Returns the average edge length of mesh m. """

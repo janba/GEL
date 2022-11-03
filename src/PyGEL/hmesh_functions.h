@@ -63,7 +63,7 @@ extern "C" {
 
     DLLEXPORT void randomize_mesh(Manifold_ptr m_ptr, int max_iter);
 
-    DLLEXPORT void quadric_simplify(Manifold_ptr m_ptr, double keep_fraction, double singular_thresh, bool choose_optimal_positions);
+    DLLEXPORT void quadric_simplify(Manifold_ptr m_ptr, double keep_fraction, double singular_thresh, double error_thresh);
 
     DLLEXPORT float average_edge_length(const Manifold_ptr m_ptr);
 
