@@ -13,6 +13,7 @@
 #ifndef __GEOMETRY_RGRID_H
 #define __GEOMETRY_RGRID_H
 
+#include <memory>
 #include <vector>
 #include <GEL/CGLA/Vec3i.h>
 #include <GEL/Geometry/AncestorGrid.h>
