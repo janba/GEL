@@ -32,15 +32,19 @@ namespace Geometry
         typedef T DataType;
 
     private:
+        /// Dimensions of the grid
+        CGLA::Vec3i dims;
+        
         /// x size of grid.
         int x_dim;
         
         /// x size times y size of grid. Stored for efficiency reasons.
         int xy_dim;
         
+        /// Linear size
         int xyz_dim;
 
-        /// Vector containing the actual data.
+        /// heap allocated array containing the actual data.
         std::unique_ptr<T[]> data;
 
         /// Convert xyz index into an index in a linear array.
@@ -53,46 +57,37 @@ namespace Geometry
         DataType default_val;
 
     public:
-        
-//        ~RGrid() {}
-        
-//        RGrid(RGrid<T>&& g) {
-//            std::cout << "!!!!! move copy const " << data << std::endl;
-//            x_dim = g.x_dim;
-//            xy_dim = g.xy_dim;
-//            xyz_dim = g.xyz_dim;
-//            data = g.data;
-//            g.data = 0;
-//            default_val = g.default_val;
-//        }
-//
-//        RGrid<T>& operator=(RGrid<T>&& g) {
-//            std::cout << "!!!!! move assign " << data << std::endl;
-//            x_dim = g.x_dim;
-//            xy_dim = g.xy_dim;
-//            xyz_dim = g.xyz_dim;
-//            data = g.data;
-//            g.data = 0;
-//            default_val = g.default_val;
-//            return *this;
-//        }
+        /** Create a copy of the grid. Since data is stored in a unique\_ptr, we cannot simply
+         make a copy constructor, so instead this function copies the contents.*/
+        RGrid<T> copy() const {
+            RGrid<T> ngrid(dims);
+            memcpy(ngrid.get(), get(), get_size()*sizeof(T));
+            return ngrid;
+        }
 
-    
-        /** Construct a regular voxel grid. This function
-                is passed a Vec3i _dims and an optional
-                initialization value, val. It creates a grid
-                of specified dimensions, and initializes the
-                value of all voxels to val. */
-        RGrid(CGLA::Vec3i _dims, const T& val = T()):
-            AncestorGrid<T,RGrid<T> >(_dims),
+        /** Construct a regular voxel grid. This function  is passed a Vec3i \_dims and an
+         initialization value, val. It creates a grid  of specified dimensions, and initializes the
+         value of all voxels to val. */
+        RGrid(CGLA::Vec3i _dims, const T& val):
+            AncestorGrid<T,RGrid<T> >(_dims), dims(_dims),
             x_dim(_dims[0]), xy_dim(_dims[0]*_dims[1]), xyz_dim(xy_dim*_dims[2]),
             data(new T[xyz_dim]), default_val(val)
         {
+            clear();
         }
         
+        /** Construct a regular voxel grid. This function  is passed a Vec3i dims and an optional
+         initialization value, val. It creates a grid of specified dimensions but leaves the voxels
+         uninitialized. */
+        RGrid(CGLA::Vec3i _dims):
+            AncestorGrid<T,RGrid<T> >(_dims), dims(_dims),
+            x_dim(_dims[0]), xy_dim(_dims[0]*_dims[1]), xyz_dim(xy_dim*_dims[2]),
+            data(new T[xyz_dim]), default_val(T())
+        {
+        }
 
         /** Construct a grid of dimensions 0,0,0 */
-        RGrid(): AncestorGrid<T,RGrid<T> >(CGLA::Vec3i(0)),
+        RGrid(): AncestorGrid<T,RGrid<T> >(CGLA::Vec3i(0)), dims(0),
             x_dim(0), xy_dim(0), xyz_dim(0),
             data(0), default_val(0)
         {}
@@ -137,6 +132,7 @@ namespace Geometry
         /// Get length of linear array actually containing voxels.
         int get_size() const { return xyz_dim;}
 
+        /// Set all values to the default value
         void clear()
         {
             int N = xyz_dim;
