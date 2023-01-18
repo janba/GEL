@@ -777,12 +777,15 @@ namespace GLGraphics
 
         VertexAttributeVector<double> phase;
         VertexAttributeVector<Vec2d> wave;
+        VertexAttributeVector<double> amp;
+
         double ael = average_edge_length(m);
 
         
         for(auto v: m.vertices()) {
-            phase[v] = 0;
+            phase[v] = 2.0*M_PI*random()/double(RAND_MAX);
             wave[v] = Vec2d(1,0);
+            amp[v] = 1.0;
         }
         
         VertexAttributeVector<CGLA::Vec3d> lines;
@@ -791,18 +794,25 @@ namespace GLGraphics
         }
 
         for(int iter=0;iter<100;++iter) {
+//            auto new_phase = phase;
+//                for(auto vn: m.incident_vertices(v))
+//                    new_phase[v] += 0.01*phase[vn];
+////                wave[v] = Vec2d(0,0);
+//                new_phase[v] /= (1+0.01*valency(m, v));
+//            }
+//            phase = new_phase;
             for(auto v: m.vertices()) {
                 Vec3d dir = lines[v];
-                if(sqr_length(dir)> 0.001){
+                if(sqr_length(dir)> 0.1){
                     for(auto h: m.incident_halfedges(v)) {
-                        Walker w = m.walker(h);
-                        for(VertexID vn : {w.vertex(), w.next().opp().next().vertex()}) {
-                            Vec3d vec = m.pos(vn) - m.pos(v);
-                            float a = 0.5 * M_PI * dot(dir, vec) / ael + phase[v];
-                            wave[vn] += Vec2d(cos(a), sin(a)) / (1e-7+length(vec));
-                        }
+                        VertexID vn = m.walker(h).vertex();
+                        Vec3d vec = m.pos(vn) - m.pos(v);
+                        float a = 0.5*M_PI * dot(dir, vec) / ael + phase[v];
+                        Vec2d W = Vec2d(cos(a), sin(a));
+                        double p = atan2(W[1], W[0]);
+                        wave[vn] += 0.1*dot(W, wave[vn]) * W;
                     }
-            }
+                }
             }
             for(auto v: m.vertices()) {
                 phase[v] = atan2(wave[v][1], wave[v][0]);
@@ -828,7 +838,7 @@ namespace GLGraphics
                 Vec3d d = lines[w.vertex()];
                 d = normalize(d-n*dot(n,d));
                 if(dot(d,d0)<0) d=-d;
-                Vec4d dd(wave[w.vertex()][0], wave[w.vertex()][1], 0, phase[w.vertex()]);
+                Vec4d dd(wave[w.vertex()][0], wave[w.vertex()][1], amp[w.vertex()], phase[w.vertex()]);
                 glVertexAttrib4dv(direction, dd.get());
                 glVertex3dv(m.pos(w.vertex()).get());
             }
@@ -867,8 +877,10 @@ namespace GLGraphics
     "void main(void)\n"
     "{\n"
     "    vec3 n = normalize(_n);\n"
-    "    float a = 4.0*atan(dir_obj.y, dir_obj.x);\n"
-    "    gl_FragColor.rgb = vec3(0.5+0.5*smoothstep(-.1,0.1,cos(a)));\n"
+    "    float a = atan(dir_obj.y, dir_obj.x);\n"
+    "    gl_FragColor.rgb = vec3(0.5+0.5*smoothstep(-.1,0.1,cos(4.0*a)));\n"
+    "    gl_FragColor.b = dir_obj.z*0.01;\n"
+//    "    gl_FragColor.rgb *= dir_obj.z;\n"
     "    gl_FragColor.rgb *= max(0.0,dot(n,vec3(0.0, 0.0, 1.0)));\n"
     "    gl_FragColor.a = 1.0;\n"
     "}\n";

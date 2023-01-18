@@ -73,10 +73,20 @@ void example4()
 			 << dot(n,Vec3f(0,0,1)) << endl;
 }
 
+void example5() {
+    cout << " Vec3f(1,-1,1).any_g(Vec3f(0,0,0)) : " << Vec3f(1,-1,1).any_g(Vec3f(0,0,0)) << endl;
+    cout << " Vec3f(1,-1,1).any_l(Vec3f(0,0,0)) : " << Vec3f(1,-1,1).any_l(Vec3f(0,0,0)) << endl;
+    cout << " Vec3f(1,0,1).any_le(Vec3f(0,0,0)) : " << Vec3f(1,0,1).any_le(Vec3f(0,0,0)) << endl;
+    cout << " Vec3f(-1,0,-1).any_ge(Vec3f(0,0,0)) : " <<  Vec3f(-1,0,-1).any_ge(Vec3f(0,0,0)) << endl;
+}
+
+
+
 int main()
 {
 // 	example1();
 // 	example2();
 // 	example3();
-	example4();
+//	example4();
+    example5();
 }

@@ -133,7 +133,7 @@ namespace Geometry
         /// Get length of linear array actually containing voxels.
         int get_size() const { return xyz_dim;}
 
-        /// Set all values to the default value
+        /// Set all voxel values to the default value
         void clear()
         {
             int N = xyz_dim;
