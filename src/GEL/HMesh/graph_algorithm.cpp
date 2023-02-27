@@ -23,7 +23,7 @@ namespace HMesh {
         auto& dist = d_out.dist;
         auto& predecessor = d_out.pred;
         auto& leaves = d_out.leaves;
-        
+        auto& ordering = d_out.ordering;
         VertexAttributeVector<int> frozen(m.allocated_vertices(), 0);
         if(in_region(v)) {
             dist[v]=0;
@@ -38,7 +38,7 @@ namespace HMesh {
                 auto p_v = m.pos(v);
                 if(!frozen[v]){
                     frozen[v]=1;
-                    
+                    ordering.push_back(v);
                     bool is_leaf = true;
                     circulate_vertex_ccw(m,v,[&](VertexID vc) {
                         auto p_vc = m.pos(vc);

@@ -17,6 +17,7 @@ namespace HMesh {
         VertexAttributeVector<double> dist;
         VertexAttributeVector<VertexID> pred;
         VertexSet leaves;
+        std::vector<VertexID> ordering;
         DijkstraOutput(int n):
         dist(n, DBL_MAX), pred(n, InvalidVertexID) {}
     };

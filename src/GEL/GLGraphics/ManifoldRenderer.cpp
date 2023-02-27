@@ -17,6 +17,7 @@
 #include <GEL/HMesh/AttributeVector.h>
 #include <GEL/HMesh/curvature.h>
 #include <GEL/HMesh/refine_edges.h>
+#include <GEL/HMesh/graph_algorithm.h>
 
 using namespace CGLA;
 using namespace HMesh;
@@ -792,44 +793,51 @@ namespace GLGraphics
         for(auto v: m.vertices()) {
             lines[v] = normalize(cross(_lines[v], normal(m,v)));
         }
-
-        for(int iter=0;iter<100;++iter) {
-            for(auto v: m.vertices()) {
-                Vec3d dir = lines[v];
-                if(sqr_length(dir)> 1e-10){
-                    for(auto h: m.incident_halfedges(v)) {
-                        VertexID vn = m.walker(h).vertex();
-                        Vec3d vec = m.pos(vn) - m.pos(v);
-                        double phi = phase[v];
-                        Vec3d _dir = dir;
-                        double dot_prod = dot(dir, lines[vn]);
-                        if (dot_prod < 0) {
-                            phi = M_PI - phase[v];
-                            _dir = - dir;
-                        }
-                        double a = dot(vec, lines[vn]) * 2.0 * M_PI * (0.25/ael) + phi;
-                        wave[vn] += abs(dot_prod)*Vec2d(cos(a), sin(a));
+        
+        auto D_out = Dijkstra(m, *begin(m.vertices()));
+        for (auto v: D_out.ordering) {
+            double max_dot = 0.0;
+            for(auto vn: m.incident_vertices(v))
+                if (D_out.dist[vn] < D_out.dist[v]) {
+                    double d = abs(dot(lines[v], lines[vn]));
+                    if(d > max_dot) {
+                        max_dot = d;
+                        if(dot(lines[v], lines[vn]) < 0)
+                            lines[v] = - lines[v];
                     }
                 }
+        }
+
+
+        for(int iter=0;iter<1000;++iter) {
+            VertexID v0 = D_out.ordering[rand()%D_out.ordering.size()];
+            D_out = Dijkstra(m, v0);
+            auto new_wave = wave;
+            for(auto v: D_out.ordering) {
+                if(sqr_length(lines[v])> 1e-10){
+                    for(auto vn: m.incident_vertices(v))
+                        if(D_out.dist[vn]<D_out.dist[v])
+                        {
+                            Vec3d vec = m.pos(v) - m.pos(vn);
+                            Vec3d dir = lines[vn];
+                            double phi = phase[vn];
+                            double dot_prod = dot(dir, lines[v]);
+//                            if (dot_prod < 0) {
+//                                phi = M_PI - phase[vn];
+//                                dir = - dir;
+//                                dot_prod = abs(dot_prod);
+//                            }
+                            double a = dot(vec, dir) * 2.0 * M_PI * (0.25/ael) + phi;
+                            //max(0.0, dot(lines[v], lines[vn]))*exp(-sqr_length(vec)/(ael*ael))*
+                            double w = 10.0*max(0.0, dot_prod-0.33)*exp(-sqr_length(vec)/(ael*ael));
+                            new_wave[v] += w * Vec2d(cos(a), sin(a));
+                        }
+                }
             }
-            
+            wave = new_wave;
             for(auto v: m.vertices()) {
                 phase[v] = atan2(wave[v][1], wave[v][0]);
-            }
-            
-//            auto newphase = phase;
-//            for(auto v: m.vertices()) {
-//                float wgt= 1.0;
-//                for(auto vn: m.incident_vertices(v)) {
-//                    if(abs(phase[vn]-phase[v]) < M_PI)
-//                        newphase[v] += 0.05*phase[vn];
-//                    wgt += 0.05;
-//                }
-//                newphase[v] /= wgt;
-//            }
-//            phase = newphase;
-            
-            for(auto v: m.vertices()) {
+                if (phase[v] < 0) phase[v] = 2*M_PI+phase[v];
                 wave[v] = Vec2d(cos(phase[v]), sin(phase[v]));
             }
 
@@ -851,9 +859,10 @@ namespace GLGraphics
                 glNormal3dv(n.get());
                 
                 Vec3d d = lines[w.vertex()];
-                d = normalize(d-n*dot(n,d));
-                if(dot(d,d0)<0) d=-d;
+//                d = normalize(d-n*dot(n,d));
+//                if(dot(d,d0)<0) d=-d;
                 Vec4d dd(wave[w.vertex()][0], wave[w.vertex()][1], amp[w.vertex()], phase[w.vertex()]);
+//                Vec4d dd = Vec4d(d[0], d[1], d[2], 0);
                 glVertexAttrib4dv(direction, dd.get());
                 glVertex3dv(m.pos(w.vertex()).get());
             }
@@ -893,9 +902,11 @@ namespace GLGraphics
     "{\n"
     "    vec3 n = normalize(_n);\n"
     "    float a = atan(dir_obj.y, dir_obj.x);\n"
-    "    gl_FragColor.rgb = vec3(0.5+0.5*smoothstep(-.1,0.1,cos(16.0*a)));\n"
-    "    gl_FragColor.b = dir_obj.z*0.01;\n"
-//    "    gl_FragColor.r *= (0.5 + 0.5*a/3.1415926);\n"
+//    "   float intensity = 0.0;//smoothstep(0.0, 0.1,length(vec2(dFdx(a), dFdy(a))));"
+// "    gl_FragColor.rgb = vec3(intensity + (1.0-intensity) * (0.5+0.5*(smoothstep(-.8,0.8,cos(24.0*a)))));\n"
+"    gl_FragColor.rgb = vec3((0.5+0.5*(smoothstep(-.8,0.8,cos(10.0*a)))));\n"
+//"    gl_FragColor.rgb = vec3(0.5) + 0.5*dir_obj.xyz;\n"
+//"    gl_FragColor.g = 0.0;\n"
     "    gl_FragColor.rgb *= max(0.0,dot(n,vec3(0.0, 0.0, 1.0)));\n"
     "    gl_FragColor.a = 1.0;\n"
     "}\n";
