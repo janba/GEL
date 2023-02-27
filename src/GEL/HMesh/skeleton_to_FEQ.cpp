@@ -392,7 +392,7 @@ vector<FaceSet> retopologize_planar_regions(HMesh::Manifold &m) {
 
 //Graph - Mesh relationship Functions
 
-VertexID branch2vertex (HMesh::Manifold &m_out, const Geometry::AMGraph3D& g,
+VertexID branch2vertex (const HMesh::Manifold &m_out, const Geometry::AMGraph3D& g,
                         NodeID n, NodeID nn, const Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
     Vec3d vert_pos = branch2vert.find(std::make_pair(n,nn))->second;
@@ -405,7 +405,7 @@ VertexID branch2vertex (HMesh::Manifold &m_out, const Geometry::AMGraph3D& g,
 
 }
 
-void init_branch_degree(HMesh::Manifold &m, const Geometry::AMGraph3D& g,
+void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g,
                         const Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
 
@@ -499,7 +499,7 @@ void init_branch_degree(HMesh::Manifold &m, const Geometry::AMGraph3D& g,
 
 }
 
-FaceID branch2face (HMesh::Manifold &m_out,
+FaceID branch2face (const HMesh::Manifold &m_out,
                     const Geometry::AMGraph3D& g, NodeID n, NodeID nn,
                     Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
@@ -542,7 +542,7 @@ FaceID branch2face (HMesh::Manifold &m_out,
 
 }
 
-double face_dist(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, NodeID n, NodeID nn, FaceID f) {
+double face_dist(const HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, NodeID n, NodeID nn, FaceID f) {
     Vec3d pn = g.pos[n];
     Vec3d pnn = g.pos[nn];
     Vec3d v_n_nn = pnn - pn;
@@ -567,7 +567,7 @@ double face_dist(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, NodeID n,
 
 }
 
-void init_branch_face_pairs(HMesh::Manifold &m, const Geometry::AMGraph3D& g,
+void init_branch_face_pairs(const HMesh::Manifold &m, const Geometry::AMGraph3D& g,
                             Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
     for (auto n:g.node_ids()) {
@@ -945,8 +945,8 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
                       node2fs[n].insert(f);
           }
     }
-    m_out.cleanup();
     stitch_mesh(m_out, 1e-10);
+    m_out.cleanup();
 }
 
 void merge_branch_faces(HMesh::Manifold &m, const Geometry::AMGraph3D& g,
@@ -1109,7 +1109,7 @@ FaceID rotate_bridge_face_set_once(HMesh::Manifold& m, FaceID f0) {
     return f0;
 }
 
-double compute_torsion_score(HMesh::Manifold& m, FaceID f0, FaceID f1) {
+double compute_torsion_score(const HMesh::Manifold& m, FaceID f0, FaceID f1) {
 
   VertexID central_vertex_0 = face_vertex[f0];
   VertexID central_vertex_1 = face_vertex[f1];
@@ -1362,7 +1362,7 @@ vector<pair<VertexID, VertexID>> face_match_careful(HMesh::Manifold& m, FaceID &
 }
 
 
-vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID &f0, FaceID &f1,
+vector<pair<VertexID, VertexID>> face_match_one_ring(const HMesh::Manifold& m, FaceID &f0, FaceID &f1,
                                                      const Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
 
     vector<pair<VertexID, VertexID> > connections;
@@ -1497,7 +1497,7 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(HMesh::Manifold& m, FaceID 
    return connections;
 }
 
-FaceID find_bridge_face(HMesh::Manifold &m_out,
+FaceID find_bridge_face(const HMesh::Manifold &m_out,
                         const Geometry::AMGraph3D& g, NodeID start_node, NodeID next_node, Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
   FaceID f0;
@@ -1565,93 +1565,120 @@ void init_graph_arrays(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Uti
 //Main functions
 
 HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>& _node_radii) {
-
+    
     double r = 0.5 * g.average_edge_length();
     Manifold m_out;
     Util::AttribVec<NodeID, FaceSet> node2fs;
-
+    
     clear_global_arrays();
-
+    
     vector node_radii = _node_radii;
     node_radii.resize(g.no_nodes());
     for(auto n : g.node_ids())
-      if(node_radii[n] == 0.0)
-          node_radii[n] = r;
-
+        if(node_radii[n] == 0.0)
+            node_radii[n] = r;
+    
     construct_bnps(m_out, g, node2fs, node_radii);
+    
     id_preserving_cc(m_out);
     init_graph_arrays(m_out, g, node2fs);
-
+    
     FaceAttributeVector<int> ftouched(m_out.allocated_faces(),-1);
     val2nodes_to_boxes(g, m_out, node2fs, node_radii);
-
+    FaceSet original_faces = m_out.faces();
+    
     for(auto f_id: m_out.faces()) {
         face_vertex[f_id] = InvalidVertexID;
         if(one_ring_face_vertex.find(f_id) == one_ring_face_vertex.end())
             one_ring_face_vertex[f_id] = InvalidVertexID;
     }
-
+    
     bool has_junction = false;
-
+    
     for (auto n: g.node_ids()) {
-      if(g.valence(n) > 2)
-        has_junction = true;
+        if(g.valence(n) > 2)
+            has_junction = true;
     }
-
+    
     for (auto n: g.node_ids()) {
         FaceID f0 = InvalidFaceID;
         VertexID v0, v1;
-
+        
         auto N = g.neighbors(n);
-
+        
         if (N.size()<=2 && has_junction)
             continue;
-
+        
         for(auto nn: N) {
             auto key = std::make_pair(n,nn);
             f0 = branchface.find(key)->second;
-
+            
             if(branchdeg.find(key)->second < 1 && has_junction)
                 continue;
-
+            
             NodeID start_node = n;
             NodeID next_node = nn;
-
+            
             vector<NodeID> nbd_list = next_neighbours(g, start_node, next_node);
-
+            
             do {
-
+                
                 FaceID f0 = find_bridge_face(m_out, g, start_node, next_node, node2fs);
                 FaceID f1 = find_bridge_face(m_out, g, next_node, start_node, node2fs);
-
+                
                 nbd_list = next_neighbours(g, start_node, next_node);
-
-
+                
+                
                 if(g.valence(next_node) > g.valence(start_node)) {
-                  auto connections = find_bridge_connections(m_out, f1, f0, g, next_node, start_node);
-                  if(connections.size()!=0) {
-                    m_out.bridge_faces(f1,f0,connections);
-                    ftouched[f0] = 1;
-                    ftouched[f1] = 1;
-                  }
+                    auto connections = find_bridge_connections(m_out, f1, f0, g, next_node, start_node);
+                    if(connections.size()!=0) {
+                        m_out.bridge_faces(f1,f0,connections);
+                        ftouched[f0] = 1;
+                        ftouched[f1] = 1;
+                    }
                 }
                 else {
-                  auto connections = find_bridge_connections(m_out, f0, f1, g, start_node, next_node);
-                  if(connections.size()!=0) {
-                    m_out.bridge_faces(f0,f1,connections);
-                    ftouched[f0] = 1;
-                    ftouched[f1] = 1;
-                  }
+                    auto connections = find_bridge_connections(m_out, f0, f1, g, start_node, next_node);
+                    if(connections.size()!=0) {
+                        m_out.bridge_faces(f0,f1,connections);
+                        ftouched[f0] = 1;
+                        ftouched[f1] = 1;
+                    }
                 }
-
+                
                 start_node = next_node;
                 if(nbd_list.size()==1)
-                  next_node = nbd_list[0];
-
+                    next_node = nbd_list[0];
+                
             }  while(nbd_list.size()==1);
         }
     }
+    
+    // The code below performs smoothing of the vertices that are adjacent to original faces.
+    // This leads to a much better mesh in most cases.
+    auto new_pos = m_out.positions_attribute_vector();
+    for (auto v: m_out.vertices()) {
+        bool vertex_adjacent_to_new_face = false;
+        for (auto f: m_out.incident_faces(v)) {
+            if (original_faces.count(f) ==0) {
+                vertex_adjacent_to_new_face = true;
+                break;
+            }
+        }
+
+        if (!vertex_adjacent_to_new_face) {
+            Vec3d npos(0);
+            int cnt=0;
+            for (auto vn: m_out.incident_vertices(v)) {
+                npos += m_out.pos(vn);
+                ++cnt;
+            }
+            new_pos[v] = npos/cnt;
+        }
+    }
+    m_out.positions_attribute_vector() = new_pos;
 
     quad_mesh_leaves(m_out);
+
     return m_out;
 }
