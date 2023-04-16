@@ -768,42 +768,18 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
     /* This function creates extra points to add to the BNP vertices for a branch node.
      These extra points are called ghost points because they do not correspond to an outgoing
      edge.
-
-     To do this, we categorize nodes according to three categories
-
-     Type A (flat): All outgoing edges lie more or less in a plane for this type of nodes, and
-     the BNP becomes very flat.
-
-     Type B (semi flat): All outgoing edges again lie more or less in a plane, but on one side of
-     the BNP one or more additional outgoing edges emanate.
-
-     Type C (general): This type comprises everything else. For type C nodes, it is hard to say
-     something meaningful about the configuration of outgoing edges.
-
-     The idea behind this function is to add two ghost points to Type A nodes, a single for Type B
-     and 0 for Type C. This heuristic is based on the observation that for Type A this will lead to
-     valence 4 vertices generally since most of the vertices will be connected to two neighbouring
-     points and the two ghosts. For Type B, the same is true if there is a single outgoing edge
-     perpendicular to the edges that form a flat region.
-
-     Procedure:
-     Initially, we add a ghost point for every triangle in the
-     initial BNP where the smallest pairwise dot product between the vertices
-     is less than a threshold. The ghost point is the normal of the triangle.
-     Intuitively, this adds what corresponds to a new outgoing edge in a direction
-     of the sphere that is otherwise not well covered.
      */
     vector<Vec3d> ghost_pts;
+    for(auto p: pts) {
+        ghost_pts.push_back(-p);
+    }
     for(auto t: tris) {
         const auto& p0 = pts[t[0]];
         const auto& p1 = pts[t[1]];
         const auto& p2 = pts[t[2]];
         Vec3d v1 = pts[t[1]]-pts[t[0]];
         Vec3d v2 = pts[t[2]]-pts[t[0]];
-        double l = min(dot(p0, p1), min( dot(p1,p2), dot(p2,p0)));
-        if (l<0.5) {
-            ghost_pts.push_back(normalize(cross(v1, v2)));
-        }
+        ghost_pts.push_back(normalize(cross(v1, v2)));
     }
 
     /* Next, we cluster the ghost points. This is because in flatish
@@ -841,11 +817,6 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
             ghost_pts.push_back(p);
     }
     
-//    /* If there are more than three ghost points, it is a Type C BNP, and
-//     we do nothing. */
-//    if(ghost_pts.size()>2)
-//        return 0;
-        
     for (auto g: ghost_pts)
         pts.push_back(g);
 
