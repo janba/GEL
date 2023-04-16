@@ -769,17 +769,17 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
      These extra points are called ghost points because they do not correspond to an outgoing
      edge.
      */
+    
     vector<Vec3d> ghost_pts;
+
     for(auto p: pts) {
         ghost_pts.push_back(-p);
     }
     for(auto t: tris) {
-        const auto& p0 = pts[t[0]];
-        const auto& p1 = pts[t[1]];
-        const auto& p2 = pts[t[2]];
         Vec3d v1 = pts[t[1]]-pts[t[0]];
         Vec3d v2 = pts[t[2]]-pts[t[0]];
-        ghost_pts.push_back(normalize(cross(v1, v2)));
+        Vec3d n = cross(v1,v2);
+        ghost_pts.push_back(normalize(n));
     }
 
     /* Next, we cluster the ghost points. This is because in flatish
@@ -815,6 +815,19 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
             dots.push_back(dot(p,p_orig));
         if(*max_element(begin(dots), end(dots))<0.5)
             ghost_pts.push_back(p);
+    }
+
+    
+    if(ghost_pts.size() == 0 && pts.size()==4) {
+        double a_max = 0;
+        Vec3d p_max;
+        for(auto t: tris) {
+            Vec3d v1 = pts[t[1]]-pts[t[0]];
+            Vec3d v2 = pts[t[2]]-pts[t[0]];
+            Vec3d n = cross(v1,v2);
+            double a = length(n);
+            ghost_pts.push_back(normalize(n));
+        }
     }
     
     for (auto g: ghost_pts)
