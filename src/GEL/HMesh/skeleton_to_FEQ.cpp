@@ -10,6 +10,7 @@
 #include <GEL/Geometry/graph_io.h>
 #include <GEL/Geometry/graph_util.h>
 #include <GEL/Geometry/SphereDelaunay.h>
+#include <GEL/HMesh/comb_quad.h>
 
 using namespace Geometry;
 using namespace CGLA;
@@ -269,126 +270,126 @@ bool check_convex(const HMesh::Manifold &m, HalfEdgeID h) {
         return true;
 }
 
-void stellate_face_set_retopo(HMesh::Manifold &m, const HMesh::FaceSet& fs, const HMesh::HalfEdgeSet& hs) {
-
-  HalfEdgeSet interior_edges;
-
-  HalfEdgeSet visited;
-
-  VertexSet aux_vertices;
-
-  for (auto h : hs) {
-    if(visited.find(h) != visited.end() || visited.find(m.walker(h).opp().halfedge()) != visited.end())
-      continue;
-
-    VertexID interior_vertex = m.walker(h).next().vertex();
-    VertexID interior_vertex_opp = m.walker(h).prev().prev().vertex();
-
-    if(aux_vertices.find(interior_vertex) != aux_vertices.end() || aux_vertices.find(interior_vertex_opp) != aux_vertices.end()) {
-      m.flip_edge(h);
-      visited.insert(h);
-      visited.insert(m.walker(h).opp().halfedge());
-      continue;
-    }
-
-
-    visited.insert(h);
-    visited.insert(m.walker(h).opp().halfedge());
-    VertexID curr_v = split_LIE(m, h);
-    aux_vertices.insert(curr_v);
-    for (auto h_flip : hs) {
-      if(visited.find(h_flip) == visited.end() && (m.walker(h_flip).next().vertex() == curr_v || m.walker(h_flip).prev().prev().vertex() == curr_v) && check_planar(m,h_flip)) {
-        m.flip_edge(h_flip);
-        visited.insert(h_flip);
-        visited.insert(m.walker(h_flip).opp().halfedge());
-      }
-    }
-
-  }
-  for (auto h_flip : m.halfedges()) {
-    VertexID interior_vertex = m.walker(h_flip).next().vertex();
-    if(visited.find(h_flip) == visited.end() && aux_vertices.find(interior_vertex) != aux_vertices.end() && check_planar(m, h_flip)) {
-      m.flip_edge(h_flip);
-      visited.insert(h_flip);
-      visited.insert(m.walker(h_flip).opp().halfedge());
-    }
-  }
-
-}
-
-vector<FaceSet> retopologize_planar_regions(HMesh::Manifold &m) {
-
-// find triangles with low dihedral angle between them
-
-    vector<FaceSet> planar_regions;
-
-    vector<HalfEdgeSet> planar_edges;
-
-    // identify planar regions
-
-    FaceSet global_visited;
-
-    for (auto f : m.faces()) {
-
-        if(global_visited.find(f) != global_visited.end())
-            continue;
-
-        FaceSet planar_set;
-        HalfEdgeSet planar_edge_set;
-
-        FaceSet visited;
-
-        queue<FaceID> Q;
-
-        Q.push(f);
-
-        while(!Q.empty()) {
-
-            FaceID curr_f = Q.front();
-
-            HalfEdgeSet edge_set;
-
-
-            for(Walker w = m.walker(curr_f); !w.full_circle(); w = w.circulate_face_ccw()) {
-                edge_set.insert(w.halfedge());
-            }
-
-            for (auto h : edge_set)
-                if(check_planar(m,h)) {
-                  planar_edge_set.insert(h);
-                  planar_edge_set.insert(m.walker(h).opp().halfedge());
-                  FaceID f1 = m.walker(h).face();
-                  FaceID f2 = m.walker(h).opp().face();
-
-                  planar_set.insert(f1);
-                  planar_set.insert(f2);
-
-                  global_visited.insert(f1);
-                  global_visited.insert(f2);
-
-                  if(visited.find(f1) == visited.end())
-                    Q.push(f1);
-                  if(visited.find(f2) == visited.end())
-                    Q.push(f2);
-                }
-
-            visited.insert(curr_f);
-            Q.pop();
-       }
-
-       planar_regions.push_back(planar_set);
-       planar_edges.push_back(planar_edge_set);
-    }
-    int id = 0;
-    for (auto fset : planar_regions) {
-      if(fset.size() > 2)
-        stellate_face_set_retopo(m, fset, planar_edges[id]);
-      id++;
-    }
-
-    return planar_regions;
-
-}
+//void stellate_face_set_retopo(HMesh::Manifold &m, const HMesh::FaceSet& fs, const HMesh::HalfEdgeSet& hs) {
+//
+//  HalfEdgeSet interior_edges;
+//
+//  HalfEdgeSet visited;
+//
+//  VertexSet aux_vertices;
+//
+//  for (auto h : hs) {
+//    if(visited.find(h) != visited.end() || visited.find(m.walker(h).opp().halfedge()) != visited.end())
+//      continue;
+//
+//    VertexID interior_vertex = m.walker(h).next().vertex();
+//    VertexID interior_vertex_opp = m.walker(h).prev().prev().vertex();
+//
+//    if(aux_vertices.find(interior_vertex) != aux_vertices.end() || aux_vertices.find(interior_vertex_opp) != aux_vertices.end()) {
+//      m.flip_edge(h);
+//      visited.insert(h);
+//      visited.insert(m.walker(h).opp().halfedge());
+//      continue;
+//    }
+//
+//
+//    visited.insert(h);
+//    visited.insert(m.walker(h).opp().halfedge());
+//    VertexID curr_v = split_LIE(m, h);
+//    aux_vertices.insert(curr_v);
+//    for (auto h_flip : hs) {
+//      if(visited.find(h_flip) == visited.end() && (m.walker(h_flip).next().vertex() == curr_v || m.walker(h_flip).prev().prev().vertex() == curr_v) && check_planar(m,h_flip)) {
+//        m.flip_edge(h_flip);
+//        visited.insert(h_flip);
+//        visited.insert(m.walker(h_flip).opp().halfedge());
+//      }
+//    }
+//
+//  }
+//  for (auto h_flip : m.halfedges()) {
+//    VertexID interior_vertex = m.walker(h_flip).next().vertex();
+//    if(visited.find(h_flip) == visited.end() && aux_vertices.find(interior_vertex) != aux_vertices.end() && check_planar(m, h_flip)) {
+//      m.flip_edge(h_flip);
+//      visited.insert(h_flip);
+//      visited.insert(m.walker(h_flip).opp().halfedge());
+//    }
+//  }
+//
+//}
+//
+//vector<FaceSet> retopologize_planar_regions(HMesh::Manifold &m) {
+//
+//// find triangles with low dihedral angle between them
+//
+//    vector<FaceSet> planar_regions;
+//
+//    vector<HalfEdgeSet> planar_edges;
+//
+//    // identify planar regions
+//
+//    FaceSet global_visited;
+//
+//    for (auto f : m.faces()) {
+//
+//        if(global_visited.find(f) != global_visited.end())
+//            continue;
+//
+//        FaceSet planar_set;
+//        HalfEdgeSet planar_edge_set;
+//
+//        FaceSet visited;
+//
+//        queue<FaceID> Q;
+//
+//        Q.push(f);
+//
+//        while(!Q.empty()) {
+//
+//            FaceID curr_f = Q.front();
+//
+//            HalfEdgeSet edge_set;
+//
+//
+//            for(Walker w = m.walker(curr_f); !w.full_circle(); w = w.circulate_face_ccw()) {
+//                edge_set.insert(w.halfedge());
+//            }
+//
+//            for (auto h : edge_set)
+//                if(check_planar(m,h)) {
+//                  planar_edge_set.insert(h);
+//                  planar_edge_set.insert(m.walker(h).opp().halfedge());
+//                  FaceID f1 = m.walker(h).face();
+//                  FaceID f2 = m.walker(h).opp().face();
+//
+//                  planar_set.insert(f1);
+//                  planar_set.insert(f2);
+//
+//                  global_visited.insert(f1);
+//                  global_visited.insert(f2);
+//
+//                  if(visited.find(f1) == visited.end())
+//                    Q.push(f1);
+//                  if(visited.find(f2) == visited.end())
+//                    Q.push(f2);
+//                }
+//
+//            visited.insert(curr_f);
+//            Q.pop();
+//       }
+//
+//       planar_regions.push_back(planar_set);
+//       planar_edges.push_back(planar_edge_set);
+//    }
+//    int id = 0;
+//    for (auto fset : planar_regions) {
+//      if(fset.size() > 2)
+//        stellate_face_set_retopo(m, fset, planar_edges[id]);
+//      id++;
+//    }
+//
+//    return planar_regions;
+//
+//}
 
 //Graph - Mesh relationship Functions
 
@@ -461,16 +462,25 @@ void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g,
                 if(dest_branch_degree < src_branch_degree) {
                     path_degree = (dest_branch_degree)*2;
                     jn_degree = dest_branch_degree - 1;
+                    cout << "dst < src " << endl;
+                    cout << "dst " << dest_branch_degree << endl;
+                    cout << "src " << src_branch_degree << endl;
                 }
 
                 else if (dest_branch_degree == src_branch_degree) {
                     path_degree = dest_branch_degree*2;
                     jn_degree = dest_branch_degree;
+                    cout << "dst == src " << endl;
+                    cout << "dst " << dest_branch_degree << endl;
+                    cout << "src " << src_branch_degree << endl;
                 }
 
                 else {
                     jn_degree = src_branch_degree - 1;
                     path_degree = (src_branch_degree)*2;
+                    cout << "dst > src " << endl;
+                    cout << "dst " << dest_branch_degree << endl;
+                    cout << "src " << src_branch_degree << endl;
                 }
 
                 auto key = std::make_pair(n,nn);
@@ -779,7 +789,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
      Procedure:
      Initially, we add a ghost point for every triangle in the
      initial BNP where the smallest pairwise dot product between the vertices
-     is less than -0.1. The ghost point is the normal of the triangle.
+     is less than a threshold. The ghost point is the normal of the triangle.
      Intuitively, this adds what corresponds to a new outgoing edge in a direction
      of the sphere that is otherwise not well covered.
      */
@@ -791,7 +801,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         Vec3d v1 = pts[t[1]]-pts[t[0]];
         Vec3d v2 = pts[t[2]]-pts[t[0]];
         double l = min(dot(p0, p1), min( dot(p1,p2), dot(p2,p0)));
-        if (l<0.25) {
+        if (l<0.5) {
             ghost_pts.push_back(normalize(cross(v1, v2)));
         }
     }
@@ -807,7 +817,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         }
         for(int j=i+1; j<ghost_pts.size(); ++j) {
             if (cluster_id[j] == -1) {
-                if (dot(ghost_pts[i], ghost_pts[j]) > 0.3)
+                if (dot(ghost_pts[i], ghost_pts[j]) > 0.5)
                     cluster_id[j] = cluster_id[i];
             }
         }
@@ -827,14 +837,14 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         vector<double> dots;
         for(const auto& p_orig: pts)
             dots.push_back(dot(p,p_orig));
-        if(*max_element(begin(dots), end(dots))<0.3)
+        if(*max_element(begin(dots), end(dots))<0.5)
             ghost_pts.push_back(p);
     }
     
-    /* If there are more than three ghost points, it is a Type C BNP, and
-     we do nothing. */
-    if(ghost_pts.size()>2)
-        return 0;
+//    /* If there are more than three ghost points, it is a Type C BNP, and
+//     we do nothing. */
+//    if(ghost_pts.size()>2)
+//        return 0;
         
     for (auto g: ghost_pts)
         pts.push_back(g);
@@ -926,6 +936,12 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
                       new_pos[v] = 0.01*r*normal(m,v) + m.pos(v);
                   m.positions_attribute_vector() = new_pos;
               }
+              
+              quad_valencify(m);
+              for (auto v: m.vertices()) {
+                  cout << "val " << valency(m, v) << endl;
+              }
+              cout << "-----------" << endl;
 
               for(int i = 0; i < spts.size(); i++) {
                   auto key = spts2branch.find(i)->second;

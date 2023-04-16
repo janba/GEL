@@ -69,13 +69,14 @@ bool connect_val3(HMesh::Manifold& m) {
     Util::AttribVec<AMGraph::NodeID, FaceID> node2face;
     FaceAttributeVector<AMGraph::NodeID> face2node;
     VertexID v_first = InvalidVertexID;
+    FaceID f_first = InvalidFaceID;
     for(auto f: m.faces()) {
         auto n = g.add_node(centre(m, f));
         face2node[f] = n;
         node2face[n] = f;
         val3vertex[n] = InvalidVertexID;
     }
-    
+ /*
     for (auto v: m.vertices())
         if(valency(m, v) == 3) {
             bool proximal_v3 = false;
@@ -91,7 +92,23 @@ bool connect_val3(HMesh::Manifold& m) {
                 if (v_first == InvalidVertexID)
                     v_first = v;
             }
+        }*/
+    
+    for(auto f: m.faces()) {
+        vector<VertexID> val3_in_face;
+        for (auto v: m.incident_vertices(f)) {
+            if(valency(m,v)==3)
+                val3_in_face.push_back(v);
         }
+        if(val3_in_face.size() == 1) {
+            AMGraph3D::NodeID n = face2node[f];
+            val3vertex[n] = val3_in_face[0];
+            if (v_first == InvalidVertexID) {
+                v_first = val3_in_face[0];
+                f_first = f;
+            }
+        }
+    }
     
     
     if(v_first == InvalidVertexID)
@@ -99,17 +116,18 @@ bool connect_val3(HMesh::Manifold& m) {
     
     for(auto h: m.halfedges()) {
         auto w = m.walker(h);
-        if(h < w.opp().halfedge()) {
-            FaceID f1 = w.face();
-            FaceID f2 = w.opp().face();
-            auto e = g.connect_nodes(face2node[f1], face2node[f2]);
-            gedge2hedge[e] = h;
-        }
+        if(h < w.opp().halfedge())
+            if (valency(m, w.vertex())>3 && valency(m, w.opp().vertex()) >3) {
+                FaceID f1 = w.face();
+                FaceID f2 = w.opp().face();
+                auto e = g.connect_nodes(face2node[f1], face2node[f2]);
+                gedge2hedge[e] = h;
+            }
     }
 
     BreadthFirstSearch bfs(g);
     for (auto f: m.incident_faces(v_first))
-        bfs.add_init_node(face2node[f]);
+        bfs.add_init_node(face2node[f_first]);
     while(bfs.Dijkstra_step()) {
         AMGraph::NodeID n_last = bfs.get_last();
         VertexID v_last = val3vertex[n_last];

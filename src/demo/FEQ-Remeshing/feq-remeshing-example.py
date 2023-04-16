@@ -34,6 +34,7 @@ for g_file, o_file, params in zip(graphs, objs, iters):
     print('Building FEQ')
     s = graph.load(skel_dir + g_file)
     m_skel = hmesh.skeleton_to_feq(s)#, [5.0]*len(s.nodes()))
+    viewer.display(m_skel, reset_view=True)
     hmesh.cc_split(m_skel)
     hmesh.cc_smooth(m_skel)
 
