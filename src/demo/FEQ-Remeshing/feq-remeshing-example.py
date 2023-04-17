@@ -5,22 +5,23 @@ from os import getcwd
 
 graphs = [
 'armadillo_symmetric.graph',
+'warrior.graph',
 'hand.graph',
 'bunny.graph',
 'feline.graph',
-'fertility.graph',
-'warrior.graph']
+'fertility.graph'
+]
 
 objs = [
 'armadillo.obj',
+'warrior.obj',
 'usai_hand_tri.obj',
 'bunny.obj',
 'feline.obj',
 'fertility_tri.obj',
-'warrior.obj'
 ]
 
-iters = [ (50,0.5,1.0), (150,0.5,0.5),(50,0.5,1.0), (50,0.5,1.0), (50,0.5,1.0), (50,0.5,1.0)]
+iters = [ (50,0.5,1.0), (50,0.5,1.0), (150,0.5,0.5), (50,0.5,1.0), (50,0.5,1.0), (50,0.5,1.0)]
 
 mesh_dir = '../../../data/ReferenceMeshes/' 
 skel_dir = '../../../data/Graphs/'
@@ -35,7 +36,7 @@ for g_file, o_file, params in zip(graphs, objs, iters):
     s = graph.load(skel_dir + g_file)
     m_skel = hmesh.skeleton_to_feq(s)#, [5.0]*len(s.nodes()))
     viewer.display(m_skel, reset_view   =True)
-    viewer.display(m_skel, s, mode='x', reset_view   =True)
+#    viewer.display(m_skel, s, mode='x', reset_view   =True)
 
     hmesh.cc_split(m_skel)
     hmesh.cc_smooth(m_skel)
