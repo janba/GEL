@@ -894,58 +894,11 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
                         spts2vertexid.insert(std::make_pair(i, v));
             
             if(!ghosts_added) {
-                if(N.size()==3) {
-                    vector<FaceID> face_list;
-                    for (auto f: m.faces())
-                        face_list.push_back(f);
-                    FaceID f = face_list[0];
-                    double l_avg = average_edge_length(m);
-                    double max_diff = 0;
-                    HalfEdgeID h_max_diff = InvalidHalfEdgeID;
-                    for (auto h: m.incident_halfedges(f)) {
-                        double l = length(m, h);
-                        double diff = abs(l-l_avg);
-                        if(diff>max_diff) {
-                            max_diff = diff;
-                            h_max_diff = h;
-                        }
-                    }
-                    m.split_edge(h_max_diff);
-                    for (FaceID f: face_list)
-                        m.split_face_by_vertex(f);
-                }
-                if(N.size()==4) {
-                    double max_r = 0;
-                    pair<FaceID, FaceID> faces_max_r;
-                    for (auto h: m.halfedges()) {
-                        Walker w = m.walker(h);
-                        if(h<w.opp().halfedge()) {
-                            FaceID f1 = w.face();
-                            FaceID f2 = w.opp().face();
-                            double a1 = area(m, f1);
-                            double a2 = area(m, f2);
-                            double r = min(a1, a2)/max(a1, a2);
-                            if(r>max_r) {
-                                max_r = r;
-                                faces_max_r = make_pair(f1, f2);
-                            }
-                        }
-                    }
-                    for (auto h: m.halfedges()) {
-                        Walker w = m.walker(h);
-                        auto f1 = w.face();
-                        auto f2 = w.opp().face();
-                        if (! (f1 == faces_max_r.first ||f1 == faces_max_r.second ||
-                               f2 == faces_max_r.first ||f2 == faces_max_r.second )) {
-                            m.split_face_by_vertex(f1);
-                            m.split_face_by_vertex(f2);
-                            m.flip_edge(h);
-                            break;
-                        }
-                        
-                    }
-                }
-                
+                vector<FaceID> face_list;
+                for (auto f: m.faces())
+                    face_list.push_back(f);
+                for (FaceID f: face_list)
+                    m.split_face_by_vertex(f);
             }
             
             
