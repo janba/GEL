@@ -22,12 +22,17 @@ namespace Geometry {
     using NodeSetUnordered = std::unordered_set<AMGraph::NodeID>;
     using NodeSet = AMGraph::NodeSet;
     using NodeSetVec = std::vector<std::pair<double,NodeSet>>;
+    using ExpansionMap = std::vector<std::vector<AMGraph::NodeID>>;
+    using CapacityVecVec = std::vector<std::vector<size_t>>;
 
     /// Linear time counting of the number of shared members of set1 and set2.
     int test_intersection (const AMGraph3D::NodeSet& set1, const AMGraph3D::NodeSet& set2);
 
     /// Returns a vector containing the connected components of set s
     std::vector<NodeSetUnordered> connected_components(const AMGraph& g, const NodeSetUnordered& s);
+
+    /// Returns the connected components of the front of s.
+    std::vector<NodeSetUnordered> front_components(const AMGraph3D& g, const NodeSetUnordered & s);
 
     /// Smooth the attributes in dist associated with graph g smooth_iter times
     AttribVecDouble smooth_dist(const AMGraph3D& g, const AttribVecDouble& dist, int smooth_iter=0);
@@ -47,6 +52,16 @@ namespace Geometry {
 
     /// Contracts edges in the graph g shorter than dist_thresh. A priority queue is used to contract shorter edges first.
     int graph_edge_contract(AMGraph3D& g, double dist_thresh);
+
+    struct SkeletonPQElem {
+        double pri;
+        Geometry::AMGraph::NodeID n0, n1;
+        SkeletonPQElem(double _pri, Geometry::AMGraph::NodeID _n0, Geometry::AMGraph::NodeID _n1);
+
+        bool operator < (const SkeletonPQElem& pq1) const {
+            return pri < pq1.pri;
+        }
+    };
 
     /// This function unceremoniously removes leaf vertices if they share an edge with a vertex that has valence greater than two.
     void prune(AMGraph3D& g);
@@ -71,7 +86,7 @@ namespace Geometry {
 
     /** Convert a node set from unordered representation to ordered. This makes it possible to count the number of shared
      nodes in linear time. */
-    NodeSet order(NodeSetUnordered& s);
+    NodeSet order(const NodeSetUnordered& s);
 
     /// This function computes the neighbors of s in g. In other words it returns the set of nodes that are connected to s but do not belong to s.
     NodeSetUnordered neighbors(const AMGraph3D& g, const NodeSetUnordered& s);
