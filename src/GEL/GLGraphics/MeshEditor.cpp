@@ -1145,10 +1145,11 @@ namespace GLGraphics {
         {
             if(wantshelp(args))
             {
-                me->printf("usage: simplify <fraction> <singular_thresh>");
+                me->printf("usage: simplify <fraction> <err_thresh> <singular_thresh>");
                 me->printf("Performs Garland Heckbert (quadric based) mesh simplification.");
                 me->printf("The first argument is the fraction of vertices to keep.");
-                me->printf("The second argument is the threshold for singular values.");
+                me->printf("The second argument is the error threshold relative to bounding sphere radius");
+                me->printf("The third argument is the threshold for singular values.");
                 return;
             }
             me->save_active_mesh();
@@ -1162,12 +1163,22 @@ namespace GLGraphics {
             istringstream a0(args[0]);
             a0 >> keep_fraction;
 
-            double singular_thresh = 1e-4;
-            if(args.size() == 2)
+            double err_thresh = 1e5;
+            if(args.size() >1)
             {
                 istringstream a1(args[1]);
-                a1 >> singular_thresh;
+                a1 >> err_thresh;
             }
+
+            double singular_thresh = 1e-4;
+            if(args.size() >2)
+            {
+                istringstream a2(args[2]);
+                a2 >> singular_thresh;
+            }
+
+            cout << "err thresh " << err_thresh << " , sing " << singular_thresh << endl;
+        
             
             Vec3d p0, p7;
             Manifold m = me->active_mesh();
@@ -1185,7 +1196,7 @@ namespace GLGraphics {
             timer.start();
             
             //simplify
-            quadric_simplify(me->active_mesh(),keep_fraction,singular_thresh,true);
+            quadric_simplify(me->active_mesh(),keep_fraction,singular_thresh,err_thresh);
             
             cout << "Simplification complete, process time: " << timer.get_secs() << " seconds" << endl;
             

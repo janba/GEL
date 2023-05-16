@@ -34,6 +34,7 @@ DLLEXPORT void graph_to_mesh_cyl(Graph_ptr g_ptr, Manifold_ptr m_ptr, float fudg
 DLLEXPORT void graph_smooth(Graph_ptr g_ptr, const int iter, const float alpha);
 DLLEXPORT int graph_edge_contract(Graph_ptr g_ptr, double dist_thresh);
 DLLEXPORT void graph_prune(Graph_ptr g_ptr);
+DLLEXPORT void graph_saturate(Graph_ptr _g_ptr, int hops, double dist_frac, double rad);
 
 DLLEXPORT void graph_LS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, bool sampling=false);
 

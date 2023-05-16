@@ -9,10 +9,20 @@
 #include "hmesh_functions.h"
 #include <string>
 #include <GEL/HMesh/HMesh.h>
+#include <GEL/Geometry/Graph.h>
+#include <GEL/Geometry/graph_io.h>
+#include <GEL/Geometry/graph_skeletonize.h>
+#include <GEL/Geometry/graph_util.h>
+#include <GEL/Geometry/GridAlgorithm.h>
+#include "Graph.h"
+#include "Manifold.h"
+
+
 
 using namespace std;
 using namespace HMesh;
 using namespace CGLA;
+using namespace Geometry;
 
 bool valid(const Manifold_ptr m_ptr) {
     return valid(*(reinterpret_cast<Manifold*>(m_ptr)));
@@ -115,8 +125,8 @@ void randomize_mesh(Manifold_ptr m_ptr, int max_iter) {
 
 void quadric_simplify(Manifold_ptr m_ptr, double keep_fraction,
                       double singular_thresh,
-                      bool choose_optimal_positions) {
-    quadric_simplify(*(reinterpret_cast<Manifold*>(m_ptr)), keep_fraction, singular_thresh, choose_optimal_positions);
+                      double error_thresh) {
+    quadric_simplify(*(reinterpret_cast<Manifold*>(m_ptr)), keep_fraction, singular_thresh, error_thresh);
 }
 
 float average_edge_length(const Manifold_ptr m_ptr) {
@@ -167,5 +177,35 @@ void ear_clip_triangulate(Manifold_ptr m_ptr) {
     triangulate(*(reinterpret_cast<Manifold*>(m_ptr)), CLIP_EAR);
 }
 
+void taubin_smooth(Manifold_ptr m_ptr, int iter) {
+    taubin_smooth(*(reinterpret_cast<Manifold*>(m_ptr)), iter);
+}
+
+void laplacian_smooth(Manifold_ptr m_ptr, float weight, int iter) {
+    laplacian_smooth(*(reinterpret_cast<Manifold*>(m_ptr)), weight, iter);
+}
+
+void volumetric_isocontour(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim, float* data,
+                           double* _pmin, double* _pmax, float tau, bool make_triangles, bool high_is_inside) {
+    Vec3i dims(x_dim, y_dim, z_dim);
+    const Vec3d pmin = *(reinterpret_cast<Vec3d*>(_pmin));
+    const Vec3d pmax = *(reinterpret_cast<Vec3d*>(_pmax));
+    XForm xform(pmin, pmax, dims, 0.0);
+    RGrid<float> grid(dims);
+    memcpy(grid.get(), data, grid.get_size() * sizeof(float));
+    volume_polygonize(xform, grid, *(reinterpret_cast<Manifold*>(m_ptr)), tau, make_triangles, high_is_inside);
+}
 
 
+void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double *node_radii) {
+    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    vector<double> node_rs;
+    const size_t N = g_ptr->no_nodes();
+    node_rs.resize(N);
+
+    for(auto n : g_ptr->node_ids())
+        node_rs[n] = node_radii[n];
+
+    *m_ptr = graph_to_FEQ(*g_ptr, node_rs);
+}

@@ -2,7 +2,10 @@
 import ctypes as ct
 import numpy as np
 from numpy.linalg import norm
-from pygel3d import lib_py_gel, IntVector, Vec3dVector
+from pygel3d import lib_py_gel, IntVector, Vec3dVector, spatial
+from scipy.sparse import csc_matrix, vstack
+from scipy.sparse.linalg import lsqr
+from collections import defaultdict
 
 
 class Manifold:
@@ -11,7 +14,7 @@ class Manifold:
     ignore a few corner cases) unlike some other representations. This class contains a number of
     methods for mesh manipulation and inspection. Note also that numerous further functions are
     available to manipulate meshes stored as Manifolds.
-    
+
     Many of the functions below accept arguments called hid, fid, or vid. These are simply indices
     of halfedges, faces and vertices, respectively: integer numbers that identify the corresponding
     mesh element. Using a plain integer to identify a mesh entity means that, for instance, a
@@ -24,7 +27,7 @@ class Manifold:
             self.obj = lib_py_gel.Manifold_copy(orig.obj)
     @classmethod
     def from_triangles(cls,vertices, faces):
-        """ Given a list of vertices and triangles (faces), this function produces 
+        """ Given a list of vertices and triangles (faces), this function produces
         a Manifold mesh."""
         m = cls()
         m.obj = lib_py_gel.Manifold_from_triangles(len(vertices),len(faces),np.array(vertices,dtype=np.float64), np.array(faces,dtype=ct.c_int))
@@ -457,13 +460,16 @@ def randomize_mesh(m,max_iter=1):
     """  Make random flips in m. Useful for generating synthetic test cases. """
     lib_py_gel.randomize_mesh(m.obj, max_iter)
 
-def quadric_simplify(m,keep_fraction,singular_thresh=1e-4,optimal_positions=True):
-    """ Garland Heckbert simplification of mesh m in our own implementation. keep_fraction
-    is the fraction of vertices to retain. The singular_thresh defines how small
-    singular values from the SVD we accept. It is relative to the greatest
-    singular value. If optimal_positions is true, we reposition vertices.
-    Otherwise the vertices are a subset of the old vertices."""
-    lib_py_gel.quadric_simplify(m.obj, keep_fraction, singular_thresh,optimal_positions)
+def quadric_simplify(m,keep_fraction,singular_thresh=1e-4,error_thresh=1):
+    """ Garland Heckbert simplification of mesh m. keep_fraction is the fraction of vertices
+    to retain. The singular_thresh determines how subtle features are preserved. For values
+    close to 1 the surface is treated as smooth even in the presence of sharp edges of low
+    dihedral angle (angle between normals). Close to zero, the method preserves even subtle
+    sharp features better. The error_thresh is the value of the QEM error at which
+    simplification stops. It is relative to the bounding box size. The default value is 1
+    meaning that simplification continues until the model has been simplified to a number of
+    vertices approximately equal to keep_fraction times the original number of vertices."""
+    lib_py_gel.quadric_simplify(m.obj, keep_fraction, singular_thresh,error_thresh)
 
 def average_edge_length(m,max_iter=1):
     """ Returns the average edge length of mesh m. """
@@ -514,6 +520,40 @@ def loop_smooth(m):
     """ If called after Loop split, this function completes a step of Loop
     subdivision of m. """
     lib_py_gel.loop_smooth(m.obj)
+    
+def taubin_smooth(m, iter=1):
+    """ This function performs Taubin smoothing on the mesh m for iter number
+    of iterations. """
+    lib_py_gel.taubin_smooth(m.obj, iter)
+
+def laplacian_smooth(m, w=0.5, iter=1):
+    """ This function performs Laplacian smoothing on the mesh m for iter number
+    of iterations. w is the weight applied. """
+    lib_py_gel.laplacian_smooth(m.obj, w, iter)
+    
+def volumetric_isocontour(data, bbox_min = None, bbox_max = None,
+                          tau=0.0, make_triangles=True, high_is_inside=True):
+    """ Creates a polygonal mesh by dual contouring of the volumetric data. The dimensions
+    are given by dims, bbox_min (defaults to [0,0,0] ) and bbox_max (defaults to dims) are
+    the corners of the bounding box in R^3 that corresponds to the volumetric grid, tau is
+    the iso value (defaults to 0). If make_triangles is True (default), we turn the quads
+    into triangles. Finally, high_is_inside=True (default) means that values greater than
+    tau are interior and smaller values are exterior. """
+    m = Manifold()
+    dims = data.shape
+    if bbox_min is None:
+        bbox_min = (0,0,0)
+    if bbox_max is None:
+        bbox_max = dims
+    data_float = np.asarray(data.flatten(order='F'), dtype=ct.c_float)
+    bbox_min_d = np.asarray(bbox_min, dtype=np.float64, order='C')
+    bbox_max_d = np.asarray(bbox_max, dtype=np.float64, order='C')
+    lib_py_gel.volumetric_isocontour(m.obj, dims[0], dims[1], dims[2],
+                                     data_float.ctypes.data_as(ct.POINTER(ct.c_float)),
+                                     bbox_min_d.ctypes.data_as(ct.POINTER(ct.c_double)),
+                                     bbox_max_d.ctypes.data_as(ct.POINTER(ct.c_double)), tau,
+                                     make_triangles, high_is_inside)
+    return m
 
 def triangulate(m, clip_ear=True):
     """ Turn a general polygonal mesh, m, into a triangle mesh by repeatedly
@@ -522,6 +562,93 @@ def triangulate(m, clip_ear=True):
         lib_py_gel.ear_clip_triangulate(m.obj)
     else:
         lib_py_gel.shortest_edge_triangulate(m.obj)
+
+def skeleton_to_feq(g, node_radii = None):
+    """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node. """
+    m = Manifold()
+    if node_radii is None:
+        node_radii = [0]*len(g.nodes())
+    node_rs_flat = np.asarray(node_radii, dtype=np.float64)
+    lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat.ctypes.data_as(ct.POINTER(ct.c_double)))
+    return m
+
+def laplacian_matrix(m):
+    """ Returns the sparse uniform laplacian matrix for a polygonal mesh m. """
+
+    num_verts = m.no_allocated_vertices()
+    laplacian = np.full((num_verts,num_verts), 0.0)
+    for i in m.vertices():
+        nb_verts = m.circulate_vertex(i)
+        deg = len(nb_verts)
+        laplacian[i][i] = 1.0
+        for nb in nb_verts:
+            laplacian[i][nb] = -1/deg
+    return csc_matrix(laplacian)
+
+
+def inv_correspondence_leqs(m, ref_mesh):
+    """ Helper function to compute correspondences between a skeletal mesh m and a reference mesh ref_mesh, given a MeshDistance object dist_obj for the ref mesh. """
+
+    m_pos = m.positions()
+    ref_pos = ref_mesh.positions()
+
+    m_tree = spatial.I3DTree()
+    m_tree_index_set = []
+    for v in m.vertices():
+        m_tree.insert(m_pos[v],v)
+        m_tree_index_set.append(v)
+    m_tree.build()
+
+    m_target_pos = np.zeros(m.positions().shape)
+    m_cnt = np.zeros(m.no_allocated_vertices())
+    for r_id in ref_mesh.vertices():
+        query_pt = ref_pos[r_id]
+        closest_pt_obj = m_tree.closest_point(query_pt,1e32)
+        if closest_pt_obj is not None:
+            key,m_id = closest_pt_obj
+            r_norm = ref_mesh.vertex_normal(r_id)
+            m_norm = m.vertex_normal(m_id)
+            if m_norm @ r_norm > 0.75:
+                m_target_pos[m_id] += query_pt
+                m_cnt[m_id] += 1
+                
+    N = m.no_allocated_vertices()
+    A_list = []
+    b_list = []
+    for vid in m.vertices():
+        if m_cnt[vid] > 0.0:
+            row_a = np.zeros(N)
+            row_a[vid] = 1.0
+            A_list.append(row_a)
+            pt_target = m_target_pos[vid] / m_cnt[vid]
+            b_list.append(pt_target)
+    return csc_matrix(np.array(A_list)), np.array(b_list)
+
+
+def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 0.75, lap_wt = 1.0):
+    """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
+
+    v_pos = m.positions()
+    ref_pos = ref_mesh.positions()
+    max_iter = local_iter
+    lap_matrix = laplacian_matrix(m)
+
+    for i in range(max_iter):
+        cc_smooth(m)
+        cc_smooth(m)
+        cc_smooth(m)
+        lap_b = lap_matrix @ v_pos
+        A, b = inv_correspondence_leqs(m, ref_mesh)
+        final_A = vstack([lap_wt*lap_matrix, dist_wt*A])
+        final_b = np.vstack([lap_wt * lap_b, dist_wt*b])
+        opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
+        opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
+        opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
+        v_pos[:,0] = opt_x
+        v_pos[:,1] = opt_y
+        v_pos[:,2] = opt_z
+
+    return m
 
 
 class MeshDistance:
@@ -533,11 +660,11 @@ class MeshDistance:
     def __del__(self):
         lib_py_gel.MeshDistance_delete(self.obj)
     def signed_distance(self,pts,upper=1e30):
-        """ Compute the signed distance from each point in pts to the mesh stored in 
-        this class instance. pts should be convertible to a length N>=1 array of 3D 
-        points. The function returns an array of N distance values with a single distance 
-        for each point. The distance corresponding to a point is positive if the point 
-        is outside and negative if inside. The upper parameter can be used to threshold 
+        """ Compute the signed distance from each point in pts to the mesh stored in
+        this class instance. pts should be convertible to a length N>=1 array of 3D
+        points. The function returns an array of N distance values with a single distance
+        for each point. The distance corresponding to a point is positive if the point
+        is outside and negative if inside. The upper parameter can be used to threshold
         how far away the distance is of interest. """
         p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
         n = p.shape[0]
@@ -547,10 +674,10 @@ class MeshDistance:
         lib_py_gel.MeshDistance_signed_distance(self.obj,n,p_ct,d_ct,upper)
         return d
     def ray_inside_test(self,pts,no_rays=3):
-        """Check whether each point in pts is inside or outside the stored mesh by 
+        """Check whether each point in pts is inside or outside the stored mesh by
         casting rays. pts should be convertible to a length N>=1 array of 3D points.
         Effectively, this is the sign of the distance. In some cases casting (multiple)
-        ray is more robust than using the sign computed locally. Returns an array of 
+        ray is more robust than using the sign computed locally. Returns an array of
         N integers which are either 1 or 0 depending on whether the corresponding point
         is inside (1) or outside (0). """
         p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
@@ -560,4 +687,3 @@ class MeshDistance:
         s_ct = s.ctypes.data_as(ct.POINTER(ct.c_int))
         lib_py_gel.MeshDistance_ray_inside_test(self.obj,n,p_ct,s_ct,no_rays)
         return s
-

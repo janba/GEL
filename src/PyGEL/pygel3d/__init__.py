@@ -53,7 +53,7 @@ InvalidIndex = ct.c_size_t.in_dll(lib_py_gel, "InvalidIndex").value
 
 # The following many lines explitize the arguments and return types of the C API
 
-# IntVector 
+# IntVector
 lib_py_gel.IntVector_new.restype = ct.c_void_p
 lib_py_gel.IntVector_get.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.IntVector_size.argtypes = (ct.c_void_p,)
@@ -61,7 +61,7 @@ lib_py_gel.IntVector_size.restype = ct.c_size_t
 lib_py_gel.IntVector_delete.argtypes = (ct.c_void_p,)
 
 
-# Vec3dVector 
+# Vec3dVector
 lib_py_gel.Vec3dVector_new.restype = ct.c_void_p
 lib_py_gel.Vec3dVector_get.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.Vec3dVector_get.restype = ct.POINTER(ct.c_double)
@@ -194,7 +194,7 @@ lib_py_gel.minimize_dihedral_angle.argtypes = (ct.c_void_p, ct.c_int, ct.c_bool,
 lib_py_gel.maximize_min_angle.argtypes = (ct.c_void_p,ct.c_float,ct.c_bool)
 lib_py_gel.optimize_valency.argtypes = (ct.c_void_p,ct.c_bool)
 lib_py_gel.randomize_mesh.argtypes = (ct.c_void_p,ct.c_int)
-lib_py_gel.quadric_simplify.argtypes = (ct.c_void_p,ct.c_double,ct.c_double,ct.c_bool)
+lib_py_gel.quadric_simplify.argtypes = (ct.c_void_p,ct.c_double,ct.c_double,ct.c_double)
 lib_py_gel.average_edge_length.argtypes = (ct.c_void_p,)
 lib_py_gel.average_edge_length.restype = ct.c_float
 lib_py_gel.median_edge_length.argtypes = (ct.c_void_p,)
@@ -210,6 +210,12 @@ lib_py_gel.cc_smooth.argtypes = (ct.c_void_p,)
 lib_py_gel.loop_smooth.argtypes = (ct.c_void_p,)
 lib_py_gel.ear_clip_triangulate.argtypes = (ct.c_void_p,)
 lib_py_gel.shortest_edge_triangulate.argtypes = (ct.c_void_p,)
+lib_py_gel.graph_to_feq.argtypes = (ct.c_void_p, ct.c_void_p, ct.POINTER(ct.c_double))
+lib_py_gel.graph_to_feq.restype = ct.c_void_p
+lib_py_gel.taubin_smooth.argtypes = (ct.c_void_p, ct.c_int)
+lib_py_gel.laplacian_smooth.argtypes = (ct.c_void_p, ct.c_float, ct.c_int)
+lib_py_gel.volumetric_isocontour.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_int, ct.POINTER(ct.c_float), ct.POINTER(ct.c_double), ct.POINTER(ct.c_double), ct.c_float, ct.c_bool, ct.c_bool )
+
 
 # MeshDistance allows us to compute the signed distance to a mesh
 lib_py_gel.MeshDistance_new.restype = ct.c_void_p
@@ -252,6 +258,7 @@ lib_py_gel.graph_to_mesh_cyl.restype = ct.c_void_p
 lib_py_gel.graph_smooth.argtypes = (ct.c_void_p, ct.c_int, ct.c_float)
 lib_py_gel.graph_edge_contract.argtypes = (ct.c_void_p, ct.c_double)
 lib_py_gel.graph_prune.argtypes = (ct.c_void_p,)
+lib_py_gel.graph_saturate.argtypes = (ct.c_void_p, ct.c_int, ct.c_double, ct.c_double)
 lib_py_gel.graph_LS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_bool)
 lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ct.POINTER(ct.c_double))
 
@@ -293,4 +300,3 @@ class Vec3dVector:
         for i in range(0,n):
             data = lib_py_gel.Vec3dVector_get(self.obj, i)
             yield [data[0], data[1], data[2]]
-

@@ -88,7 +88,7 @@ namespace Geometry
         Vec3d g(interpolate(grid,p+Vec3d(1,0,0))-interpolate(grid,p-Vec3d(1,0,0)),
                 interpolate(grid,p+Vec3d(0,1,0))-interpolate(grid,p-Vec3d(0,1,0)),
                 interpolate(grid,p+Vec3d(0,0,1))-interpolate(grid,p-Vec3d(0,0,1)));
-        g *= 0.5 / xform.inv_scale();
+        g *= 0.5 * xform.get_scale();
         return g;
     }
     

@@ -24,5 +24,5 @@
 #include <GEL/HMesh/x3d_load.h>
 #include <GEL/HMesh/x3d_save.h>
 #include <GEL/HMesh/graph_algorithm.h>
-
+#include <GEL/HMesh/skeleton_to_FEQ.h>
 #endif

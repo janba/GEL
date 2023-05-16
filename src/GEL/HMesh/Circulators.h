@@ -41,7 +41,7 @@ namespace HMesh {
             return tmp;
         }
         
-        bool operator !=(const VertexCirculator& c2) {
+        bool operator !=(const VertexCirculator& c2) const {
             if (he != c2.he)
                 return true;
             if(begun != c2.begun)
@@ -49,7 +49,7 @@ namespace HMesh {
             return false;
         }
         
-        bool operator ==(const VertexCirculator& c2) {
+        bool operator ==(const VertexCirculator& c2) const {
             if (he == c2.he && begun == c2.begun)
                 return true;
             return false;
@@ -98,7 +98,7 @@ namespace HMesh {
             return tmp;
         }
         
-        bool operator !=(const FaceCirculator& c2) {
+        bool operator !=(const FaceCirculator& c2) const {
             if (he != c2.he)
                 return true;
             if(begun != c2.begun)
@@ -106,7 +106,7 @@ namespace HMesh {
             return false;
         }
         
-        bool operator ==(const FaceCirculator& c2) {
+        bool operator ==(const FaceCirculator& c2) const {
             if (he == c2.he && begun == c2.begun)
                 return true;
             return false;

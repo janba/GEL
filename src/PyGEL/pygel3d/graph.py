@@ -127,6 +127,16 @@ def prune(g):
         return a value. """
     lib_py_gel.graph_prune(g.obj)
     
+def saturate(g, hops=2, dist_frac=1.001, rad=1e300):
+    """ Saturate the graph with edges. This is not a complete saturation. Edges are
+    introduced between a vertex and other vertices that are reachable in hops steps, i.e.
+    hops-order neighbors. dist_frac and rad are parameters used to govern the precise
+    behaviour. Two nodes are only connected if their distance is less than rad and if
+    their distance is less than dist_frac times the length of the path along existing
+    edges in the graph. If dist_frac is at approximately 1 and rad is enormous, these
+    two parameters make no difference. """
+    lib_py_gel.graph_saturate(g.obj, hops, dist_frac, rad)
+    
 def LS_skeleton(g, sampling=True):
     """ Skeletonize a graph using the local separators approach. The first argument,
         g, is the graph, and, sampling indicates whether we try to use all vertices

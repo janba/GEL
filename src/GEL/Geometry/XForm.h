@@ -24,7 +24,7 @@ namespace Geometry
     {
         CGLA::Vec3d llf;
         CGLA::Vec3d urt;
-        double scale;
+        CGLA::Vec3d scale;
         CGLA::Vec3d offset;
         CGLA::Vec3i DIM;
     public:
@@ -35,28 +35,24 @@ namespace Geometry
          The scale multiplied onto a vector should transform it from the object coordinate scale to the voxel
          grid scale. Likewise, the offset translates a point from object coordinates to voxel grid coordinates.
          */
-        XForm(const CGLA::Vec3i& _DIM, double _scale = 1.0, const CGLA::Vec3d&  _offset = CGLA::Vec3d(-0.5)):
-        llf(0), urt(_DIM), scale(_scale), offset(_offset), DIM(_DIM) {}
+        XForm(const CGLA::Vec3i& _DIM, double _scale = 1.0, const CGLA::Vec3d& _offset = CGLA::Vec3d(0)):
+        llf(0), urt(_DIM-CGLA::Vec3i(1)), scale(_scale), offset(_offset), DIM(_DIM) {}
         
         /** Construct from the corners of the object's bounding volume (lower, left, front) and
             (upper, right, top), the volume dimensions and optionally a margin. */
-        XForm(const CGLA::Vec3d& _llf, const CGLA::Vec3d& _urt, const CGLA::Vec3i& _DIM, double _margin=0.1):
+        XForm(const CGLA::Vec3d& _llf, const CGLA::Vec3d& _urt, const CGLA::Vec3i& _DIM, double margin=0.0):
         llf(_llf), urt(_urt), DIM(_DIM)
         {
             if(urt[0]<llf[0]) {
-                scale = 1;
+                scale = CGLA::Vec3d(1.0);
                 offset = CGLA::Vec3d(0.0);
                 llf = CGLA::Vec3d(0);
                 urt = CGLA::Vec3d(DIM-CGLA::Vec3i(1));
             }
             else {
                 CGLA::Vec3d d = urt - llf;
-                double margin = d.max_coord() * _margin;
-                double scale_x = (DIM[0]-1)/(d[0] + 2.0 * margin);
-                double scale_y = (DIM[1]-1)/(d[1] + 2.0 * margin);
-                double scale_z = (DIM[2]-1)/(d[2] + 2.0 * margin);
-                scale = fmin(fmin(scale_x, scale_y), scale_z);
-                offset = CGLA::Vec3d(margin);
+                offset = CGLA::Vec3d(d.max_coord() * margin);
+                scale = CGLA::Vec3d(DIM-CGLA::Vec3i(1))/(d + 2.0 * offset);
             }
         }
                 
@@ -71,8 +67,8 @@ namespace Geometry
         }
         
         /// Return the inverse scale: ratio of object to voxel size.
-        double inv_scale() const {
-            return 1.0/scale;
+        const CGLA::Vec3d inv_scale() const {
+            return CGLA::Vec3d(1.0)/scale;
         }
         
         /// Get volume dimensions
@@ -81,7 +77,7 @@ namespace Geometry
         }
 
         /// Return the scale: ratio of voxel size to object size.
-        double get_scale() const {
+        const CGLA::Vec3d& get_scale() const {
             return scale;
         }
         

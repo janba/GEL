@@ -210,7 +210,7 @@ namespace CGLA
         // Comparison functions ... of geometric significance
         //----------------------------------------------------------------------
         
-        /** Compare all coordinates against other vector. ( < )
+        /** Compare all coordinates against other vector ( < ) and combine with 'and'.
          Similar to testing whether we are on one side of three planes. */
         bool  all_l  (const V& v) const
         {
@@ -218,7 +218,7 @@ namespace CGLA
                                       std::logical_and<bool>(), std::less<T>());
         }
         
-        /** Compare all coordinates against other vector. ( <= )
+        /** Compare all coordinates against other vector ( <= ) and combine with 'and'.
          Similar to testing whether we are on one side of three planes. */
         bool  all_le (const V& v) const
         {
@@ -226,7 +226,7 @@ namespace CGLA
                                       std::logical_and<bool>(), std::less_equal<T>());
         }
         
-        /** Compare all coordinates against other vector. ( > )
+        /** Compare all coordinates against other vector ( > ) and combine with 'and'.
          Similar to testing whether we are on one side of three planes. */
         bool  all_g  (const V& v) const
         {
@@ -234,14 +234,46 @@ namespace CGLA
                                       std::logical_and<bool>(), std::greater<T>());
         }
         
-        /** Compare all coordinates against other vector. ( >= )
+        /** Compare all coordinates against other vector  ( >= ) and combine with 'and'.
          Similar to testing whether we are on one side of three planes. */
         bool  all_ge (const V& v) const
         {
             return std::inner_product(begin(), end(), v.begin(), true,
                                       std::logical_and<bool>(), std::greater_equal<T>());
         }
+     
+        /** Compare all coordinates against other vector ( < ) and combine with 'or'.
+         Similar to testing whether we are on one side of three planes. */
+        bool  any_l  (const V& v) const
+        {
+            return std::inner_product(begin(), end(), v.begin(), true,
+                                      std::logical_or<bool>(), std::less<T>());
+        }
         
+        /** Compare all coordinates against other vector ( <= ) and combine with 'or'.
+         Similar to testing whether we are on one side of three planes. */
+        bool  any_le (const V& v) const
+        {
+            return std::inner_product(begin(), end(), v.begin(), true,
+                                      std::logical_or<bool>(), std::less_equal<T>());
+        }
+        
+        /** Compare all coordinates against other vector ( > ) and combine with 'or'.
+         Similar to testing whether we are on one side of three planes. */
+        bool  any_g  (const V& v) const
+        {
+            return std::inner_product(begin(), end(), v.begin(), true,
+                                      std::logical_or<bool>(), std::greater<T>());
+        }
+        
+        /** Compare all coordinates against other vector  ( >= ) and combine with 'or'.
+         Similar to testing whether we are on one side of three planes. */
+        bool  any_ge (const V& v) const
+        {
+            return std::inner_product(begin(), end(), v.begin(), true,
+                                      std::logical_or<bool>(), std::greater_equal<T>());
+        }
+
         
         //----------------------------------------------------------------------
         // Assignment operators

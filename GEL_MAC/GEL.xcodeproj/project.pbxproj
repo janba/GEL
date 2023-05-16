@@ -238,6 +238,11 @@
 		BD4ACED6214A6010004EEC2F /* Delaunay_triangulate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD4ACED4214A6010004EEC2F /* Delaunay_triangulate.cpp */; };
 		BD4ACED8214A76B2004EEC2F /* jrs_triangle.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BD4ACED3214A5F03004EEC2F /* jrs_triangle.h */; };
 		BD4ACED9214A76D6004EEC2F /* Delaunay_triangulate.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BD4ACED7214A605E004EEC2F /* Delaunay_triangulate.h */; };
+		E105AAC528972A6500F45A96 /* skeleton_to_FEQ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E105AAC428972A6500F45A96 /* skeleton_to_FEQ.cpp */; };
+		E105AACA2897C7D800F45A96 /* SphereDelaunay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E105AAC92897C7D800F45A96 /* SphereDelaunay.cpp */; };
+		E105AACC2897C88E00F45A96 /* DynCon.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E105AAC72897C7D800F45A96 /* DynCon.h */; };
+		E105AACD2897C88E00F45A96 /* SphereDelaunay.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E105AAC82897C7D800F45A96 /* SphereDelaunay.h */; };
+		E105AACE2897C8A400F45A96 /* skeleton_to_FEQ.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E105AACB2897C83700F45A96 /* skeleton_to_FEQ.h */; };
 		E1246E0D242CF7F500653E54 /* bounding_sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */; };
 		E1246E0E242D0A5000653E54 /* bounding_sphere.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1246E0C242CF7F500653E54 /* bounding_sphere.h */; };
 		E166EB952544BE09008DE5C0 /* Circulators.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E166EB932544B074008DE5C0 /* Circulators.h */; };
@@ -313,6 +318,8 @@
 			dstPath = ../Headers/Geometry;
 			dstSubfolderSpec = 7;
 			files = (
+				E105AACC2897C88E00F45A96 /* DynCon.h in CopyFiles */,
+				E105AACD2897C88E00F45A96 /* SphereDelaunay.h in CopyFiles */,
 				E1FDAFA5256532D8007114CD /* graph_io.h in CopyFiles */,
 				E1FDAFA6256532D8007114CD /* graph_skeletonize.h in CopyFiles */,
 				E1FDAFA7256532D8007114CD /* graph_util.h in CopyFiles */,
@@ -405,6 +412,7 @@
 			dstPath = ../Headers/HMesh;
 			dstSubfolderSpec = 7;
 			files = (
+				E105AACE2897C8A400F45A96 /* skeleton_to_FEQ.h in CopyFiles */,
 				E166EB952544BE09008DE5C0 /* Circulators.h in CopyFiles */,
 				BD4ACED9214A76D6004EEC2F /* Delaunay_triangulate.h in CopyFiles */,
 				0DA7DC611CEBAC0C009FD206 /* graph_algorithm.h in CopyFiles */,
@@ -697,6 +705,11 @@
 		BD4ACED7214A605E004EEC2F /* Delaunay_triangulate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Delaunay_triangulate.h; sourceTree = "<group>"; };
 		BD4E9FA8201CB17B0029AEA2 /* GEL copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GEL copy-Info.plist"; path = "/Users/janba/GEL/GEL_MAC/GEL copy-Info.plist"; sourceTree = "<absolute>"; };
 		BDAC7CAA201885F600197925 /* Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serialization.h; sourceTree = "<group>"; };
+		E105AAC428972A6500F45A96 /* skeleton_to_FEQ.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = skeleton_to_FEQ.cpp; sourceTree = "<group>"; };
+		E105AAC72897C7D800F45A96 /* DynCon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DynCon.h; sourceTree = "<group>"; };
+		E105AAC82897C7D800F45A96 /* SphereDelaunay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SphereDelaunay.h; sourceTree = "<group>"; };
+		E105AAC92897C7D800F45A96 /* SphereDelaunay.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = SphereDelaunay.cpp; sourceTree = "<group>"; };
+		E105AACB2897C83700F45A96 /* skeleton_to_FEQ.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = skeleton_to_FEQ.h; sourceTree = "<group>"; };
 		E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bounding_sphere.cpp; sourceTree = "<group>"; };
 		E1246E0C242CF7F500653E54 /* bounding_sphere.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bounding_sphere.h; sourceTree = "<group>"; };
 		E166EB932544B074008DE5C0 /* Circulators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Circulators.h; sourceTree = "<group>"; };
@@ -774,6 +787,7 @@
 				0D52EAD5197D18C1002C7150 /* QEM.cpp */,
 				0D52EADB197D18C1002C7150 /* rply_load.cpp */,
 				0D52EAD9197D18C1002C7150 /* rply.c */,
+				E105AAC92897C7D800F45A96 /* SphereDelaunay.cpp */,
 				0D52EADD197D18C1002C7150 /* tessellate.cpp */,
 				0D52EADF197D18C1002C7150 /* ThreeDDDA.cpp */,
 				0D52EAE1197D18C1002C7150 /* Triangle.cpp */,
@@ -842,6 +856,7 @@
 				0D52EB35197D18C1002C7150 /* polygonize.cpp */,
 				0D52EB37197D18C1002C7150 /* quadric_simplify.cpp */,
 				0D52EB39197D18C1002C7150 /* refine_edges.cpp */,
+				E105AAC428972A6500F45A96 /* skeleton_to_FEQ.cpp */,
 				0D52EB3B197D18C1002C7150 /* smooth.cpp */,
 				0D52EB3D197D18C1002C7150 /* subdivision.cpp */,
 				0D52EB3F197D18C1002C7150 /* triangulate.cpp */,
@@ -921,6 +936,8 @@
 		0D52EBB2197D1901002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				E105AAC72897C7D800F45A96 /* DynCon.h */,
+				E105AAC82897C7D800F45A96 /* SphereDelaunay.h */,
 				0D52EAAE197D18C1002C7150 /* AABox.h */,
 				0D52EAAF197D18C1002C7150 /* AncestorGrid.h */,
 				0D52EAB1197D18C1002C7150 /* BBox.h */,
@@ -1029,6 +1046,7 @@
 				0D52EB36197D18C1002C7150 /* polygonize.h */,
 				0D52EB38197D18C1002C7150 /* quadric_simplify.h */,
 				0D52EB3A197D18C1002C7150 /* refine_edges.h */,
+				E105AACB2897C83700F45A96 /* skeleton_to_FEQ.h */,
 				0D52EB3C197D18C1002C7150 /* smooth.h */,
 				0D52EB3E197D18C1002C7150 /* subdivision.h */,
 				0D52EB40197D18C1002C7150 /* triangulate.h */,
@@ -1227,6 +1245,7 @@
 				E1FDAF9925650C10007114CD /* graph_io.cpp in Sources */,
 				0D52EB80197D18C1002C7150 /* TrilinFilter.cpp in Sources */,
 				0D52EBA0197D18C1002C7150 /* off_load.cpp in Sources */,
+				E105AACA2897C7D800F45A96 /* SphereDelaunay.cpp in Sources */,
 				0D52EB81197D18C1002C7150 /* TriMesh.cpp in Sources */,
 				0D52EB7B197D18C1002C7150 /* rply.c in Sources */,
 				0D52EB76197D18C1002C7150 /* load_raw.cpp in Sources */,
@@ -1259,6 +1278,7 @@
 				0D52EB85197D18C1002C7150 /* draw.cpp in Sources */,
 				0D52EB6F197D18C1002C7150 /* BoundingTree.cpp in Sources */,
 				0D52EB71197D18C1002C7150 /* build_bbtree.cpp in Sources */,
+				E105AAC528972A6500F45A96 /* skeleton_to_FEQ.cpp in Sources */,
 				0D52EB72197D18C1002C7150 /* geo_load.cpp in Sources */,
 				0D52EBA4197D18C1002C7150 /* quadric_simplify.cpp in Sources */,
 				0D52EB8B197D18C1002C7150 /* ManifoldRenderer.cpp in Sources */,
@@ -1338,6 +1358,7 @@
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN_VEXING_PARSE = NO;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
@@ -1361,7 +1382,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(inherited)";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -1396,6 +1417,7 @@
 				CLANG_WARN_STRICT_PROTOTYPES = YES;
 				CLANG_WARN_SUSPICIOUS_MOVE = YES;
 				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN_VEXING_PARSE = NO;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
@@ -1413,7 +1435,7 @@
 				GCC_WARN_UNUSED_FUNCTION = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = "$(inherited)";
-				MACOSX_DEPLOYMENT_TARGET = 10.14;
+				MACOSX_DEPLOYMENT_TARGET = 12.0;
 				ONLY_ACTIVE_ARCH = YES;
 				SDKROOT = macosx;
 			};
@@ -1423,7 +1445,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_WARN_COMMA = NO;
+				CLANG_WARN_VEXING_PARSE = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;
@@ -1450,7 +1474,9 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD)";
+				CLANG_CXX_LANGUAGE_STANDARD = "c++20";
 				CLANG_WARN_COMMA = NO;
+				CLANG_WARN_VEXING_PARSE = YES;
 				COMBINE_HIDPI_IMAGES = YES;
 				DYLIB_COMPATIBILITY_VERSION = 1;
 				DYLIB_CURRENT_VERSION = 1;

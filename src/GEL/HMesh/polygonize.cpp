@@ -21,7 +21,7 @@ using namespace Geometry;
 using namespace HMesh;
 
 namespace {
-    Vec3d hex_faces[6][4] = {
+    const Vec3d hex_faces[6][4] = {
         {Vec3d(-0.5,-0.5,-0.5), Vec3d(-0.5,0.5,-0.5),   Vec3d(-0.5,0.5,0.5),    Vec3d(-0.5,-0.5,0.5)},
         {Vec3d(0.5, 0.5,-0.5),  Vec3d(0.5,-0.5,-0.5),   Vec3d(0.5,-0.5,0.5),    Vec3d(0.5,0.5,0.5)},
         {Vec3d( 0.5,-0.5, -0.5),Vec3d(-0.5,-0.5, -0.5), Vec3d(-0.5,-0.5, 0.5),  Vec3d(0.5,-0.5, 0.5)},
@@ -143,12 +143,9 @@ namespace HMesh
     }
 
     void volume_polygonize(const XForm& xform, const Geometry::RGrid<float>& grid,
-                           HMesh::Manifold& mani, float tau, bool make_triangles, bool high_is_inside, int pre_smooth_steps)
+                           HMesh::Manifold& mani, float tau, bool make_triangles, bool high_is_inside)
     {
         const double delta = sqrt(3.0)/2.0;
-        
-        Vec3d llf_vc = xform.apply(xform.get_llf());
-        Vec3d urt_vc = xform.apply(xform.get_urt());
 
         mani.clear();
         vector<Vec3d> quad_vertices;
@@ -168,19 +165,45 @@ namespace HMesh
         if(make_triangles)
             triangulate(mani);
         mani.cleanup();
-        if(pre_smooth_steps>0)
-            taubin_smooth(mani, pre_smooth_steps);
+        
+        struct Corner {
+            float val;
+            bool inside;
+            Vec3d pos;
+        };
+        array<Corner,8> corners;
         for(auto v: mani.vertices()) {
-            const Vec3d p = mani.pos(v);
-            Vec3d p_new = p;
-            for(int iter=0;iter<3; ++iter) {
-                const Vec3d g = Vec3d(clamp_trilin_grad(grid, p_new));
-                float v = clamp_interpolate(grid, p_new);
-                p_new -= g*(v-tau)/(1e-10+sqr_length(g));
-                p_new = v_min(p+Vec3d(0.5), v_max(p-Vec3d(0.5), p_new));
-                p_new = v_min(urt_vc, v_max(llf_vc, p_new));
+            const Vec3i pi(mani.pos(v));
+            int cnt = 0;
+            float va=0;
+            Vec3d pa(0.0);
+            for (int i=0;i<8;++i) {
+                Vec3i pbi = pi + CubeCorners8i[i];
+                if (grid.in_domain(pbi)) {
+                    corners[i].inside = true;
+                    va += corners[i].val = grid[pbi];
+                    pa += corners[i].pos = Vec3d(pbi);
+                    ++cnt;
+                }
+                else corners[i].inside = false;
             }
-            mani.pos(v) = p_new;
+            pa /= cnt;
+            va /= cnt;
+            
+            Vec3d p(0.0);
+            cnt = 0;
+            for (int i=0;i<8;++i)
+                if (corners[i].inside) {
+                    float vb = corners[i].val;
+                    if(max(va,vb)>tau && min(va,vb)<=tau) {
+                        float delta = vb - va;
+                        Vec3d pb = corners[i].pos;
+                        p += pa * (vb-tau)/delta - pb * (va-tau)/delta;
+                        ++cnt;
+                    }
+                }
+            mani.pos(v) = (cnt>0)? p / cnt : pa;
+
         }
         for(auto v: mani.vertices())
             mani.pos(v) = xform.inverse(mani.pos(v));

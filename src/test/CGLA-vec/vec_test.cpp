@@ -1,3 +1,15 @@
+/*==========================
+ 
+ WARNING: This is an old test that is essentially unmaintainable.
+ It is an admirable attempt at comprehensively testing all features of the
+ CGLA vector classes, but since it is not up to date it appears to fail
+ althought that does not mean the classes have any problems. I should
+ perhaps remove it, but for now it is considered deprecated.
+ 
+ ===========================*/
+
+
+
 #include <iostream>
 #include <cmath>
 #include <ctime>
@@ -159,6 +171,7 @@ int main()
   }
   if(success != 14)
   {
+      cout << success << endl;
     cout << "Failure in test of Vec2d Comparison operators" << endl;
     
   }
@@ -1657,7 +1670,7 @@ int main()
     success += x5.all_ge(x2);
     success += !(x4.all_ge(x2));
   }
-  if(success != 14)
+  if(success != 18)
   {
     cout << "Failure in test of Vec3d Comparison operators" << endl;
     

@@ -94,7 +94,7 @@ namespace HMesh
         public:
             SimplifyQueue(Manifold& m, double _singular_thresh);
             
-            void reduce(long int max_work);
+            void reduce(long int max_work, double err_thresh);
         };
         
         SimplifyQueue::SimplifyQueue(Manifold& m, double _singular_thresh):
@@ -150,8 +150,6 @@ namespace HMesh
             
             VertexID hv = w.vertex();
             VertexID hov = w.opp().vertex();
-            int val_hv = valency(*m_ptr, hv);
-            int val_hov = valency(*m_ptr, hov);
             
             QEM q = qem_vec[hv];
             q += qem_vec[hov];
@@ -159,19 +157,20 @@ namespace HMesh
             Vec3d opt_origin = Vec3d(m_ptr->pos(hv) + m_ptr->pos(hov)) * 0.5;
             Vec3d opt_pos = q.opt_pos(singular_thresh, opt_origin);
             
-            float err = q.error(opt_pos) +  singular_thresh * max(0, val_hv+val_hov-12);
-//
             // Create SimplifyRec
-            return SimplifyRec(opt_pos, h, err, time_stamp[h]);
+            return SimplifyRec(opt_pos, h, q.error(opt_pos), time_stamp[h]);
         }
         
         
-        void SimplifyQueue::reduce(long int max_work)
+        void SimplifyQueue::reduce(long int max_work, double err_thresh)
         {
             int work = 0;
             while(!sim_queue.empty() && work < max_work){
                 SimplifyRec simplify_rec = sim_queue.top();
                 sim_queue.pop();
+                
+                if (simplify_rec.err > err_thresh)
+                    return;
                 
                 HalfEdgeID h = simplify_rec.h;
                 // First we check that the edge has not been removed and that it is
@@ -208,12 +207,16 @@ namespace HMesh
     } // end of anonymous namespace
 
 
-    void quadric_simplify(Manifold& m, double keep_fraction, double singular_thresh, bool choose_optimal_positions)
+    void quadric_simplify(Manifold& m, double keep_fraction, double singular_thresh, double _err_thresh)
     {
         int n = m.no_vertices();
         int max_work = max(0, int(n - keep_fraction * n));
         SimplifyQueue sq(m, singular_thresh);
-        sq.reduce(max_work);
+        Vec3d c;
+        float r;
+        bsphere(m, c, r);
+        double err_thresh = sqr(_err_thresh*r);
+        sq.reduce(max_work, err_thresh);
     }
     
 }
