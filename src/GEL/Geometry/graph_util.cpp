@@ -34,20 +34,10 @@ namespace Geometry {
     using NodeSetUnordered = unordered_set<NodeID>;
     using NodeQueue = queue<NodeID>;
     using NodeSetVec = vector<pair<double,NodeSet>>;
+    using ExpansionMap = std::vector<std::vector<AMGraph::NodeID>>;
+    using CapacityVecVec = std::vector<std::vector<size_t>>;
 
-
-
-    struct SkeletonPQElem {
-        double pri;
-        Geometry::AMGraph::NodeID n0, n1;
-        SkeletonPQElem(double _pri, Geometry::AMGraph::NodeID _n0, Geometry::AMGraph::NodeID _n1);
-        
-        bool operator < (const SkeletonPQElem& pq1) const {
-            return pri < pq1.pri;
-        }
-    };
-    SkeletonPQElem::SkeletonPQElem(double _pri, NodeID _n0, NodeID _n1): pri(_pri), n0(_n0), n1(_n1) {}
-
+    SkeletonPQElem::SkeletonPQElem(double _pri, AMGraph3D::NodeID _n0, AMGraph3D::NodeID _n1): pri(_pri), n0(_n0), n1(_n1) {}
 
     int test_intersection (const NodeSet& set1, const NodeSet& set2)
     {
@@ -83,9 +73,9 @@ namespace Geometry {
 
 
 
-    NodeSet order(NodeSetUnordered& s) {
+    NodeSet order(const NodeSetUnordered& s) {
         NodeSet _s;
-        for(auto n : s)
+        for(const auto n : s)
             _s.insert(n);
         return _s;
     }
@@ -144,6 +134,37 @@ namespace Geometry {
             }
         }
         return component_vec;
+    }
+
+    std::vector<NodeSetUnordered> front_components(const AMGraph3D &g, const NodeSetUnordered &s) {
+        NodeSetUnordered s_visited;
+        vector<NodeSetUnordered> components_front;
+        NodeSetUnordered front_set; // Set of nodes that are a neighbour to a node in s.
+        for (auto n0 : s) { // This ensures we that visit every component of s.
+            if (s_visited.count(n0) == 0) { // n0 is a starting node in the component.
+                // Run a BFS.
+                NodeQueue Q;
+                Q.push(n0);
+                s_visited.insert(n0);
+                while(!Q.empty()) {
+                    NodeID n = Q.front();
+                    Q.pop();
+                    for (auto neighbour : g.neighbors(n)) {
+                        if (s_visited.count(neighbour) == 0) {
+                            s_visited.insert(neighbour);
+                            if (s.count(neighbour) == 0) {
+                                // Node is part of the front since it is not in s.
+                                front_set.insert(neighbour);
+                            } else {
+                                Q.push(neighbour);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        return connected_components(g, front_set);
     }
 
     void saturate_graph(AMGraph3D& g, int hops, double dist_frac, double rad) {
@@ -380,10 +401,6 @@ namespace Geometry {
         g = clean_graph(g);
     }
 
-
-
-
-
     AMGraph3D voxel_graph_from_mesh(Manifold& m, int res) {
         Vec3d p0,p7;
         bbox(m, p0, p7);
@@ -506,18 +523,6 @@ namespace Geometry {
         return clusters;
     }
 
-
-    class GraphDist {
-        std::vector<LineSegment> segments;
-        double R = 0.0;
-        Geometry::KDTree<CGLA::Vec3d, size_t> seg_tree;
-        
-    public:
-        
-        GraphDist(const Geometry::AMGraph3D& g);
-        double dist(const CGLA::Vec3d& p);
-    };
-
     GraphDist::GraphDist(const AMGraph3D& g) {
         for(auto n : g.node_ids())
             if(g.in_use(n))
@@ -581,4 +586,6 @@ namespace Geometry {
         return make_pair(avg_dist, max_dist);
         
     }
+
+
 }
