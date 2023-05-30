@@ -202,16 +202,5 @@ namespace Geometry {
      */
     NodeSetVec maximize_node_set_vec(AMGraph3D &g, const NodeSetVec &node_set_vec);
 
-
-    /**
-     * @brief Measures the median size of a sample of separators before trimming.
-     * @param g the input graph.
-     * @param samples the number of separators to grow.
-     * @param quality_noise_level
-     * @param optimization_steps
-     * @return The median size of a sample of separators before trimming.
-     */
-    ulong thinness_measure(const AMGraph3D &g, uint samples, double quality_noise_level, int optimization_steps);
-
 }
 #endif /* graph_skeletonize_hpp */

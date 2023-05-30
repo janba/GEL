@@ -1263,38 +1263,4 @@ namespace Geometry {
         return msg;
     }
 
-    ulong thinness_measure(const AMGraph3D &g, uint samples, double quality_noise_level, int optimization_steps) {
-        // Grow separators to determine the median thinness of the model
-        // Because we are greedy: all cores belong to this task!
-        const int CORES = thread::hardware_concurrency();
-
-        // Create a random order vector of nodes.
-        vector<NodeID> node_id_vec;
-        for (auto n: g.node_ids())
-            node_id_vec.push_back(n);
-        srand(1);
-        shuffle(begin(node_id_vec), end(node_id_vec), default_random_engine(rand()));
-
-        vector<NodeID> sampled_vertices_vec;
-        for (uint i = 0; i < samples && i < node_id_vec.size(); ++i) {
-            sampled_vertices_vec.push_back(node_id_vec[i]);
-        }
-
-        vector<Separator> separator_vec;
-        // From each sampled vertex, grow a separators.
-        for (auto n: sampled_vertices_vec) {
-            // TODO: Make parallel.
-            const auto &sep = local_separator(g, n, quality_noise_level, optimization_steps, -1);
-            separator_vec.push_back(sep);
-        }
-
-        // Sort separators according to growth_measure and pick median.
-        auto separator_greater = [](const Separator &a, const Separator &b) {
-            return (a.growth_measure < b.growth_measure);
-        };
-        sort(separator_vec.begin(), separator_vec.end(), separator_greater);
-        auto median_growth_measure = separator_vec[separator_vec.size() / 2].growth_measure;
-
-        return median_growth_measure;
-    }
 }

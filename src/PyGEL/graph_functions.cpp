@@ -79,7 +79,8 @@ void graph_LS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map
     IntVector* map_ptr = reinterpret_cast<IntVector*>(_map_ptr);
     map_ptr->resize(g_ptr->no_nodes());
 
-    auto seps = local_separators(*g_ptr, sampling);
+//    auto seps = local_separators(*g_ptr, sampling);
+    auto seps = multiscale_local_separators(*g_ptr, SamplingType::Basic);
     auto [skel, mapping]  = skeleton_from_node_set_vec(*g_ptr, seps);
     *skel_ptr = skel;
 
