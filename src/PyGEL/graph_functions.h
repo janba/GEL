@@ -37,6 +37,7 @@ DLLEXPORT void graph_prune(Graph_ptr g_ptr);
 DLLEXPORT void graph_saturate(Graph_ptr _g_ptr, int hops, double dist_frac, double rad);
 
 DLLEXPORT void graph_LS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, bool sampling=false);
+DLLEXPORT void graph_MSLS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, int grow_thresh=64);
 
 DLLEXPORT void graph_front_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, int N_col, double* colors);
 

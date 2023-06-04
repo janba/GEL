@@ -41,7 +41,7 @@ namespace Geometry {
             T u, v; // endpoints and size of subtree
             bool adjT, adjNT, marked; // subtree has tree/nontree to consider, node itself should be considered
             size_t size,l, r, p; // left,right,parent
-            uint priority;
+            size_t priority;
 
             Node(T x, T y) {
                 u = x;

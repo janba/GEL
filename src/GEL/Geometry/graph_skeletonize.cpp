@@ -202,7 +202,7 @@ namespace Geometry {
         const int CORES = thread::hardware_concurrency();
         vector<thread> threads(CORES);
 
-        Util::AttribVec<NodeID, uint> touched(g.no_nodes(), 0); // Used for internal sampling.
+        Util::AttribVec<NodeID, size_t> touched(g.no_nodes(), 0); // Used for internal sampling.
 
         // Generate a multi-scale graph.
         auto msg = multiscale_graph(g, restricted_separator_threshold, false);
@@ -242,7 +242,7 @@ namespace Geometry {
                                 pow((n_pos[1] - g.pos[n0][1]), 2) +
                                 pow((n_pos[2] - g.pos[n0][2]), 2)));
                         // Of the expanded nodes, find the one closest.
-                        for (uint i = 1; i < exp_map[n].size(); ++i) {
+                        for (size_t i = 1; i < exp_map[n].size(); ++i) {
                             const auto &candidate_n0 = exp_map[n][i];
                             const auto &candidate_n0_pos = g.pos[candidate_n0];
                             double dist = abs(sqrt(
@@ -280,7 +280,7 @@ namespace Geometry {
 
             // Cleanup touched.
             if (sampling) {
-                for (uint i = 0; i < g_current.no_nodes(); ++i) {
+                for (size_t i = 0; i < g_current.no_nodes(); ++i) {
                     touched[i] = 0;
                 }
             }
@@ -675,8 +675,8 @@ namespace Geometry {
     }
 
     double separator_quality(const AMGraph3D& g, const NodeSetUnordered& s){
-        uint min = -1;
-        uint max = 0;
+        size_t min = -1;
+        size_t max = 0;
         for (const auto &d: front_components(g,s)) {
             auto temp = d.size();
             if (temp < min) min = temp;
@@ -700,7 +700,7 @@ namespace Geometry {
         vector<NodeSetUnordered> nsv(fc.size());
         for(auto s: sigma){
             for(auto n: g.neighbors(s)){
-                for(uint c=0; c<fc.size(); ++c) if(fc[c].count(n)) nsv[c].insert(s);
+                for(size_t c=0; c<fc.size(); ++c) if(fc[c].count(n)) nsv[c].insert(s);
             }
         }
         for(auto& c: nsv){
@@ -755,7 +755,7 @@ namespace Geometry {
      The final node set returned is then thinned to the minimal separator.
      */
     Separator local_separator(const AMGraph3D &g, NodeID n0, double quality_noise_level, int optimization_steps,
-                              uint growth_threshold, const Vec3d* static_centre) {
+                              size_t growth_threshold, const Vec3d* static_centre) {
 
         // Create dynamic connectivity structure
         DynCon<NodeID, DYNCON> con = DynCon<NodeID,DYNCON>();
@@ -837,7 +837,7 @@ namespace Geometry {
     }
 
     NodeSetVec local_separators(AMGraph3D &g, SamplingType sampling, double quality_noise_level, int optimization_steps,
-                                uint advanced_sampling_threshold) {
+                                size_t advanced_sampling_threshold) {
 
         // Because we are greedy: all cores belong to this task!
         const int CORES = thread::hardware_concurrency();
@@ -917,14 +917,14 @@ namespace Geometry {
         return node_set_vec_global;
     }
 
-    NodeSetVec multiscale_local_separators(AMGraph3D &g, SamplingType sampling,const uint grow_threshold,double quality_noise_level, int optimization_steps) {
+    NodeSetVec multiscale_local_separators(AMGraph3D &g, SamplingType sampling,const size_t grow_threshold,double quality_noise_level, int optimization_steps) {
         // Because we are greedy: all cores belong to this task!
         //const unsigned int CORES = std::min(8u,thread::hardware_concurrency());
 
         const int CORES = thread::hardware_concurrency();
         const int CORES_SEC = std::min(CORES,2);
 
-        Util::AttribVec<NodeID, uint> touched(g.no_nodes(), 0);
+        Util::AttribVec<NodeID, size_t> touched(g.no_nodes(), 0);
 
         size_t count_computed = 0;
         size_t count_found = 0;
@@ -949,7 +949,7 @@ namespace Geometry {
                                                                 grow_threshold);
                     if (separator.sigma.size() > 0) {
                         SepVec adjsep = MULTI_SHRINK ? adjacent_separators(g,separator.sigma) : SepVec();
-                        uint c = 0;
+                        size_t c = 0;
                         do{
                             separator.id = count_found;
                             separator.grouping = count_found;
@@ -985,7 +985,7 @@ namespace Geometry {
                     continue;
                 }
 
-                uint old_size = sep.sigma.size();
+                size_t old_size = sep.sigma.size();
 
                 // Expand.
 
@@ -994,7 +994,7 @@ namespace Geometry {
                     for (NodeID new_v: exp_map_current[old_v]) Sigma.insert(new_v);
                 }
 
-                for(uint j=0;j<THICC_SEP;j++) thicken_separator(g_next,Sigma);
+                for(size_t j=0;j<THICC_SEP;j++) thicken_separator(g_next,Sigma);
 
                 //time_expanding += (hrc::now() - local_timer).count(); // TODO: This might be a race condition.
                 //local_timer = hrc::now();
@@ -1064,7 +1064,7 @@ namespace Geometry {
             time_packing += (hrc::now() - timer).count();
 
             // Cleanup touched
-            for (uint i = 0; i < touched.size(); ++i) {
+            for (size_t i = 0; i < touched.size(); ++i) {
                 touched[i] = 0;
             }
 
@@ -1129,7 +1129,7 @@ namespace Geometry {
         return sepvec_to_nsv(separator_vector_global);
     }
 
-    MultiScaleGraph multiscale_graph(const AMGraph3D &g, const uint threshold, bool recursive) {
+    MultiScaleGraph multiscale_graph(const AMGraph3D &g, const size_t threshold, bool recursive) {
         MultiScaleGraph msg;
 
         msg.layers = std::vector<AMGraph3D>();
@@ -1238,7 +1238,7 @@ namespace Geometry {
         msg.layers.push_back(graph_current);
         msg.expansion_map_vec.emplace_back(graph_current.no_nodes());
         msg.capacity_vec_vec.emplace_back(graph_current.no_nodes());
-        for (uint i = 0; i < graph_current.no_nodes(); ++i) {
+        for (size_t i = 0; i < graph_current.no_nodes(); ++i) {
             msg.expansion_map_vec[0][i] = std::vector<NodeID>(1, i);
             msg.capacity_vec_vec[0][i] = 1;
         }
