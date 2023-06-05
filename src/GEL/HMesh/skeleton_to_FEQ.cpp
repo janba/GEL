@@ -470,9 +470,9 @@ void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g,
                 else if (dest_branch_degree == src_branch_degree) {
                     path_degree = dest_branch_degree*2;
                     jn_degree = dest_branch_degree;
-                    cout << "dst == src " << endl;
-                    cout << "dst " << dest_branch_degree << endl;
-                    cout << "src " << src_branch_degree << endl;
+                    // cout << "dst == src " << endl;
+                    // cout << "dst " << dest_branch_degree << endl;
+                    // cout << "src " << src_branch_degree << endl;
                 }
                 
                 else {
@@ -914,10 +914,10 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
             }
             
             quad_valencify(m);
-            for (auto v: m.vertices()) {
-                cout << "val " << valency(m, v) << endl;
-            }
-            cout << "-----------" << endl;
+            // for (auto v: m.vertices()) {
+            //     cout << "val " << valency(m, v) << endl;
+            // }
+            // cout << "-----------" << endl;
             
             for(int i = 0; i < spts.size(); i++) {
                 auto key = spts2branch.find(i)->second;
@@ -1571,16 +1571,14 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
             node_radii[n] = r;
     
     construct_bnps(m_out, g, node2fs, node_radii);
-
-    
     id_preserving_cc(m_out);
     init_graph_arrays(m_out, g, node2fs);
     
-    FaceAttributeVector<int> ftouched(m_out.allocated_faces(),-1);
     val2nodes_to_boxes(g, m_out, node2fs, node_radii);
-    FaceSet original_faces = m_out.faces();
+    FaceAttributeVector<int> orig_face(m_out.allocated_faces(), 0);
     
     for(auto f_id: m_out.faces()) {
+        orig_face[f_id] = 1;
         face_vertex[f_id] = InvalidVertexID;
         if(one_ring_face_vertex.find(f_id) == one_ring_face_vertex.end())
             one_ring_face_vertex[f_id] = InvalidVertexID;
@@ -1626,16 +1624,12 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
                     auto connections = find_bridge_connections(m_out, f1, f0, g, next_node, start_node);
                     if(connections.size()!=0) {
                         m_out.bridge_faces(f1,f0,connections);
-                        ftouched[f0] = 1;
-                        ftouched[f1] = 1;
                     }
                 }
                 else {
                     auto connections = find_bridge_connections(m_out, f0, f1, g, start_node, next_node);
                     if(connections.size()!=0) {
                         m_out.bridge_faces(f0,f1,connections);
-                        ftouched[f0] = 1;
-                        ftouched[f1] = 1;
                     }
                 }
                 
@@ -1653,7 +1647,7 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
     for (auto v: m_out.vertices()) {
         bool vertex_adjacent_to_new_face = false;
         for (auto f: m_out.incident_faces(v)) {
-            if (original_faces.count(f) ==0) {
+            if (orig_face[f]==0) {
                 vertex_adjacent_to_new_face = true;
                 break;
             }
@@ -1670,7 +1664,6 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
         }
     }
     m_out.positions_attribute_vector() = new_pos;
-    
     quad_mesh_leaves(m_out);
     
     return m_out;
