@@ -16,14 +16,14 @@ in
   && baseNameOf path != "data/*"
   && baseNameOf path != ".github/*") ./.;
 
-  cmakeFlags =["-DUse_GLGraphics=OFF"];
 
   enableParallelBuilding = true;
   nativeBuildInputs = [ cmake pkg-config ];
 
   # for optional opengl related dependencies:
-  #buildInputs = [
-    #libGL glfw3 x11 libGLU xorg.libXdmcp
-  #];
+  buildInputs = [
+    libGL glfw3 x11 libGLU xorg.libXdmcp
+  ];
 
+  cmakeFlags =["-DUse_GLGraphics=ON"];
 }
