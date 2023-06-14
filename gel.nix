@@ -21,7 +21,7 @@ in
   nativeBuildInputs = [ cmake pkg-config ];
 
   # for optional opengl related dependencies:
-  buildInputs = [
+  propagatedBuildInputs = [
     libGL glfw3 x11 libGLU xorg.libXdmcp
   ];
 
