@@ -21,9 +21,9 @@ in
   nativeBuildInputs = [ cmake pkg-config ];
 
   # for optional opengl related dependencies:
-  propagatedBuildInputs = [
-    libGL glfw3 x11 libGLU xorg.libXdmcp
-  ];
+  #propagatedBuildInputs = [
+    #libGL glfw3 x11 libGLU xorg.libXdmcp freeglut glew
+  #];
 
-  cmakeFlags =["-DUse_GLGraphics=ON"];
+  cmakeFlags =["-DUse_GLGraphics=OFF"];
 }
