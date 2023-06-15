@@ -31,11 +31,11 @@ namespace Geometry {
         NodeSetUnordered sigma;
         // Any grouping can be used but usually refers to the level where the separator was found.
         mutable int grouping = -1; // Is mutable so it can be updated while filtering.
-        uint growth_measure = 0; // The size of sigma before shrinking.
+        size_t growth_measure = 0; // The size of sigma before shrinking.
 
         Separator() = default;
 
-        Separator(double quality, const NodeSetUnordered &node_set, size_t id = 0, int grouping = -1, uint growth_measure = 0) {
+        Separator(double quality, const NodeSetUnordered &node_set, size_t id = 0, int grouping = -1, size_t growth_measure = 0) {
             this->quality = quality;
             this->sigma = node_set;
             this->id = id;
@@ -62,7 +62,7 @@ namespace Geometry {
      * half the size of the previous layer. Using recursive affects how the simplification can be reversed
      * with the expansion map.
      */
-    MultiScaleGraph multiscale_graph(const AMGraph3D &g, uint threshold, bool recursive);
+    MultiScaleGraph multiscale_graph(const AMGraph3D &g, size_t threshold, bool recursive);
 
     /**
      @brief Compute separators by marching a front along a scalar field.
@@ -93,7 +93,7 @@ namespace Geometry {
      */
     Separator
     local_separator(const AMGraph3D &g, NodeID n0, double quality_noise_level, int optimization_steps,
-                    uint growth_threshold = -1, const CGLA::Vec3d* static_centre = nullptr);
+                    size_t growth_threshold = -1, const CGLA::Vec3d* static_centre = nullptr);
 
 
     enum class SamplingType {
@@ -134,7 +134,7 @@ namespace Geometry {
     NodeSetVec local_separators(AMGraph3D &g, SamplingType sampling = SamplingType::None,
                                 double quality_noise_level = 0.09,
                                 int optimization_steps = 0,
-                                uint advanced_sampling_threshold = 64);
+                                size_t advanced_sampling_threshold = 64);
 
     inline NodeSetVec local_separators(AMGraph3D &g, bool sampling = false,
                                        double quality_noise_level = 0.09,
@@ -158,7 +158,7 @@ namespace Geometry {
      can be difficult to determine an optimal value for.
      */
     NodeSetVec multiscale_local_separators(AMGraph3D &g, SamplingType sampling = SamplingType::Advanced,
-                                uint grow_threshold = 64,
+                                size_t grow_threshold = 64,
                                 double quality_noise_level = 0.09,
                                 int optimization_steps = 0);
 
@@ -201,17 +201,6 @@ namespace Geometry {
      to the node set from which it was reached during the run of Dijkstra
      */
     NodeSetVec maximize_node_set_vec(AMGraph3D &g, const NodeSetVec &node_set_vec);
-
-
-    /**
-     * @brief Measures the median size of a sample of separators before trimming.
-     * @param g the input graph.
-     * @param samples the number of separators to grow.
-     * @param quality_noise_level
-     * @param optimization_steps
-     * @return The median size of a sample of separators before trimming.
-     */
-    ulong thinness_measure(const AMGraph3D &g, uint samples, double quality_noise_level, int optimization_steps);
 
 }
 #endif /* graph_skeletonize_hpp */
