@@ -13,6 +13,7 @@
 #include <vector>
 #include <iostream>
 #include <random>
+#include <GEL/Util/Grid2d.h>
 #include <GEL/Util/AttribVec.h>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/build_bbtree.h>
@@ -586,6 +587,153 @@ namespace Geometry {
         return make_pair(avg_dist, max_dist);
         
     }
+
+
+namespace {
+    double optimal_match(const vector<double>& _s, const vector<double>& _t) {
+        bool do_swap = _t.size() < _s.size();
+        const auto& s = do_swap? _t : _s;
+        const auto& t = do_swap? _s : _t;
+        
+        int Ns = int(s.size());
+        int Nt = int(t.size());
+        vector<tuple<double, int, int>> cost_vec;
+        for (int i=0; i<Ns; ++i)
+            for (int j=0; j<Nt; ++j)
+                cost_vec.push_back(make_tuple(abs(s[i]-t[j]), i, j));
+        
+        sort(cost_vec.begin(), cost_vec.end());
+        
+        vector<int> s_assigned(Ns, 0);
+        vector<int> t_assigned(Nt, 0);
+
+        double cost=0;
+        int cnt=0;
+        for(auto [c,i,j]: cost_vec) {
+            if (s_assigned[i] == 0 && t_assigned[j] == 0) {
+                s_assigned[i] = 1;
+                t_assigned[j] = 1;
+                cost += c;
+                cnt += 1;
+            }
+            if (cnt == Ns)
+                break;
+        }
+        for (int j=0;j<Nt; ++j)
+            if (t_assigned[j] == 0) {
+                cost += t[j];
+            }
+        return cost;
+    }
+
+    double dynamic_time_warp(const vector<double>& s, const vector<double>& t) {
+        auto dist = [](double a, double b) {
+            return abs(a-b);
+        };
+        
+        int Ns = int(s.size());
+        int Nt = int(t.size());
+        
+        auto DTW = Grid2D<double>(Ns, Nt, DBL_MAX);
+        for (int i=0; i<Ns; ++i)
+            for(int j=0; j<Nt; ++j) {
+                double cost = dist(s[i], t[j]);
+                DTW(i,j) = cost;
+                
+                if (i>0 || j>0) {
+                    double dtw_im1 = i>0 ? DTW(i-1,j) : DBL_MAX;
+                    double dtw_jm1 = j>0 ? DTW(i,j-1) : DBL_MAX;
+                    double dtw_im1_jm1 = i>0 && j>0 ? DTW(i-1,j-1) : DBL_MAX;
+                    DTW(i,j) += min({dtw_im1, dtw_jm1, dtw_im1_jm1});
+                }
+            }
+     
+         return DTW(Ns-1,Nt-1);
+    }
+}
+
+
+vector<double> subtree_paths(const AMGraph3D& g, double d_in, NodeID n, NodeID p, AttribVec<NodeID, int>& visited) {
+    
+    auto nbors = g.neighbors(n);
+    int N = nbors.size();
+    double d = length(g.pos[n]-g.pos[p]) + d_in;
+    if (N == 1 || visited[n])
+        return vector<double>({d});
+    visited[n] = 1;
+    vector<double> path_out;
+    for (auto nn: nbors)
+        if (nn != p) {
+            auto path_in = subtree_paths(g, d_in, nn, n, visited);
+            path_out.insert(path_out.end(), path_in.begin(), path_in.end());
+    }
+    return path_out;
+}
+
+Vec2d subtree_descriptor(const AMGraph3D& g, NodeID n, NodeID p, AttribVec<NodeID, int>& visited) {
+    auto nbors = g.neighbors(n);
+    int N = nbors.size();
+    double d = length(g.pos[n]-g.pos[p]);
+    if (N == 1 || visited[n])
+        return Vec2d(1,d);
+    visited[n] = 1;
+    Vec2d desc(0,d);
+    for (auto nn: nbors)
+        if (nn != p)
+            desc += subtree_descriptor(g, nn, n, visited);
+    return desc;
+}
+
+
+
+using NodePairVector = vector<pair<NodeID,NodeID>>;
+
+NodePairVector symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
+    vector<vector<double>> paths;
+    vector<NodeID> nbors = g.neighbors(n);
+    for (auto nn: nbors) {
+        AttribVec<NodeID, int> visited;
+        for (auto n: g.node_ids())
+            visited[n] = 0;
+        auto p = subtree_paths(g, 0, nn, n, visited);
+//        sort(p.begin(), p.end());
+        paths.push_back(p);
+    }
+    
+    NodePairVector npv;
+    for (int i=0; i<nbors.size(); ++i)
+        for (int j=0; j<nbors.size(); ++j)
+            if (i != j) {
+                double max_sum = 0.5*(accumulate(begin(paths[i]), end(paths[i]), 0.0)+
+                                     accumulate(begin(paths[j]), end(paths[j]), 0.0));
+                double warp_dist = optimal_match(paths[i], paths[j]);
+                cout << "---" << endl;
+                for (const auto& p: paths[i])
+                    cout << p << " ";
+                cout << endl;
+                for (const auto& p: paths[j])
+                    cout << p << " ";
+                cout << endl;
+                double val = 1.0 - warp_dist/max_sum;
+                cout << nbors.size() << " " << threshold << " " << warp_dist << " " << max_sum << " ::: " << val << endl;
+                if (val > threshold)
+                    npv.push_back(make_pair(nbors[i], nbors[j]));
+    }
+    return npv;
+}
+
+void all_symmetry_pairs(AMGraph3D& g, double threshold) {
+    for (auto n: g.node_ids()) {
+        if(g.neighbors(n).size()>2) {
+            auto npairs = symmetry_pairs(g, n, threshold);
+            for (auto [a,b]: npairs) {
+                g.edge_color[g.find_edge(n, a)] = Vec3f(1,0,0);
+                g.edge_color[g.find_edge(n, b)] = Vec3f(1,0,0);
+            }
+        }
+    }
+    
+}
 
 
 }

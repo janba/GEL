@@ -144,5 +144,7 @@ namespace Geometry {
 
     /** Computes the distance at samples points from graph g0 to g1 and vice versa. H is for Hausdorff. */
     std::pair<double,double> graph_H_dist(const AMGraph3D& g0, const AMGraph3D& g1, size_t samples = 10000);
+
+    void all_symmetry_pairs(AMGraph3D& g, double threshold);
 }
 #endif /* graph_abstraction_hpp */
