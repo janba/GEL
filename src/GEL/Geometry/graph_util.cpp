@@ -670,17 +670,38 @@ vector<double> subtree_paths(const AMGraph3D& g, double d_in, NodeID n, NodeID p
     return path_out;
 }
 
-Vec2d subtree_descriptor(const AMGraph3D& g, NodeID n, NodeID p, AttribVec<NodeID, int>& visited) {
-    auto nbors = g.neighbors(n);
-    int N = nbors.size();
-    double d = length(g.pos[n]-g.pos[p]);
-    if (N == 1 || visited[n])
-        return Vec2d(1,d);
-    visited[n] = 1;
-    Vec2d desc(0,d);
-    for (auto nn: nbors)
-        if (nn != p)
-            desc += subtree_descriptor(g, nn, n, visited);
+Vec2d subtree_descriptor(const AMGraph3D& g, NodeID _n, NodeID _p) {
+    queue<pair<NodeID,NodeID>> Q;
+    AttribVec<NodeID, int> visited;
+    for (auto n: g.node_ids())
+        visited[n] = 0;
+    int num=0;
+    Q.push(make_pair(_n,_p));
+    visited[_n] = 1;
+    Vec2d desc(0,0);
+    while(!Q.empty()) {
+        auto [n,p] = Q.front();
+        Q.pop();
+        num += 1;
+        desc += Vec2d(0,length(g.pos[n]-g.pos[p]));
+        if (num>g.no_nodes()/4) {
+            desc += Vec2d(Q.size(),0);
+            return desc;
+        }
+        else {
+            auto nbors = g.neighbors(n);
+            if (nbors.size() == 1)
+                desc += Vec2d(1,0);
+            else {
+                for (auto nn: nbors)
+                    if (nn != p && visited[nn] != 1) {
+                        Q.push(make_pair(nn,n));
+                        visited[nn] = 1;
+                    }
+                    else desc += Vec2d(1,0);
+            }
+        }
+    }
     return desc;
 }
 
@@ -689,33 +710,20 @@ Vec2d subtree_descriptor(const AMGraph3D& g, NodeID n, NodeID p, AttribVec<NodeI
 using NodePairVector = vector<pair<NodeID,NodeID>>;
 
 NodePairVector symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
-    vector<vector<double>> paths;
+    vector<Vec2d> descs;
     vector<NodeID> nbors = g.neighbors(n);
     for (auto nn: nbors) {
-        AttribVec<NodeID, int> visited;
-        for (auto n: g.node_ids())
-            visited[n] = 0;
-        auto p = subtree_paths(g, 0, nn, n, visited);
-//        sort(p.begin(), p.end());
-        paths.push_back(p);
+        descs.push_back(subtree_descriptor(g, nn, n));
     }
     
     NodePairVector npv;
     for (int i=0; i<nbors.size(); ++i)
         for (int j=0; j<nbors.size(); ++j)
             if (i != j) {
-                double max_sum = 0.5*(accumulate(begin(paths[i]), end(paths[i]), 0.0)+
-                                     accumulate(begin(paths[j]), end(paths[j]), 0.0));
-                double warp_dist = optimal_match(paths[i], paths[j]);
-                cout << "---" << endl;
-                for (const auto& p: paths[i])
-                    cout << p << " ";
-                cout << endl;
-                for (const auto& p: paths[j])
-                    cout << p << " ";
-                cout << endl;
-                double val = 1.0 - warp_dist/max_sum;
-                cout << nbors.size() << " " << threshold << " " << warp_dist << " " << max_sum << " ::: " << val << endl;
+                auto [a,b] = minmax(descs[i][1], descs[j][1]);
+                int leaf_diff = abs(descs[i][0]-descs[j][0]);
+                double val = pow(a/b, 1+leaf_diff);
+                cout << "sym " << val << " " << descs[i] << " " << descs[j] << endl;
                 if (val > threshold)
                     npv.push_back(make_pair(nbors[i], nbors[j]));
     }
