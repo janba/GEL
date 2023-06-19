@@ -670,7 +670,7 @@ vector<double> subtree_paths(const AMGraph3D& g, double d_in, NodeID n, NodeID p
     return path_out;
 }
 
-Vec2d subtree_descriptor(const AMGraph3D& g, NodeID _n, NodeID _p) {
+vector<Vec3d> subtree_points(const AMGraph3D& g, NodeID _n, NodeID _p) {
     queue<pair<NodeID,NodeID>> Q;
     AttribVec<NodeID, int> visited;
     for (auto n: g.node_ids())
@@ -678,31 +678,25 @@ Vec2d subtree_descriptor(const AMGraph3D& g, NodeID _n, NodeID _p) {
     int num=0;
     Q.push(make_pair(_n,_p));
     visited[_n] = 1;
-    Vec2d desc(0,0);
+    vector<Vec3d> pts = {g.pos[_n]};
     while(!Q.empty()) {
         auto [n,p] = Q.front();
         Q.pop();
+        pts.push_back(g.pos[n]);
         num += 1;
-        desc += Vec2d(0,length(g.pos[n]-g.pos[p]));
-        if (num>g.no_nodes()/4) {
-            desc += Vec2d(Q.size(),0);
-            return desc;
-        }
+        if (num>g.no_nodes()/4)
+            return pts;
         else {
             auto nbors = g.neighbors(n);
-            if (nbors.size() == 1)
-                desc += Vec2d(1,0);
-            else {
+            if (nbors.size() > 1)
                 for (auto nn: nbors)
                     if (nn != p && visited[nn] != 1) {
                         Q.push(make_pair(nn,n));
                         visited[nn] = 1;
                     }
-                    else desc += Vec2d(1,0);
-            }
         }
     }
-    return desc;
+    return pts;
 }
 
 
@@ -710,21 +704,48 @@ Vec2d subtree_descriptor(const AMGraph3D& g, NodeID _n, NodeID _p) {
 using NodePairVector = vector<pair<NodeID,NodeID>>;
 
 NodePairVector symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
-    vector<Vec2d> descs;
-    vector<NodeID> nbors = g.neighbors(n);
-    for (auto nn: nbors) {
-        descs.push_back(subtree_descriptor(g, nn, n));
-    }
+    auto avg_pos = [](const vector<Vec3d>& pt_vec) {
+        Vec3d avg_pos(0);
+        for (const auto& p: pt_vec)
+            avg_pos += p;
+        return avg_pos / pt_vec.size();
+    };
     
+    vector<vector<Vec3d>> pt_vecs;
+    vector<NodeID> nbors = g.neighbors(n);
+    for (auto nn: nbors)
+        pt_vecs.push_back(subtree_points(g, nn, n));
+   
+    Vec3d p_n = g.pos[n];
     NodePairVector npv;
     for (int i=0; i<nbors.size(); ++i)
         for (int j=0; j<nbors.size(); ++j)
             if (i != j) {
-                auto [a,b] = minmax(descs[i][1], descs[j][1]);
-                int leaf_diff = abs(descs[i][0]-descs[j][0]);
-                double val = pow(a/b, 1+leaf_diff);
-                cout << "sym " << val << " " << descs[i] << " " << descs[j] << endl;
-                if (val > threshold)
+                Vec3d bary_i = avg_pos(pt_vecs[i]);
+                Vec3d bary_j = avg_pos(pt_vecs[j]);
+                auto [c,r] = approximate_bounding_sphere(pt_vecs[i]);
+                
+                KDTree<Vec3d, int> tree_i;
+                for (const auto& p: pt_vecs[i])
+                    tree_i.insert(p, 0);
+                tree_i.build();
+                
+                Vec3d axis = normalize(bary_j - bary_i);
+                double err = 0;
+                for(const auto& p: pt_vecs[j]) {
+                    Vec3d v = p-p_n;
+                    Vec3d pp = v - 2 * dot(v,axis) * axis + p_n;
+                    double dist = DBL_MAX;
+                    Vec3d k;
+                    int val;
+                    if (tree_i.closest_point(pp, dist, k, val)) {
+                        err += length(k-pp);
+                    }
+                }
+                err /= pt_vecs[j].size();
+                cout << p_n << axis << " " << " " << err << " " << r << endl;
+
+                if (1.0-err/r > threshold)
                     npv.push_back(make_pair(nbors[i], nbors[j]));
     }
     return npv;
