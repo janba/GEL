@@ -678,13 +678,13 @@ vector<Vec3d> subtree_points(const AMGraph3D& g, NodeID _n, NodeID _p) {
     int num=0;
     Q.push(make_pair(_n,_p));
     visited[_n] = 1;
-    vector<Vec3d> pts = {g.pos[_n]};
+    vector<Vec3d> pts;
     while(!Q.empty()) {
         auto [n,p] = Q.front();
         Q.pop();
         pts.push_back(g.pos[n]);
         num += 1;
-        if (num>g.no_nodes()/4)
+        if (num>g.no_nodes()/6)
             return pts;
         else {
             auto nbors = g.neighbors(n);
@@ -711,42 +711,60 @@ NodePairVector symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
         return avg_pos / pt_vec.size();
     };
     
+    
     vector<vector<Vec3d>> pt_vecs;
     vector<NodeID> nbors = g.neighbors(n);
     for (auto nn: nbors)
         pt_vecs.push_back(subtree_points(g, nn, n));
    
     Vec3d p_n = g.pos[n];
-    NodePairVector npv;
-    for (int i=0; i<nbors.size(); ++i)
-        for (int j=0; j<nbors.size(); ++j)
-            if (i != j) {
-                Vec3d bary_i = avg_pos(pt_vecs[i]);
-                Vec3d bary_j = avg_pos(pt_vecs[j]);
-                auto [c,r] = approximate_bounding_sphere(pt_vecs[i]);
-                
-                KDTree<Vec3d, int> tree_i;
-                for (const auto& p: pt_vecs[i])
-                    tree_i.insert(p, 0);
-                tree_i.build();
-                
-                Vec3d axis = normalize(bary_j - bary_i);
-                double err = 0;
-                for(const auto& p: pt_vecs[j]) {
-                    Vec3d v = p-p_n;
-                    Vec3d pp = v - 2 * dot(v,axis) * axis + p_n;
-                    double dist = DBL_MAX;
-                    Vec3d k;
-                    int val;
-                    if (tree_i.closest_point(pp, dist, k, val)) {
-                        err += length(k-pp);
-                    }
-                }
-                err /= pt_vecs[j].size();
-                cout << p_n << axis << " " << " " << err << " " << r << endl;
+    auto symmetry_score = [&](int i, int j) {
+        Vec3d bary_i = avg_pos(pt_vecs[i]);
+        Vec3d bary_j = avg_pos(pt_vecs[j]);
+        auto [c,r] = bounding_sphere(pt_vecs[i]);
+        
+        KDTree<Vec3d, int> tree_i;
+        for (const auto& p: pt_vecs[i])
+            tree_i.insert(p, 0);
+        tree_i.build();
+        
+        Vec3d axis = normalize(bary_j - bary_i);
+        double err = 0;
+        for(const auto& p: pt_vecs[j]) {
+            Vec3d v = p-p_n;
+            Vec3d pp = v - 2 * dot(v,axis) * axis + p_n;
+            double dist = DBL_MAX;
+            Vec3d k;
+            int val;
+            if (tree_i.closest_point(pp, dist, k, val)) {
+                err += length(k-pp);
+            }
+        }
+        err /= pt_vecs[j].size();
+        cout << p_n << axis << " " << " " << err << " c,r: " << c << ", "<< r << " sz: " << pt_vecs[i].size() << endl;
+        return 1-err/r;
+    };
 
-                if (1.0-err/r > threshold)
-                    npv.push_back(make_pair(nbors[i], nbors[j]));
+    vector<tuple<double, int, int>> sym_scores;
+    for (int i=0; i<nbors.size(); ++i)
+        for (int j=i+1; j<nbors.size(); ++j)
+            if (pt_vecs[i].size()>1 && pt_vecs[j].size()>1) {
+                
+                double sscore = min(symmetry_score(i, j), symmetry_score(j, i));
+                
+                if (sscore > threshold)
+                    sym_scores.push_back(make_tuple(-sscore, i, j));
+            }
+    
+    NodePairVector npv;
+    vector<int> touched(nbors.size(), 0);
+    sort(sym_scores.begin(), sym_scores.end());
+    for(auto [s,i,j]: sym_scores) {
+        if(touched[i]==0 && touched[j]==0) {
+            touched[i] = 1;
+            touched[j] = 1;
+            npv.push_back(make_pair(nbors[i], nbors[j]));
+        }
     }
     return npv;
 }
