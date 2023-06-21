@@ -824,6 +824,33 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
 }
 
 void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet>& node2fs, vector<double> r_arr) {
+
+    auto split_faces = [](Manifold& m) {
+        vector<FaceID> face_list;
+        for (auto f: m.faces())
+            face_list.push_back(f);
+        for (FaceID f: face_list)
+            m.split_face_by_vertex(f);
+    };
+
+    auto split_edge = [](Manifold& m, VertexID v1, VertexID v2, bool split_triangles=false) -> pair<VertexID, VertexID> {
+        auto vertex_pair = make_pair(InvalidVertexID,InvalidVertexID);
+        for(auto h: m.halfedges()) {
+            auto w = m.walker(h);
+            if (w.vertex()==v1 && w.opp().vertex()==v2) {
+                FaceID f1 = w.face();
+                FaceID f2 = w.opp().face();
+                vertex_pair = make_pair(w.next().vertex(), w.opp().next().vertex());
+                VertexID vn = m.split_edge(h);
+                if (split_triangles) {
+                    m.split_face_by_edge(f1,vertex_pair.first, vn);
+                    m.split_face_by_edge(f2,vertex_pair.second, vn);
+                }
+                break;
+            }
+        }
+        return vertex_pair;
+    };
     
     map<int, pair<NodeID,NodeID>> spts2branch;
     map <int, VertexID> spts2vertexid;
@@ -839,7 +866,6 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
             Manifold m;
             int node_vertex_count =0;
             Vec3d pn = g.pos[n];
-            
             r = r_arr[n];
             
             auto project_to_sphere = [&]() {
@@ -870,10 +896,17 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
             }
             std::vector<CGLA::Vec3i> stris = SphereDelaunay(spts);
             bool ghosts_added = false;
-            if (add_ghosts(stris, spts)>0) {
-                stris = SphereDelaunay(spts);
-                ghosts_added = true;
+            
+            vector<pair<int,int>> npv;
+            if(N.size()==3 || N.size()==4) {
+                npv = symmetry_pairs(g, n, 0.5);
             }
+
+            if (npv.size()==0)
+                if (add_ghosts(stris, spts)>0) {
+                    stris = SphereDelaunay(spts);
+                    ghosts_added = true;
+                }
             
             for(auto tri: stris) {
                 vector<Vec3d> triangle_pts;
@@ -885,7 +918,6 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
                 m.add_face(triangle_pts);
             }
             stitch_mesh(m, 1e-10);
-            
             m.cleanup();
             
             for(auto v: m.vertices())
@@ -893,15 +925,26 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
                     if(sqr_length(m.pos(v) - spts[i]) < 0.0001)
                         spts2vertexid.insert(std::make_pair(i, v));
             
-            if(!ghosts_added) {
-                vector<FaceID> face_list;
-                for (auto f: m.faces())
-                    face_list.push_back(f);
-                for (FaceID f: face_list)
-                    m.split_face_by_vertex(f);
+            if(npv.size()>0) {
+                cout << "BEFORE: Mesh faces, vertices: " << m.no_faces() << ", " << m.no_vertices() << endl;
+                if (N.size() == 3) {
+                    VertexID v1 = spts2vertexid[npv[0].first];
+                    VertexID v2 = spts2vertexid[npv[0].second];
+                    split_edge(m, v1, v2, false);
+                    split_faces(m);
+                }
+                else if (N.size() == 4) { // tetrahedron
+                    VertexID v1 = spts2vertexid[npv[0].first];
+                    VertexID v2 = spts2vertexid[npv[0].second];
+                    auto [v3, v4] = split_edge(m, v1, v2, true);
+                    split_edge(m, v3, v4, true);
+                }
+                ghosts_added = true;
             }
             
-            
+            if(!ghosts_added && N.size() < 5)
+                split_faces(m);
+                        
             taubin_smooth(m, 1);
             
             project_to_sphere();
@@ -913,11 +956,18 @@ void construct_bnps(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::
                 m.positions_attribute_vector() = new_pos;
             }
             
+            cout << "-----BEFORE-----" << endl;
+            for (auto v: m.vertices()) {
+                cout << "val " << valency(m, v) << endl;
+            }
+            cout << "----AFTER------" << endl;
+            
             quad_valencify(m);
-            // for (auto v: m.vertices()) {
-            //     cout << "val " << valency(m, v) << endl;
-            // }
-            // cout << "-----------" << endl;
+
+            for (auto v: m.vertices()) {
+                cout << "val " << valency(m, v) << endl;
+            }
+            cout << "-----------" << endl;
             
             for(int i = 0; i < spts.size(); i++) {
                 auto key = spts2branch.find(i)->second;

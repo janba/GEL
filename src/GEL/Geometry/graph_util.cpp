@@ -619,9 +619,7 @@ vector<Vec3d> subtree_points(const AMGraph3D& g, NodeID _n, NodeID _p, const Dis
 
 
 
-using NodePairVector = vector<pair<NodeID,NodeID>>;
-
-NodePairVector symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
+std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
     const int N_iter = 10; // Maybe excessive, but this is a relatively cheap step
     auto average_vector = [](const vector<Vec3d>& pt_vec) {
         Vec3d avg(0);
@@ -690,14 +688,14 @@ NodePairVector symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
                 if (sscore > threshold)
                     sym_scores.push_back(make_tuple(-sscore, i, j));
             }
-    NodePairVector npv;
+    std::vector<std::pair<int,int>> npv;
     vector<int> touched(nbors.size(), 0);
     sort(sym_scores.begin(), sym_scores.end());
     for(auto [s,i,j]: sym_scores) {
         if(touched[i]==0 && touched[j]==0) {
             touched[i] = 1;
             touched[j] = 1;
-            npv.push_back(make_pair(nbors[i], nbors[j]));
+            npv.push_back(make_pair(i,j));
         }
     }
     return npv;
@@ -705,11 +703,14 @@ NodePairVector symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
 
 void all_symmetry_pairs(AMGraph3D& g, double threshold) {
     for (auto n: g.node_ids()) {
-        if(g.neighbors(n).size()>2) {
+        auto N = g.neighbors(n);
+        if(N.size()>2) {
             auto npairs = symmetry_pairs(g, n, threshold);
             for (auto [a,b]: npairs) {
-                g.edge_color[g.find_edge(n, a)] = Vec3f(1,0,0);
-                g.edge_color[g.find_edge(n, b)] = Vec3f(1,0,0);
+                auto na = N[a];
+                auto nb = N[b];
+                g.edge_color[g.find_edge(n, na)] = Vec3f(1,0,0);
+                g.edge_color[g.find_edge(n, nb)] = Vec3f(1,0,0);
             }
         }
     }

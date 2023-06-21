@@ -17,7 +17,6 @@
 //#include <GEL/Geometry/bounding_box_tools.h>
 
 namespace Geometry {
-
     using AttribVecDouble = Util::AttribVec<AMGraph::NodeID, double>;
     using NodeSetUnordered = std::unordered_set<AMGraph::NodeID>;
     using NodeSet = AMGraph::NodeSet;
@@ -145,6 +144,7 @@ namespace Geometry {
     /** Computes the distance at samples points from graph g0 to g1 and vice versa. H is for Hausdorff. */
     std::pair<double,double> graph_H_dist(const AMGraph3D& g0, const AMGraph3D& g1, size_t samples = 10000);
 
+    std::vector<std::pair<int,int>> symmetry_pairs(const AMGraph3D& g, AMGraph::NodeID n, double threshold);
     void all_symmetry_pairs(AMGraph3D& g, double threshold);
 }
 #endif /* graph_abstraction_hpp */
