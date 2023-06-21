@@ -589,112 +589,30 @@ namespace Geometry {
     }
 
 
-namespace {
-    double optimal_match(const vector<double>& _s, const vector<double>& _t) {
-        bool do_swap = _t.size() < _s.size();
-        const auto& s = do_swap? _t : _s;
-        const auto& t = do_swap? _s : _t;
-        
-        int Ns = int(s.size());
-        int Nt = int(t.size());
-        vector<tuple<double, int, int>> cost_vec;
-        for (int i=0; i<Ns; ++i)
-            for (int j=0; j<Nt; ++j)
-                cost_vec.push_back(make_tuple(abs(s[i]-t[j]), i, j));
-        
-        sort(cost_vec.begin(), cost_vec.end());
-        
-        vector<int> s_assigned(Ns, 0);
-        vector<int> t_assigned(Nt, 0);
 
-        double cost=0;
-        int cnt=0;
-        for(auto [c,i,j]: cost_vec) {
-            if (s_assigned[i] == 0 && t_assigned[j] == 0) {
-                s_assigned[i] = 1;
-                t_assigned[j] = 1;
-                cost += c;
-                cnt += 1;
-            }
-            if (cnt == Ns)
-                break;
-        }
-        for (int j=0;j<Nt; ++j)
-            if (t_assigned[j] == 0) {
-                cost += t[j];
-            }
-        return cost;
-    }
+using DistAttribVec = Util::AttribVec<AMGraph::NodeID, double>;
 
-    double dynamic_time_warp(const vector<double>& s, const vector<double>& t) {
-        auto dist = [](double a, double b) {
-            return abs(a-b);
-        };
-        
-        int Ns = int(s.size());
-        int Nt = int(t.size());
-        
-        auto DTW = Grid2D<double>(Ns, Nt, DBL_MAX);
-        for (int i=0; i<Ns; ++i)
-            for(int j=0; j<Nt; ++j) {
-                double cost = dist(s[i], t[j]);
-                DTW(i,j) = cost;
-                
-                if (i>0 || j>0) {
-                    double dtw_im1 = i>0 ? DTW(i-1,j) : DBL_MAX;
-                    double dtw_jm1 = j>0 ? DTW(i,j-1) : DBL_MAX;
-                    double dtw_im1_jm1 = i>0 && j>0 ? DTW(i-1,j-1) : DBL_MAX;
-                    DTW(i,j) += min({dtw_im1, dtw_jm1, dtw_im1_jm1});
-                }
-            }
-     
-         return DTW(Ns-1,Nt-1);
-    }
-}
-
-
-vector<double> subtree_paths(const AMGraph3D& g, double d_in, NodeID n, NodeID p, AttribVec<NodeID, int>& visited) {
-    
-    auto nbors = g.neighbors(n);
-    int N = nbors.size();
-    double d = length(g.pos[n]-g.pos[p]) + d_in;
-    if (N == 1 || visited[n])
-        return vector<double>({d});
-    visited[n] = 1;
-    vector<double> path_out;
-    for (auto nn: nbors)
-        if (nn != p) {
-            auto path_in = subtree_paths(g, d_in, nn, n, visited);
-            path_out.insert(path_out.end(), path_in.begin(), path_in.end());
-    }
-    return path_out;
-}
-
-vector<Vec3d> subtree_points(const AMGraph3D& g, NodeID _n, NodeID _p) {
-    queue<pair<NodeID,NodeID>> Q;
-    AttribVec<NodeID, int> visited;
-    for (auto n: g.node_ids())
-        visited[n] = 0;
-    int num=0;
-    Q.push(make_pair(_n,_p));
-    visited[_n] = 1;
+vector<Vec3d> subtree_points(const AMGraph3D& g, NodeID _n, NodeID _p, const DistAttribVec& dist) {
+    queue<NodeID> Q;
+    Q.push(_n);
     vector<Vec3d> pts;
     while(!Q.empty()) {
-        auto [n,p] = Q.front();
+        auto n = Q.front();
         Q.pop();
-        pts.push_back(g.pos[n]);
-        num += 1;
-        if (num>g.no_nodes()/6)
+        auto nbors = g.neighbors(n);
+        int parent_count = 0;
+        if (nbors.size() > 1)
+            for (auto nn: nbors) {
+                if(dist[nn]>dist[n])
+                    Q.push(nn);
+                else ++parent_count;
+            }
+        // If a node has more than one parent then we have a loop in the graph,
+        // and we return immediately. This is to avoid that the subtrees for two
+        // outgoing edges are identical.
+        if (parent_count>1)
             return pts;
-        else {
-            auto nbors = g.neighbors(n);
-            if (nbors.size() > 1)
-                for (auto nn: nbors)
-                    if (nn != p && visited[nn] != 1) {
-                        Q.push(make_pair(nn,n));
-                        visited[nn] = 1;
-                    }
-        }
+        pts.push_back(g.pos[n]);
     }
     return pts;
 }
@@ -704,47 +622,64 @@ vector<Vec3d> subtree_points(const AMGraph3D& g, NodeID _n, NodeID _p) {
 using NodePairVector = vector<pair<NodeID,NodeID>>;
 
 NodePairVector symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
-    auto avg_pos = [](const vector<Vec3d>& pt_vec) {
-        Vec3d avg_pos(0);
+    const int N_iter = 10; // Maybe excessive, but this is a relatively cheap step
+    auto average_vector = [](const vector<Vec3d>& pt_vec) {
+        Vec3d avg(0);
         for (const auto& p: pt_vec)
-            avg_pos += p;
-        return avg_pos / pt_vec.size();
+            avg += p;
+        return avg / pt_vec.size();
     };
     
+    // We run Dijkstra on the graph to be able to detect loops
+    BreadthFirstSearch bfs(g);
+    bfs.add_init_node(n);
+    while(bfs.Dijkstra_step());
     
+    // For every outgoing edge, we create a vector of the vertices
+    // in the corresponding subtree.
     vector<vector<Vec3d>> pt_vecs;
     vector<NodeID> nbors = g.neighbors(n);
     for (auto nn: nbors)
-        pt_vecs.push_back(subtree_points(g, nn, n));
+        pt_vecs.push_back(subtree_points(g, nn, n, bfs.dist));
    
-    Vec3d p_n = g.pos[n];
+    // This lambda computes the symmetry score for edges i and j
     auto symmetry_score = [&](int i, int j) {
-        Vec3d bary_i = avg_pos(pt_vecs[i]);
-        Vec3d bary_j = avg_pos(pt_vecs[j]);
+        Vec3d bary_i = average_vector(pt_vecs[i]);
+        Vec3d bary_j = average_vector(pt_vecs[j]);
         auto [c,r] = bounding_sphere(pt_vecs[i]);
-        
+
         KDTree<Vec3d, int> tree_i;
-        for (const auto& p: pt_vecs[i])
-            tree_i.insert(p, 0);
+        for (int idx=0; idx<pt_vecs[i].size(); ++idx)
+            tree_i.insert(pt_vecs[i][idx], idx);
         tree_i.build();
         
+        // Initialize the axis of symmetry to the vector
+        // between barycenters.
         Vec3d axis = normalize(bary_j - bary_i);
         double err = 0;
-        for(const auto& p: pt_vecs[j]) {
-            Vec3d v = p-p_n;
-            Vec3d pp = v - 2 * dot(v,axis) * axis + p_n;
-            double dist = DBL_MAX;
-            Vec3d k;
-            int val;
-            if (tree_i.closest_point(pp, dist, k, val)) {
-                err += length(k-pp);
+        for(int iter=0;iter<N_iter;++iter) {
+            err = 0;
+            Vec3d match_vec(0);
+            for(const auto& p: pt_vecs[j]) {
+                Vec3d v = p-bary_j;
+                Vec3d pp = v - 2 * dot(v, axis) * axis + bary_i;
+                double dist = DBL_MAX;
+                Vec3d k;
+                int val;
+                if (tree_i.closest_point(pp, dist, k, val)) {
+                    err += length(k-pp);
+                    match_vec += p-k;
+                }
             }
+            err /= pt_vecs[j].size();
+            // New axis is normalized match vectors
+            axis = normalize(match_vec);
         }
-        err /= pt_vecs[j].size();
-        cout << p_n << axis << " " << " " << err << " c,r: " << c << ", "<< r << " sz: " << pt_vecs[i].size() << endl;
         return 1-err/r;
     };
 
+    // Finally, we compute the symmetry scores and keep only the best non-conflicting
+    // pairs. Two pairs are in conflict if the same edge belongs to both pair.
     vector<tuple<double, int, int>> sym_scores;
     for (int i=0; i<nbors.size(); ++i)
         for (int j=i+1; j<nbors.size(); ++j)
@@ -755,7 +690,6 @@ NodePairVector symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
                 if (sscore > threshold)
                     sym_scores.push_back(make_tuple(-sscore, i, j));
             }
-    
     NodePairVector npv;
     vector<int> touched(nbors.size(), 0);
     sort(sym_scores.begin(), sym_scores.end());
