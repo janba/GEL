@@ -828,14 +828,12 @@ void construct_bnps(HMesh::Manifold &m_out,
                     Util::AttribVec<NodeID, FaceSet>& node2fs, vector<double> r_arr) {
 
     auto project_to_sphere = [](Manifold& m, const Vec3d& pn, double r) {
-        for(int iter=0;iter<1;++iter) {
-            auto new_pos = m.positions_attribute_vector();
-            for(auto v: m.vertices())
-                new_pos[v] = normalize(1*normal(m,v) + m.pos(v));
-            m.positions_attribute_vector() = new_pos;
-        }
+        VertexAttributeVector<Vec3d> norms;
         for(auto v: m.vertices())
-            m.pos(v) = normalize(m.pos(v))*r + pn;
+            norms[v] = normalize(normal(m,v) + m.pos(v));
+        for(auto v: m.vertices()) {
+            m.pos(v) = pn + r * norms[v];
+        }
     };
 
     auto split_faces = [](Manifold& m) {
@@ -1663,7 +1661,9 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
             }  while(nbd_list.size()==1);
         }
     }
-    
+
+    quad_mesh_leaves(m_out);
+
     // The code below performs smoothing of the vertices that are adjacent to original faces.
     // This leads to a much better mesh in most cases.
     auto new_pos = m_out.positions_attribute_vector();
@@ -1677,17 +1677,15 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
         }
         
         if (!vertex_adjacent_to_new_face) {
-            Vec3d npos(0);
-            int cnt=0;
+            int cnt=1;
             for (auto vn: m_out.incident_vertices(v)) {
-                npos += m_out.pos(vn);
+                new_pos[v] += m_out.pos(vn);
                 ++cnt;
             }
-            new_pos[v] = npos/cnt;
+            new_pos[v] /= cnt;
         }
     }
     m_out.positions_attribute_vector() = new_pos;
-    quad_mesh_leaves(m_out);
     
     return m_out;
 }
