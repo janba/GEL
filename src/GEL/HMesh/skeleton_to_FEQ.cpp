@@ -151,7 +151,7 @@ void id_preserving_cc(HMesh::Manifold& m_in) {
     
 }
 
-void quad_mesh_leaves(HMesh::Manifold& m) {
+void quad_mesh_leaves(HMesh::Manifold& m, VertexAttributeVector<NodeID>& vertex2node) {
     
     vector<FaceID> base_faces;
     vector<HalfEdgeID> new_edges;
@@ -166,6 +166,7 @@ void quad_mesh_leaves(HMesh::Manifold& m) {
                 continue;
             
             VertexID center_v = m.split_face_by_vertex(f);
+            vertex2node[center_v] = vertex2node[m.walker(center_v).vertex()];
             int counter = 0;
             int dissolve_flag = 0;
             for(Walker w = m.walker(center_v); !w.full_circle(); w = w.circulate_vertex_ccw()) {
@@ -269,127 +270,6 @@ bool check_convex(const HMesh::Manifold &m, HalfEdgeID h) {
     else
         return true;
 }
-
-//void stellate_face_set_retopo(HMesh::Manifold &m, const HMesh::FaceSet& fs, const HMesh::HalfEdgeSet& hs) {
-//
-//  HalfEdgeSet interior_edges;
-//
-//  HalfEdgeSet visited;
-//
-//  VertexSet aux_vertices;
-//
-//  for (auto h : hs) {
-//    if(visited.find(h) != visited.end() || visited.find(m.walker(h).opp().halfedge()) != visited.end())
-//      continue;
-//
-//    VertexID interior_vertex = m.walker(h).next().vertex();
-//    VertexID interior_vertex_opp = m.walker(h).prev().prev().vertex();
-//
-//    if(aux_vertices.find(interior_vertex) != aux_vertices.end() || aux_vertices.find(interior_vertex_opp) != aux_vertices.end()) {
-//      m.flip_edge(h);
-//      visited.insert(h);
-//      visited.insert(m.walker(h).opp().halfedge());
-//      continue;
-//    }
-//
-//
-//    visited.insert(h);
-//    visited.insert(m.walker(h).opp().halfedge());
-//    VertexID curr_v = split_LIE(m, h);
-//    aux_vertices.insert(curr_v);
-//    for (auto h_flip : hs) {
-//      if(visited.find(h_flip) == visited.end() && (m.walker(h_flip).next().vertex() == curr_v || m.walker(h_flip).prev().prev().vertex() == curr_v) && check_planar(m,h_flip)) {
-//        m.flip_edge(h_flip);
-//        visited.insert(h_flip);
-//        visited.insert(m.walker(h_flip).opp().halfedge());
-//      }
-//    }
-//
-//  }
-//  for (auto h_flip : m.halfedges()) {
-//    VertexID interior_vertex = m.walker(h_flip).next().vertex();
-//    if(visited.find(h_flip) == visited.end() && aux_vertices.find(interior_vertex) != aux_vertices.end() && check_planar(m, h_flip)) {
-//      m.flip_edge(h_flip);
-//      visited.insert(h_flip);
-//      visited.insert(m.walker(h_flip).opp().halfedge());
-//    }
-//  }
-//
-//}
-//
-//vector<FaceSet> retopologize_planar_regions(HMesh::Manifold &m) {
-//
-//// find triangles with low dihedral angle between them
-//
-//    vector<FaceSet> planar_regions;
-//
-//    vector<HalfEdgeSet> planar_edges;
-//
-//    // identify planar regions
-//
-//    FaceSet global_visited;
-//
-//    for (auto f : m.faces()) {
-//
-//        if(global_visited.find(f) != global_visited.end())
-//            continue;
-//
-//        FaceSet planar_set;
-//        HalfEdgeSet planar_edge_set;
-//
-//        FaceSet visited;
-//
-//        queue<FaceID> Q;
-//
-//        Q.push(f);
-//
-//        while(!Q.empty()) {
-//
-//            FaceID curr_f = Q.front();
-//
-//            HalfEdgeSet edge_set;
-//
-//
-//            for(Walker w = m.walker(curr_f); !w.full_circle(); w = w.circulate_face_ccw()) {
-//                edge_set.insert(w.halfedge());
-//            }
-//
-//            for (auto h : edge_set)
-//                if(check_planar(m,h)) {
-//                  planar_edge_set.insert(h);
-//                  planar_edge_set.insert(m.walker(h).opp().halfedge());
-//                  FaceID f1 = m.walker(h).face();
-//                  FaceID f2 = m.walker(h).opp().face();
-//
-//                  planar_set.insert(f1);
-//                  planar_set.insert(f2);
-//
-//                  global_visited.insert(f1);
-//                  global_visited.insert(f2);
-//
-//                  if(visited.find(f1) == visited.end())
-//                    Q.push(f1);
-//                  if(visited.find(f2) == visited.end())
-//                    Q.push(f2);
-//                }
-//
-//            visited.insert(curr_f);
-//            Q.pop();
-//       }
-//
-//       planar_regions.push_back(planar_set);
-//       planar_edges.push_back(planar_edge_set);
-//    }
-//    int id = 0;
-//    for (auto fset : planar_regions) {
-//      if(fset.size() > 2)
-//        stellate_face_set_retopo(m, fset, planar_edges[id]);
-//      id++;
-//    }
-//
-//    return planar_regions;
-//
-//}
 
 //Graph - Mesh relationship Functions
 
@@ -675,6 +555,7 @@ vector<FaceID> create_face_pair(Manifold& m, const Vec3d& pos, const Mat3x3d& _R
 
 void val2nodes_to_boxes(const Geometry::AMGraph3D& g, HMesh::Manifold& mani,
                         Util::AttribVec<NodeID, FaceSet>& n2fs,
+                        VertexAttributeVector<NodeID>& vertex2node,
                         const vector<double>& r) {
     Vec3d c(0);
     for(auto n: g.node_ids())
@@ -754,6 +635,8 @@ void val2nodes_to_boxes(const Geometry::AMGraph3D& g, HMesh::Manifold& mani,
                     for(auto f: face_list) {
                         n2fs[m].insert(f);
                         val2_faces.insert(std::make_pair(f, 1));
+                        for(auto v: mani.incident_vertices(f))
+                            vertex2node[v] = m;
                     }
                 }
                 
@@ -825,7 +708,9 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
 
 void construct_bnps(HMesh::Manifold &m_out,
                     const Geometry::AMGraph3D& g,
-                    Util::AttribVec<NodeID, FaceSet>& node2fs, vector<double> r_arr) {
+                    Util::AttribVec<NodeID, FaceSet>& node2fs,
+                    VertexAttributeVector<NodeID>& vertex2node,
+                    const vector<double>& r_arr) {
 
     auto project_to_sphere = [](Manifold& m, const Vec3d& pn, double r) {
         VertexAttributeVector<Vec3d> norms;
@@ -864,12 +749,8 @@ void construct_bnps(HMesh::Manifold &m_out,
     };
     
     map<int, pair<NodeID,NodeID>> spts2branch;
-    map <int, VertexID> spts2vertexid;
-    
-    double base_r = 0.5 * g.average_edge_length();
-    
-    double r = base_r;
-    
+    map<int, VertexID> spts2vertexid;
+        
     for (auto n: g.node_ids()) {
         
         auto N = g.neighbors(n);
@@ -877,7 +758,6 @@ void construct_bnps(HMesh::Manifold &m_out,
             Manifold m;
             int node_vertex_count =0;
             Vec3d pn = g.pos[n];
-            r = r_arr[n];
             
             vector<Vec3d> spts;
             int spts_vertex_count = 0;
@@ -916,7 +796,6 @@ void construct_bnps(HMesh::Manifold &m_out,
                 m.add_face(triangle_pts);
             }
             stitch_mesh(m, 1e-10);
-            m.cleanup();
             
             for(auto v: m.vertices())
                 for(int i = 0; i < spts.size(); i++)
@@ -938,7 +817,7 @@ void construct_bnps(HMesh::Manifold &m_out,
                 }
             }
             
-            project_to_sphere(m, pn, r);
+            project_to_sphere(m, pn, r_arr[n]);
                         
             quad_valencify(m);
 
@@ -947,19 +826,21 @@ void construct_bnps(HMesh::Manifold &m_out,
                 auto value = m.pos(spts2vertexid.find(i)->second);
                 branch2vert.insert(std::make_pair(key,value));
             }
-            
+            id_preserving_cc(m);
             m.cleanup();
             
-            size_t no_faces_before = m_out.no_faces();
-            
+            size_t no_faces_before_merge = m_out.no_faces();
+            size_t no_vertices_before_merge = m_out.allocated_vertices();
+
             m_out.merge(m);
             for(auto f: m_out.faces())
-                if(f.index >= no_faces_before)
+                if(f.index >= no_faces_before_merge)
                     node2fs[n].insert(f);
+            for(auto v: m_out.vertices())
+                if (v.index >= no_vertices_before_merge)
+                    vertex2node[v] = n;
         }
     }
-    stitch_mesh(m_out, 1e-10);
-    m_out.cleanup();
 }
 
 void merge_branch_faces(HMesh::Manifold &m, const Geometry::AMGraph3D& g,
@@ -1100,9 +981,6 @@ FaceID rotate_bridge_face_set_once(HMesh::Manifold& m, FaceID f0) {
         if(vloop0[i] == central_vertex_0)
             split_vertex = vloop0[(i+3)%L];
     }
-    
-    float dot_sum = 0;
-    float len = 0;
     
     FaceID new_face = f0;
     if(L == 4) {
@@ -1387,9 +1265,6 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(const HMesh::Manifold& m, F
     
     bool fv_flag = false;
     
-    Vec3d v_n_nn = normalize(g.pos[n] - g.pos[nn]);
-    
-    
     if(face_vertex_0 != InvalidVertexID && face_vertex_1 != InvalidVertexID)
         fv_flag = true;
     
@@ -1579,7 +1454,7 @@ void init_graph_arrays(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Uti
 
 HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>& _node_radii) {
     
-    double r = 0.5 * g.average_edge_length();
+    double r = 0.25 * g.average_edge_length();
     Manifold m_out;
     Util::AttribVec<NodeID, FaceSet> node2fs;
     
@@ -1591,15 +1466,13 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
         if(node_radii[n] == 0.0)
             node_radii[n] = r;
     
-    construct_bnps(m_out, g, node2fs, node_radii);
-    id_preserving_cc(m_out);
+    VertexAttributeVector<NodeID> vertex2node(AMGraph::InvalidNodeID);
+    construct_bnps(m_out, g, node2fs, vertex2node, node_radii);
     init_graph_arrays(m_out, g, node2fs);
     
-    val2nodes_to_boxes(g, m_out, node2fs, node_radii);
-    FaceAttributeVector<int> orig_face(m_out.allocated_faces(), 0);
+    val2nodes_to_boxes(g, m_out, node2fs, vertex2node, node_radii);
     
     for(auto f_id: m_out.faces()) {
-        orig_face[f_id] = 1;
         face_vertex[f_id] = InvalidVertexID;
         if(one_ring_face_vertex.find(f_id) == one_ring_face_vertex.end())
             one_ring_face_vertex[f_id] = InvalidVertexID;
@@ -1662,30 +1535,53 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
         }
     }
 
-    quad_mesh_leaves(m_out);
+    quad_mesh_leaves(m_out, vertex2node);
 
-    // The code below performs smoothing of the vertices that are adjacent to original faces.
-    // This leads to a much better mesh in most cases.
-    auto new_pos = m_out.positions_attribute_vector();
-    for (auto v: m_out.vertices()) {
-        bool vertex_adjacent_to_new_face = false;
-        for (auto f: m_out.incident_faces(v)) {
-            if (orig_face[f]==0) {
-                vertex_adjacent_to_new_face = true;
-                break;
+    for (int iter=0;iter<30; ++iter) {
+        
+        for (int inner_iter=0;inner_iter<1; ++ inner_iter) {
+            auto new_pos = m_out.positions_attribute_vector();
+            for (auto v: m_out.vertices()) {
+                int cnt = 4;
+                new_pos[v] *= 4;
+                for (auto vn: m_out.incident_vertices(v)) {
+                    int w = vertex2node[v] == vertex2node[vn] ? 4 : 1;
+                    new_pos[v] += w*m_out.pos(vn);
+                    cnt+=w;
+                }
+                new_pos[v] /= cnt;
+            }
+            m_out.positions_attribute_vector() = new_pos;
+        }
+        
+        VertexAttributeVector<Vec3d> norms;
+        Util::AttribVec<AMGraph::NodeID,Vec3d> barycenters(g.no_nodes(), Vec3d(0));
+        Util::AttribVec<AMGraph::NodeID,int> cluster_cnt(g.no_nodes(), 0);
+        for(auto v: m_out.vertices()) {
+            NodeID n = vertex2node[v];
+            barycenters[n] += m_out.pos(v);
+            cluster_cnt[n] += 1;
+            norms[v] = normal(m_out, v);
+        }
+        
+        for(auto n: g.node_ids()) {
+            barycenters[n] /= cluster_cnt[n];
+        }
+
+        
+        for(auto v: m_out.vertices()) {
+            NodeID n = vertex2node[v];
+            if (n != AMGraph::InvalidNodeID) {
+                Vec3d d = normalize(m_out.pos(v) - barycenters[n]);
+                if (dot(d,norms[v]) < 0)
+                    d = norms[v];
+                double r = node_radii[n]*sqrt(g.neighbors(n).size()/2.0);
+                m_out.pos(v) = d*r+ g.pos[n];
             }
         }
         
-        if (!vertex_adjacent_to_new_face) {
-            int cnt=1;
-            for (auto vn: m_out.incident_vertices(v)) {
-                new_pos[v] += m_out.pos(vn);
-                ++cnt;
-            }
-            new_pos[v] /= cnt;
-        }
+        
     }
-    m_out.positions_attribute_vector() = new_pos;
-    
+    m_out.cleanup();
     return m_out;
 }

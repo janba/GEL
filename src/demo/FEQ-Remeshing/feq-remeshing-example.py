@@ -37,9 +37,8 @@ for g_file, o_file, params in zip(graphs, objs, iters):
     print('Building FEQ')
     print('loading : ' + skel_dir + g_file)
     s = graph.load(skel_dir + g_file)
-    m_skel = hmesh.skeleton_to_feq(s)#, [5.0]*len(s.nodes()))
+    m_skel = hmesh.skeleton_to_feq(s)
     viewer.display(m_skel, reset_view   =True)
-#    viewer.display(m_skel, s, mode='x', reset_view   =True)
 
     hmesh.cc_split(m_skel)
     hmesh.cc_smooth(m_skel)
@@ -50,7 +49,6 @@ for g_file, o_file, params in zip(graphs, objs, iters):
     fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, local_iter=iter, dist_wt=dist_wt, lap_wt=lap_wt)
 
     print("Displaying. HIT ESC IN GRAPHICS WINDOW TO PROCEED...")
-    viewer.display(fit_mesh, reset_view=True)
+    viewer.display(fit_mesh)
     hmesh.save(o_file + "-out.obj", fit_mesh)
-    # viewer.display(m_skel, reset_view=True)
 
