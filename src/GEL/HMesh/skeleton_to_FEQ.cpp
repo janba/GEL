@@ -1537,23 +1537,10 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
 
     quad_mesh_leaves(m_out, vertex2node);
 
-    for (int iter=0;iter<30; ++iter) {
-        
-        for (int inner_iter=0;inner_iter<2; ++ inner_iter) {
-            auto new_pos = m_out.positions_attribute_vector();
-            for (auto v: m_out.vertices()) {
-                int cnt = 4;
-                new_pos[v] *= 4;
-                for (auto vn: m_out.incident_vertices(v)) {
-                    int w = vertex2node[v] == vertex2node[vn] ? 4 : 1;
-                    new_pos[v] += w*m_out.pos(vn);
-                    cnt+=w;
-                }
-                new_pos[v] /= cnt;
-            }
-            m_out.positions_attribute_vector() = new_pos;
-        }
-        
+    const int N_iter = 30;
+    for (int iter=0;iter<N_iter; ++iter) {
+        laplacian_smooth(m_out, 0.5, 10);
+                
         VertexAttributeVector<Vec3d> norms;
         Util::AttribVec<AMGraph::NodeID,Vec3d> barycenters(g.no_nodes(), Vec3d(0));
         Util::AttribVec<AMGraph::NodeID,int> cluster_cnt(g.no_nodes(), 0);
@@ -1568,21 +1555,40 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
             barycenters[n] /= cluster_cnt[n];
         }
 
-        
+        double reg_w = 0.5 * double(iter) / N_iter;
         for(auto v: m_out.vertices()) {
             NodeID n = vertex2node[v];
             if (n != AMGraph::InvalidNodeID) {
-                double r = node_radii[n] * sqrt(g.valence(n))/sqrt(2.0);
+                double r = node_radii[n];// * sqrt(g.valence(n))/sqrt(2.0);
                 Vec3d d = (m_out.pos(v) - barycenters[n]);
-                Vec3d dn = normalize(d);
-                double alpha = dot(d,norms[v])/r;
-                if (alpha < 0.0)
-                    dn = norms[v];
-                alpha = min(1.0,max(0.0, alpha));
-                m_out.pos(v) =  dn*r + g.pos[n];
+                double alpha = min(1.0,max(0.0, dot(d,norms[v])/r));
+                Vec3d dn = normalize(normalize(d)*alpha + (1-alpha)*norms[v]);
+//                reg_w = max(0.3, min(0.7, abs(r-length(d))/r));
+                m_out.pos(v) =  reg_w*(dn*r) + (1-reg_w)*d + g.pos[n];
             }
         }
         
+//        double ael = average_edge_length(m_out);
+//        for (int inner_iter=0;inner_iter<1; ++ inner_iter) {
+//            auto new_pos = m_out.positions_attribute_vector();
+//            for (auto v: m_out.vertices()) {
+//                NodeID n = vertex2node[v];
+//                Vec3d F = m_out.pos(v) - g.pos[n];
+//                double r = node_radii[n] * sqrt(g.valence(n))/sqrt(2.0);
+//                F *= r - F.length();
+//                double w_sum = 1.0;
+//                new_pos[v] = Vec3d(0);
+//                for (auto vn: m_out.incident_vertices(v)) {
+//                    Vec3d Fn = m_out.pos(v)-m_out.pos(vn);
+//                    double w = exp(-sqr_length(Fn)/(ael*ael));
+//                    F += w*Fn;
+//                    w_sum += w;
+//                }
+//                new_pos[v] = 0.75*m_out.pos(v) + 0.25*F/w_sum;
+//            }
+//            m_out.positions_attribute_vector() = new_pos;
+//        }
+
         
     }
     m_out.cleanup();
