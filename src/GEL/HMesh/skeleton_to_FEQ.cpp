@@ -1539,7 +1539,7 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
 
     for (int iter=0;iter<30; ++iter) {
         
-        for (int inner_iter=0;inner_iter<1; ++ inner_iter) {
+        for (int inner_iter=0;inner_iter<2; ++ inner_iter) {
             auto new_pos = m_out.positions_attribute_vector();
             for (auto v: m_out.vertices()) {
                 int cnt = 4;
@@ -1572,11 +1572,14 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
         for(auto v: m_out.vertices()) {
             NodeID n = vertex2node[v];
             if (n != AMGraph::InvalidNodeID) {
-                Vec3d d = normalize(m_out.pos(v) - barycenters[n]);
-                if (dot(d,norms[v]) < 0)
-                    d = norms[v];
-                double r = node_radii[n]*sqrt(g.neighbors(n).size()/2.0);
-                m_out.pos(v) = d*r+ g.pos[n];
+                double r = node_radii[n] * sqrt(g.valence(n))/sqrt(2.0);
+                Vec3d d = (m_out.pos(v) - barycenters[n]);
+                Vec3d dn = normalize(d);
+                double alpha = dot(d,norms[v])/r;
+                if (alpha < 0.0)
+                    dn = norms[v];
+                alpha = min(1.0,max(0.0, alpha));
+                m_out.pos(v) =  dn*r + g.pos[n];
             }
         }
         
