@@ -13,7 +13,7 @@
 #include <vector>
 #include <iostream>
 #include <random>
-#include <GEL/Util/Grid2d.h>
+#include <GEL/Util/Grid2D.h>
 #include <GEL/Util/AttribVec.h>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/build_bbtree.h>
