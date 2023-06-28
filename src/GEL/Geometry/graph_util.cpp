@@ -644,7 +644,7 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
     auto symmetry_score = [&](int i, int j) {
         Vec3d bary_i = average_vector(pt_vecs[i]);
         Vec3d bary_j = average_vector(pt_vecs[j]);
-        auto [c,r] = bounding_sphere(pt_vecs[i]);
+        auto [c,r] = approximate_bounding_sphere(pt_vecs[i]);
 
         KDTree<Vec3d, int> tree_i;
         for (int idx=0; idx<pt_vecs[i].size(); ++idx)
