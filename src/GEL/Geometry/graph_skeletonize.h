@@ -117,6 +117,7 @@ namespace Geometry {
      Sets the limit on restricted separators when sampling. Higher values might give
      better separators but at the cost of runtime. Optimal value depends on input
      and use case.
+     @param quiet if true suppresses command logging information
 
      @returns This function returns a vector of NodeSets containing a
      number of non-overlapping (local) separators
@@ -134,15 +135,16 @@ namespace Geometry {
     NodeSetVec local_separators(AMGraph3D &g, SamplingType sampling = SamplingType::None,
                                 double quality_noise_level = 0.09,
                                 int optimization_steps = 0,
-                                size_t advanced_sampling_threshold = 64);
+                                size_t advanced_sampling_threshold = 64,
+                                bool quiet=false);
 
     inline NodeSetVec local_separators(AMGraph3D &g, bool sampling = false,
                                        double quality_noise_level = 0.09,
-                                       int optimization_steps = 0) {
+                                       int optimization_steps = 0, bool quiet=false) {
         if (sampling) {
-            return local_separators(g, SamplingType::Basic, quality_noise_level, optimization_steps);
+            return local_separators(g, SamplingType::Basic, quality_noise_level, optimization_steps, quiet);
         } else {
-            return local_separators(g, SamplingType::None, quality_noise_level, optimization_steps);
+            return local_separators(g, SamplingType::None, quality_noise_level, optimization_steps, quiet);
         }
     }
 
@@ -160,7 +162,8 @@ namespace Geometry {
     NodeSetVec multiscale_local_separators(AMGraph3D &g, SamplingType sampling = SamplingType::Advanced,
                                 size_t grow_threshold = 64,
                                 double quality_noise_level = 0.09,
-                                int optimization_steps = 0);
+                                int optimization_steps = 0,
+                                bool quiet=false);
 
 
     /**
