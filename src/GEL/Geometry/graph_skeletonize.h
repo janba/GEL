@@ -163,6 +163,7 @@ namespace Geometry {
                                 size_t grow_threshold = 64,
                                 double quality_noise_level = 0.09,
                                 int optimization_steps = 0,
+                                const int desired_threads = 0,
                                 bool quiet=false);
 
 

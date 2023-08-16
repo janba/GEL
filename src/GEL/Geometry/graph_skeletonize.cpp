@@ -919,11 +919,11 @@ namespace Geometry {
         return node_set_vec_global;
     }
 
-    NodeSetVec multiscale_local_separators(AMGraph3D &g, SamplingType sampling,const size_t grow_threshold,double quality_noise_level, int optimization_steps, bool quiet) {
+    NodeSetVec multiscale_local_separators(AMGraph3D &g, SamplingType sampling,const size_t grow_threshold,double quality_noise_level, int optimization_steps, const int desired_threads, bool quiet) {
         // Because we are greedy: all cores belong to this task!
         //const unsigned int CORES = std::min(8u,thread::hardware_concurrency());
-
-        const int CORES = thread::hardware_concurrency();
+        
+        const int CORES = desired_threads > 0 ? desired_threads : thread::hardware_concurrency();
         const int CORES_SEC = std::min(CORES,2);
 
         Util::AttribVec<NodeID, size_t> touched(g.no_nodes(), 0);
