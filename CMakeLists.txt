@@ -69,10 +69,7 @@ else ()
 endif ()
 
 
-target_include_directories(GEL PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:include>
-    PRIVATE src)
+target_include_directories(GEL PUBLIC ./src)
 aux_source_directory(./src/PyGEL PYG_SRC_LIST)
 
 if (Use_GLGraphics)
@@ -87,10 +84,7 @@ else ()
     target_link_libraries(PyGEL GEL)
 endif ()
 
-target_include_directories(PyGEL PUBLIC
-    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
-    $<INSTALL_INTERFACE:include>
-    PRIVATE src)
+target_include_directories(PyGEL PUBLIC ./src)
     
 install(TARGETS GEL)
 
