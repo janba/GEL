@@ -281,7 +281,7 @@ namespace Geometry {
                     orthogonal(normalize(edge_vec), X, Y);
                     double len = length(edge_vec);
                     Mat3x3d M = transpose(Mat3x3d(X,Y,normalize(edge_vec)));
-                    const int N = 10;
+                    const int N = 6;
                     double d_alpha =2.0*M_PI/N;
                     for(int i=0;i<N;++i)
                     {
