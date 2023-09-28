@@ -56,6 +56,12 @@ void graph_to_mesh_cyl(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, float fudge) {
     graph_to_mesh_cyl(*g_ptr, *m_ptr, fudge);
 }
 
+void graph_to_mesh_iso(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, float fudge, size_t grid_res) {
+    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    graph_to_mesh_iso(*g_ptr, *m_ptr, grid_res, fudge, 0.0);
+}
+
 void graph_smooth(Graph_ptr _g_ptr, const int iter, const float alpha) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     smooth_graph(*g_ptr, iter, alpha);
