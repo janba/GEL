@@ -715,8 +715,11 @@ void construct_bnps(HMesh::Manifold &m_out,
 
     auto project_to_sphere = [](Manifold& m, const Vec3d& pn, double r) {
         VertexAttributeVector<Vec3d> norms;
-        for(auto v: m.vertices())
-            norms[v] = normalize(normal(m,v) + m.pos(v));
+        for(auto v: m.vertices()) {
+            if (length(m.pos(v))<0.5)
+                norms[v] = normal(m,v);
+            else norms[v] = normalize(m.pos(v));
+        }
         for(auto v: m.vertices()) {
             m.pos(v) = pn + r * norms[v];
         }
@@ -821,13 +824,13 @@ void construct_bnps(HMesh::Manifold &m_out,
             project_to_sphere(m, pn, r_arr[n]);
 
             quad_valencify(m);
+            id_preserving_cc(m);
 
             for(int i = 0; i < spts.size(); i++) {
                 auto key = spts2branch.find(i)->second;
                 auto value = m.pos(spts2vertexid.find(i)->second);
                 branch2vert.insert(std::make_pair(key,value));
             }
-            id_preserving_cc(m);
             m.cleanup();
 
             size_t no_faces_before_merge = m_out.no_faces();
@@ -1237,6 +1240,7 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
 
     VertexAttributeVector<NodeID> vertex2node(AMGraph::InvalidNodeID);
     construct_bnps(m_out, g, node2fs, vertex2node, node_radii, use_symmetry);
+//    construct_bnps(m_out, g, node2fs, vertex2node, node_radii, false);
     init_graph_arrays(m_out, g, node2fs);
 
     val2nodes_to_boxes(g, m_out, node2fs, vertex2node, node_radii);
