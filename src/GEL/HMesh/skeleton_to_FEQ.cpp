@@ -1226,17 +1226,19 @@ void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
 
 HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>& _node_radii, bool use_symmetry) {
 
-    double r = 0.25 * g.average_edge_length();
     Manifold m_out;
     Util::AttribVec<NodeID, FaceSet> node2fs;
-
     clear_global_arrays();
-
-    vector node_radii = _node_radii;
+    double r = g.average_edge_length();
+    bool use_input_node_radii = (_node_radii[0] != 0);
+    vector<double> node_radii;
     node_radii.resize(g.no_nodes());
-    for(auto n : g.node_ids())
-        if(node_radii[n] == 0.0)
-            node_radii[n] = r;
+    for(auto n : g.node_ids()) {
+        double l = r * 0.25;
+        for (auto m: g.neighbors(n))
+            l = min(l, sqrt(g.sqr_dist(n, m)));
+        node_radii[n] = 0.25*l;
+    }
 
     VertexAttributeVector<NodeID> vertex2node(AMGraph::InvalidNodeID);
     construct_bnps(m_out, g, node2fs, vertex2node, node_radii, use_symmetry);
@@ -1308,7 +1310,7 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
     }
 
     quad_mesh_leaves(m_out, vertex2node);
-    skeleton_aware_smoothing(g, m_out, vertex2node, node_radii);
+    skeleton_aware_smoothing(g, m_out, vertex2node, _node_radii);
     m_out.cleanup();
     return m_out;
 }
