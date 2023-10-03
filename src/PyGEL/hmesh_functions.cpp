@@ -197,15 +197,19 @@ void volumetric_isocontour(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim, 
 }
 
 
-void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double *node_radii) {
+void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double *node_radii, bool symmetrize, bool use_graph_radii) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     vector<double> node_rs;
     const size_t N = g_ptr->no_nodes();
     node_rs.resize(N);
 
-    for(auto n : g_ptr->node_ids())
-        node_rs[n] = node_radii[n];
+    if (use_graph_radii)
+        for(auto n : g_ptr->node_ids())
+            node_rs[n] = g_ptr->node_color[n][1];
+    else
+        for(auto n : g_ptr->node_ids())
+            node_rs[n] = node_radii[n];
 
     *m_ptr = graph_to_FEQ(*g_ptr, node_rs);
 }

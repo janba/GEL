@@ -1240,7 +1240,6 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
 
     VertexAttributeVector<NodeID> vertex2node(AMGraph::InvalidNodeID);
     construct_bnps(m_out, g, node2fs, vertex2node, node_radii, use_symmetry);
-//    construct_bnps(m_out, g, node2fs, vertex2node, node_radii, false);
     init_graph_arrays(m_out, g, node2fs);
 
     val2nodes_to_boxes(g, m_out, node2fs, vertex2node, node_radii);
