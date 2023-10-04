@@ -4,23 +4,23 @@ from pygel3d import hmesh, graph, gl_display as gl
 from os import getcwd
 
 graphs = [
-'fertility.graph',
+'feline.graph',
 'wolf.graph',
 'armadillo_symmetric.graph',
 'warrior.graph',
 'hand.graph',
 'bunny.graph',
-'feline.graph'
+'fertility.graph',
 ]
 
 objs = [
-'fertility_tri.obj',
+'feline.obj',
 'wolf.obj',
 'armadillo.obj',
 'warrior.obj',
 'usai_hand_tri.obj',
 'bunny.obj',
-'feline.obj'
+'fertility_tri.obj',
 ]
 
 iters = [ (50,0.5,1.0), (50,0.5,1.0), (50,0.5,1.0), (150,0.5,0.5), (50,0.5,1.0), (50,0.5,1.0), (50,0.5,1.0)]

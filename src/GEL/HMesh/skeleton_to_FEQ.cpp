@@ -821,10 +821,10 @@ void construct_bnps(HMesh::Manifold &m_out,
                 }
             }
 
-            project_to_sphere(m, pn, r_arr[n]);
-
+//            project_to_sphere(m, pn, 1);
             quad_valencify(m);
             id_preserving_cc(m);
+            project_to_sphere(m, pn, r_arr[n]);
 
             for(int i = 0; i < spts.size(); i++) {
                 auto key = spts2branch.find(i)->second;
@@ -1179,26 +1179,21 @@ void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
             cluster_cnt[n] += 1;
         }
 
-        for(auto n: g.node_ids()) {
+        for(auto n: g.node_ids()) 
             barycenters[n] /= cluster_cnt[n];
-        }
 
         auto new_pos = m_out.positions_attribute_vector();
         for (auto v: m_out.vertices()) {
             NodeID n = vertex2node[v];
-            double cnt = 0.0;
+            double w_sum = 0.0;
             Vec3d lap(0.0);
             Vec3d p0 = m_out.pos(v);
             for (auto vn: m_out.incident_vertices(v)) {
-                NodeID nn = vertex2node[vn];
-                Vec3d pn = m_out.pos(vn);
-                double w = 1.0;
-                if(nn != n)
-                    w  = 0.25;
-                lap += w * (pn-p0);
-                cnt+=w;
+                double w = vertex2node[vn] == n ? 1 : 0.25;
+                lap += w * (m_out.pos(vn)-p0);
+                w_sum += w;
             }
-            lap /= cnt;
+            lap /= w_sum;
             Vec3d dir = cond_normalize(m_out.pos(v) + 0.5 * lap - barycenters[n]);
             Vec3d norm = normal(m_out, v);
             if (dot(dir, norm)<0.0)
@@ -1208,14 +1203,6 @@ void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
             new_pos[v] = 0.5 * (dir * r + g.pos[n] + m_out.pos(v));
         }
         m_out.positions_attribute_vector() = new_pos;
-        // for (auto v: m_out.vertices()) {
-        //     NodeID n = vertex2node[v];
-        //     if(g.valence(n)==2) {
-        //         double r = node_radii[n];
-        //         new_pos[v] = 0.5 * (normal(m_out, v) * r + g.pos[n] + m_out.pos(v));
-        //     }
-        // }
-        // m_out.positions_attribute_vector() = new_pos;
     }
 
 
@@ -1230,13 +1217,12 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
     Util::AttribVec<NodeID, FaceSet> node2fs;
     clear_global_arrays();
     double r = g.average_edge_length();
-    cout << "AVG EDGE LEN: " << r << endl;
     vector<double> node_radii;
     node_radii.resize(g.no_nodes());
     for(auto n : g.node_ids()) {
         double l = r;
-        // for (auto m: g.neighbors(n))
-        //       l = min(l, sqrt(g.sqr_dist(n, m)));
+        for (auto m: g.neighbors(n))
+            l = min(l, sqrt(g.sqr_dist(n, m)));
         node_radii[n] = 0.25*l;
     }
 
@@ -1310,7 +1296,7 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
     }
 
     quad_mesh_leaves(m_out, vertex2node);
-   skeleton_aware_smoothing(g, m_out, vertex2node, _node_radii);
+    skeleton_aware_smoothing(g, m_out, vertex2node, _node_radii);
     m_out.cleanup();
     return m_out;
 }
