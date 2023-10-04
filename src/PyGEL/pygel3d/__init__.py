@@ -238,6 +238,7 @@ lib_py_gel.Graph_neighbors.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_void_p, ct
 lib_py_gel.Graph_positions.argtypes = (ct.c_void_p,ct.POINTER(ct.POINTER(ct.c_double)))
 lib_py_gel.Graph_positions.restype = ct.c_size_t
 lib_py_gel.Graph_average_edge_length.argtypes = (ct.c_void_p,)
+lib_py_gel.Graph_average_edge_length.restype = ct.c_double
 lib_py_gel.Graph_add_node.argtypes = (ct.c_void_p, np.ctypeslib.ndpointer(ct.c_double))
 lib_py_gel.Graph_add_node.restype = ct.c_size_t
 lib_py_gel.Graph_remove_node.argtypes = (ct.c_void_p, ct.c_size_t)

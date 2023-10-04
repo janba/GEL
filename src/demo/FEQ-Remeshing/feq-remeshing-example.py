@@ -37,7 +37,7 @@ for g_file, o_file, params in zip(graphs, objs, iters):
     print('Building FEQ')
     print('loading : ' + skel_dir + g_file)
     s = graph.load(skel_dir + g_file)
-    m_skel = hmesh.skeleton_to_feq(s)
+    m_skel = hmesh.skeleton_to_feq(s, symmetrize=True, use_graph_radii=False)
     hmesh.save(o_file + "-test.obj", m_skel)
     viewer.display(m_skel, reset_view   =True)
 

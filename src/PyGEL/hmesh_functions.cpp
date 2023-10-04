@@ -205,11 +205,21 @@ void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double *node_radii, boo
     node_rs.resize(N);
 
     if (use_graph_radii)
-        for(auto n : g_ptr->node_ids())
-            node_rs[n] = g_ptr->node_color[n][1];
-    else
+        for(auto n : g_ptr->node_ids()) {
+             double r = (g_ptr->node_color[n][1]);
+             if (r<0) {
+                cout << "Warning: Negative radius in graph_to_feq " << r << endl;
+                r = abs(r);
+             }
+             if (isnan(r)) {
+                 r = 0.01;
+                 cout << "Warning: NaN radius in graph_to_feq" << endl;
+             }
+             node_rs[n] = r;
+        }
+    else 
         for(auto n : g_ptr->node_ids())
             node_rs[n] = node_radii[n];
 
-    *m_ptr = graph_to_FEQ(*g_ptr, node_rs);
+    *m_ptr = graph_to_FEQ(*g_ptr, node_rs, symmetrize);
 }

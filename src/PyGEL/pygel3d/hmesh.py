@@ -569,8 +569,10 @@ def skeleton_to_feq(g, node_radii = None, symmetrize=True, use_graph_radii=False
     the node radius is copied from the graph. It is stored in the green channel of the vertex color. This is a
     questionable design decision and will probably change in the future. """
     m = Manifold()
+    r = 0.25 * g.average_edge_length()
     if node_radii is None:
-        node_radii = [0] if use_graph_radii else [0]*len(g.nodes())
+        node_radii = [r] * len(g.nodes())
+
     node_rs_flat = np.asarray(node_radii, dtype=np.float64)
     lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat.ctypes.data_as(ct.POINTER(ct.c_double)), symmetrize, use_graph_radii)
     return m

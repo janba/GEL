@@ -1205,17 +1205,17 @@ void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
                 dir = norm;
             dir = cond_normalize(dir);
             double r = node_radii[n] * sqrt(g.valence(n)/2.0);
-            new_pos[v] = dir * r + g.pos[n];
+            new_pos[v] = 0.5 * (dir * r + g.pos[n] + m_out.pos(v));
         }
         m_out.positions_attribute_vector() = new_pos;
-        for (auto v: m_out.vertices()) {
-            NodeID n = vertex2node[v];
-            if(g.valence(n)==2) {
-                double r = node_radii[n];
-                new_pos[v] = 0.5 * (normal(m_out, v) * r + g.pos[n] + m_out.pos(v));
-            }
-        }
-        m_out.positions_attribute_vector() = new_pos;
+        // for (auto v: m_out.vertices()) {
+        //     NodeID n = vertex2node[v];
+        //     if(g.valence(n)==2) {
+        //         double r = node_radii[n];
+        //         new_pos[v] = 0.5 * (normal(m_out, v) * r + g.pos[n] + m_out.pos(v));
+        //     }
+        // }
+        // m_out.positions_attribute_vector() = new_pos;
     }
 
 
@@ -1230,13 +1230,13 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
     Util::AttribVec<NodeID, FaceSet> node2fs;
     clear_global_arrays();
     double r = g.average_edge_length();
-    bool use_input_node_radii = (_node_radii[0] != 0);
+    cout << "AVG EDGE LEN: " << r << endl;
     vector<double> node_radii;
     node_radii.resize(g.no_nodes());
     for(auto n : g.node_ids()) {
-        double l = r * 0.25;
-        for (auto m: g.neighbors(n))
-            l = min(l, sqrt(g.sqr_dist(n, m)));
+        double l = r;
+        // for (auto m: g.neighbors(n))
+        //       l = min(l, sqrt(g.sqr_dist(n, m)));
         node_radii[n] = 0.25*l;
     }
 
@@ -1310,7 +1310,7 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
     }
 
     quad_mesh_leaves(m_out, vertex2node);
-    skeleton_aware_smoothing(g, m_out, vertex2node, _node_radii);
+   skeleton_aware_smoothing(g, m_out, vertex2node, _node_radii);
     m_out.cleanup();
     return m_out;
 }

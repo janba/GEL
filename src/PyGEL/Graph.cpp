@@ -111,5 +111,7 @@ void Graph_merge_nodes(Graph_ptr _self, size_t n0, size_t n1, bool avg){
 
 double Graph_average_edge_length(Graph_ptr _self){
     AMGraph3D* self = reinterpret_cast<AMGraph3D*>(_self);
-    return self->average_edge_length();
+    double r = self->average_edge_length();
+    cout << "R (c++) " << r << endl;
+    return r;
 }
