@@ -821,10 +821,9 @@ void construct_bnps(HMesh::Manifold &m_out,
                 }
             }
 
-//            project_to_sphere(m, pn, 1);
+            project_to_sphere(m, pn, r_arr[n]);
             quad_valencify(m);
             id_preserving_cc(m);
-            project_to_sphere(m, pn, r_arr[n]);
 
             for(int i = 0; i < spts.size(); i++) {
                 auto key = spts2branch.find(i)->second;

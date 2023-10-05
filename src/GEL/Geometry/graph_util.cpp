@@ -642,7 +642,8 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
     for (auto nn: nbors)
         pt_vecs.push_back(subtree_points(g, nn, n, bfs.dist));
    
-    // This lambda computes the symmetry score for edges i and j
+    // This lambda computes the symmetry score for edge i<->j
+    // The score is roughly the registration error between the two.
     auto symmetry_score = [&](int i, int j) {
         Vec3d bary_i = average_vector(pt_vecs[i]);
         Vec3d bary_j = average_vector(pt_vecs[j]);
