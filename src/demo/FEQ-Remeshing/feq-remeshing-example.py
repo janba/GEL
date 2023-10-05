@@ -23,7 +23,7 @@ objs = [
 'fertility_tri.obj',
 ]
 
-iters = [ (50,0.5,1.0), (50,0.5,1.0), (50,0.5,1.0), (150,0.5,0.5), (50,0.5,1.0), (50,0.5,1.0), (50,0.5,1.0)]
+iters = [ (50,1.0,3.0)] * len(graphs)
 
 mesh_dir = '../../../data/ReferenceMeshes/' 
 skel_dir = '../../../data/Graphs/'

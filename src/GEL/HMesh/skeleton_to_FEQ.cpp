@@ -783,7 +783,7 @@ void construct_bnps(HMesh::Manifold &m_out,
 
             vector<pair<int,int>> npv;
             if(use_symmetry && (N.size()==3 || N.size()==4)) {
-                npv = symmetry_pairs(g, n, 0.5);
+                npv = symmetry_pairs(g, n, 0.25);
             }
 
             if (npv.size()==0)

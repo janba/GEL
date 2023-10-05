@@ -619,19 +619,21 @@ vector<Vec3d> subtree_points(const AMGraph3D& g, NodeID _n, NodeID _p, const Dis
     return pts;
 }
 
-double node_symmetry(const AMGraph3D& g,  const Vec3d& sym_center, const Vec3d& sym_axis) {
-    double err = 0;
-    Vec3d bary(0);
-    for(auto n: g.node_ids())
-        bary += g.pos[n];
+double node_symmetry(const AMGraph3D& g,  NodeID n0, const Vec3d& sym_center, const Vec3d& sym_axis) {
+    Vec3d p0 = g.pos[n0];
+    auto N = g.neighbors(n0);
 
+    Vec3d bary(0);
+    for(auto n: N)
+        bary += g.pos[n];
     bary /= g.no_nodes();
-    for(auto n: g.node_ids()) {
-        Vec3d v_b = g.pos[n]-bary;
-        Vec3d v_s = g.pos[n]-sym_center;
-        err += dot(v_s,sym_axis)/abs(dot(v_b,sym_axis));
-    }
-    return 1.0 - sqr(err/g.no_nodes());
+
+    double l_avg = 0;
+    for(auto n: N) 
+        l_avg += length(g.pos[n]-bary);
+    l_avg /= g.no_nodes();
+
+    return  1.0 - abs(dot(sym_axis,bary-sym_center)/l_avg);
 } 
 
 
@@ -702,13 +704,12 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
             if (pt_vecs[i].size()>1 && pt_vecs[j].size()>1) {
                 
                 double sscore = min(symmetry_score(i, j), symmetry_score(j, i));
-                Vec3d pt_i = g.pos[nbors[i]];
-                Vec3d pt_j = g.pos[nbors[j]];
+                Vec3d pt_i = normalize(g.pos[nbors[i]] - g.pos[n]);
+                Vec3d pt_j = normalize(g.pos[nbors[j]] - g.pos[n]);
                 Vec3d v = normalize(pt_i-pt_j);
                 Vec3d c = 0.5*(pt_i+pt_j);
-                double node_sscore = node_symmetry(g, c, v);
-                sscore *= node_sscore;
-
+                double node_sscore = node_symmetry(g, n, c, v);
+                sscore *= node_sscore; 
                 if (sscore > threshold)
                     sym_scores.push_back(make_tuple(-sscore, i, j));
             }
