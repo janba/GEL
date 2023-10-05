@@ -619,6 +619,11 @@ vector<Vec3d> subtree_points(const AMGraph3D& g, NodeID _n, NodeID _p, const Dis
     return pts;
 }
 
+double intrinsic_symmetry(const AMGraph3D& g, const Vec3d& sym_axis, const Vec3d& sym_center) {
+
+
+}
+
 
 
 std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
