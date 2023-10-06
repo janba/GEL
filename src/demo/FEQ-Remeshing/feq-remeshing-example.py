@@ -1,55 +1,40 @@
 #!/opt/local/bin/python
-from this import d
 from pygel3d import hmesh, graph, gl_display as gl
-from os import getcwd
-
-graphs = [
-'feline.graph',
-'wolf.graph',
-'armadillo_symmetric.graph',
-'warrior.graph',
-'hand.graph',
-'bunny.graph',
-'fertility.graph',
-]
-
-objs = [
-'feline.obj',
-'wolf.obj',
-'armadillo.obj',
-'warrior.obj',
-'usai_hand_tri.obj',
-'bunny.obj',
-'fertility_tri.obj',
-]
-
-iters = [ (50,1.0,3.0)] * len(graphs)
-
+from glob import glob
+from os import path
 mesh_dir = '../../../data/ReferenceMeshes/' 
-skel_dir = '../../../data/Graphs/'
 
 viewer = gl.Viewer()
 
-for g_file, o_file, params in zip(graphs, objs, iters):
-    iter, dist_wt, lap_wt = params
+import glob
+
+mesh_dir = '../../../data/ReferenceMeshes/'
+obj_files = glob.glob(mesh_dir + '*.obj')
+for o_file in obj_files:
     print("Remeshing " + o_file)
+    ref_mesh = hmesh.load(o_file)
+    viewer.display(ref_mesh, reset_view=True, bg_col=[1,1,1])
 
+    print('Building skeleton')
+    g = graph.from_mesh(ref_mesh)
+    s = graph.MSLS_skeleton(g, grow_thresh=512)
+    for _ in range(3):
+        graph.smooth(s)
+    
     print('Building FEQ')
-    print('loading : ' + skel_dir + g_file)
-    s = graph.load(skel_dir + g_file)
-    m_skel = hmesh.skeleton_to_feq(s, symmetrize=True, use_graph_radii=False)
-    hmesh.save(o_file + "-test.obj", m_skel)
-    viewer.display(m_skel, reset_view   =True)
+    m_skel = hmesh.skeleton_to_feq(s, symmetrize=True)
+    viewer.display(m_skel, bg_col=[1,1,1])
 
+    print('Refining FEQ')
     hmesh.cc_split(m_skel)
-    hmesh.cc_smooth(m_skel)
+    for _ in range(5):
+        hmesh.cc_smooth(m_skel)
+    viewer.display(m_skel, bg_col=[1,1,1])
 
     print('Fitting to reference mesh')
-    ref_mesh = hmesh.load(mesh_dir + o_file)
     fit_mesh = hmesh.Manifold(m_skel)
-    fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, local_iter=iter, dist_wt=dist_wt, lap_wt=lap_wt)
-
-    print("Displaying. HIT ESC IN GRAPHICS WINDOW TO PROCEED...")
-    viewer.display(fit_mesh)
-    hmesh.save(o_file + "-out.obj", fit_mesh)
+    fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=1, lap_wt=1)
+    viewer.display(fit_mesh, bg_col=[1,1,1])
+    out_file = path.basename(o_file) + "-out.obj"
+    hmesh.save(out_file, fit_mesh)
 
