@@ -223,25 +223,29 @@ namespace Geometry {
 
 
     void smooth_graph(AMGraph3D& g, const int iter, const float alpha) {
-        auto lsmooth = [](AMGraph3D& g, float _alpha){
+        auto lsmooth = [](AMGraph3D& g, float _alpha)  {
             AttribVec<AMGraph::NodeID, Vec3d> new_pos(g.no_nodes(), Vec3d(0));
+            AttribVec<AMGraph::NodeID, Vec3f> new_col(g.no_nodes(), Vec3f(0));
             for(auto n: g.node_ids()) {
                 double wsum = 0;
                 auto N = g.neighbors(n);
                 for(auto nn: N) {
                     double w = 1.0;
                     new_pos[n] += w*g.pos[nn];
+                    new_col[n] += w*g.node_color[nn];
                     wsum += w;
                 }
                 double alpha = N.size()==1 ? 0 : _alpha;
                 new_pos[n] = (alpha) * new_pos[n] / wsum + (1.0-alpha) * g.pos[n];
+                new_col[n] = (alpha) * new_col[n] / wsum + (1.0-alpha) * g.node_color[n];
             }
-            return new_pos;
+            return make_pair(new_pos, new_col);
         };
         
         for(int i = 0;i<iter;++i) {
-            auto npos = lsmooth(g, alpha);
+            auto [npos, ncol] = lsmooth(g, alpha);
             g.pos = npos;
+            g.node_color = ncol;
         }
     }
 

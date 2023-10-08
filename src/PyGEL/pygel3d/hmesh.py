@@ -571,12 +571,15 @@ def skeleton_to_feq(g, node_radii = None, symmetrize=True):
     radius of each node is obtained. This is a questionable design decision and will probably change 
     in the future. """
     m = Manifold()
-    r = 0.25 * g.average_edge_length()
     if node_radii is None:
-        node_radii = [r] * len(g.nodes())
+        node_radii = [0.0] * len(g.nodes())
         use_graph_radii = True
     else:
         use_graph_radii = False
+        if isinstance(node_radii, (int, float)):
+            if node_radii <= 0.0:
+                node_radii = 0.25 * g.average_edge_length()
+            node_radii = [node_radii] * len(g.nodes())
 
     node_rs_flat = np.asarray(node_radii, dtype=np.float64)
     lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat.ctypes.data_as(ct.POINTER(ct.c_double)), symmetrize, use_graph_radii)
@@ -645,10 +648,14 @@ def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 1.0, lap_wt = 3.0):
 
     for i in range(max_iter):
         cc_smooth(m)
+        cc_smooth(m)
+        cc_smooth(m)
         lap_b = lap_matrix @ v_pos
         A, b = inv_correspondence_leqs(m, ref_mesh)
         final_A = vstack([lap_wt*lap_matrix, dist_wt*A])
         final_b = np.vstack([lap_wt * lap_b, dist_wt*b])
+        # final_A = vstack([lap_wt*lap_matrix,lap_matrix, dist_wt*A])
+        # final_b = np.vstack([lap_wt * lap_b, np.zeros(v_pos.shape), dist_wt*b])
         opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
         opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
         opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
