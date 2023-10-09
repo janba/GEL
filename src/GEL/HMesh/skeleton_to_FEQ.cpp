@@ -778,17 +778,23 @@ void construct_bnps(HMesh::Manifold &m_out,
                 spts_vertex_count++;
 
             }
+            // Spherical Delaunay is used to make the BNP mesh
             std::vector<CGLA::Vec3i> stris = SphereDelaunay(spts);
 
+            // If we are supposed to symmetrize, we try to find symmetry pairs
             vector<pair<int,int>> npv;
             if(use_symmetry && (N.size()==3 || N.size()==4)) {
-                npv = symmetry_pairs(g, n, 0.25);
+                npv = symmetry_pairs(g, n, 0.7);
             }
 
-            if (npv.size()==0)
-                if (add_ghosts(stris, spts)>0)
+            // If no symmetry pairs are found, we add ghost points to the BNP mesh
+            if (npv.empty()) {
+                int n_ghosts = add_ghosts(stris, spts);
+                if (n_ghosts>0)
                     stris = SphereDelaunay(spts);
+            }
 
+            // Finally, we construct the BNP mesh from the triangle set.
             for(auto tri: stris) {
                 vector<Vec3d> triangle_pts;
                 for(int i=0;i<3; ++i) {
@@ -800,11 +806,14 @@ void construct_bnps(HMesh::Manifold &m_out,
             }
             stitch_mesh(m, 1e-10);
 
+            // Build mapping from spts to vertices in the BNP mesh
             for(auto v: m.vertices())
                 for(int i = 0; i < spts.size(); i++)
                     if(sqr_length(m.pos(v) - spts[i]) < 0.0001)
                         spts2vertexid.insert(std::make_pair(i, v));
 
+            // Refine the BNP mesh by splitting edges and faces if 
+            // symmetry pairs were found
             if(npv.size()>0) {
                 if (N.size() == 3) {
                     VertexID v1 = spts2vertexid[npv[0].first];
@@ -820,6 +829,9 @@ void construct_bnps(HMesh::Manifold &m_out,
                 }
             }
 
+            // Project the BNP mesh to the sphere, make all vertices
+            // valency 4, and do one step of catmull clark to make
+            // the mesh a quadrilateral only mesh.
             project_to_sphere(m, pn, r_arr[n]);
             quad_valencify(m);
             id_preserving_cc(m);
@@ -1226,6 +1238,7 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
 
     VertexAttributeVector<NodeID> vertex2node(AMGraph::InvalidNodeID);
     construct_bnps(m_out, g, node2fs, vertex2node, node_radii, use_symmetry);
+    // return m_out;
     init_graph_arrays(m_out, g, node2fs);
 
     val2nodes_to_boxes(g, m_out, node2fs, vertex2node, node_radii);

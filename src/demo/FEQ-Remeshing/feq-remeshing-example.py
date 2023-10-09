@@ -22,8 +22,7 @@ for o_file in obj_files:
     # s = graph.MSLS_skeleton(g, grow_thresh=512)
     # graph.save(base_name+'-skel.graph', s)
     s = graph.load(base_name+'-skel.graph')
-    # graph.prune(s)
-    # for _ in range(2):
+    graph.prune(s)
     graph.smooth(s, alpha=0.5)
 
     print('Building FEQ')
