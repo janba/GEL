@@ -22,10 +22,10 @@ for o_file in obj_files:
     # s = graph.MSLS_skeleton(g, grow_thresh=512)
     # graph.save(base_name+'-skel.graph', s)
     s = graph.load(base_name+'-skel.graph')
-    graph.prune(s)
-    for _ in range(2):
-        graph.smooth(s, alpha=0.5)
-    
+    # graph.prune(s)
+    # for _ in range(2):
+    graph.smooth(s, alpha=0.5)
+
     print('Building FEQ')
     m_skel = hmesh.skeleton_to_feq(s, node_radii=0.0, symmetrize=True)
     viewer.display(m_skel, bg_col=[1,1,1])
@@ -38,11 +38,10 @@ for o_file in obj_files:
 
     print('Fitting to reference mesh')
     fit_mesh = hmesh.Manifold(m_skel)
-    fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=0.75, lap_wt=1)
+    fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=1, lap_wt=0.5)
     hmesh.cc_split(fit_mesh)
     hmesh.cc_smooth(fit_mesh)
-    hmesh.cc_smooth(fit_mesh)
-    fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=0.75, lap_wt=1)
+    fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=1, lap_wt=0.5)
     viewer.display(fit_mesh, bg_col=[1,1,1])
     out_file = base_name + "-out.obj"
     hmesh.save(out_file, fit_mesh)

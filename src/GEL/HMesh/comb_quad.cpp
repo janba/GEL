@@ -68,52 +68,38 @@ bool connect_val3(HMesh::Manifold& m) {
     Util::AttribVec<AMGraph::NodeID, VertexID> val3vertex;
     Util::AttribVec<AMGraph::NodeID, FaceID> node2face;
     FaceAttributeVector<AMGraph::NodeID> face2node;
-    VertexID v_first = InvalidVertexID;
-    FaceID f_first = InvalidFaceID;
+
+    // Create graph where the faces are the nodes.
     for(auto f: m.faces()) {
         auto n = g.add_node(centre(m, f));
         face2node[f] = n;
         node2face[n] = f;
         val3vertex[n] = InvalidVertexID;
     }
- /*
-    for (auto v: m.vertices())
-        if(valency(m, v) == 3) {
-            bool proximal_v3 = false;
-            for(auto vn: m.incident_vertices(v)) {
-                if (vn == v_first)
-                    proximal_v3 = true;
-            }
-            if(!proximal_v3) {
-                for (auto f: m.incident_faces(v)) {
-                    AMGraph3D::NodeID n = face2node[f];
-                    val3vertex[n] = v;
-                }
-                if (v_first == InvalidVertexID)
-                    v_first = v;
-            }
-        }*/
     
+    // For each face that contains a valency 3 vertex, store the vertex
+    // in a list of valency 3 vertices in the face. If there is one such 
+    // vertex for the face, store it in val3vertex for the node.
+    vector<pair<VertexID, FaceID>> initial_vertex_face_pairs;
+    VertexAttributeVector<int> usage(m.allocated_vertices(), 0);
     for(auto f: m.faces()) {
-        vector<VertexID> val3_in_face;
+        VertexID val3_in_face = InvalidVertexID;
         for (auto v: m.incident_vertices(f)) {
             if(valency(m,v)==3)
-                val3_in_face.push_back(v);
+                if(val3_in_face == InvalidVertexID || usage[v] < usage[val3_in_face]) {
+                    val3_in_face = v;
+                    usage[v]++;
+                }
         }
-        if(val3_in_face.size() == 1) {
+        if(val3_in_face != InvalidVertexID) {
             AMGraph3D::NodeID n = face2node[f];
-            val3vertex[n] = val3_in_face[0];
-            if (v_first == InvalidVertexID) {
-                v_first = val3_in_face[0];
-                f_first = f;
-            }
+            val3vertex[n] = val3_in_face;
+            initial_vertex_face_pairs.push_back(make_pair(val3_in_face, f));
         }
     }
-    
-    
-    if(v_first == InvalidVertexID)
-        return false;
-    
+
+    // Connect nodes (faces) if the edge that separates them does not 
+    // have a valence 3 vertex at both ends.    
     for(auto h: m.halfedges()) {
         auto w = m.walker(h);
         if(h < w.opp().halfedge())
@@ -125,29 +111,39 @@ bool connect_val3(HMesh::Manifold& m) {
             }
     }
 
-    BreadthFirstSearch bfs(g);
-    for (auto f: m.incident_faces(v_first))
-        bfs.add_init_node(face2node[f_first]);
-    while(bfs.Dijkstra_step()) {
-        AMGraph::NodeID n_last = bfs.get_last();
-        VertexID v_last = val3vertex[n_last];
-        if (v_last != InvalidVertexID && v_last != v_first) {
-            VertexID v = v_last;
-            AMGraph::NodeID n = n_last;
-            AMGraph::NodeID np = bfs.pred[n];
-            for(; np != AMGraph::InvalidNodeID; np= bfs.pred[n]) {
-                HalfEdgeID h = gedge2hedge[g.find_edge(n, np)];
-                VertexID vs = m.split_edge(h);
-                m.split_face_by_edge(node2face[n], v, vs);
-                v = vs;
-                n = np;
+    for(auto n: g.node_ids()) {
+        if (g.neighbors(n).size() == 0)
+            cout << "Node " << n << " has no neighbors" << endl;
+    } 
+
+    for (auto [v_first, f_first]: initial_vertex_face_pairs) {
+        cout << "trying " << v_first << f_first << endl;
+        BreadthFirstSearch bfs(g);
+        for (auto f: m.incident_faces(v_first))
+            bfs.add_init_node(face2node[f_first]);
+        while(bfs.Dijkstra_step()) {
+            AMGraph::NodeID n_last = bfs.get_last();
+            VertexID v_last = val3vertex[n_last];
+            if (v_last != InvalidVertexID && v_last != v_first) {
+                VertexID v = v_last;
+                AMGraph::NodeID n = n_last;
+                AMGraph::NodeID np = bfs.pred[n];
+                for(; np != AMGraph::InvalidNodeID; np= bfs.pred[n]) {
+                    HalfEdgeID h = gedge2hedge[g.find_edge(n, np)];
+                    VertexID vs = m.split_edge(h);
+                    m.split_face_by_edge(node2face[n], v, vs);
+                    v = vs;
+                    n = np;
+                }
+                FaceID f_new =  m.split_face_by_edge(node2face[n], v, v_first);
+                if (f_new != InvalidFaceID)
+                    return true;
+                cout << __FILE__ << " : " << __LINE__ << "failed to split face by edge" << endl;
+                return false;
             }
-            FaceID f_new =  m.split_face_by_edge(node2face[n], v, v_first);
-            if (f_new != InvalidFaceID)
-                return true;
-            return false;
         }
     }
+    cout << "Made no val 3 connections" << endl;
     return false;
 }
 
@@ -228,6 +224,11 @@ void quad_valencify(HMesh::Manifold& m) {
     reduce_valency(m);
     while(connect_same_face_val3(m));
     while (connect_val3(m));
+    cout << "---- val report -----------------------------" << endl;
+    for (auto v: m.vertices()) {
+        cout << "valency " << valency(m, v) << endl;
+    }
+    cout << "---- val report -----------------------------" << endl;
 }
 
 

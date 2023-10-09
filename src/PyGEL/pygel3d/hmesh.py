@@ -621,9 +621,11 @@ def inv_correspondence_leqs(m, ref_mesh):
             key,m_id = closest_pt_obj
             r_norm = ref_mesh.vertex_normal(r_id)
             m_norm = m.vertex_normal(m_id)
-            if m_norm @ r_norm > 0.75:
-                m_target_pos[m_id] += query_pt
-                m_cnt[m_id] += 1
+            dot_prod = m_norm @ r_norm
+            if dot_prod > 0.75:
+                wgt = (1+dot_prod) #/np.linalg.norm(query_pt - m_pos[m_id])
+                m_target_pos[m_id] += wgt*query_pt
+                m_cnt[m_id] += wgt
                 
     N = m.no_allocated_vertices()
     A_list = []
@@ -647,9 +649,8 @@ def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 1.0, lap_wt = 3.0):
     lap_matrix = laplacian_matrix(m)
 
     for i in range(max_iter):
-        cc_smooth(m)
-        cc_smooth(m)
-        cc_smooth(m)
+        # cc_smooth(m)
+        # cc_smooth(m)
         lap_b = lap_matrix @ v_pos
         A, b = inv_correspondence_leqs(m, ref_mesh)
         final_A = vstack([lap_wt*lap_matrix, dist_wt*A])
@@ -662,6 +663,8 @@ def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 1.0, lap_wt = 3.0):
         v_pos[:,0] = opt_x
         v_pos[:,1] = opt_y
         v_pos[:,2] = opt_z
+        cc_smooth(m)
+
 
     return m
 

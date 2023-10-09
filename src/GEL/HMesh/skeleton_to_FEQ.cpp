@@ -666,8 +666,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
     }
 
     /* Next, we cluster the ghost points. This is because in flatish
-     configurations we could have several quite similar ghost points.
-     The threshold -0.1 is very loose to avoid adding too many ghosts */
+     configurations we could have several quite similar ghost points. */
     vector<int> cluster_id(ghost_pts.size(), -1);
     int max_id = 0;
     for(int i=0;i<ghost_pts.size(); ++i) {

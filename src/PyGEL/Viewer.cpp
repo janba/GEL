@@ -43,6 +43,7 @@ class GLManifoldViewer {
     GLGraphics::ManifoldRenderer* renderer = 0;
     GLuint graph_display_list = 0;
     bool escaping = false;
+    float xscale, yscale;
 
 public:
     GLManifoldViewer();
@@ -221,7 +222,9 @@ void cursor_position_callback(GLFWwindow* window, double xpos, double ypos)
 
     int W,H;
     glfwGetWindowSize(window, &W, &H);
-    wv_map[window]->mouse_pos = Vec2i(xpos, H-ypos);
+    float xscale, yscale;
+    glfwGetWindowContentScale(window, &xscale, &yscale);
+    wv_map[window]->mouse_pos = Vec2i(xscale*xpos, yscale*(H-ypos));
     wv_map[window]->roll_ball();
 }
 
@@ -270,10 +273,11 @@ void GLManifoldViewer::display_init() {
     }
     int W,H,WF,HF;
     glfwGetWindowSize(window, &W, &H);
+    glfwGetWindowContentScale(window, &xscale, &yscale);
     glfwGetFramebufferSize(window, &WF, &HF);
     if(glv==0 || display_parameters.reset_view) {
         delete glv;
-        glv = new GLViewController(W,H,Vec3f(ctr),2.0*rad);
+        glv = new GLViewController(W*xscale,H*yscale,Vec3f(ctr),2.0*rad);
     }
     else glv->reshape(WF, HF);
     if(renderer != 0) {
