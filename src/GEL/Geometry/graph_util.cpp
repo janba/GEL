@@ -623,48 +623,40 @@ vector<Vec3d> subtree_points(const AMGraph3D& g, NodeID _n, NodeID _p, const Dis
     return pts;
 }
 
-pair<int,int> node_symmetry(const AMGraph3D& g,  NodeID n0) {
+double node_symmetry(const AMGraph3D& g,  NodeID n0, int i, int j) {
     Vec3d p0 = g.pos[n0];
     auto N = g.neighbors(n0);
     vector<Vec3d> pts;
-    for (int i=0;i<N.size();++i)
-        pts.push_back(normalize(g.pos[N[i]]-p0));
+    for (int k=0;k<N.size();++k)
+        pts.push_back(normalize(g.pos[N[k]]-p0));
 
     Vec3d bary(0);
     for (const auto& p: pts)
         bary += p;
     bary /= pts.size();
 
-    int i_sym, j_sym;
-    double sym_score_min = DBL_MAX;
-    for (int i = 0; i < N.size(); ++i)
-        for (int j = i + 1; j < N.size(); ++j) {
-            Vec3d pt_i = normalize(g.pos[N[i]] - p0);
-            Vec3d pt_j = normalize(g.pos[N[j]] - p0);
-            Vec3d sym_axis = normalize(pt_i - pt_j);
-            Vec3d sym_center = normalize(pt_i + pt_j);
-            Vec3d v = bary;
-            double sym_score =  length(v-dot(sym_axis,v)*sym_axis);
-            // double sym_score =  abs(dot(sym_axis,v));
-            if (sym_score < sym_score_min) {
-                sym_score_min = sym_score;
-                i_sym = i;
-                j_sym = j;
-            }
-        }
-    cout << "WAS HERE " << i_sym << " " << j_sym << " " << sym_score_min << endl;
-    return make_pair(i_sym, j_sym);
+    Vec3d pt_i = normalize(g.pos[N[i]] - p0);
+    Vec3d pt_j = normalize(g.pos[N[j]] - p0);
+    Vec3d sym_axis = normalize(pt_i - pt_j);
+    Vec3d sym_center = normalize(pt_i + pt_j);
+    Vec3d v = bary;
+    double sym_score = length(v - dot(sym_axis, v) * sym_axis);
+
+    // double sym_score =  abs(dot(sym_axis,v));
+
+    return sym_score;
 }
 
 std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
     const int N_iter = 10; // Maybe excessive, but this is a relatively cheap step
-    auto average_vector = [](const vector<Vec3d>& pt_vec) {
+    auto average_vector = [](const vector<Vec3d> &pt_vec)
+    {
         Vec3d avg(0);
-        for (const auto& p: pt_vec)
+        for (const auto &p : pt_vec)
             avg += p;
         return avg / pt_vec.size();
     };
-    
+
     // We run Dijkstra on the graph to be able to detect loops
     BreadthFirstSearch bfs(g);
     bfs.add_init_node(n);
@@ -682,7 +674,7 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
     auto symmetry_score = [&](int i, int j) {
         Vec3d bary_i = average_vector(pt_vecs[i]);
         Vec3d bary_j = average_vector(pt_vecs[j]);
-        auto [c,r] = approximate_bounding_sphere(pt_vecs[i]);
+        auto [c, rad] = approximate_bounding_sphere(pt_vecs[i]);
 
         KDTree<Vec3d, int> tree_i;
         for (int idx=0; idx<pt_vecs[i].size(); ++idx)
@@ -711,7 +703,7 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
             // New axis is normalized match vectors
             axis = normalize(match_vec);
         }
-        return 1-err/r;
+        return 1-err/rad;
     };
 
     // Finally, we compute the symmetry scores and keep only the best non-conflicting
@@ -733,7 +725,7 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
             touched[i] = 1;
             touched[j] = 1;
             npv.push_back(make_pair(i,j));
-            cout << "SYM SCORE: " << -s << endl;
+            cout << "SYM SCORE: " << -s <<  " " <<  node_symmetry(g, n, i, j) << endl;
         }
     }
     return npv;
