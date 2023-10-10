@@ -727,11 +727,13 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
     std::vector<std::pair<int,int>> npv;
     vector<int> touched(nbors.size(), 0);
     sort(sym_scores.begin(), sym_scores.end());
+    cout << " ----- " << endl;
     for(auto [s,i,j]: sym_scores) {
         if(touched[i]==0 && touched[j]==0) {
             touched[i] = 1;
             touched[j] = 1;
             npv.push_back(make_pair(i,j));
+            cout << "SYM SCORE: " << -s << endl;
         }
     }
     return npv;

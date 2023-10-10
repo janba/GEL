@@ -784,15 +784,14 @@ void construct_bnps(HMesh::Manifold &m_out,
             // If we are supposed to symmetrize, we try to find symmetry pairs
             vector<pair<int,int>> npv;
             if(use_symmetry && (N.size()==3 || N.size()==4)) {
-                npv = symmetry_pairs(g, n, 0.7);
+                npv = symmetry_pairs(g, n, 0.5);
+                cout << "SYMMETRIZE " << npv.size() << endl;
             }
 
             // If no symmetry pairs are found, we add ghost points to the BNP mesh
-            if (npv.empty()) {
-                int n_ghosts = add_ghosts(stris, spts);
-                if (n_ghosts>0)
+            if (npv.size()==0)
+                if (add_ghosts(stris, spts)>0)
                     stris = SphereDelaunay(spts);
-            }
 
             // Finally, we construct the BNP mesh from the triangle set.
             for(auto tri: stris) {
@@ -1309,5 +1308,6 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
     quad_mesh_leaves(m_out, vertex2node);
     skeleton_aware_smoothing(g, m_out, vertex2node, _node_radii);
     m_out.cleanup();
+    cout << "thus buildeth" << endl;
     return m_out;
 }
