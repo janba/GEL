@@ -22,8 +22,8 @@ for o_file in obj_files:
     # s = graph.MSLS_skeleton(g, grow_thresh=512)
     # graph.save(base_name+'-skel.graph', s)
     s = graph.load(graph_dir+base_name+'.graph')
-    graph.prune(s)
-    # graph.smooth(s, alpha=0.5)
+    # graph.prune(s)
+    graph.smooth(s, alpha=0.5)
 
     print('Building FEQ')
     m_skel = hmesh.skeleton_to_feq(s, node_radii=0.0, symmetrize=True)

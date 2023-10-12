@@ -626,25 +626,26 @@ vector<Vec3d> subtree_points(const AMGraph3D& g, NodeID _n, NodeID _p, const Dis
 double node_symmetry(const AMGraph3D& g,  NodeID n0, int i, int j) {
     Vec3d p0 = g.pos[n0];
     auto N = g.neighbors(n0);
-    vector<Vec3d> pts;
-    for (int k=0;k<N.size();++k)
-        pts.push_back(normalize(g.pos[N[k]]-p0));
 
-    Vec3d bary(0);
-    for (const auto& p: pts)
-        bary += p;
-    bary /= pts.size();
+    // if (N.size()==4) {
+    //     vector<Vec3d> pts(4);
+    //     int a=-1, b=-1;
+    //     for (int k=0;k<4;++k) {
+    //         pts[k] = normalize(g.pos[N[k]] - p0);
+    //         if (k!=i && k!=j) {
+    //             if (a==-1)
+    //                 a = k;
+    //             else
+    //                 b = k;
+    //         }
+    //     }
+    //     Vec3d sym_axis = normalize(pts[i]-pts[j]);
+    //     Vec3d alt1_axis = normalize(pts[a]-pts[b]);
 
-    Vec3d pt_i = normalize(g.pos[N[i]] - p0);
-    Vec3d pt_j = normalize(g.pos[N[j]] - p0);
-    Vec3d sym_axis = normalize(pt_i - pt_j);
-    Vec3d sym_center = normalize(pt_i + pt_j);
-    Vec3d v = bary;
-    double sym_score = length(v - dot(sym_axis, v) * sym_axis);
+    //     return sqr(dot(sym_axis, alt_axis));
+    // }
 
-    // double sym_score =  abs(dot(sym_axis,v));
-
-    return sym_score;
+    return 1;
 }
 
 std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
@@ -703,7 +704,7 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
             // New axis is normalized match vectors
             axis = normalize(match_vec);
         }
-        return 1-err/rad;
+        return (1-err/rad)*node_symmetry(g, n, i, j);
     };
 
     // Finally, we compute the symmetry scores and keep only the best non-conflicting
@@ -711,7 +712,8 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
     vector<tuple<double, int, int>> sym_scores;
     for (int i=0; i<nbors.size(); ++i)
         for (int j=i+1; j<nbors.size(); ++j)
-            if (pt_vecs[i].size()>1 && pt_vecs[j].size()>1) {                
+            //if (pt_vecs[i].size()>1 && pt_vecs[j].size()>1)
+             {                
                 double sscore = min(symmetry_score(i, j), symmetry_score(j, i));
                 if (sscore > threshold)
                     sym_scores.push_back(make_tuple(-sscore, i, j));
@@ -721,7 +723,8 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
     sort(sym_scores.begin(), sym_scores.end());
     cout << " ----- " << endl;
     for(auto [s,i,j]: sym_scores) {
-        if(touched[i]==0 && touched[j]==0) {
+        //if(touched[i]==0 && touched[j]==0) 
+        {
             touched[i] = 1;
             touched[j] = 1;
             npv.push_back(make_pair(i,j));

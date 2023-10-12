@@ -724,31 +724,47 @@ void construct_bnps(HMesh::Manifold &m_out,
         }
     };
 
-    auto split_faces = [](Manifold& m) {
-        vector<FaceID> face_list;
-        for (auto f: m.faces())
-            face_list.push_back(f);
-        for (FaceID f: face_list)
-            m.split_face_by_vertex(f);
-    };
 
-    auto split_edge = [](Manifold& m, VertexID v1, VertexID v2, bool split_triangles=false) -> pair<VertexID, VertexID> {
-        auto vertex_pair = make_pair(InvalidVertexID,InvalidVertexID);
-        for(auto h: m.halfedges()) {
+    auto symmetrize_triangles = [](Manifold &m, VertexID v1, VertexID v2)
+    {
+        for (auto h : m.halfedges())
+        {
             auto w = m.walker(h);
-            if (w.vertex()==v1 && w.opp().vertex()==v2) {
-                FaceID f1 = w.face();
-                FaceID f2 = w.opp().face();
-                vertex_pair = make_pair(w.next().vertex(), w.opp().next().vertex());
-                VertexID vn = m.split_edge(h);
-                if (split_triangles) {
-                    m.split_face_by_edge(f1,vertex_pair.first, vn);
-                    m.split_face_by_edge(f2,vertex_pair.second, vn);
-                }
+            if (w.vertex() == v1 && w.opp().vertex() == v2) {
+                m.split_edge(h);
                 break;
             }
         }
-        return vertex_pair;
+        vector<FaceID> face_list;
+        for (auto f : m.faces())
+            face_list.push_back(f);
+        for (FaceID f : face_list)
+            m.split_face_by_vertex(f);
+    };
+
+    auto symmetrize_tetrahedron = [](Manifold &m, VertexID v1, VertexID v2)
+    {
+        for (auto h : m.halfedges())
+        {
+            auto w = m.walker(h);
+            VertexID va = InvalidVertexID, vb = InvalidVertexID;
+            if (w.vertex() == v1 && w.opp().vertex() == v2)
+            {
+                va = w.vertex();
+                vb = w.opp().vertex();
+            }
+            else if (w.next().vertex() == v1 && w.opp().next().vertex() == v2)
+            {
+                va = w.next().vertex();
+                vb = w.opp().next().vertex();
+            }
+            if (va == v1 && vb == v2)
+            {
+                VertexID v_new = m.split_edge(h);
+                m.split_face_by_edge(w.face(), v_new, w.next().vertex());
+                m.split_face_by_edge(w.opp().face(), v_new, w.opp().next().next().vertex());
+            }
+        }
     };
 
     map<int, pair<NodeID,NodeID>> spts2branch;
@@ -783,16 +799,16 @@ void construct_bnps(HMesh::Manifold &m_out,
 
             // If we are supposed to symmetrize, we try to find symmetry pairs
             vector<pair<int,int>> npv;
-            if(use_symmetry && (N.size()==3 || N.size()==4)) {
-                npv = symmetry_pairs(g, n, 0.5);
-                cout << "SYMMETRIZE " << npv.size() << endl;
-            }
+            if(use_symmetry && N.size()<5) 
+                npv = symmetry_pairs(g, n, 0.0);
 
             // If no symmetry pairs are found, we add ghost points to the BNP mesh
-            if (npv.size()==0)
-                if (add_ghosts(stris, spts)>0)
+            if (npv.size()==0) {
+                int n_ghosts = add_ghosts(stris, spts);
+                if (n_ghosts>0)
                     stris = SphereDelaunay(spts);
-
+            }
+                
             // Finally, we construct the BNP mesh from the triangle set.
             for(auto tri: stris) {
                 vector<Vec3d> triangle_pts;
@@ -817,14 +833,12 @@ void construct_bnps(HMesh::Manifold &m_out,
                 if (N.size() == 3) {
                     VertexID v1 = spts2vertexid[npv[0].first];
                     VertexID v2 = spts2vertexid[npv[0].second];
-                    split_edge(m, v1, v2, false);
-                    split_faces(m);
+                    symmetrize_triangles(m, v1, v2);
                 }
                 else if (N.size() == 4) { // tetrahedron
                     VertexID v1 = spts2vertexid[npv[0].first];
                     VertexID v2 = spts2vertexid[npv[0].second];
-                    auto [v3, v4] = split_edge(m, v1, v2, true);
-                    split_edge(m, v3, v4, true);
+                    symmetrize_tetrahedron(m, v1, v2);
                 }
             }
 
