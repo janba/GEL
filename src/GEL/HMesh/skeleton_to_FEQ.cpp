@@ -799,8 +799,8 @@ void construct_bnps(HMesh::Manifold &m_out,
 
             // If we are supposed to symmetrize, we try to find symmetry pairs
             vector<pair<int,int>> npv;
-            if(use_symmetry && N.size()<5) 
-                npv = symmetry_pairs(g, n, 0.0);
+            if(use_symmetry && N.size()<7) 
+                npv = symmetry_pairs(g, n, 0.5);
 
             // If no symmetry pairs are found, we add ghost points to the BNP mesh
             if (npv.size()==0) {

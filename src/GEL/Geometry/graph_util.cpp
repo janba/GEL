@@ -627,25 +627,29 @@ double node_symmetry(const AMGraph3D& g,  NodeID n0, int i, int j) {
     Vec3d p0 = g.pos[n0];
     auto N = g.neighbors(n0);
 
-    // if (N.size()==4) {
-    //     vector<Vec3d> pts(4);
-    //     int a=-1, b=-1;
-    //     for (int k=0;k<4;++k) {
-    //         pts[k] = normalize(g.pos[N[k]] - p0);
-    //         if (k!=i && k!=j) {
-    //             if (a==-1)
-    //                 a = k;
-    //             else
-    //                 b = k;
-    //         }
-    //     }
-    //     Vec3d sym_axis = normalize(pts[i]-pts[j]);
-    //     Vec3d alt1_axis = normalize(pts[a]-pts[b]);
+    double sym_score = 1.0;
+    if (N.size()>3)
+    {
+        vector<Vec3d> pts(4);
+        for (int k = 0; k < 4; ++k)
+            pts[k] = normalize(g.pos[N[k]] - p0);
 
-    //     return sqr(dot(sym_axis, alt_axis));
-    // }
-
-    return 1;
+        Vec3d sym_axis = normalize(pts[i] - pts[j]);
+        for (int a = 0; a < N.size(); ++a)
+            if (a != i && a != j)
+            {
+                Vec3d a_sym = pts[a] - 2.0 * sym_axis * dot(pts[a], sym_axis);
+                double a_sym_score = 0.0;
+                for (int b = a; b < N.size(); ++b)
+                    if (b != i && b != j)
+                    {
+                            double ab_sym_score = max(0.0, dot(a_sym, pts[b]));
+                            a_sym_score = max(a_sym_score, ab_sym_score);
+                    }
+                sym_score *= a_sym_score;
+            }
+    }
+    return sym_score;
 }
 
 std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
