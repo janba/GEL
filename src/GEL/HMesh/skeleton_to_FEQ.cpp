@@ -655,14 +655,11 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
 
     vector<Vec3d> ghost_pts;
 
-    for(auto p: pts) {
-        ghost_pts.push_back(-p);
-    }
     for(auto t: tris) {
         Vec3d v1 = pts[t[1]]-pts[t[0]];
         Vec3d v2 = pts[t[2]]-pts[t[0]];
         Vec3d n = cross(v1,v2);
-        ghost_pts.push_back(normalize(n));
+        ghost_pts.push_back(n);
     }
 
     /* Next, we cluster the ghost points. This is because in flatish
@@ -695,7 +692,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         vector<double> dots;
         for(const auto& p_orig: pts)
             dots.push_back(dot(p,p_orig));
-        if(*max_element(begin(dots), end(dots))<0.5)
+        if(*max_element(begin(dots), end(dots))<0.75)
             ghost_pts.push_back(p);
     }
 
@@ -799,16 +796,12 @@ void construct_bnps(HMesh::Manifold &m_out,
 
             // If we are supposed to symmetrize, we try to find symmetry pairs
             vector<pair<int,int>> npv;
-            if(use_symmetry && N.size()<7) 
+            if(use_symmetry && N.size() < 5)
                 npv = symmetry_pairs(g, n, 0.5);
 
-            // If no symmetry pairs are found, we add ghost points to the BNP mesh
-            if (npv.size()==0) {
-                int n_ghosts = add_ghosts(stris, spts);
-                if (n_ghosts>0)
-                    stris = SphereDelaunay(spts);
-            }
-                
+            if (npv.size() == 0 && add_ghosts(stris, spts) > 0)
+                stris = SphereDelaunay(spts);
+
             // Finally, we construct the BNP mesh from the triangle set.
             for(auto tri: stris) {
                 vector<Vec3d> triangle_pts;
@@ -835,7 +828,7 @@ void construct_bnps(HMesh::Manifold &m_out,
                     VertexID v2 = spts2vertexid[npv[0].second];
                     symmetrize_triangles(m, v1, v2);
                 }
-                else if (N.size() == 4) { // tetrahedron
+                else {
                     VertexID v1 = spts2vertexid[npv[0].first];
                     VertexID v2 = spts2vertexid[npv[0].second];
                     symmetrize_tetrahedron(m, v1, v2);
