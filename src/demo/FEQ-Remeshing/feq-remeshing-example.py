@@ -17,7 +17,7 @@ for o_file in obj_files:
     ref_mesh = hmesh.load(o_file)
     viewer.display(ref_mesh, reset_view=True, bg_col=[1,1,1])
 
-    for mode in ['', 'p', 's', 'ps']:
+    for mode in ['']:#, 'p', 's', 'ps']:
         print('Building skeleton')
         # g = graph.from_mesh(ref_mesh)
         # s = graph.MSLS_skeleton(g, grow_thresh=512)
