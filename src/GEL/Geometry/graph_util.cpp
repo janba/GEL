@@ -651,7 +651,7 @@ double node_symmetry(const AMGraph3D& g,  NodeID n0, int i, int j) {
 
 std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
     const int N_iter = 10; // Maybe excessive, but this is a relatively cheap step
-    double rad = g.average_edge_length();
+    double ael = g.average_edge_length();
     auto average_vector = [](const vector<Vec3d> &pt_vec)
     {
         Vec3d avg(0);
@@ -677,7 +677,7 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
     auto symmetry_score = [&](int i, int j) {
         Vec3d bary_i = average_vector(pt_vecs[i]);
         Vec3d bary_j = average_vector(pt_vecs[j]);
-        // auto [c, rad] = approximate_bounding_sphere(pt_vecs[i]);
+        auto [c, rad] = approximate_bounding_sphere(pt_vecs[i]);
 
         KDTree<Vec3d, int> tree_i;
         for (int idx=0; idx<pt_vecs[i].size(); ++idx)
@@ -708,7 +708,7 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
         }
         if (nbors.size() == 3)
             cout << "val 3, ERR: " << err << " " << rad << endl;
-        return (1-err/rad)*node_symmetry(g, n, i, j);
+        return (1-err/max(ael,rad))*node_symmetry(g, n, i, j);
     };
 
     // Finally, we compute the symmetry scores and keep only the best non-conflicting

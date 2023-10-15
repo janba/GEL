@@ -692,7 +692,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         vector<double> dots;
         for(const auto& p_orig: pts)
             dots.push_back(dot(p,p_orig));
-        if(*max_element(begin(dots), end(dots))<0.75)
+        if(*max_element(begin(dots), end(dots))<0.5)
             ghost_pts.push_back(p);
     }
 
@@ -797,7 +797,7 @@ void construct_bnps(HMesh::Manifold &m_out,
             // If we are supposed to symmetrize, we try to find symmetry pairs
             vector<pair<int,int>> npv;
             if(use_symmetry && N.size() < 5)
-                npv = symmetry_pairs(g, n, 0.1);
+                npv = symmetry_pairs(g, n, 0.5);
 
             if (npv.size() == 0 && add_ghosts(stris, spts) > 0)
                 stris = SphereDelaunay(spts);
