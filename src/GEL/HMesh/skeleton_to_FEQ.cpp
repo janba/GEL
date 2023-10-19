@@ -868,12 +868,6 @@ void construct_bnps(HMesh::Manifold &m_out,
                     stris = SphereDelaunay(spts);
             }
 
-            if (stris.size() < 5) {
-                int n_ghosts = add_ghosts(stris, spts, 0.85);
-                if (n_ghosts > 0)
-                    stris = SphereDelaunay(spts);
-            }
-
             // Finally, we construct the BNP mesh from the triangle set.
             for(auto tri: stris) {
                 vector<Vec3d> triangle_pts;
