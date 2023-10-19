@@ -516,6 +516,12 @@ def cc_smooth(m):
     subdivision of m."""
     lib_py_gel.cc_smooth(m.obj)
 
+def volume_preserving_cc_smooth(m, iter):
+    """ This function does the same type of smoothing as in Catmull-Clark
+    subdivision, but to preserve volume it actually performs two steps, and the
+    second step is negative as in Taubin smoothing."""
+    lib_py_gel.volume_preserving_cc_smooth(m.obj, iter)
+
 def loop_smooth(m):
     """ If called after Loop split, this function completes a step of Loop
     subdivision of m. """
@@ -649,8 +655,6 @@ def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 1.0, lap_wt = 3.0):
     lap_matrix = laplacian_matrix(m)
 
     for i in range(max_iter):
-        # cc_smooth(m)
-        # cc_smooth(m)
         lap_b = lap_matrix @ v_pos
         A, b = inv_correspondence_leqs(m, ref_mesh)
         final_A = vstack([lap_wt*lap_matrix, dist_wt*A])
@@ -664,7 +668,6 @@ def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 1.0, lap_wt = 3.0):
         v_pos[:,1] = opt_y
         v_pos[:,2] = opt_z
         cc_smooth(m)
-
 
     return m
 

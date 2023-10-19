@@ -283,6 +283,18 @@ namespace HMesh
     {
         subd_smooth(CC_SUBD, m);
     }
+
+    void volume_preserving_cc_smooth(Manifold& m, int iter)
+    {
+        for (int i=0;i<iter;++i) {
+        subd_smooth(CC_SUBD, m);
+        auto old_pos = m.positions_attribute_vector();
+        subd_smooth(CC_SUBD, m);
+        for (auto v: m.vertices())
+            m.pos(v) = old_pos[v] - 0.9 *(m.pos(v) - old_pos[v]);
+        }
+    }
+
     
     void loop_smooth(Manifold& m)
     {

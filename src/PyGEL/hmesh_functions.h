@@ -82,6 +82,8 @@ extern "C" {
     DLLEXPORT void butterfly_subdivide(Manifold_ptr m_ptr);
 
     DLLEXPORT void cc_smooth(Manifold_ptr m_ptr);
+    
+    DLLEXPORT void volume_preserving_cc_smooth(Manifold_ptr m_ptr, int iter);
 
     DLLEXPORT void loop_smooth(Manifold_ptr m_ptr);
 

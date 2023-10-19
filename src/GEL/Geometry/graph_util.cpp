@@ -317,7 +317,6 @@ namespace Geometry {
             g.edge_color[e] = Vec3f(0.8);
         int cnt = 0;
         for(const auto& [w,ns]:node_set_vec) {
-            //        cout << " w, sz:" << w << " , " << ns.size() << endl;
             Vec3f col  = sqr(get_color(cnt++));
             //        Vec3f col = Vec3f(w,0,1-w);// = GLGraphics::get_color(cnt);
             for(auto n: ns) {
@@ -628,8 +627,8 @@ double node_symmetry(const AMGraph3D& g,  NodeID n0, int i, int j) {
     auto N = g.neighbors(n0);
 
     double sym_score = 1.0;
-    vector<Vec3d> pts(4);
-    for (int k = 0; k < 4; ++k)
+    vector<Vec3d> pts(N.size());
+    for (int k = 0; k < N.size(); ++k)
         pts[k] = normalize(g.pos[N[k]] - p0);
 
     Vec3d sym_axis = normalize(pts[i] - pts[j]);
@@ -706,9 +705,7 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
             // New axis is normalized match vectors
             axis = normalize(match_vec);
         }
-        if (nbors.size() == 3)
-            cout << "val 3, ERR: " << err << " " << rad << endl;
-        return (1-err/max(ael,rad))*node_symmetry(g, n, i, j);
+        return (1-err/max(ael,rad)) * sqr(node_symmetry(g, n, i, j));
     };
 
     // Finally, we compute the symmetry scores and keep only the best non-conflicting
@@ -725,14 +722,12 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
     std::vector<std::pair<int,int>> npv;
     vector<int> touched(nbors.size(), 0);
     sort(sym_scores.begin(), sym_scores.end());
-    cout << " ----- " << endl;
     for(auto [s,i,j]: sym_scores) {
         //if(touched[i]==0 && touched[j]==0) 
         {
             touched[i] = 1;
             touched[j] = 1;
             npv.push_back(make_pair(i,j));
-            cout << "SYM SCORE: " << -s <<  " " <<  node_symmetry(g, n, i, j) << endl;
         }
     }
     return npv;
@@ -748,6 +743,7 @@ void all_symmetry_pairs(AMGraph3D& g, double threshold) {
                 auto nb = N[b];
                 g.edge_color[g.find_edge(n, na)] = Vec3f(1,0,0);
                 g.edge_color[g.find_edge(n, nb)] = Vec3f(1,0,0);
+                break;
             }
         }
     }

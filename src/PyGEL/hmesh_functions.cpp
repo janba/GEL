@@ -165,6 +165,11 @@ void cc_smooth(Manifold_ptr m_ptr) {
     cc_smooth(*(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
+void volume_preserving_cc_smooth(Manifold_ptr m_ptr, int iter) {
+    volume_preserving_cc_smooth(*(reinterpret_cast<Manifold*>(m_ptr)), iter);
+}
+
+
 void loop_smooth(Manifold_ptr m_ptr) {
     loop_smooth(*(reinterpret_cast<Manifold*>(m_ptr)));
 }

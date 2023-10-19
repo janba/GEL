@@ -29,6 +29,8 @@ namespace HMesh
     void butterfly_subdivide(Manifold& m_in, Manifold& m);
 
     void cc_smooth(Manifold&);
+    void volume_preserving_cc_smooth(Manifold& m, int iter);
+
 
     void loop_smooth(Manifold&);
 }

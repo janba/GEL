@@ -646,7 +646,7 @@ void val2nodes_to_boxes(const Geometry::AMGraph3D& g, HMesh::Manifold& mani,
 
 }
 
-int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
+int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts, double thresh) {
 
     /* This function creates extra points to add to the BNP vertices for a branch node.
      These extra points are called ghost points because they do not correspond to an outgoing
@@ -672,7 +672,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         }
         for(int j=i+1; j<ghost_pts.size(); ++j) {
             if (cluster_id[j] == -1) {
-                if (dot(ghost_pts[i], ghost_pts[j]) > 0.5)
+                if (dot(normalize(ghost_pts[i]), normalize(ghost_pts[j])) > thresh)
                     cluster_id[j] = cluster_id[i];
             }
         }
@@ -692,7 +692,7 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
         vector<double> dots;
         for(const auto& p_orig: pts)
             dots.push_back(dot(p,p_orig));
-        if(*max_element(begin(dots), end(dots))<0.5)
+        if(*max_element(begin(dots), end(dots))<thresh)
             ghost_pts.push_back(p);
     }
 
@@ -701,6 +701,58 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts) {
 
     return ghost_pts.size();
 }
+
+vector<Vec3i> points_to_octahedron(vector<Vec3d>& pts, int s_i, int s_j) {
+        assert(pts.size() == 5);
+        cout << "In points_to_octahedron"   << endl;
+        Vec3i tri(-1);
+
+        for (int i = 0; i < 5; i++) {
+            if (i != s_i && i != s_j) {
+                if (tri[0]==-1)
+                    tri[0] = i;
+                else if (tri[1]==-1)
+                    tri[1] = i;
+                else if (tri[2]==-1)
+                    tri[2] = i;
+            }
+        }
+
+        Vec3d n = normalize(cross(pts[tri[1]] - pts[tri[0]], pts[tri[2]] - pts[tri[0]]));
+
+        if (dot(n, pts[s_i]) <= 0 && dot(n, pts[s_j]) >= 0)
+            swap(s_i, s_j);
+
+        int long_edge_idx = 0;
+        double max_len = sqr_length(pts[tri[1]] - pts[tri[0]]);
+        for (int i=1;i<3; ++i) {
+            double l = sqr_length(pts[tri[(i+1)%3]] - pts[tri[i]]);
+            if (max_len < l) {
+                max_len = l;
+                long_edge_idx = i;
+            }
+        }
+
+        int m = pts.size();
+        pts.push_back(normalize(pts[tri[long_edge_idx]] + pts[tri[(long_edge_idx+1)%3]]));
+
+        vector<Vec3i> triangles;
+        for (int i=0;i<3;++i) {
+
+            if (long_edge_idx == i) {
+                triangles.push_back(Vec3i(tri[i], m, s_i));
+                triangles.push_back(Vec3i(m, tri[(i+1)%3], s_i));
+                triangles.push_back(Vec3i(tri[(i+1)%3], m, s_j));
+                triangles.push_back(Vec3i(m, tri[i], s_j));
+            }
+            else {
+                triangles.push_back(Vec3i(tri[i], tri[(i+1)%3], s_i));
+                triangles.push_back(Vec3i(tri[(i+1)%3], tri[i], s_j));
+            }
+        }
+        return triangles;
+    }
+
 
 void construct_bnps(HMesh::Manifold &m_out,
                     const Geometry::AMGraph3D& g,
@@ -720,7 +772,6 @@ void construct_bnps(HMesh::Manifold &m_out,
             m.pos(v) = pn + r * norms[v];
         }
     };
-
 
     auto symmetrize_triangles = [](Manifold &m, VertexID v1, VertexID v2)
     {
@@ -791,16 +842,37 @@ void construct_bnps(HMesh::Manifold &m_out,
                 spts_vertex_count++;
 
             }
-            // Spherical Delaunay is used to make the BNP mesh
-            std::vector<CGLA::Vec3i> stris = SphereDelaunay(spts);
 
             // If we are supposed to symmetrize, we try to find symmetry pairs
             vector<pair<int,int>> npv;
-            if(use_symmetry && N.size() < 5)
-                npv = symmetry_pairs(g, n, 0.5);
+            if(use_symmetry && N.size() < 6)
+                npv = symmetry_pairs(g, n, 0.1);
 
-            if (npv.size() == 0 && add_ghosts(stris, spts) > 0)
-                stris = SphereDelaunay(spts);
+            std::vector<CGLA::Vec3i> stris = SphereDelaunay(spts);
+
+            if (N.size() == 5)
+            {
+                int n_ghosts = add_ghosts(stris, spts, 0.25);
+                if (npv.size() > 0 && n_ghosts < 2)
+                {
+                    spts.resize(5);
+                    stris = points_to_octahedron(spts, npv[0].first, npv[0].second);
+                }
+                else if (n_ghosts>0)
+                    stris = SphereDelaunay(spts);
+            }
+            else if (N.size() > 5 || npv.size() == 0)
+            {
+                int n_ghosts = add_ghosts(stris, spts, 0.75);
+                if (n_ghosts > 0)
+                    stris = SphereDelaunay(spts);
+            }
+
+            if (stris.size() < 5) {
+                int n_ghosts = add_ghosts(stris, spts, 0.85);
+                if (n_ghosts > 0)
+                    stris = SphereDelaunay(spts);
+            }
 
             // Finally, we construct the BNP mesh from the triangle set.
             for(auto tri: stris) {
@@ -828,7 +900,7 @@ void construct_bnps(HMesh::Manifold &m_out,
                     VertexID v2 = spts2vertexid[npv[0].second];
                     symmetrize_triangles(m, v1, v2);
                 }
-                else {
+                else if (N.size() == 4) {
                     VertexID v1 = spts2vertexid[npv[0].first];
                     VertexID v2 = spts2vertexid[npv[0].second];
                     symmetrize_tetrahedron(m, v1, v2);
@@ -1315,6 +1387,5 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
     quad_mesh_leaves(m_out, vertex2node);
     skeleton_aware_smoothing(g, m_out, vertex2node, _node_radii);
     m_out.cleanup();
-    cout << "thus buildeth" << endl;
     return m_out;
 }
