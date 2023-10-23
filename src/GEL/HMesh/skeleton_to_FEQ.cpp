@@ -30,7 +30,6 @@ map<pair<NodeID,NodeID>, HMesh::VertexID> one_ring_vertex;
 map<pair<NodeID,NodeID>, CGLA::Vec3d> branch2vert;
 map<FaceID, VertexID> face_vertex;
 map<FaceID, VertexID> one_ring_face_vertex;
-map<FaceID, int> val2_faces;
 
 void clear_global_arrays() {
     val2deg.clear();
@@ -157,7 +156,7 @@ void quad_mesh_leaves(HMesh::Manifold& m, VertexAttributeVector<NodeID>& vertex2
     vector<HalfEdgeID> new_edges;
 
     for(auto f: m.faces())
-        if(no_edges(m, f) != 4  || (val2_faces.count(f) && one_ring_face_vertex.count(f))) {
+        if(no_edges(m, f) != 4) {
             HalfEdgeID ref_h;
 
             VertexID ref_v  = one_ring_face_vertex[f];
@@ -196,80 +195,7 @@ void quad_mesh_leaves(HMesh::Manifold& m, VertexAttributeVector<NodeID>& vertex2
 
 }
 
-VertexID split_LIE(Manifold& mani, HalfEdgeID h) {
-    Walker w = mani.walker(h);
-    VertexID v = w.next().vertex();
-    VertexID vo = w.opp().next().vertex();
-    FaceID f = w.face();
-    FaceID fo = w.opp().face();
 
-    if(v == vo) {
-        return InvalidVertexID;
-    }
-    VertexID vid = mani.split_edge(h);
-
-    mani.split_face_by_edge(f, vid, v);
-    mani.split_face_by_edge(fo, vid, vo);
-    return vid;
-}
-
-bool check_planar(const HMesh::Manifold &m, HalfEdgeID h) {
-
-    FaceID face_1 = m.walker(h).face();
-    FaceID face_2 = m.walker(h).opp().face();
-
-    Vec3d normal_1 = normal(m, face_1);
-    Vec3d normal_2 = normal(m, face_2);
-    Vec3d center_1 = centre(m, face_1);
-    Vec3d center_2 = centre(m, face_2);
-
-    float dot_val_1 = dot(normal_1, center_2 - center_1);
-    float dot_val_2 = dot(normal_2, center_1 - center_2);
-
-    if(dot_val_1 > 0 && dot_val_2 > 0)
-        return true;
-
-    float dot_val = dot(normal_1 , normal_2);
-
-    if(dot_val < 0)
-        return false;
-
-    dot_val = abs(dot_val);
-
-    if(dot_val < 0.75)
-        return false;
-    else
-        return true;
-}
-
-bool check_convex(const HMesh::Manifold &m, HalfEdgeID h) {
-
-    auto v1 = m.walker(h).vertex();
-    auto v2 = m.walker(h).opp().vertex();
-
-    auto v3 = m.walker(h).next().vertex();
-    auto v4 = m.walker(h).opp().prev().prev().vertex();
-
-    Vec3d edge_vec_1 = m.pos(v3) - m.pos(v1);
-    Vec3d edge_vec_2 = m.pos(v1) - m.pos(v4);
-
-    Vec3d edge_vec_3 = m.pos(v3) - m.pos(v2);
-    Vec3d edge_vec_4 = m.pos(v2) - m.pos(v4);
-
-    Vec3d diag_vec = m.pos(v2) - m.pos(v1);
-
-    float angle_1 = acos(dot(normalize(diag_vec),normalize(-edge_vec_3))) + acos(dot(normalize(diag_vec),normalize(edge_vec_4)));
-
-    float angle_2 = acos(dot(normalize(diag_vec),normalize(edge_vec_1))) + acos(dot(normalize(diag_vec),normalize(-edge_vec_2)));
-
-    angle_1 *= 180/3.14;
-    angle_2 *= 180/3.14;
-
-    if (angle_1 > 180 || angle_2 > 180)
-        return false;
-    else
-        return true;
-}
 
 //Graph - Mesh relationship Functions
 
@@ -550,103 +476,89 @@ vector<FaceID> create_face_pair(Manifold& m, const Vec3d& pos, const Mat3x3d& _R
 
     fvec.push_back(m.add_face(back_pts));
 
+    for (auto f: fvec) 
+        one_ring_face_vertex[f] = m.walker(fvec[0]).vertex();
+
     return fvec;
 }
 
-void val2nodes_to_boxes(const Geometry::AMGraph3D& g, HMesh::Manifold& mani,
-                        Util::AttribVec<NodeID, FaceSet>& n2fs,
-                        VertexAttributeVector<NodeID>& vertex2node,
-                        const vector<double>& r) {
-    Vec3d c(0);
-    for(auto n: g.node_ids())
-        c += g.pos[n];
-    c /= g.no_nodes();
-    double min_dist=DBL_MAX;
-    NodeID middle_node = *begin(g.node_ids());
-    for(auto n: g.node_ids())
-        if(g.valence(n)>2)
-        {
-            double d = sqr_length(g.pos[n]-c);
-            if(d < min_dist) {
-                min_dist = d;
-                middle_node = n;
-            }
-        }
-    if(g.valence(middle_node) == 0)
-        for (auto n : g.node_ids())
-            if(g.valence(n) > 0)
-            {
-                double d = sqr_length(g.pos[n] - c);
-                if(d < min_dist) {
-                    min_dist = d;
-                    middle_node = n;
-                }
-            }
-    Util::AttribVec<NodeID, int> touched(g.no_nodes(),0);
-    Util::AttribVec<NodeID, Mat3x3d> warp_frame(g.no_nodes(),identity_Mat3x3d());
+void val2nodes_to_face_pairs(const Geometry::AMGraph3D &g, HMesh::Manifold &mani,
+                             Util::AttribVec<NodeID, FaceSet> &n2fs,
+                             VertexAttributeVector<NodeID> &vertex2node,
+                             const vector<double> &r)
+{
+    Util::AttribVec<NodeID, int> touched(g.no_nodes(), 0);
+    Util::AttribVec<NodeID, Mat3x3d> warp_frame(g.no_nodes(), identity_Mat3x3d());
 
     queue<NodeID> Q;
-    Q.push(middle_node);
 
-    if(g.valence(middle_node) > 2)
-        touched[middle_node] = 1;
+    for (auto middle_node : g.node_ids())
+        if (!touched[middle_node])
+        {
+            Q.push(middle_node);
+            while (!Q.empty())
+            {
+                NodeID n = Q.front();
+                Q.pop();
+                for (auto m : g.neighbors(n))
+                    if (!touched[m])
+                    {
+                        Q.push(m);
+                        touched[m] = 1;
+                        Vec3d vect = normalize(g.pos[m] - g.pos[n]);
+                        if (g.neighbors(m).size() <= 2)
+                        {
+                            auto node_list = next_neighbours(g, n, m);
+                            if (!node_list.empty())
+                            {
+                                Vec3d nb_v(0);
+                                for (auto m_nb : node_list)
+                                    nb_v = g.pos[m_nb];
+                                nb_v /= node_list.size();
+                                vect += normalize(nb_v - g.pos[m]);
+                            }
+                        }
+                        vect = normalize(vect);
+                        Vec3d warp_v = warp_frame[n] * vect;
 
-    while(!Q.empty()) {
-        NodeID n = Q.front();
-        Q.pop();
-        for(auto m : g.neighbors(n))
-            if (!touched[m]) {
-                Q.push(m);
-                touched[m] = 1;
-                Vec3d v = g.pos[m]-g.pos[n];
-                if(g.neighbors(m).size() <= 2) {
-                    auto node_list = next_neighbours(g, n, m);
-                    Vec3d nb_v(0);
-                    for(auto m_nb : node_list)
-                        nb_v = g.pos[m_nb];
-                    if(nb_v != Vec3d(0)) {
-                        v = 0.5*(v + (nb_v - g.pos[m]));
+                        double max_sgn = sign(warp_v[0]);
+                        double max_val = abs(warp_v[0]);
+                        int max_idx = 0;
+                        for (int i = 1; i < 3; ++i)
+                        {
+                            if (abs(warp_v[i]) > max_val)
+                            {
+                                max_sgn = sign(warp_v[i]);
+                                max_val = abs(warp_v[i]);
+                                max_idx = i;
+                            }
+                        }
+                        auto v_target = max_sgn * vect;
+                        Quatd q;
+                        q.make_rot((warp_frame[n])[max_idx], v_target);
+
+                        warp_frame[m] = transpose(q.get_Mat3x3d() * transpose(warp_frame[n]));
+
+                        if (g.neighbors(m).size() <= 2)
+                        {
+                            Vec3d s(r[m]);
+                            Mat3x3d S = scaling_Mat3x3d(s);
+                            auto face_list = create_face_pair(mani, g.pos[m], transpose(warp_frame[m]) * S, max_idx, 8);
+                            stitch_mesh(mani, 1e-10);
+                            for (auto f : face_list)
+                            {
+                                n2fs[m].insert(f);
+                                for (auto v : mani.incident_vertices(f))
+                                    vertex2node[v] = m;
+                            }
+                        }
                     }
-                }
-                Mat3x3d M = warp_frame[n];
-                Vec3d warp_v = M * v;
-
-                double max_sgn = sign(warp_v[0]);
-                double max_val = abs(warp_v[0]);
-                int max_idx = 0;
-                for(int i=1;i<3;++i) {
-                    if(abs(warp_v[i])>max_val) {
-                        max_sgn = sign(warp_v[i]);
-                        max_val = abs(warp_v[i]);
-                        max_idx = i;
-                    }
-                }
-                auto v_target = max_sgn * normalize(v);
-                Quatd q;
-                q.make_rot(M[max_idx], v_target);
-                M = transpose(q.get_Mat3x3d() * transpose(M));
-                warp_frame[m] = M;
-
-                if(g.neighbors(m).size()<=2) {
-                    Vec3d s(r[m]);
-                    Mat3x3d S = scaling_Mat3x3d(s);
-                    auto face_list = create_face_pair(mani, g.pos[m], transpose(M)*S, max_idx, val2deg.find(m)->second);
-                    stitch_mesh(mani, 1e-10);
-                    for(auto f: face_list) {
-                        n2fs[m].insert(f);
-                        val2_faces.insert(std::make_pair(f, 1));
-                        for(auto v: mani.incident_vertices(f))
-                            vertex2node[v] = m;
-                    }
-                }
-
-
             }
-    }
-
+        }
 }
 
-int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts, double thresh) {
+int add_ghosts(const vector<Vec3i> &tris, vector<Vec3d> &pts, double thresh)
+{
 
     /* This function creates extra points to add to the BNP vertices for a branch node.
      These extra points are called ghost points because they do not correspond to an outgoing
@@ -655,10 +567,11 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts, double thresh) {
 
     vector<Vec3d> ghost_pts;
 
-    for(auto t: tris) {
-        Vec3d v1 = pts[t[1]]-pts[t[0]];
-        Vec3d v2 = pts[t[2]]-pts[t[0]];
-        Vec3d n = cross(v1,v2);
+    for (auto t : tris)
+    {
+        Vec3d v1 = pts[t[1]] - pts[t[0]];
+        Vec3d v2 = pts[t[2]] - pts[t[0]];
+        Vec3d n = cross(v1, v2);
         ghost_pts.push_back(n);
     }
 
@@ -666,12 +579,16 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts, double thresh) {
      configurations we could have several quite similar ghost points. */
     vector<int> cluster_id(ghost_pts.size(), -1);
     int max_id = 0;
-    for(int i=0;i<ghost_pts.size(); ++i) {
-        if (cluster_id[i] == -1) {
+    for (int i = 0; i < ghost_pts.size(); ++i)
+    {
+        if (cluster_id[i] == -1)
+        {
             cluster_id[i] = max_id++;
         }
-        for(int j=i+1; j<ghost_pts.size(); ++j) {
-            if (cluster_id[j] == -1) {
+        for (int j = i + 1; j < ghost_pts.size(); ++j)
+        {
+            if (cluster_id[j] == -1)
+            {
                 if (dot(normalize(ghost_pts[i]), normalize(ghost_pts[j])) > thresh)
                     cluster_id[j] = cluster_id[i];
             }
@@ -679,7 +596,8 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts, double thresh) {
     }
 
     vector<Vec3d> ghost_pts_new(max_id, Vec3d(0));
-    for(int i=0;i<ghost_pts.size(); ++i) {
+    for (int i = 0; i < ghost_pts.size(); ++i)
+    {
         ghost_pts_new[cluster_id[i]] += ghost_pts[i];
     }
 
@@ -687,16 +605,17 @@ int add_ghosts(const vector<Vec3i>& tris, vector<Vec3d>& pts, double thresh) {
      The threshold of 0.4 allows ghost points to be a little closer to other
      points than each other. */
     ghost_pts.resize(0);
-    for(auto& p: ghost_pts_new) {
+    for (auto &p : ghost_pts_new)
+    {
         p.normalize();
         vector<double> dots;
-        for(const auto& p_orig: pts)
-            dots.push_back(dot(p,p_orig));
-        if(*max_element(begin(dots), end(dots))<thresh)
+        for (const auto &p_orig : pts)
+            dots.push_back(dot(p, p_orig));
+        if (*max_element(begin(dots), end(dots)) < thresh)
             ghost_pts.push_back(p);
     }
 
-    for (auto g: ghost_pts)
+    for (auto g : ghost_pts)
         pts.push_back(g);
 
     return ghost_pts.size();
@@ -1217,22 +1136,22 @@ FaceID find_bridge_face(const HMesh::Manifold &m_out,
 
 vector<pair<VertexID, VertexID>> find_bridge_connections(HMesh::Manifold &m_out, FaceID &f0, FaceID &f1,
                                                          const Geometry::AMGraph3D& g, NodeID n, NodeID nn) {
-    vector<pair<VertexID, VertexID>> connections;
+    using VertexPair = pair<VertexID, VertexID>;
+    vector<VertexPair> connections;
 
-    if(f0 == InvalidFaceID || f1 == InvalidFaceID)
+    if (f0 == InvalidFaceID || f1 == InvalidFaceID)
         return connections;
 
-    if(face_vertex[f0] == InvalidVertexID && face_vertex[f1] == InvalidVertexID) {
-      connections = face_match_one_ring(m_out, f0, f1, g, n, nn);
-
+    if (face_vertex[f0] == InvalidVertexID && face_vertex[f1] == InvalidVertexID)
+    {
+        connections = face_match_one_ring(m_out, f0, f1, g, n, nn);
     }
-
-    else if (f0 != InvalidFaceID && f1 != InvalidFaceID) {
-      return connections;
+    else if (f0 != InvalidFaceID && f1 != InvalidFaceID)
+    {
+        return connections;
     }
 
     return connections;
-
 }
 
 //Setup Global arrays
@@ -1310,22 +1229,13 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
 
     VertexAttributeVector<NodeID> vertex2node(AMGraph::InvalidNodeID);
     construct_bnps(m_out, g, node2fs, vertex2node, node_radii, use_symmetry);
-    // return m_out;
     init_graph_arrays(m_out, g, node2fs);
-
-    val2nodes_to_boxes(g, m_out, node2fs, vertex2node, node_radii);
+    val2nodes_to_face_pairs(g, m_out, node2fs, vertex2node, node_radii);
 
     for(auto f_id: m_out.faces()) {
         face_vertex[f_id] = InvalidVertexID;
         if(one_ring_face_vertex.find(f_id) == one_ring_face_vertex.end())
             one_ring_face_vertex[f_id] = InvalidVertexID;
-    }
-
-    bool has_junction = false;
-
-    for (auto n: g.node_ids()) {
-        if(g.valence(n) > 2)
-            has_junction = true;
     }
 
     for (auto n: g.node_ids()) {
@@ -1334,15 +1244,9 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
 
         auto N = g.neighbors(n);
 
-        if (N.size()<=2 && has_junction)
-            continue;
-
         for(auto nn: N) {
             auto key = std::make_pair(n,nn);
             f0 = branchface.find(key)->second;
-
-            if(branchdeg.find(key)->second < 1 && has_junction)
-                continue;
 
             NodeID start_node = n;
             NodeID next_node = nn;
@@ -1356,18 +1260,19 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
 
                 nbd_list = next_neighbours(g, start_node, next_node);
 
-
                 if(g.valence(next_node) > g.valence(start_node)) {
                     auto connections = find_bridge_connections(m_out, f1, f0, g, next_node, start_node);
                     if(connections.size()!=0) {
                         m_out.bridge_faces(f1,f0,connections);
                     }
+                    else break;
                 }
                 else {
                     auto connections = find_bridge_connections(m_out, f0, f1, g, start_node, next_node);
                     if(connections.size()!=0) {
                         m_out.bridge_faces(f0,f1,connections);
                     }
+                    else break;
                 }
 
                 start_node = next_node;
@@ -1377,7 +1282,6 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
             }  while(nbd_list.size()==1);
         }
     }
-
     quad_mesh_leaves(m_out, vertex2node);
     skeleton_aware_smoothing(g, m_out, vertex2node, _node_radii);
     m_out.cleanup();

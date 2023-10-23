@@ -12,13 +12,16 @@ mesh_dir = '../../../data/ReferenceMeshes/'
 obj_files = glob.glob(mesh_dir + '*.obj')
 obj_files.sort()
 obj_files.reverse()
-for o_file in obj_files: ##[mesh_dir+'wolf.obj', mesh_dir+'bunny.obj']: #    
+# for o_file in [mesh_dir+'warrior.obj',mesh_dir+'torus.obj']:
+# for o_file in [mesh_dir+'torus.obj']:
+for o_file in obj_files:    
+    #[mesh_dir+'torus.obj']: # obj_files: ##[mesh_dir+'wolf.obj', mesh_dir+'bunny.obj']: #    
     base_name = path.basename(o_file).split('.')[0]
     print("Remeshing " + o_file)
     ref_mesh = hmesh.load(o_file)
     viewer.display(ref_mesh, reset_view=True, bg_col=[1,1,1])
 
-    for mode in ['', 'ps']:
+    for mode in ['']:#, 'ps']:
         s = graph.load(graph_dir+base_name+'.graph')
         if 'p' in mode:
             graph.prune(s)
