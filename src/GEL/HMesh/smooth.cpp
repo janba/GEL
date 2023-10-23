@@ -294,5 +294,44 @@ namespace HMesh
     }
 
     
+
+     void regularize_quads(HMesh::Manifold& m, float weight, int max_iter) {
+        for(int iter = 0; iter < max_iter; ++iter) {
+            auto new_pos = VertexAttributeVector<Vec3d>(m.allocated_vertices(), Vec3d(0));
+            auto cnt = VertexAttributeVector<int>(m.allocated_vertices(), 0);
+            for (auto f: m.faces()) {
+                vector<Vec3d> corners;
+                vector<VertexID> corner_vids;
+                for (auto v: m.incident_vertices(f)) {
+                    corners.push_back(m.pos(v));
+                    corner_vids.push_back(v);
+                }
+
+                if(corners.size() != 4)
+                    continue;
+                for (auto v: corner_vids)
+                    cnt[v] += 1;
+
+                Vec3d c = corners[0]+corners[1]+corners[2]+corners[3];
+                c /= 4.0;
+
+                Vec3d a = corners[2]-corners[0];
+                Vec3d b = corners[3]-corners[1];
+                double l = 0.25 * (length(a) + length(b));
+                a.normalize();
+                b.normalize();
+                new_pos[corner_vids[0]] += c - l * a;
+                new_pos[corner_vids[1]] += c - l * b;
+                new_pos[corner_vids[2]] += c + l * a;
+                new_pos[corner_vids[3]] += c + l * b;
+            }
+
+            for (auto v: m.vertices()) {
+                m.pos(v) = weight * new_pos[v] / cnt[v] + (1-weight)*m.pos(v);  
+            }
+        }
+
+
+     }
     
 }

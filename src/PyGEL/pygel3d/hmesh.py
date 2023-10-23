@@ -1,6 +1,7 @@
 """ The hmesh module provides an halfedge based mesh representation."""
 import ctypes as ct
 import numpy as np
+from math import sqrt
 from numpy.linalg import norm
 from pygel3d import lib_py_gel, IntVector, Vec3dVector, spatial
 from scipy.sparse import csc_matrix, vstack
@@ -522,6 +523,12 @@ def volume_preserving_cc_smooth(m, iter):
     second step is negative as in Taubin smoothing."""
     lib_py_gel.volume_preserving_cc_smooth(m.obj, iter)
 
+def regularize_quads(m, w=0.5, iter=1):
+    """ This function smooths a quad mesh by regularizing quads. Essentially,
+    regularization just makes them more rectangular. """
+    lib_py_gel.regularize_quads(m.obj, w, iter)
+
+
 def loop_smooth(m):
     """ If called after Loop split, this function completes a step of Loop
     subdivision of m. """
@@ -628,8 +635,9 @@ def inv_correspondence_leqs(m, ref_mesh):
             r_norm = ref_mesh.vertex_normal(r_id)
             m_norm = m.vertex_normal(m_id)
             dot_prod = m_norm @ r_norm
-            if dot_prod > 0.75:
-                wgt = (1+dot_prod) #/np.linalg.norm(query_pt - m_pos[m_id])
+            if dot_prod > 0.0:
+                v = query_pt - m_pos[m_id]
+                wgt = np.exp(3*(dot_prod-1))
                 m_target_pos[m_id] += wgt*query_pt
                 m_cnt[m_id] += wgt
                 
@@ -668,7 +676,6 @@ def fit_mesh_to_ref(m, ref_mesh, local_iter = 50, dist_wt = 1.0, lap_wt = 3.0):
         v_pos[:,1] = opt_y
         v_pos[:,2] = opt_z
         cc_smooth(m)
-
     return m
 
 
