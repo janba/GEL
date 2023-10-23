@@ -1154,15 +1154,6 @@ vector<pair<VertexID, VertexID>> find_bridge_connections(HMesh::Manifold &m_out,
     return connections;
 }
 
-//Setup Global arrays
-
-void init_graph_arrays(HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Util::AttribVec<NodeID, FaceSet>& node2fs) {
-    init_branch_degree(m_out, g, node2fs);
-    init_branch_face_pairs(m_out, g, node2fs);
-    merge_branch_faces(m_out, g, node2fs);
-}
-
-
 
 void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
                               Manifold& m_out,
@@ -1229,7 +1220,9 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
 
     VertexAttributeVector<NodeID> vertex2node(AMGraph::InvalidNodeID);
     construct_bnps(m_out, g, node2fs, vertex2node, node_radii, use_symmetry);
-    init_graph_arrays(m_out, g, node2fs);
+    init_branch_degree(m_out, g, node2fs);
+    init_branch_face_pairs(m_out, g, node2fs);
+    merge_branch_faces(m_out, g, node2fs);
     val2nodes_to_face_pairs(g, m_out, node2fs, vertex2node, node_radii);
 
     for(auto f_id: m_out.faces()) {
