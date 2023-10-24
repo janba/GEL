@@ -31,11 +31,14 @@ for o_file in obj_files:
 
         print('Fitting to reference mesh')
         fit_mesh = hmesh.Manifold(m_skel)
-        fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=0.8, lap_wt=1, iter=10)
         hmesh.cc_split(fit_mesh)
         hmesh.cc_smooth(fit_mesh)
-        fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=0.25, lap_wt=1, iter=30)
+        fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=1, lap_wt=3, iter=10)
         viewer.display(fit_mesh, bg_col=[1,1,1])
+        # hmesh.cc_split(fit_mesh)
+        # hmesh.cc_smooth(fit_mesh)
+        # fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=1.0, lap_wt=1, iter=30)
+        # viewer.display(fit_mesh, bg_col=[1,1,1])
         out_file = base_name + "-" + mode + "-out.obj"
         hmesh.save(out_file, fit_mesh)
 

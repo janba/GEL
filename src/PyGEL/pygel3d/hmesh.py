@@ -635,26 +635,11 @@ def inv_correspondence_leqs(m, ref_mesh):
             r_norm = ref_mesh.vertex_normal(r_id)
             m_norm = m.vertex_normal(m_id)
             dot_prod = m_norm @ r_norm
-            if dot_prod > 0.0:
+            if dot_prod > 0.75:
                 v = query_pt - m_pos[m_id]
                 wgt = np.exp(dot_prod-1)
                 m_target_pos[m_id] += wgt*query_pt
                 m_cnt[m_id] += wgt
-
-    # did_work = True
-    # while did_work:
-    #     did_work = False
-    #     m_target_pos_new = m_target_pos.copy()
-    #     m_cnt_new = m_cnt.copy()
-    #     for v in m.vertices():
-    #         if m_cnt[v] == 0.0:
-    #             did_work = True
-    #             for n in m.circulate_vertex(v):
-    #                 m_target_pos_new[v] += m_target_pos[n]
-    #                 m_cnt_new[v] += m_cnt[n]
-    #     m_target_pos = m_target_pos_new
-    #     m_cnt = m_cnt_new
-
                 
     N = m.no_allocated_vertices()
     A_list = []
@@ -663,9 +648,8 @@ def inv_correspondence_leqs(m, ref_mesh):
         if m_cnt[vid] > 0.0:
             row_a = np.zeros(N)
             row_a[vid] = 1.0
-            A_list.append(row_a)
-            pt_target = m_target_pos[vid] / m_cnt[vid]
-            b_list.append(pt_target)
+            A_list.append(row_a*m_cnt[vid])
+            b_list.append(m_target_pos[vid])
     return csc_matrix(np.array(A_list)), np.array(b_list)
 
 
@@ -678,15 +662,16 @@ def fit_mesh_to_ref(m, ref_mesh, iter = 50, dist_wt = 1.0, lap_wt = 3.0):
     for i in range(iter):
         lap_b = lap_matrix @ v_pos
         A, b = inv_correspondence_leqs(m, ref_mesh)
+        cc_smooth(m)
         final_A = vstack([lap_wt*lap_matrix, dist_wt*A])
-        final_b = np.vstack([0 * lap_b, dist_wt*b])
+        final_b = np.vstack([0*lap_b, dist_wt*b])
         opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
         opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
         opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
         v_pos[:,0] = opt_x
         v_pos[:,1] = opt_y
         v_pos[:,2] = opt_z
-        # cc_smooth(m)
+        cc_smooth(m)
     return m
 
 
