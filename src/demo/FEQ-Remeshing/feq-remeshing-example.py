@@ -9,19 +9,16 @@ viewer = gl.Viewer()
 import glob
 
 mesh_dir = '../../../data/ReferenceMeshes/'
-obj_files = glob.glob(mesh_dir + '*.obj')
+obj_files = glob.glob(mesh_dir + 'feline.obj')
 obj_files.sort()
 obj_files.reverse()
-# for o_file in [mesh_dir+'warrior.obj',mesh_dir+'torus.obj']:
-# for o_file in [mesh_dir+'torus.obj']:
 for o_file in obj_files:    
-    #[mesh_dir+'torus.obj']: # obj_files: ##[mesh_dir+'wolf.obj', mesh_dir+'bunny.obj']: #    
     base_name = path.basename(o_file).split('.')[0]
     print("Remeshing " + o_file)
     ref_mesh = hmesh.load(o_file)
     viewer.display(ref_mesh, reset_view=True, bg_col=[1,1,1])
 
-    for mode in ['']:#, 'ps']:
+    for mode in ['', 'ps']:
         s = graph.load(graph_dir+base_name+'.graph')
         if 'p' in mode:
             graph.prune(s)
@@ -34,8 +31,11 @@ for o_file in obj_files:
 
         print('Fitting to reference mesh')
         fit_mesh = hmesh.Manifold(m_skel)
-        fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=1, lap_wt=0.1, local_iter=10)
+        fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=0.8, lap_wt=1, iter=10)
+        hmesh.cc_split(fit_mesh)
+        hmesh.cc_smooth(fit_mesh)
+        fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=0.25, lap_wt=1, iter=30)
         viewer.display(fit_mesh, bg_col=[1,1,1])
-        out_file = base_name + "-out.obj"
+        out_file = base_name + "-" + mode + "-out.obj"
         hmesh.save(out_file, fit_mesh)
 

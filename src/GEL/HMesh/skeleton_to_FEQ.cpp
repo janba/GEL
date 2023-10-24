@@ -574,7 +574,6 @@ int add_ghosts(const vector<Vec3i> &tris, vector<Vec3d> &pts, double thresh)
 vector<Vec3i> points_to_octahedron(vector<Vec3d> &pts, int s_i, int s_j)
 {
     assert(pts.size() == 5);
-    cout << "In points_to_octahedron" << endl;
     Vec3i tri(-1);
 
     for (int i = 0; i < 5; i++)

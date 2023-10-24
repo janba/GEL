@@ -111,13 +111,8 @@ bool connect_val3(HMesh::Manifold& m) {
             }
     }
 
-    for(auto n: g.node_ids()) {
-        if (g.neighbors(n).size() == 0)
-            cout << "Node " << n << " has no neighbors" << endl;
-    } 
 
     for (auto [v_first, f_first]: initial_vertex_face_pairs) {
-        cout << "trying " << v_first << f_first << endl;
         BreadthFirstSearch bfs(g);
         for (auto f: m.incident_faces(v_first))
             bfs.add_init_node(face2node[f_first]);
@@ -138,12 +133,10 @@ bool connect_val3(HMesh::Manifold& m) {
                 FaceID f_new =  m.split_face_by_edge(node2face[n], v, v_first);
                 if (f_new != InvalidFaceID)
                     return true;
-                cout << __FILE__ << " : " << __LINE__ << "failed to split face by edge" << endl;
                 return false;
             }
         }
     }
-    cout << "Made no val 3 connections" << endl;
     return false;
 }
 
@@ -169,7 +162,6 @@ bool connect_same_face_val3(HMesh::Manifold& m) {
             ++i;
         }
         if (v0 != InvalidVertexID && v1 != InvalidVertexID) {
-            //                    cout << "v0 v1 " << v0 << " " << v1 << endl;
             if(m.split_face_by_edge(f, v0, v1) != InvalidFaceID)
                 did_work = true;
         }
@@ -200,7 +192,6 @@ void reduce_valency(HMesh::Manifold& m) {
         
         if(e.time_stamp == time_stamp[e.h]) {
             Walker w = m.walker(e.h);
-//            cout << e.h << " " << w.opp().halfedge() << " "  << e.priority << " " << priority(m, e.h) << " " << e.time_stamp << " " << time_stamp[e.h] << endl;
             VertexID v0 = w.vertex();
             VertexID v1 = w.opp().vertex();
             m.merge_faces(w.face(), e.h);
@@ -222,14 +213,8 @@ void reduce_valency(HMesh::Manifold& m) {
 
 void quad_valencify(HMesh::Manifold& m) {
     reduce_valency(m);
-    while(connect_same_face_val3(m));
+    while (connect_same_face_val3(m));
     while (connect_val3(m));
-    cout << "---- val report -----------------------------" << endl;
-    for (auto v: m.vertices()) {
-        cout << "valency " << valency(m, v) << endl;
-    }
-    cout << "---- val report -----------------------------" << endl;
 }
-
 
 
