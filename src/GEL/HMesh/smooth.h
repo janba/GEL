@@ -48,6 +48,6 @@ namespace HMesh
     void TAL_smoothing(HMesh::Manifold& m, float w, int iter=1);
 
     /// Smooth mesh by regularizing quads, i.e. making them more rectangular.
-    void regularize_quads(HMesh::Manifold &m, float w, int max_iter);
+    void regularize_quads(HMesh::Manifold &m, float w, float shrink, int max_iter);
 }
 #endif

@@ -208,7 +208,7 @@ lib_py_gel.rootCC_subdivide.argtypes = (ct.c_void_p,)
 lib_py_gel.butterfly_subdivide.argtypes = (ct.c_void_p,)
 lib_py_gel.cc_smooth.argtypes = (ct.c_void_p,)
 lib_py_gel.volume_preserving_cc_smooth.argtypes = (ct.c_void_p,ct.c_int)
-lib_py_gel.regularize_quads.argtypes = (ct.c_void_p,ct.c_float,ct.c_int)
+lib_py_gel.regularize_quads.argtypes = (ct.c_void_p,ct.c_float,ct.c_float,ct.c_int)
 lib_py_gel.loop_smooth.argtypes = (ct.c_void_p,)
 lib_py_gel.ear_clip_triangulate.argtypes = (ct.c_void_p,)
 lib_py_gel.shortest_edge_triangulate.argtypes = (ct.c_void_p,)
@@ -224,6 +224,8 @@ lib_py_gel.MeshDistance_new.restype = ct.c_void_p
 lib_py_gel.MeshDistance_new.argtypes = (ct.c_void_p,)
 lib_py_gel.MeshDistance_signed_distance.argtypes = (ct.c_void_p,ct.c_int, ct.POINTER(ct.c_float),ct.POINTER(ct.c_float),ct.c_float)
 lib_py_gel.MeshDistance_ray_inside_test.argtypes = (ct.c_void_p,ct.c_int, ct.POINTER(ct.c_float),ct.POINTER(ct.c_int),ct.c_int)
+lib_py_gel.MeshDistance_ray_intersect.argtypes = (ct.c_void_p,ct.POINTER(ct.c_float),ct.POINTER(ct.c_float),ct.POINTER(ct.c_float))
+lib_py_gel.MeshDistance_ray_intersect.restype = ct.c_bool
 lib_py_gel.MeshDistance_delete.argtypes = (ct.c_void_p,)
 
 # The Graph class

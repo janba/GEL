@@ -42,11 +42,13 @@ bool BoundingINode<BoxType>::intersect(const CGLA::Vec3f& p , const CGLA::Vec3f&
 	if(!BoxType::intersect(p,dir))
 		return false;
 
-	float tminl=1e33f, tminr=1e33f;
-	bool li = left->intersect(p,dir,tminl);
-	bool ri = right->intersect(p,dir,tminr);
-	if(li||ri)
+	float tminl= FLT_MAX, tminr= FLT_MAX;
+	bool li = left->intersect(p,dir,tminl) && tminl > 0;
+	bool ri = right->intersect(p,dir,tminr) && tminr > 0;
+	if(li ||ri)
 		{
+			tminl = tminl>0 ? tminl : FLT_MAX;
+			tminr = tminr>0 ? tminr : FLT_MAX;
 			tmin = min(tminl,tminr);
 			return true;
 		}

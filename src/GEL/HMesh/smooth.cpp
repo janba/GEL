@@ -295,7 +295,7 @@ namespace HMesh
 
     
 
-     void regularize_quads(HMesh::Manifold& m, float weight, int max_iter) {
+     void regularize_quads(HMesh::Manifold& m, float weight, float shrink, int max_iter) {
         for(int iter = 0; iter < max_iter; ++iter) {
             auto new_pos = VertexAttributeVector<Vec3d>(m.allocated_vertices(), Vec3d(0));
             auto cnt = VertexAttributeVector<int>(m.allocated_vertices(), 0);
@@ -317,7 +317,7 @@ namespace HMesh
 
                 Vec3d a = corners[2]-corners[0];
                 Vec3d b = corners[3]-corners[1];
-                double l = 0.25 * (length(a) + length(b));
+                double l = (1.0-shrink)*0.25 * (length(a) + length(b));
                 a.normalize();
                 b.normalize();
                 new_pos[corner_vids[0]] += c - l * a;

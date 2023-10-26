@@ -68,7 +68,7 @@ inline void BoundingLNode<BoxType>::intersect(Ray& r) const
 		CGLA::Vec3f p = r.origin;
 		CGLA::Vec3f d = r.direction;
 		float t = FLT_MAX;
-		if(tri.intersect(p,d,t) && t < r.dist)
+		if(tri.intersect(p,d,t) && t < r.dist && t > 0)
 		{
 				r.has_hit = true;
 				r.dist = t;

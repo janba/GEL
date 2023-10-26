@@ -472,11 +472,11 @@ def quadric_simplify(m,keep_fraction,singular_thresh=1e-4,error_thresh=1):
     vertices approximately equal to keep_fraction times the original number of vertices."""
     lib_py_gel.quadric_simplify(m.obj, keep_fraction, singular_thresh,error_thresh)
 
-def average_edge_length(m,max_iter=1):
+def average_edge_length(m):
     """ Returns the average edge length of mesh m. """
     return lib_py_gel.average_edge_length(m.obj)
 
-def median_edge_length(m,max_iter=1):
+def median_edge_length(m):
     """ Returns the median edge length of m"""
     return lib_py_gel.median_edge_length(m.obj)
 
@@ -523,10 +523,10 @@ def volume_preserving_cc_smooth(m, iter):
     second step is negative as in Taubin smoothing."""
     lib_py_gel.volume_preserving_cc_smooth(m.obj, iter)
 
-def regularize_quads(m, w=0.5, iter=1):
+def regularize_quads(m, w=0.5, shrink=0.0, iter=1):
     """ This function smooths a quad mesh by regularizing quads. Essentially,
     regularization just makes them more rectangular. """
-    lib_py_gel.regularize_quads(m.obj, w, iter)
+    lib_py_gel.regularize_quads(m.obj, w, shrink, iter)
 
 
 def loop_smooth(m):
@@ -637,7 +637,7 @@ def inv_correspondence_leqs(m, ref_mesh):
             dot_prod = m_norm @ r_norm
             if dot_prod > 0.75:
                 v = query_pt - m_pos[m_id]
-                wgt = np.exp(dot_prod-1)
+                wgt = 0.5*(1+dot_prod)
                 m_target_pos[m_id] += wgt*query_pt
                 m_cnt[m_id] += wgt
                 
@@ -647,9 +647,51 @@ def inv_correspondence_leqs(m, ref_mesh):
     for vid in m.vertices():
         if m_cnt[vid] > 0.0:
             row_a = np.zeros(N)
-            row_a[vid] = 1.0
-            A_list.append(row_a*m_cnt[vid])
+            row_a[vid] = m_cnt[vid]
+            A_list.append(row_a)
             b_list.append(m_target_pos[vid])
+    return csc_matrix(np.array(A_list)), np.array(b_list)
+
+def fwd_correspondence_leqs(m, ref_mesh):
+    """ Helper function to compute correspondences between a skeletal mesh m and a reference mesh ref_mesh, given a MeshDistance object dist_obj for the ref mesh. """
+
+    m_pos = m.positions()
+    ael = average_edge_length(ref_mesh)
+    ref_mesh_dist = MeshDistance(ref_mesh)
+    N = m.no_allocated_vertices()
+    A_list = []
+    b_list = []
+
+    for v in m.vertices():
+        p0 = m_pos[v]
+        dir = m.vertex_normal(v)
+        dir_i = - dir
+        t = None
+        t_i = None
+        pos = None
+        pos_i = None
+        hit = ref_mesh_dist.intersect(p0,dir)
+        if hit:
+            t, pos, norm = hit
+            if norm @ dir < 0.7:
+                t = None
+
+        hit_i = ref_mesh_dist.intersect(p0,dir_i)
+        if hit_i:
+            t_i, pos_i, norm_i = hit_i
+            if norm_i @ dir_i < 0.7:
+                t_i = None
+
+        if t and t_i and t_i < t or not t:
+            t = t_i
+            pos = pos_i
+
+        if t and t < ael:                
+            row_a = np.zeros(N)
+            row_a[v] = 1.0
+            A_list.append(row_a)
+            b_list.append(pos)
+
     return csc_matrix(np.array(A_list)), np.array(b_list)
 
 
@@ -660,18 +702,26 @@ def fit_mesh_to_ref(m, ref_mesh, iter = 50, dist_wt = 1.0, lap_wt = 3.0):
     lap_matrix = laplacian_matrix(m)
 
     for i in range(iter):
+        # cc_smooth(m)
+        # cc_smooth(m)
+        # volume_preserving_cc_smooth(m, 3)
         lap_b = lap_matrix @ v_pos
+        # if i%2 == 0:
         A, b = inv_correspondence_leqs(m, ref_mesh)
-        cc_smooth(m)
+        # else:
+        #     A, b = fwd_correspondence_leqs(m, ref_mesh)
         final_A = vstack([lap_wt*lap_matrix, dist_wt*A])
-        final_b = np.vstack([0*lap_b, dist_wt*b])
+        final_b = np.vstack([lap_wt*lap_b, dist_wt*b])
         opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
         opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
         opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
         v_pos[:,0] = opt_x
         v_pos[:,1] = opt_y
         v_pos[:,2] = opt_z
-        cc_smooth(m)
+        if i%2==0:
+            regularize_quads(m, w=0.5, shrink=0.3, iter=10)
+
+        # regularize_quads(m, w=0.5, iter=3)
     return m
 
 
@@ -711,3 +761,16 @@ class MeshDistance:
         s_ct = s.ctypes.data_as(ct.POINTER(ct.c_int))
         lib_py_gel.MeshDistance_ray_inside_test(self.obj,n,p_ct,s_ct,no_rays)
         return s
+    def intersect(self, p0, dir, _t=0):
+        """ Intersect the ray starting in p0 with direction, dir, with the stored mesh. Returns
+        the point of intersection if there is one, otherwise None. """
+        p0 = np.array(p0,dtype=ct.c_float)
+        dir = np.array(dir,dtype=ct.c_float)
+        t = ct.c_float(_t)
+        p0_ct = p0.ctypes.data_as(ct.POINTER(ct.c_float))
+        dir_ct = dir.ctypes.data_as(ct.POINTER(ct.c_float))
+        p = (ct.c_float*3)()
+        r = lib_py_gel.MeshDistance_ray_intersect(self.obj, p0_ct,dir_ct, ct.byref(t))
+        if r:
+            return t.value, p0, dir
+        return None

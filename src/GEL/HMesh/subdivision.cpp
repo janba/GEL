@@ -291,7 +291,7 @@ namespace HMesh
         auto old_pos = m.positions_attribute_vector();
         subd_smooth(CC_SUBD, m);
         for (auto v: m.vertices())
-            m.pos(v) = old_pos[v] - 0.9 *(m.pos(v) - old_pos[v]);
+            m.pos(v) = old_pos[v] - 0.98 *(m.pos(v) - old_pos[v]);
         }
     }
 

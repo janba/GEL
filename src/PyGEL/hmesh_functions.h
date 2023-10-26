@@ -85,7 +85,7 @@ extern "C" {
     
     DLLEXPORT void volume_preserving_cc_smooth(Manifold_ptr m_ptr, int iter);
 
-    DLLEXPORT void regularize_quads(Manifold_ptr m_ptr, float weight, int iter);
+    DLLEXPORT void regularize_quads(Manifold_ptr m_ptr, float weight, float shrink, int iter);
 
     DLLEXPORT void loop_smooth(Manifold_ptr m_ptr);
 
