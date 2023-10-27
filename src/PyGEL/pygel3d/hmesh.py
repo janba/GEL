@@ -600,15 +600,17 @@ def skeleton_to_feq(g, node_radii = None, symmetrize=True):
 
 def laplacian_matrix(m):
     """ Returns the sparse uniform laplacian matrix for a polygonal mesh m. """
-
     num_verts = m.no_allocated_vertices()
     laplacian = np.full((num_verts,num_verts), 0.0)
     for i in m.vertices():
-        nb_verts = m.circulate_vertex(i)
-        deg = len(nb_verts)
+        outgoing_hedges = m.circulate_vertex(i, 'h')
+        deg = 1.5*len(outgoing_hedges)
         laplacian[i][i] = 1.0
-        for nb in nb_verts:
-            laplacian[i][nb] = -1/deg
+        for h in outgoing_hedges:
+            v1 = m.incident_vertex(h)
+            v2 = m.incident_vertex(m.next_halfedge(h))
+            laplacian[i][v1] = -1/deg
+            laplacian[i][v2] = -0.5/deg
     return csc_matrix(laplacian)
 
 
@@ -637,7 +639,7 @@ def inv_correspondence_leqs(m, ref_mesh):
             dot_prod = m_norm @ r_norm
             if dot_prod > 0.75:
                 v = query_pt - m_pos[m_id]
-                wgt = 0.5*(1+dot_prod)
+                wgt = np.exp(-(1-dot_prod)**2)
                 m_target_pos[m_id] += wgt*query_pt
                 m_cnt[m_id] += wgt
                 
@@ -673,24 +675,25 @@ def fwd_correspondence_leqs(m, ref_mesh):
         hit = ref_mesh_dist.intersect(p0,dir)
         if hit:
             t, pos, norm = hit
-            if norm @ dir < 0.7:
+            if norm @ dir < 0.75:
                 t = None
 
         hit_i = ref_mesh_dist.intersect(p0,dir_i)
         if hit_i:
             t_i, pos_i, norm_i = hit_i
-            if norm_i @ dir_i < 0.7:
+            if norm_i @ dir_i < 0.75:
                 t_i = None
 
         if t and t_i and t_i < t or not t:
             t = t_i
             pos = pos_i
 
-        if t and t < ael:                
+        if t and t < ael:              
+            w = np.exp(-(t/ael)**2)
             row_a = np.zeros(N)
-            row_a[v] = 1.0
+            row_a[v] = w
             A_list.append(row_a)
-            b_list.append(pos)
+            b_list.append(pos*w)
 
     return csc_matrix(np.array(A_list)), np.array(b_list)
 
@@ -702,26 +705,19 @@ def fit_mesh_to_ref(m, ref_mesh, iter = 50, dist_wt = 1.0, lap_wt = 3.0):
     lap_matrix = laplacian_matrix(m)
 
     for i in range(iter):
-        # cc_smooth(m)
-        # cc_smooth(m)
-        # volume_preserving_cc_smooth(m, 3)
         lap_b = lap_matrix @ v_pos
-        # if i%2 == 0:
-        A, b = inv_correspondence_leqs(m, ref_mesh)
-        # else:
-        #     A, b = fwd_correspondence_leqs(m, ref_mesh)
-        final_A = vstack([lap_wt*lap_matrix, dist_wt*A])
-        final_b = np.vstack([lap_wt*lap_b, dist_wt*b])
+        regularize_quads(m, w=0.5, shrink=0.5, iter=3)
+        Ai, bi = inv_correspondence_leqs(m, ref_mesh)
+        Af, bf = fwd_correspondence_leqs(m, ref_mesh)
+        final_A = vstack([lap_wt*lap_matrix, dist_wt*Ai , dist_wt*Af])
+        final_b = np.vstack([lap_wt*lap_b, dist_wt*bi, dist_wt*bf])
         opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
         opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
         opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
         v_pos[:,0] = opt_x
         v_pos[:,1] = opt_y
         v_pos[:,2] = opt_z
-        if i%2==0:
-            regularize_quads(m, w=0.5, shrink=0.3, iter=10)
-
-        # regularize_quads(m, w=0.5, iter=3)
+        regularize_quads(m, w=0.3, shrink=0.3, iter=3)
     return m
 
 

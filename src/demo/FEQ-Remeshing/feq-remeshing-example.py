@@ -18,7 +18,7 @@ for o_file in obj_files:
     # viewer.display(ref_mesh, reset_view=True, bg_col=[1,1,1])
 
 #    for mode in ['', 'ps']:
-for lap_wt in [0.1, 0.25, 0.5, 0.75, 1]:
+for lap_wt in [0.2, 0.25, 0.35, 0.5, 1]:
         mode = ''
         s = graph.load(graph_dir+base_name+'.graph')
         if 'p' in mode:
