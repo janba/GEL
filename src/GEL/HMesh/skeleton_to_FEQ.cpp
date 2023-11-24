@@ -1220,3 +1220,22 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
     m_out.cleanup();
     return m_out;
 }
+
+
+void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
+
+    auto rand_num = []() -> double { return double(rand())/RAND_MAX; };
+
+
+    const int N_pts = m_ref.no_vertices();
+
+    VertexAttributeVector<vector<Vec3d>> m_pts;
+
+    double total_area = 0;
+    FaceAttributeVector<double> face_area;
+    for (const FaceID f: m.faces()) {
+        double a = area(m, f);
+        face_area[f] = a;
+        total_area += a;
+    }
+}

@@ -603,14 +603,11 @@ def laplacian_matrix(m):
     num_verts = m.no_allocated_vertices()
     laplacian = np.full((num_verts,num_verts), 0.0)
     for i in m.vertices():
-        outgoing_hedges = m.circulate_vertex(i, 'h')
-        deg = 1.5*len(outgoing_hedges)
+        neighbors = m.circulate_vertex(i)
+        deg = len(neighbors)
         laplacian[i][i] = 1.0
-        for h in outgoing_hedges:
-            v1 = m.incident_vertex(h)
-            v2 = m.incident_vertex(m.next_halfedge(h))
-            laplacian[i][v1] = -1/deg
-            laplacian[i][v2] = -0.5/deg
+        for v in neighbors:
+            laplacian[i][v] = -1/deg
     return csc_matrix(laplacian)
 
 
@@ -621,10 +618,8 @@ def inv_correspondence_leqs(m, ref_mesh):
     ref_pos = ref_mesh.positions()
 
     m_tree = spatial.I3DTree()
-    m_tree_index_set = []
     for v in m.vertices():
         m_tree.insert(m_pos[v],v)
-        m_tree_index_set.append(v)
     m_tree.build()
 
     m_target_pos = np.zeros(m.positions().shape)
@@ -637,9 +632,9 @@ def inv_correspondence_leqs(m, ref_mesh):
             r_norm = ref_mesh.vertex_normal(r_id)
             m_norm = m.vertex_normal(m_id)
             dot_prod = m_norm @ r_norm
-            if dot_prod > 0.75:
+            if dot_prod > 0.0:
                 v = query_pt - m_pos[m_id]
-                wgt = np.exp(-(1-dot_prod)**2)
+                wgt = dot_prod**2
                 m_target_pos[m_id] += wgt*query_pt
                 m_cnt[m_id] += wgt
                 
@@ -689,7 +684,7 @@ def fwd_correspondence_leqs(m, ref_mesh):
             pos = pos_i
 
         if t and t < ael:              
-            w = np.exp(-(t/ael)**2)
+            w = np.exp(-(t/ael))
             row_a = np.zeros(N)
             row_a[v] = w
             A_list.append(row_a)
@@ -697,28 +692,60 @@ def fwd_correspondence_leqs(m, ref_mesh):
 
     return csc_matrix(np.array(A_list)), np.array(b_list)
 
+def is_quad_mesh(m):
+    """ Returns True if m is a quad mesh. """
+    for f in m.faces():
+        if len(list(m.circulate_face(f))) == 4:
+            return True
+        return False
 
-def fit_mesh_to_ref(m, ref_mesh, iter = 50, dist_wt = 1.0, lap_wt = 3.0):
+def fit_mesh_to_ref(m, ref_mesh, iter = 10, dist_wt = 1.0, lap_wt = 0.5):
     """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
 
     v_pos = m.positions()
-    lap_matrix = laplacian_matrix(m)
 
     for i in range(iter):
-        lap_b = lap_matrix @ v_pos
-        regularize_quads(m, w=0.5, shrink=0.5, iter=3)
         Ai, bi = inv_correspondence_leqs(m, ref_mesh)
         Af, bf = fwd_correspondence_leqs(m, ref_mesh)
-        final_A = vstack([lap_wt*lap_matrix, dist_wt*Ai , dist_wt*Af])
+        lap_matrix = laplacian_matrix(m)
+        lap_b = lap_matrix @ v_pos
+        final_A = vstack([lap_wt*lap_matrix, dist_wt*Ai, dist_wt*Af])
         final_b = np.vstack([lap_wt*lap_b, dist_wt*bi, dist_wt*bf])
         opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
         opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
         opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
-        v_pos[:,0] = opt_x
-        v_pos[:,1] = opt_y
-        v_pos[:,2] = opt_z
-        regularize_quads(m, w=0.3, shrink=0.3, iter=3)
+        v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
+        if is_quad_mesh(m):
+            # volume_preserving_cc_smooth(m, 3)
+            regularize_quads(m, w=0.5, shrink=0.8, iter=3)
+        else:
+            taubin_smooth(m, iter=5)
     return m
+
+
+# def fit_mesh_to_ref(m, ref_mesh, iter = 50, dist_wt = 1.0, lap_wt = 3.0):
+#     """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
+#     ael = average_edge_length(m)
+#     v_pos = m.positions()
+#     if (is_quad_mesh(ref_mesh)):
+#         ref_mesh = Manifold(ref_mesh)
+#         triangulate(ref_mesh)
+#     D = MeshDistance(ref_mesh)
+#     for i in range(iter):
+#         if is_quad_mesh(m):
+#             regularize_quads(m, w=0.5, shrink=lap_wt, iter=int(dist_wt))
+#         else:
+#             taubin_smooth(m, iter=int(dist_wt))
+#         # volume_preserving_cc_smooth(m, int(dist_wt))
+#         new_pos = np.copy(v_pos)
+#         for v in m.vertices():
+#             n = m.vertex_normal(v)
+#             p = v_pos[v]
+#             d = D.signed_distance(p)
+#             new_pos[v] -= np.sign(d) * min(ael, abs(d)) * n
+#         v_pos[:,:] = new_pos
+
+#     return m
 
 
 class MeshDistance:
