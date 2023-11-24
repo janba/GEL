@@ -1193,6 +1193,8 @@ void bridge_branch_node_meshes(Manifold& m_out, const AMGraph3D& g, Util::Attrib
 
 //Main functions
 
+
+
 HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>& _node_radii, bool use_symmetry) {
 
     Manifold m_out;
@@ -1221,15 +1223,37 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
     return m_out;
 }
 
+std::vector<Vec3d> generateVectors(int N) {
+    std::vector<Vec3d> vectors;
+        auto rand_num = []() { return double(rand())/RAND_MAX; };
 
+    for (int i = 0; i < N; ++i) {
+        double inclination = acos(1 - 2 * rand_num());
+        double azimuth = 2 * M_PI * rand_num();
+
+        double x = sin(inclination) * cos(azimuth);
+        double y = sin(inclination) * sin(azimuth);
+        double z = cos(inclination);
+
+        vectors.push_back(Vec3d(x, y, z));
+    }
+
+    return vectors;
+}
 void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
 
-    auto rand_num = []() -> double { return double(rand())/RAND_MAX; };
+    auto rand_num = []() { return double(rand())/RAND_MAX; };
 
 
     const int N_pts = m_ref.no_vertices();
 
-    VertexAttributeVector<vector<Vec3d>> m_pts;
+
+    FaceAttributeVector<vector<int>> m_pts_idx;
+    vector<Vec3d> m_pts;
+    vector<Vec3d> m_ref_pts;
+    for(auto p: m_ref.vertices())
+        m_ref_pts.push_back(m_ref.pos(p));
+
 
     double total_area = 0;
     FaceAttributeVector<double> face_area;
@@ -1237,5 +1261,63 @@ void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
         double a = area(m, f);
         face_area[f] = a;
         total_area += a;
+    }
+
+    for (int i=0;i<N_pts;++i) {
+        double r = rand_num() * total_area;
+        FaceID f;
+        double a = 0;
+        for (const FaceID ff: m.faces()) {
+            a += face_area[ff];
+            if (a>r) {
+                f = ff;
+                break;
+            }
+        }
+        double w_sum = 0;
+        Vec3d p(0);
+        for (VertexID v: m.incident_vertices(f)) {
+            double w = rand_num();
+            p += w * m.pos(v);
+            w_sum += w;
+        }
+        m_pts_idx[f].push_back(m_pts.size());
+        m_pts.push_back(p/w_sum);
+    }
+
+    vector<Vec3d> dir = generateVectors(32);
+    auto m_pts_new = vector<Vec3d>(m_pts.size(), Vec3d(0));
+    for (int iter=0;iter<dir.size();++iter) {
+        vector<pair<double, int>> m_ref_pts_1d;
+        vector<pair<double, int>> m_pts_1d;
+        for (int i=0;i < N_pts; ++i) {
+            double d = dot(dir[iter], m_ref_pts[i]);
+            m_ref_pts_1d.push_back(make_pair(d, i));
+            d = dot(dir[iter], m_pts[i]);
+            m_pts_1d.push_back(make_pair(d, i));
+        }
+        sort(m_ref_pts_1d.begin(), m_ref_pts_1d.end());
+        sort(m_pts_1d.begin(), m_pts_1d.end());
+        for (int j=0;j < N_pts; ++j) {
+            int i = m_pts_1d[j].second;
+            m_pts_new[i] += dir[iter]*(m_ref_pts_1d[i].first - m_pts_1d[i].first)/(dir.size());
+        }
+    }
+
+    for (auto v: m.vertices()) 
+        m.pos(v) = Vec3d(0);
+
+    for (auto f: m.faces()) {
+        Vec3d p(0);
+        for (int i: m_pts_idx[f])
+            p += m_pts_new[i];
+        p /= m_pts_idx[f].size();
+        for (VertexID v: m.incident_vertices(f))
+            m.pos(v) += p;
+    }
+    
+    for (auto v: m.vertices()) {
+        int n = valency(m, v);
+        m.pos(v) /= n; 
     }
 }
