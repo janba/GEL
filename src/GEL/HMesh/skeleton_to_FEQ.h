@@ -6,4 +6,6 @@
 
 HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const std::vector<double>& node_radii, bool use_symmetry=true);
 
+void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref);
+
 #endif

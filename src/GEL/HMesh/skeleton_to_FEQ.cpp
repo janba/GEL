@@ -1102,8 +1102,8 @@ void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
                               Manifold& m_out,
                               const VertexAttributeVector<NodeID>& vertex2node,
                               const vector<double>& node_radii) {
-    const int N_iter = 50;
-    for (int iter=0;iter<N_iter; ++iter) {
+    const int N_dir_idx = 50;
+    for (int dir_idx=0;dir_idx<N_dir_idx; ++dir_idx) {
 
 
         Util::AttribVec<AMGraph::NodeID,Vec3d> barycenters(g.no_nodes(), Vec3d(0));
@@ -1240,21 +1240,28 @@ std::vector<Vec3d> generateVectors(int N) {
 
     return vectors;
 }
+
+
 void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
 
     auto rand_num = []() { return double(rand())/RAND_MAX; };
+    const int N_dir = 7; // Number of directions
+    // Generate random vectors distributed over the sphere.
+    vector<Vec3d> dir = generateVectors(N_dir);
 
+    const int N_pts = m_ref.no_vertices(); // Number of points
 
-    const int N_pts = m_ref.no_vertices();
+    vector<Vec3d> m_pts;      // Points on manifold we deform
+    vector<Vec3d> m_ref_pts;  // Target points on reference manifold
+    FaceAttributeVector<vector<int>> m_pts_idx; // Point indices stored per face
 
-
-    FaceAttributeVector<vector<int>> m_pts_idx;
-    vector<Vec3d> m_pts;
-    vector<Vec3d> m_ref_pts;
+    // Generate points on the reference manifolds. These are simply
+    // its vertices.
     for(auto p: m_ref.vertices())
         m_ref_pts.push_back(m_ref.pos(p));
 
-
+    // Now compute the total area of the deformable manifold, m, and 
+    // also stored the areas of its faces in an attribute vector.
     double total_area = 0;
     FaceAttributeVector<double> face_area;
     for (const FaceID f: m.faces()) {
@@ -1263,19 +1270,25 @@ void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
         total_area += a;
     }
 
+    // Generate N_pts points randomly distributed over m.
+    // The face areas are used to ensure an even distribution.
     for (int i=0;i<N_pts;++i) {
-        double r = rand_num() * total_area;
-        FaceID f;
-        double a = 0;
-        for (const FaceID ff: m.faces()) {
-            a += face_area[ff];
-            if (a>r) {
-                f = ff;
-                break;
+        FaceID f = InvalidFaceID;
+        while (f == InvalidFaceID) {
+            double r = rand_num() * total_area;
+            double a = 0;
+            for (const FaceID ff: m.faces()) {
+                a += face_area[ff];
+                if (a>r) {
+                    f = ff;
+                    break;
+                }
             }
         }
         double w_sum = 0;
         Vec3d p(0);
+        // The point is just a random affine combination of the polygon's
+        // vertices.
         for (VertexID v: m.incident_vertices(f)) {
             double w = rand_num();
             p += w * m.pos(v);
@@ -1285,39 +1298,39 @@ void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
         m_pts.push_back(p/w_sum);
     }
 
-    vector<Vec3d> dir = generateVectors(32);
+
+    // Inspired by the sliced Wasserstein distance, we compute target points by 
+    // matching all points in 1D between the two shapes and then computing the 
+    // average vector from the point on m to the point on m_ref.
     auto m_pts_new = vector<Vec3d>(m_pts.size(), Vec3d(0));
-    for (int iter=0;iter<dir.size();++iter) {
+    for (int dir_idx=0;dir_idx<dir.size();++dir_idx) {
         vector<pair<double, int>> m_ref_pts_1d;
         vector<pair<double, int>> m_pts_1d;
         for (int i=0;i < N_pts; ++i) {
-            double d = dot(dir[iter], m_ref_pts[i]);
+            double d = dot(dir[dir_idx], m_ref_pts[i]);
             m_ref_pts_1d.push_back(make_pair(d, i));
-            d = dot(dir[iter], m_pts[i]);
+            d = dot(dir[dir_idx], m_pts[i]);
             m_pts_1d.push_back(make_pair(d, i));
         }
         sort(m_ref_pts_1d.begin(), m_ref_pts_1d.end());
         sort(m_pts_1d.begin(), m_pts_1d.end());
         for (int j=0;j < N_pts; ++j) {
             int i = m_pts_1d[j].second;
-            m_pts_new[i] += dir[iter]*(m_ref_pts_1d[i].first - m_pts_1d[i].first)/(dir.size());
+            m_pts_new[i] += dir[dir_idx]*(m_ref_pts_1d[j].first - m_pts_1d[j].first)/N_dir;
         }
     }
 
-    for (auto v: m.vertices()) 
-        m.pos(v) = Vec3d(0);
-
     for (auto f: m.faces()) {
-        Vec3d p(0);
+        Vec3d reg_v(0);
         for (int i: m_pts_idx[f])
-            p += m_pts_new[i];
-        p /= m_pts_idx[f].size();
-        for (VertexID v: m.incident_vertices(f))
-            m.pos(v) += p;
+            reg_v += m_pts_new[i];
+        reg_v /= m_pts_idx[f].size();
+        for (VertexID v: m.incident_vertices(f)) {
+            int n = valency(m, v);
+            auto offst = reg_v/n;
+            // cout << offst << endl;
+            m.pos(v) += offst;
+        }
     }
     
-    for (auto v: m.vertices()) {
-        int n = valency(m, v);
-        m.pos(v) /= n; 
-    }
 }

@@ -102,6 +102,7 @@ extern "C" {
 
     DLLEXPORT void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double* node_radii, bool symmetrize, bool use_graph_radii);
 
+    DLLEXPORT void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
 
 #ifdef __cplusplus
 }

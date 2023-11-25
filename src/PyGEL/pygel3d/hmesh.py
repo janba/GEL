@@ -598,6 +598,10 @@ def skeleton_to_feq(g, node_radii = None, symmetrize=True):
     lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat.ctypes.data_as(ct.POINTER(ct.c_double)), symmetrize, use_graph_radii)
     return m
 
+def non_rigid_registration(m, ref_mesh):
+    """ Perform non-rigid registration of m to ref_mesh. """
+    lib_py_gel.non_rigid_registration(m.obj, ref_mesh.obj)
+
 def laplacian_matrix(m):
     """ Returns the sparse uniform laplacian matrix for a polygonal mesh m. """
     num_verts = m.no_allocated_vertices()
