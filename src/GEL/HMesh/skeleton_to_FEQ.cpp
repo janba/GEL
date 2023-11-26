@@ -1225,7 +1225,7 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
 
 std::vector<Vec3d> generateVectors(int N) {
     std::vector<Vec3d> vectors;
-        auto rand_num = []() { return double(rand())/RAND_MAX; };
+    auto rand_num = []() { return static_cast<double>(rand())/static_cast<double>(RAND_MAX); };
 
     for (int i = 0; i < N; ++i) {
         double inclination = acos(1 - 2 * rand_num());
@@ -1242,23 +1242,30 @@ std::vector<Vec3d> generateVectors(int N) {
 }
 
 
-void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
 
-    auto rand_num = []() { return double(rand())/RAND_MAX; };
-    const int N_dir = 7; // Number of directions
+
+void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
+    srand(0);
+
+    auto rand_num = []() { return static_cast<double>(rand())/static_cast<double>(RAND_MAX); };
+    const int N_dir = 47; // Number of directions
     // Generate random vectors distributed over the sphere.
     vector<Vec3d> dir = generateVectors(N_dir);
+    static int call_no = 0;
 
+    cout << __FILE__ << __LINE__ << " : " << call_no << endl;
     const int N_pts = m_ref.no_vertices(); // Number of points
 
     vector<Vec3d> m_pts;      // Points on manifold we deform
     vector<Vec3d> m_ref_pts;  // Target points on reference manifold
     FaceAttributeVector<vector<int>> m_pts_idx; // Point indices stored per face
+    cout << __FILE__ << __LINE__ << " : " << call_no << endl;
 
     // Generate points on the reference manifolds. These are simply
     // its vertices.
     for(auto p: m_ref.vertices())
         m_ref_pts.push_back(m_ref.pos(p));
+    cout << __FILE__ << __LINE__ << " : " << call_no << endl;
 
     // Now compute the total area of the deformable manifold, m, and 
     // also stored the areas of its faces in an attribute vector.
@@ -1266,20 +1273,26 @@ void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
     FaceAttributeVector<double> face_area;
     for (const FaceID f: m.faces()) {
         double a = area(m, f);
+        if (isnan(a))
+            a = 0;
         face_area[f] = a;
         total_area += a;
     }
+    // cout << __FILE__ << __LINE__ << " : " << call_no << endl;
 
     // Generate N_pts points randomly distributed over m.
     // The face areas are used to ensure an even distribution.
     for (int i=0;i<N_pts;++i) {
         FaceID f = InvalidFaceID;
+        // cout << __FILE__ << __LINE__ << " : " << call_no << " " << f.get_index() << " "  << i << endl;
+
         while (f == InvalidFaceID) {
             double r = rand_num() * total_area;
+            // cout << __FILE__ << __LINE__ << " : " << call_no << " " << f.get_index() << " "  << r << " " << total_area << endl;
             double a = 0;
             for (const FaceID ff: m.faces()) {
                 a += face_area[ff];
-                if (a>r) {
+                if (a+1e-6>r) {
                     f = ff;
                     break;
                 }
@@ -1288,7 +1301,7 @@ void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
         double w_sum = 0;
         Vec3d p(0);
         // The point is just a random affine combination of the polygon's
-        // vertices.
+        // ve   rtices.
         for (VertexID v: m.incident_vertices(f)) {
             double w = rand_num();
             p += w * m.pos(v);
@@ -1297,40 +1310,55 @@ void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
         m_pts_idx[f].push_back(m_pts.size());
         m_pts.push_back(p/w_sum);
     }
+    cout << __FILE__ << __LINE__ << " : " << call_no << endl;
 
+    VertexAttributeVector<Vec3d> new_pos(Vec3d(0));
+    for (int iter = 0; iter < N_dir; ++iter)
+    {
+        Vec3d V = dir[iter];
 
-    // Inspired by the sliced Wasserstein distance, we compute target points by 
-    // matching all points in 1D between the two shapes and then computing the 
-    // average vector from the point on m to the point on m_ref.
-    auto m_pts_new = vector<Vec3d>(m_pts.size(), Vec3d(0));
-    for (int dir_idx=0;dir_idx<dir.size();++dir_idx) {
-        vector<pair<double, int>> m_ref_pts_1d;
-        vector<pair<double, int>> m_pts_1d;
-        for (int i=0;i < N_pts; ++i) {
-            double d = dot(dir[dir_idx], m_ref_pts[i]);
-            m_ref_pts_1d.push_back(make_pair(d, i));
-            d = dot(dir[dir_idx], m_pts[i]);
-            m_pts_1d.push_back(make_pair(d, i));
+        vector<pair<double, int>> pts_m_1d;
+        vector<pair<double, int>> pts_ref_1d;
+        for (int j = 0; j < N_pts; ++j)
+        {
+            double d = dot(V, m_pts[j]);
+            pts_m_1d.push_back(pair<double, int>(d, j));
+            d = dot(V, m_ref_pts[j]);
+            pts_ref_1d.push_back(pair<double, int>(d, j));
         }
-        sort(m_ref_pts_1d.begin(), m_ref_pts_1d.end());
-        sort(m_pts_1d.begin(), m_pts_1d.end());
-        for (int j=0;j < N_pts; ++j) {
-            int i = m_pts_1d[j].second;
-            m_pts_new[i] += dir[dir_idx]*(m_ref_pts_1d[j].first - m_pts_1d[j].first)/N_dir;
+
+        sort(pts_m_1d.begin(), pts_m_1d.end());
+        sort(pts_ref_1d.begin(), pts_ref_1d.end());
+
+        vector<Vec3d> displace(N_pts, Vec3d(0));
+        for (int j = 0; j < N_pts; ++j)
+        {
+            int i_m = pts_m_1d[j].second;
+            int i_ref = pts_ref_1d[j].second;
+        //    displace[] = V * (pts_ref_1d[j].first - pts_m_1d[j].first);
+           displace[i_m] = V * dot(V, m_ref_pts[i_ref]-m_pts[i_m]);
+        }
+
+        for (VertexID v : m.vertices())
+        {
+            Vec3d p(0);
+            int n = 0;
+            for (FaceID f : m.incident_faces(v))
+            {
+                for (int i : m_pts_idx[f])
+                {
+                    p += displace[i] + m_pts[i];
+                    ++n;
+                }
+            }
+            new_pos[v] += p / n;
         }
     }
+    cout << __FILE__ << __LINE__ << " : " << call_no << endl;
 
-    for (auto f: m.faces()) {
-        Vec3d reg_v(0);
-        for (int i: m_pts_idx[f])
-            reg_v += m_pts_new[i];
-        reg_v /= m_pts_idx[f].size();
-        for (VertexID v: m.incident_vertices(f)) {
-            int n = valency(m, v);
-            auto offst = reg_v/n;
-            // cout << offst << endl;
-            m.pos(v) += offst;
-        }
-    }
-    
+    for (auto v: m.vertices())
+        m.pos(v) = new_pos[v]/N_dir;
+    cout << __FILE__ << __LINE__ << " : " << call_no << endl;
+    call_no++;
+
 }

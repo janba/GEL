@@ -32,11 +32,13 @@ for o_file in obj_files:
 
         print('Fitting to reference mesh')
         fit_mesh = hmesh.Manifold(m_skel)
-        for _ in range(3):
-            hmesh.non_rigid_registration(fit_mesh, ref_mesh)
+        # for _ in range(1):
+        #     hmesh.non_rigid_registration(fit_mesh, ref_mesh)
+        #     # hmesh.regularize_quads(fit_mesh, w=0.75, shrink=0.3, iter=3)
+        #     print(".")
 
         # ref_mesh_orig = hmesh.Manifold(ref_mesh)
-        # fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh)
+        fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh)
         # viewer.display(fit_mesh, bg_col=[1,1,1])
         # ref_mesh = hmesh.fit_mesh_to_ref(ref_mesh, fit_mesh, dist_wt=0.5, lap_wt=1, iter=1)
         # viewer.display(ref_mesh, bg_col=[1,1,1])
