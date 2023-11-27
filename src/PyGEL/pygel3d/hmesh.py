@@ -653,103 +653,22 @@ def inv_correspondence_leqs(m, ref_mesh):
             b_list.append(m_target_pos[vid])
     return csc_matrix(np.array(A_list)), np.array(b_list)
 
-def fwd_correspondence_leqs(m, ref_mesh):
-    """ Helper function to compute correspondences between a skeletal mesh m and a reference mesh ref_mesh, given a MeshDistance object dist_obj for the ref mesh. """
-
-    m_pos = m.positions()
-    ael = average_edge_length(ref_mesh)
-    ref_mesh_dist = MeshDistance(ref_mesh)
-    N = m.no_allocated_vertices()
-    A_list = []
-    b_list = []
-
-    for v in m.vertices():
-        p0 = m_pos[v]
-        dir = m.vertex_normal(v)
-        dir_i = - dir
-        t = None
-        t_i = None
-        pos = None
-        pos_i = None
-        hit = ref_mesh_dist.intersect(p0,dir)
-        if hit:
-            t, pos, norm = hit
-            if norm @ dir < 0.75:
-                t = None
-
-        hit_i = ref_mesh_dist.intersect(p0,dir_i)
-        if hit_i:
-            t_i, pos_i, norm_i = hit_i
-            if norm_i @ dir_i < 0.75:
-                t_i = None
-
-        if t and t_i and t_i < t or not t:
-            t = t_i
-            pos = pos_i
-
-        if t and t < ael:              
-            w = np.exp(-(t/ael))
-            row_a = np.zeros(N)
-            row_a[v] = w
-            A_list.append(row_a)
-            b_list.append(pos*w)
-
-    return csc_matrix(np.array(A_list)), np.array(b_list)
-
-def is_quad_mesh(m):
-    """ Returns True if m is a quad mesh. """
-    for f in m.faces():
-        if len(list(m.circulate_face(f))) == 4:
-            return True
-        return False
-
-def fit_mesh_to_ref(m, ref_mesh, iter = 10, dist_wt = 1.0, lap_wt = 0.5):
+def fit_mesh_to_ref(m, ref_mesh, iter = 10, dist_wt = 1.0, lap_wt = 0.3):
     """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
 
     v_pos = m.positions()
-
     for i in range(iter):
         Ai, bi = inv_correspondence_leqs(m, ref_mesh)
-        Af, bf = fwd_correspondence_leqs(m, ref_mesh)
         lap_matrix = laplacian_matrix(m)
         lap_b = lap_matrix @ v_pos
-        final_A = vstack([lap_wt*lap_matrix, dist_wt*Ai, dist_wt*Af])
-        final_b = np.vstack([lap_wt*lap_b, dist_wt*bi, dist_wt*bf])
+        final_A = vstack([lap_wt*lap_matrix, dist_wt*Ai])
+        final_b = np.vstack([0*lap_b, dist_wt*bi])
         opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
         opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
         opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
         v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
-        if is_quad_mesh(m):
-            # volume_preserving_cc_smooth(m, 3)
-            regularize_quads(m, w=0.5, shrink=0.8, iter=3)
-        else:
-            taubin_smooth(m, iter=5)
+        regularize_quads(m, w=0.5, shrink=0.8, iter=3)
     return m
-
-
-# def fit_mesh_to_ref(m, ref_mesh, iter = 50, dist_wt = 1.0, lap_wt = 3.0):
-#     """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
-#     ael = average_edge_length(m)
-#     v_pos = m.positions()
-#     if (is_quad_mesh(ref_mesh)):
-#         ref_mesh = Manifold(ref_mesh)
-#         triangulate(ref_mesh)
-#     D = MeshDistance(ref_mesh)
-#     for i in range(iter):
-#         if is_quad_mesh(m):
-#             regularize_quads(m, w=0.5, shrink=lap_wt, iter=int(dist_wt))
-#         else:
-#             taubin_smooth(m, iter=int(dist_wt))
-#         # volume_preserving_cc_smooth(m, int(dist_wt))
-#         new_pos = np.copy(v_pos)
-#         for v in m.vertices():
-#             n = m.vertex_normal(v)
-#             p = v_pos[v]
-#             d = D.signed_distance(p)
-#             new_pos[v] -= np.sign(d) * min(ael, abs(d)) * n
-#         v_pos[:,:] = new_pos
-
-#     return m
 
 
 class MeshDistance:
