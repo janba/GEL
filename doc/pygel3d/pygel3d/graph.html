@@ -1,0 +1,1184 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="generator" content="pdoc 11.2.0"/>
+    <title>pygel3d.graph API documentation</title>
+
+    <style>/*! * Bootstrap Reboot v5.0.0 (https://getbootstrap.com/) * Copyright 2011-2021 The Bootstrap Authors * Copyright 2011-2021 Twitter, Inc. * Licensed under MIT (https://github.com/twbs/bootstrap/blob/main/LICENSE) * Forked from Normalize.css, licensed MIT (https://github.com/necolas/normalize.css/blob/master/LICENSE.md) */*,::after,::before{box-sizing:border-box}@media (prefers-reduced-motion:no-preference){:root{scroll-behavior:smooth}}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Noto Sans","Liberation Sans",sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol","Noto Color Emoji";font-size:1rem;font-weight:400;line-height:1.5;color:#212529;background-color:#fff;-webkit-text-size-adjust:100%;-webkit-tap-highlight-color:transparent}hr{margin:1rem 0;color:inherit;background-color:currentColor;border:0;opacity:.25}hr:not([size]){height:1px}h1,h2,h3,h4,h5,h6{margin-top:0;margin-bottom:.5rem;font-weight:500;line-height:1.2}h1{font-size:calc(1.375rem + 1.5vw)}@media (min-width:1200px){h1{font-size:2.5rem}}h2{font-size:calc(1.325rem + .9vw)}@media (min-width:1200px){h2{font-size:2rem}}h3{font-size:calc(1.3rem + .6vw)}@media (min-width:1200px){h3{font-size:1.75rem}}h4{font-size:calc(1.275rem + .3vw)}@media (min-width:1200px){h4{font-size:1.5rem}}h5{font-size:1.25rem}h6{font-size:1rem}p{margin-top:0;margin-bottom:1rem}abbr[data-bs-original-title],abbr[title]{-webkit-text-decoration:underline dotted;text-decoration:underline dotted;cursor:help;-webkit-text-decoration-skip-ink:none;text-decoration-skip-ink:none}address{margin-bottom:1rem;font-style:normal;line-height:inherit}ol,ul{padding-left:2rem}dl,ol,ul{margin-top:0;margin-bottom:1rem}ol ol,ol ul,ul ol,ul ul{margin-bottom:0}dt{font-weight:700}dd{margin-bottom:.5rem;margin-left:0}blockquote{margin:0 0 1rem}b,strong{font-weight:bolder}small{font-size:.875em}mark{padding:.2em;background-color:#fcf8e3}sub,sup{position:relative;font-size:.75em;line-height:0;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}a{color:#0d6efd;text-decoration:underline}a:hover{color:#0a58ca}a:not([href]):not([class]),a:not([href]):not([class]):hover{color:inherit;text-decoration:none}code,kbd,pre,samp{font-family:SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace;font-size:1em;direction:ltr;unicode-bidi:bidi-override}pre{display:block;margin-top:0;margin-bottom:1rem;overflow:auto;font-size:.875em}pre code{font-size:inherit;color:inherit;word-break:normal}code{font-size:.875em;color:#d63384;word-wrap:break-word}a>code{color:inherit}kbd{padding:.2rem .4rem;font-size:.875em;color:#fff;background-color:#212529;border-radius:.2rem}kbd kbd{padding:0;font-size:1em;font-weight:700}figure{margin:0 0 1rem}img,svg{vertical-align:middle}table{caption-side:bottom;border-collapse:collapse}caption{padding-top:.5rem;padding-bottom:.5rem;color:#6c757d;text-align:left}th{text-align:inherit;text-align:-webkit-match-parent}tbody,td,tfoot,th,thead,tr{border-color:inherit;border-style:solid;border-width:0}label{display:inline-block}button{border-radius:0}button:focus:not(:focus-visible){outline:0}button,input,optgroup,select,textarea{margin:0;font-family:inherit;font-size:inherit;line-height:inherit}button,select{text-transform:none}[role=button]{cursor:pointer}select{word-wrap:normal}select:disabled{opacity:1}[list]::-webkit-calendar-picker-indicator{display:none}[type=button],[type=reset],[type=submit],button{-webkit-appearance:button}[type=button]:not(:disabled),[type=reset]:not(:disabled),[type=submit]:not(:disabled),button:not(:disabled){cursor:pointer}::-moz-focus-inner{padding:0;border-style:none}textarea{resize:vertical}fieldset{min-width:0;padding:0;margin:0;border:0}legend{float:left;width:100%;padding:0;margin-bottom:.5rem;font-size:calc(1.275rem + .3vw);line-height:inherit}@media (min-width:1200px){legend{font-size:1.5rem}}legend+*{clear:left}::-webkit-datetime-edit-day-field,::-webkit-datetime-edit-fields-wrapper,::-webkit-datetime-edit-hour-field,::-webkit-datetime-edit-minute,::-webkit-datetime-edit-month-field,::-webkit-datetime-edit-text,::-webkit-datetime-edit-year-field{padding:0}::-webkit-inner-spin-button{height:auto}[type=search]{outline-offset:-2px;-webkit-appearance:textfield}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-color-swatch-wrapper{padding:0}::file-selector-button{font:inherit}::-webkit-file-upload-button{font:inherit;-webkit-appearance:button}output{display:inline-block}iframe{border:0}summary{display:list-item;cursor:pointer}progress{vertical-align:baseline}[hidden]{display:none!important}</style>
+    <style>/*! syntax-highlighting.css */pre{line-height:125%;}span.linenos{color:inherit; background-color:transparent; padding-left:5px; padding-right:20px;}.pdoc-code .hll{background-color:#ffffcc}.pdoc-code{background:#f8f8f8;}.pdoc-code .c{color:#3D7B7B; font-style:italic}.pdoc-code .err{border:1px solid #FF0000}.pdoc-code .k{color:#008000; font-weight:bold}.pdoc-code .o{color:#666666}.pdoc-code .ch{color:#3D7B7B; font-style:italic}.pdoc-code .cm{color:#3D7B7B; font-style:italic}.pdoc-code .cp{color:#9C6500}.pdoc-code .cpf{color:#3D7B7B; font-style:italic}.pdoc-code .c1{color:#3D7B7B; font-style:italic}.pdoc-code .cs{color:#3D7B7B; font-style:italic}.pdoc-code .gd{color:#A00000}.pdoc-code .ge{font-style:italic}.pdoc-code .gr{color:#E40000}.pdoc-code .gh{color:#000080; font-weight:bold}.pdoc-code .gi{color:#008400}.pdoc-code .go{color:#717171}.pdoc-code .gp{color:#000080; font-weight:bold}.pdoc-code .gs{font-weight:bold}.pdoc-code .gu{color:#800080; font-weight:bold}.pdoc-code .gt{color:#0044DD}.pdoc-code .kc{color:#008000; font-weight:bold}.pdoc-code .kd{color:#008000; font-weight:bold}.pdoc-code .kn{color:#008000; font-weight:bold}.pdoc-code .kp{color:#008000}.pdoc-code .kr{color:#008000; font-weight:bold}.pdoc-code .kt{color:#B00040}.pdoc-code .m{color:#666666}.pdoc-code .s{color:#BA2121}.pdoc-code .na{color:#687822}.pdoc-code .nb{color:#008000}.pdoc-code .nc{color:#0000FF; font-weight:bold}.pdoc-code .no{color:#880000}.pdoc-code .nd{color:#AA22FF}.pdoc-code .ni{color:#717171; font-weight:bold}.pdoc-code .ne{color:#CB3F38; font-weight:bold}.pdoc-code .nf{color:#0000FF}.pdoc-code .nl{color:#767600}.pdoc-code .nn{color:#0000FF; font-weight:bold}.pdoc-code .nt{color:#008000; font-weight:bold}.pdoc-code .nv{color:#19177C}.pdoc-code .ow{color:#AA22FF; font-weight:bold}.pdoc-code .w{color:#bbbbbb}.pdoc-code .mb{color:#666666}.pdoc-code .mf{color:#666666}.pdoc-code .mh{color:#666666}.pdoc-code .mi{color:#666666}.pdoc-code .mo{color:#666666}.pdoc-code .sa{color:#BA2121}.pdoc-code .sb{color:#BA2121}.pdoc-code .sc{color:#BA2121}.pdoc-code .dl{color:#BA2121}.pdoc-code .sd{color:#BA2121; font-style:italic}.pdoc-code .s2{color:#BA2121}.pdoc-code .se{color:#AA5D1F; font-weight:bold}.pdoc-code .sh{color:#BA2121}.pdoc-code .si{color:#A45A77; font-weight:bold}.pdoc-code .sx{color:#008000}.pdoc-code .sr{color:#A45A77}.pdoc-code .s1{color:#BA2121}.pdoc-code .ss{color:#19177C}.pdoc-code .bp{color:#008000}.pdoc-code .fm{color:#0000FF}.pdoc-code .vc{color:#19177C}.pdoc-code .vg{color:#19177C}.pdoc-code .vi{color:#19177C}.pdoc-code .vm{color:#19177C}.pdoc-code .il{color:#666666}</style>
+    <style>/*! theme.css */:root{--pdoc-background:#fff;}.pdoc{--text:#212529;--muted:#6c757d;--link:#3660a5;--link-hover:#1659c5;--code:#f8f8f8;--active:#fff598;--accent:#eee;--accent2:#c1c1c1;--nav-hover:rgba(255, 255, 255, 0.5);--name:#0066BB;--def:#008800;--annotation:#007020;}</style>
+    <style>/*! layout.css */html, body{width:100%;height:100%;}html, main{scroll-behavior:smooth;}body{background-color:var(--pdoc-background);}@media (max-width:769px){#navtoggle{cursor:pointer;position:absolute;width:50px;height:40px;top:1rem;right:1rem;border-color:var(--text);color:var(--text);display:flex;opacity:0.8;}#navtoggle:hover{opacity:1;}#togglestate + div{display:none;}#togglestate:checked + div{display:inherit;}main, header{padding:2rem 3vw;}header + main{margin-top:-3rem;}.git-button{display:none !important;}nav input[type="search"]{max-width:77%;}nav input[type="search"]:first-child{margin-top:-6px;}nav input[type="search"]:valid ~ *{display:none !important;}}@media (min-width:770px){:root{--sidebar-width:clamp(12.5rem, 28vw, 22rem);}nav{position:fixed;overflow:auto;height:100vh;width:var(--sidebar-width);}main, header{padding:3rem 2rem 3rem calc(var(--sidebar-width) + 3rem);width:calc(54rem + var(--sidebar-width));max-width:100%;}header + main{margin-top:-4rem;}#navtoggle{display:none;}}#togglestate{position:absolute;height:0;}nav.pdoc{--pad:clamp(0.5rem, 2vw, 1.75rem);--indent:1.5rem;background-color:var(--accent);border-right:1px solid var(--accent2);box-shadow:0 0 20px rgba(50, 50, 50, .2) inset;padding:0 0 0 var(--pad);overflow-wrap:anywhere;scrollbar-width:thin; scrollbar-color:var(--accent2) transparent }nav.pdoc::-webkit-scrollbar{width:.4rem; }nav.pdoc::-webkit-scrollbar-thumb{background-color:var(--accent2); }nav.pdoc > div{padding:var(--pad) 0;}nav.pdoc .module-list-button{display:inline-flex;align-items:center;color:var(--text);border-color:var(--muted);margin-bottom:1rem;}nav.pdoc .module-list-button:hover{border-color:var(--text);}nav.pdoc input[type=search]{display:block;outline-offset:0;width:calc(100% - var(--pad));}nav.pdoc .logo{max-width:calc(100% - var(--pad));max-height:35vh;display:block;margin:0 auto 1rem;transform:translate(calc(-.5 * var(--pad)), 0);}nav.pdoc ul{list-style:none;padding-left:0;}nav.pdoc > div > ul{margin-left:calc(0px - var(--pad));}nav.pdoc li a{padding:.2rem 0 .2rem calc(var(--pad) + var(--indent));}nav.pdoc > div > ul > li > a{padding-left:var(--pad);}nav.pdoc li{transition:all 100ms;}nav.pdoc li:hover{background-color:var(--nav-hover);}nav.pdoc a, nav.pdoc a:hover{color:var(--text);}nav.pdoc a{display:block;}nav.pdoc > h2:first-of-type{margin-top:1.5rem;}nav.pdoc .class:before{content:"class ";color:var(--muted);}nav.pdoc .function:after{content:"()";color:var(--muted);}nav.pdoc footer:before{content:"";display:block;width:calc(100% - var(--pad));border-top:solid var(--accent2) 1px;margin-top:1.5rem;padding-top:.5rem;}nav.pdoc footer{font-size:small;}</style>
+    <style>/*! content.css */.pdoc{color:var(--text);box-sizing:border-box;line-height:1.5;background:none;}.pdoc .pdoc-button{display:inline-block;border:solid black 1px;border-radius:2px;font-size:.75rem;padding:calc(0.5em - 1px) 1em;transition:100ms all;}.pdoc .pdoc-alert{padding:1rem 1rem 1rem calc(1.5rem + 24px);border:1px solid transparent;border-radius:.25rem;background-repeat:no-repeat;background-position:1rem center;margin-bottom:1rem;}.pdoc .pdoc-alert > *:last-child{margin-bottom:0;}.pdoc .pdoc-alert-note {color:#084298;background-color:#cfe2ff;border-color:#b6d4fe;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23084298%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8%2016A8%208%200%201%200%208%200a8%208%200%200%200%200%2016zm.93-9.412-1%204.705c-.07.34.029.533.304.533.194%200%20.487-.07.686-.246l-.088.416c-.287.346-.92.598-1.465.598-.703%200-1.002-.422-.808-1.319l.738-3.468c.064-.293.006-.399-.287-.47l-.451-.081.082-.381%202.29-.287zM8%205.5a1%201%200%201%201%200-2%201%201%200%200%201%200%202z%22/%3E%3C/svg%3E");}.pdoc .pdoc-alert-warning{color:#664d03;background-color:#fff3cd;border-color:#ffecb5;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23664d03%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M8.982%201.566a1.13%201.13%200%200%200-1.96%200L.165%2013.233c-.457.778.091%201.767.98%201.767h13.713c.889%200%201.438-.99.98-1.767L8.982%201.566zM8%205c.535%200%20.954.462.9.995l-.35%203.507a.552.552%200%200%201-1.1%200L7.1%205.995A.905.905%200%200%201%208%205zm.002%206a1%201%200%201%201%200%202%201%201%200%200%201%200-2z%22/%3E%3C/svg%3E");}.pdoc .pdoc-alert-danger{color:#842029;background-color:#f8d7da;border-color:#f5c2c7;background-image:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20width%3D%2224%22%20height%3D%2224%22%20fill%3D%22%23842029%22%20viewBox%3D%220%200%2016%2016%22%3E%3Cpath%20d%3D%22M5.52.359A.5.5%200%200%201%206%200h4a.5.5%200%200%201%20.474.658L8.694%206H12.5a.5.5%200%200%201%20.395.807l-7%209a.5.5%200%200%201-.873-.454L6.823%209.5H3.5a.5.5%200%200%201-.48-.641l2.5-8.5z%22/%3E%3C/svg%3E");}.pdoc .visually-hidden{position:absolute !important;width:1px !important;height:1px !important;padding:0 !important;margin:-1px !important;overflow:hidden !important;clip:rect(0, 0, 0, 0) !important;white-space:nowrap !important;border:0 !important;}.pdoc h1, .pdoc h2, .pdoc h3{font-weight:300;margin:.3em 0;padding:.2em 0;}.pdoc > section:not(.module-info) h1{font-size:1.5rem;font-weight:500;}.pdoc > section:not(.module-info) h2{font-size:1.4rem;font-weight:500;}.pdoc > section:not(.module-info) h3{font-size:1.3rem;font-weight:500;}.pdoc > section:not(.module-info) h4{font-size:1.2rem;}.pdoc > section:not(.module-info) h5{font-size:1.1rem;}.pdoc a{text-decoration:none;color:var(--link);}.pdoc a:hover{color:var(--link-hover);}.pdoc blockquote{margin-left:2rem;}.pdoc pre{border-top:1px solid var(--accent2);border-bottom:1px solid var(--accent2);margin-top:0;margin-bottom:1em;padding:.5rem 0 .5rem .5rem;overflow-x:auto;background-color:var(--code);}.pdoc code{color:var(--text);padding:.2em .4em;margin:0;font-size:85%;background-color:var(--code);border-radius:6px;}.pdoc a > code{color:inherit;}.pdoc pre > code{display:inline-block;font-size:inherit;background:none;border:none;padding:0;}.pdoc > section:not(.module-info){margin-bottom:1.5rem;}.pdoc .modulename{margin-top:0;font-weight:bold;}.pdoc .modulename a{color:var(--link);transition:100ms all;}.pdoc .git-button{float:right;border:solid var(--link) 1px;}.pdoc .git-button:hover{background-color:var(--link);color:var(--pdoc-background);}.pdoc details{filter:opacity(1);}.pdoc details:not([open]){height:0;}.pdoc details > summary{position:absolute;top:-35px;right:0;font-size:.75rem;color:var(--muted);padding:0 .7em;user-select:none;cursor:pointer;}.pdoc details > summary:focus{outline:0;}.pdoc > section.module-info details > summary{top:-20px;}.pdoc .docstring{margin-bottom:1.5rem;}.pdoc section:not(.module-info) .docstring{margin-left:clamp(0rem, 5vw - 2rem, 1rem);}.pdoc .docstring .pdoc-code{margin-left:1em;margin-right:1em;}.pdoc h1:target,.pdoc h2:target,.pdoc h3:target,.pdoc h4:target,.pdoc h5:target,.pdoc h6:target,.pdoc .pdoc-code > pre > span:target{background-color:var(--active);box-shadow:-1rem 0 0 0 var(--active);}.pdoc .pdoc-code > pre > span:target{display:block;}.pdoc div:target > .attr,.pdoc section:target > .attr,.pdoc dd:target > a{background-color:var(--active);}.pdoc *{scroll-margin:2rem;}.pdoc .attr:hover{filter:contrast(0.95);}.pdoc .headerlink{position:absolute;width:0;margin-left:-1.5rem;line-height:1.4rem;font-size:1.5rem;font-weight:normal;transition:all 100ms ease-in-out;opacity:0;user-select:none;}.pdoc .attr > .headerlink{margin-left:-2.5rem;}.pdoc *:hover > .headerlink,.pdoc *:target > .attr > .headerlink{opacity:1;}.pdoc .attr{display:block;color:var(--text);margin:.5rem 0 .5rem;padding:.4rem 5rem .4rem 1rem;background-color:var(--accent);}.pdoc .classattr{margin-left:2rem;}.pdoc .name{color:var(--name);font-weight:bold;}.pdoc .def{color:var(--def);font-weight:bold;}.pdoc .signature{white-space:pre-wrap;}.pdoc .annotation{color:var(--annotation);}.pdoc .inherited{margin-left:2rem;}.pdoc .inherited dt{font-weight:700;}.pdoc .inherited dt, .pdoc .inherited dd{display:inline;margin-left:0;margin-bottom:.5rem;}.pdoc .inherited dd:not(:last-child):after{content:", ";}.pdoc .inherited .class:before{content:"class ";}.pdoc .inherited .function a:after{content:"()";}.pdoc .search-result .docstring{overflow:auto;max-height:25vh;}.pdoc .search-result.focused > .attr{background-color:var(--active);}.pdoc .attribution{margin-top:2rem;display:block;opacity:0.5;transition:all 200ms;filter:grayscale(100%);}.pdoc .attribution:hover{opacity:1;filter:grayscale(0%);}.pdoc .attribution img{margin-left:5px;height:35px;vertical-align:middle;width:70px;transition:all 200ms;}.pdoc table{display:block;width:max-content;max-width:100%;overflow:auto;margin-bottom:1rem;}.pdoc table th{font-weight:600;}.pdoc table th, .pdoc table td{padding:6px 13px;border:1px solid var(--accent2);}</style>
+    <style>/*! custom.css */</style></head>
+<body>
+    <nav class="pdoc">
+        <label id="navtoggle" for="togglestate" class="pdoc-button"><svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 30 30'><path stroke-linecap='round' stroke="currentColor" stroke-miterlimit='10' stroke-width='2' d='M4 7h22M4 15h22M4 23h22'/></svg></label>
+        <input id="togglestate" type="checkbox" aria-hidden="true" tabindex="-1">
+        <div>            <a class="pdoc-button module-list-button" href="../pygel3d.html">
+<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-in-left" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M10 3.5a.5.5 0 0 0-.5-.5h-8a.5.5 0 0 0-.5.5v9a.5.5 0 0 0 .5.5h8a.5.5 0 0 0 .5-.5v-2a.5.5 0 0 1 1 0v2A1.5 1.5 0 0 1 9.5 14h-8A1.5 1.5 0 0 1 0 12.5v-9A1.5 1.5 0 0 1 1.5 2h8A1.5 1.5 0 0 1 11 3.5v2a.5.5 0 0 1-1 0v-2z"/>
+  <path fill-rule="evenodd" d="M4.146 8.354a.5.5 0 0 1 0-.708l3-3a.5.5 0 1 1 .708.708L5.707 7.5H14.5a.5.5 0 0 1 0 1H5.707l2.147 2.146a.5.5 0 0 1-.708.708l-3-3z"/>
+</svg>                &nbsp;pygel3d</a>
+
+
+            <input type="search" placeholder="Search..." role="searchbox" aria-label="search"
+                   pattern=".+" required>
+
+
+
+        <h2>API Documentation</h2>
+            <ul class="memberlist">
+            <li>
+                    <a class="class" href="#Graph">Graph</a>
+                            <ul class="memberlist">
+                        <li>
+                                <a class="function" href="#Graph.__init__">Graph</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.clear">clear</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.cleanup">cleanup</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.nodes">nodes</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.neighbors">neighbors</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.positions">positions</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.average_edge_length">average_edge_length</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.add_node">add_node</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.remove_node">remove_node</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.node_in_use">node_in_use</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.connect_nodes">connect_nodes</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.disconnect_nodes">disconnect_nodes</a>
+                        </li>
+                        <li>
+                                <a class="function" href="#Graph.merge_nodes">merge_nodes</a>
+                        </li>
+                </ul>
+
+            </li>
+            <li>
+                    <a class="function" href="#from_mesh">from_mesh</a>
+            </li>
+            <li>
+                    <a class="function" href="#load">load</a>
+            </li>
+            <li>
+                    <a class="function" href="#save">save</a>
+            </li>
+            <li>
+                    <a class="function" href="#to_mesh_cyl">to_mesh_cyl</a>
+            </li>
+            <li>
+                    <a class="function" href="#smooth">smooth</a>
+            </li>
+            <li>
+                    <a class="function" href="#edge_contract">edge_contract</a>
+            </li>
+            <li>
+                    <a class="function" href="#prune">prune</a>
+            </li>
+            <li>
+                    <a class="function" href="#LS_skeleton">LS_skeleton</a>
+            </li>
+            <li>
+                    <a class="function" href="#LS_skeleton_and_map">LS_skeleton_and_map</a>
+            </li>
+            <li>
+                    <a class="function" href="#front_skeleton_and_map">front_skeleton_and_map</a>
+            </li>
+    </ul>
+
+
+
+        <a class="attribution" title="pdoc: Python API documentation generator" href="https://pdoc.dev" target="_blank">
+            built with <span class="visually-hidden">pdoc</span><img
+                alt="pdoc logo"
+                src="data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%20role%3D%22img%22%20aria-label%3D%22pdoc%20logo%22%20width%3D%22300%22%20height%3D%22150%22%20viewBox%3D%22-1%200%2060%2030%22%3E%3Ctitle%3Epdoc%3C/title%3E%3Cpath%20d%3D%22M29.621%2021.293c-.011-.273-.214-.475-.511-.481a.5.5%200%200%200-.489.503l-.044%201.393c-.097.551-.695%201.215-1.566%201.704-.577.428-1.306.486-2.193.182-1.426-.617-2.467-1.654-3.304-2.487l-.173-.172a3.43%203.43%200%200%200-.365-.306.49.49%200%200%200-.286-.196c-1.718-1.06-4.931-1.47-7.353.191l-.219.15c-1.707%201.187-3.413%202.131-4.328%201.03-.02-.027-.49-.685-.141-1.763.233-.721.546-2.408.772-4.076.042-.09.067-.187.046-.288.166-1.347.277-2.625.241-3.351%201.378-1.008%202.271-2.586%202.271-4.362%200-.976-.272-1.935-.788-2.774-.057-.094-.122-.18-.184-.268.033-.167.052-.339.052-.516%200-1.477-1.202-2.679-2.679-2.679-.791%200-1.496.352-1.987.9a6.3%206.3%200%200%200-1.001.029c-.492-.564-1.207-.929-2.012-.929-1.477%200-2.679%201.202-2.679%202.679A2.65%202.65%200%200%200%20.97%206.554c-.383.747-.595%201.572-.595%202.41%200%202.311%201.507%204.29%203.635%205.107-.037.699-.147%202.27-.423%203.294l-.137.461c-.622%202.042-2.515%208.257%201.727%2010.643%201.614.908%203.06%201.248%204.317%201.248%202.665%200%204.492-1.524%205.322-2.401%201.476-1.559%202.886-1.854%206.491.82%201.877%201.393%203.514%201.753%204.861%201.068%202.223-1.713%202.811-3.867%203.399-6.374.077-.846.056-1.469.054-1.537zm-4.835%204.313c-.054.305-.156.586-.242.629-.034-.007-.131-.022-.307-.157-.145-.111-.314-.478-.456-.908.221.121.432.25.675.355.115.039.219.051.33.081zm-2.251-1.238c-.05.33-.158.648-.252.694-.022.001-.125-.018-.307-.157-.217-.166-.488-.906-.639-1.573.358.344.754.693%201.198%201.036zm-3.887-2.337c-.006-.116-.018-.231-.041-.342.635.145%201.189.368%201.599.625.097.231.166.481.174.642-.03.049-.055.101-.067.158-.046.013-.128.026-.298.004-.278-.037-.901-.57-1.367-1.087zm-1.127-.497c.116.306.176.625.12.71-.019.014-.117.045-.345.016-.206-.027-.604-.332-.986-.695.41-.051.816-.056%201.211-.031zm-4.535%201.535c.209.22.379.47.358.598-.006.041-.088.138-.351.234-.144.055-.539-.063-.979-.259a11.66%2011.66%200%200%200%20.972-.573zm.983-.664c.359-.237.738-.418%201.126-.554.25.237.479.548.457.694-.006.042-.087.138-.351.235-.174.064-.694-.105-1.232-.375zm-3.381%201.794c-.022.145-.061.29-.149.401-.133.166-.358.248-.69.251h-.002c-.133%200-.306-.26-.45-.621.417.091.854.07%201.291-.031zm-2.066-8.077a4.78%204.78%200%200%201-.775-.584c.172-.115.505-.254.88-.378l-.105.962zm-.331%202.302a10.32%2010.32%200%200%201-.828-.502c.202-.143.576-.328.984-.49l-.156.992zm-.45%202.157l-.701-.403c.214-.115.536-.249.891-.376a11.57%2011.57%200%200%201-.19.779zm-.181%201.716c.064.398.194.702.298.893-.194-.051-.435-.162-.736-.398.061-.119.224-.3.438-.495zM8.87%204.141c0%20.152-.123.276-.276.276s-.275-.124-.275-.276.123-.276.276-.276.275.124.275.276zm-.735-.389a1.15%201.15%200%200%200-.314.783%201.16%201.16%200%200%200%201.162%201.162c.457%200%20.842-.27%201.032-.653.026.117.042.238.042.362a1.68%201.68%200%200%201-1.679%201.679%201.68%201.68%200%200%201-1.679-1.679c0-.843.626-1.535%201.436-1.654zM5.059%205.406A1.68%201.68%200%200%201%203.38%207.085a1.68%201.68%200%200%201-1.679-1.679c0-.037.009-.072.011-.109.21.3.541.508.935.508a1.16%201.16%200%200%200%201.162-1.162%201.14%201.14%200%200%200-.474-.912c.015%200%20.03-.005.045-.005.926.001%201.679.754%201.679%201.68zM3.198%204.141c0%20.152-.123.276-.276.276s-.275-.124-.275-.276.123-.276.276-.276.275.124.275.276zM1.375%208.964c0-.52.103-1.035.288-1.52.466.394%201.06.64%201.717.64%201.144%200%202.116-.725%202.499-1.738.383%201.012%201.355%201.738%202.499%201.738.867%200%201.631-.421%202.121-1.062.307.605.478%201.267.478%201.942%200%202.486-2.153%204.51-4.801%204.51s-4.801-2.023-4.801-4.51zm24.342%2019.349c-.985.498-2.267.168-3.813-.979-3.073-2.281-5.453-3.199-7.813-.705-1.315%201.391-4.163%203.365-8.423.97-3.174-1.786-2.239-6.266-1.261-9.479l.146-.492c.276-1.02.395-2.457.444-3.268a6.11%206.11%200%200%200%201.18.115%206.01%206.01%200%200%200%202.536-.562l-.006.175c-.802.215-1.848.612-2.021%201.25-.079.295.021.601.274.837.219.203.415.364.598.501-.667.304-1.243.698-1.311%201.179-.02.144-.022.507.393.787.213.144.395.26.564.365-1.285.521-1.361.96-1.381%201.126-.018.142-.011.496.427.746l.854.489c-.473.389-.971.914-.999%201.429-.018.278.095.532.316.713.675.556%201.231.721%201.653.721.059%200%20.104-.014.158-.02.207.707.641%201.64%201.513%201.64h.013c.8-.008%201.236-.345%201.462-.626.173-.216.268-.457.325-.692.424.195.93.374%201.372.374.151%200%20.294-.021.423-.068.732-.27.944-.704.993-1.021.009-.061.003-.119.002-.179.266.086.538.147.789.147.15%200%20.294-.021.423-.069.542-.2.797-.489.914-.754.237.147.478.258.704.288.106.014.205.021.296.021.356%200%20.595-.101.767-.229.438.435%201.094.992%201.656%201.067.106.014.205.021.296.021a1.56%201.56%200%200%200%20.323-.035c.17.575.453%201.289.866%201.605.358.273.665.362.914.362a.99.99%200%200%200%20.421-.093%201.03%201.03%200%200%200%20.245-.164c.168.428.39.846.68%201.068.358.273.665.362.913.362a.99.99%200%200%200%20.421-.093c.317-.148.512-.448.639-.762.251.157.495.257.726.257.127%200%20.25-.024.37-.071.427-.17.706-.617.841-1.314.022-.015.047-.022.068-.038.067-.051.133-.104.196-.159-.443%201.486-1.107%202.761-2.086%203.257zM8.66%209.925a.5.5%200%201%200-1%200c0%20.653-.818%201.205-1.787%201.205s-1.787-.552-1.787-1.205a.5.5%200%201%200-1%200c0%201.216%201.25%202.205%202.787%202.205s2.787-.989%202.787-2.205zm4.4%2015.965l-.208.097c-2.661%201.258-4.708%201.436-6.086.527-1.542-1.017-1.88-3.19-1.844-4.198a.4.4%200%200%200-.385-.414c-.242-.029-.406.164-.414.385-.046%201.249.367%203.686%202.202%204.896.708.467%201.547.7%202.51.7%201.248%200%202.706-.392%204.362-1.174l.185-.086a.4.4%200%200%200%20.205-.527c-.089-.204-.326-.291-.527-.206zM9.547%202.292c.093.077.205.114.317.114a.5.5%200%200%200%20.318-.886L8.817.397a.5.5%200%200%200-.703.068.5.5%200%200%200%20.069.703l1.364%201.124zm-7.661-.065c.086%200%20.173-.022.253-.068l1.523-.893a.5.5%200%200%200-.506-.863l-1.523.892a.5.5%200%200%200-.179.685c.094.158.261.247.432.247z%22%20transform%3D%22matrix%28-1%200%200%201%2058%200%29%22%20fill%3D%22%233bb300%22/%3E%3Cpath%20d%3D%22M.3%2021.86V10.18q0-.46.02-.68.04-.22.18-.5.28-.54%201.34-.54%201.06%200%201.42.28.38.26.44.78.76-1.04%202.38-1.04%201.64%200%203.1%201.54%201.46%201.54%201.46%203.58%200%202.04-1.46%203.58-1.44%201.54-3.08%201.54-1.64%200-2.38-.92v4.04q0%20.46-.04.68-.02.22-.18.5-.14.3-.5.42-.36.12-.98.12-.62%200-1-.12-.36-.12-.52-.4-.14-.28-.18-.5-.02-.22-.02-.68zm3.96-9.42q-.46.54-.46%201.18%200%20.64.46%201.18.48.52%201.2.52.74%200%201.24-.52.52-.52.52-1.18%200-.66-.48-1.18-.48-.54-1.26-.54-.76%200-1.22.54zm14.741-8.36q.16-.3.54-.42.38-.12%201-.12.64%200%201.02.12.38.12.52.42.16.3.18.54.04.22.04.68v11.94q0%20.46-.04.7-.02.22-.18.5-.3.54-1.7.54-1.38%200-1.54-.98-.84.96-2.34.96-1.8%200-3.28-1.56-1.48-1.58-1.48-3.66%200-2.1%201.48-3.68%201.5-1.58%203.28-1.58%201.48%200%202.3%201v-4.2q0-.46.02-.68.04-.24.18-.52zm-3.24%2010.86q.52.54%201.26.54.74%200%201.22-.54.5-.54.5-1.18%200-.66-.48-1.22-.46-.56-1.26-.56-.8%200-1.28.56-.48.54-.48%201.2%200%20.66.52%201.2zm7.833-1.2q0-2.4%201.68-3.96%201.68-1.56%203.84-1.56%202.16%200%203.82%201.56%201.66%201.54%201.66%203.94%200%201.66-.86%202.96-.86%201.28-2.1%201.9-1.22.6-2.54.6-1.32%200-2.56-.64-1.24-.66-2.1-1.92-.84-1.28-.84-2.88zm4.18%201.44q.64.48%201.3.48.66%200%201.32-.5.66-.5.66-1.48%200-.98-.62-1.46-.62-.48-1.34-.48-.72%200-1.34.5-.62.5-.62%201.48%200%20.96.64%201.46zm11.412-1.44q0%20.84.56%201.32.56.46%201.18.46.64%200%201.18-.36.56-.38.9-.38.6%200%201.46%201.06.46.58.46%201.04%200%20.76-1.1%201.42-1.14.8-2.8.8-1.86%200-3.58-1.34-.82-.64-1.34-1.7-.52-1.08-.52-2.36%200-1.3.52-2.34.52-1.06%201.34-1.7%201.66-1.32%203.54-1.32.76%200%201.48.22.72.2%201.06.4l.32.2q.36.24.56.38.52.4.52.92%200%20.5-.42%201.14-.72%201.1-1.38%201.1-.38%200-1.08-.44-.36-.34-1.04-.34-.66%200-1.24.48-.58.48-.58%201.34z%22%20fill%3D%22green%22/%3E%3C/svg%3E"/>
+        </a>
+</div>
+    </nav>
+    <main class="pdoc">
+            <section class="module-info">
+                    <h1 class="modulename">
+<a href="./../pygel3d.html">pygel3d</a><wbr>.graph    </h1>
+
+                        <div class="docstring"><p>This module provides a Graph class and functionality for skeletonization using graphs.</p>
+</div>
+
+                        <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="L-0"><a href="#L-0"><span class="linenos">  0</span></a><span class="sd">&quot;&quot;&quot; This module provides a Graph class and functionality for skeletonization using graphs. &quot;&quot;&quot;</span>
+</span><span id="L-1"><a href="#L-1"><span class="linenos">  1</span></a><span class="kn">from</span> <span class="nn">pygel3d</span> <span class="kn">import</span> <span class="n">hmesh</span><span class="p">,</span> <span class="n">lib_py_gel</span><span class="p">,</span> <span class="n">IntVector</span>
+</span><span id="L-2"><a href="#L-2"><span class="linenos">  2</span></a><span class="kn">import</span> <span class="nn">ctypes</span> <span class="k">as</span> <span class="nn">ct</span>
+</span><span id="L-3"><a href="#L-3"><span class="linenos">  3</span></a><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+</span><span id="L-4"><a href="#L-4"><span class="linenos">  4</span></a>
+</span><span id="L-5"><a href="#L-5"><span class="linenos">  5</span></a><span class="k">class</span> <span class="nc">Graph</span><span class="p">:</span>
+</span><span id="L-6"><a href="#L-6"><span class="linenos">  6</span></a>    <span class="sd">&quot;&quot;&quot; This class is for representing graphs embedded in 3D. The class does not in</span>
+</span><span id="L-7"><a href="#L-7"><span class="linenos">  7</span></a><span class="sd">    itself come with many features: it contains methods for creating, accessing, and</span>
+</span><span id="L-8"><a href="#L-8"><span class="linenos">  8</span></a><span class="sd">    housekeeping. When vertices are used as parameters in the functions below, we usually</span>
+</span><span id="L-9"><a href="#L-9"><span class="linenos">  9</span></a><span class="sd">    use the parameter name n (for node). n is simply an index (i.e. an integer) that</span>
+</span><span id="L-10"><a href="#L-10"><span class="linenos"> 10</span></a><span class="sd">    refers to a node (aka vertex).&quot;&quot;&quot;</span>
+</span><span id="L-11"><a href="#L-11"><span class="linenos"> 11</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">orig</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="L-12"><a href="#L-12"><span class="linenos"> 12</span></a>        <span class="k">if</span> <span class="n">orig</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="L-13"><a href="#L-13"><span class="linenos"> 13</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_new</span><span class="p">()</span>
+</span><span id="L-14"><a href="#L-14"><span class="linenos"> 14</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="L-15"><a href="#L-15"><span class="linenos"> 15</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_copy</span><span class="p">(</span><span class="n">orig</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="L-16"><a href="#L-16"><span class="linenos"> 16</span></a>    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-17"><a href="#L-17"><span class="linenos"> 17</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="L-18"><a href="#L-18"><span class="linenos"> 18</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-19"><a href="#L-19"><span class="linenos"> 19</span></a>        <span class="sd">&quot;&quot;&quot; Clear the graph. &quot;&quot;&quot;</span>
+</span><span id="L-20"><a href="#L-20"><span class="linenos"> 20</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_clear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="L-21"><a href="#L-21"><span class="linenos"> 21</span></a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-22"><a href="#L-22"><span class="linenos"> 22</span></a>        <span class="sd">&quot;&quot;&quot; Cleanup reorders the graph nodes such that there is no</span>
+</span><span id="L-23"><a href="#L-23"><span class="linenos"> 23</span></a><span class="sd">        gap in the index range. &quot;&quot;&quot;</span>
+</span><span id="L-24"><a href="#L-24"><span class="linenos"> 24</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_cleanup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="L-25"><a href="#L-25"><span class="linenos"> 25</span></a>    <span class="k">def</span> <span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-26"><a href="#L-26"><span class="linenos"> 26</span></a>        <span class="sd">&quot;&quot;&quot; Get all nodes as an iterable range &quot;&quot;&quot;</span>
+</span><span id="L-27"><a href="#L-27"><span class="linenos"> 27</span></a>        <span class="n">nodes</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="L-28"><a href="#L-28"><span class="linenos"> 28</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">nodes</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="L-29"><a href="#L-29"><span class="linenos"> 29</span></a>        <span class="k">return</span> <span class="n">nodes</span>
+</span><span id="L-30"><a href="#L-30"><span class="linenos"> 30</span></a>    <span class="k">def</span> <span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;n&#39;</span><span class="p">):</span>
+</span><span id="L-31"><a href="#L-31"><span class="linenos"> 31</span></a>        <span class="sd">&quot;&quot;&quot; Get the neighbors of node n. The final argument is either &#39;n&#39; or &#39;e&#39;. If it is &#39;n&#39;</span>
+</span><span id="L-32"><a href="#L-32"><span class="linenos"> 32</span></a><span class="sd">        the function returns all neighboring nodes, and if it is &#39;e&#39; it returns incident edges.&quot;&quot;&quot;</span>
+</span><span id="L-33"><a href="#L-33"><span class="linenos"> 33</span></a>        <span class="n">nbors</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="L-34"><a href="#L-34"><span class="linenos"> 34</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">nbors</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">ct</span><span class="o">.</span><span class="n">c_char</span><span class="p">(</span><span class="n">mode</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)))</span>
+</span><span id="L-35"><a href="#L-35"><span class="linenos"> 35</span></a>        <span class="k">return</span> <span class="n">nbors</span>
+</span><span id="L-36"><a href="#L-36"><span class="linenos"> 36</span></a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-37"><a href="#L-37"><span class="linenos"> 37</span></a>        <span class="sd">&quot;&quot;&quot; Get the vertex positions by reference. You can assign to the</span>
+</span><span id="L-38"><a href="#L-38"><span class="linenos"> 38</span></a><span class="sd">        positions. &quot;&quot;&quot;</span>
+</span><span id="L-39"><a href="#L-39"><span class="linenos"> 39</span></a>        <span class="n">pos</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ct</span><span class="o">.</span><span class="n">c_double</span><span class="p">)()</span>
+</span><span id="L-40"><a href="#L-40"><span class="linenos"> 40</span></a>        <span class="n">n</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_positions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">ct</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+</span><span id="L-41"><a href="#L-41"><span class="linenos"> 41</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ctypeslib</span><span class="o">.</span><span class="n">as_array</span><span class="p">(</span><span class="n">pos</span><span class="p">,(</span><span class="n">n</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+</span><span id="L-42"><a href="#L-42"><span class="linenos"> 42</span></a>    <span class="k">def</span> <span class="nf">average_edge_length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="L-43"><a href="#L-43"><span class="linenos"> 43</span></a>        <span class="sd">&quot;&quot;&quot; Returns the average edge length. &quot;&quot;&quot;</span>
+</span><span id="L-44"><a href="#L-44"><span class="linenos"> 44</span></a>        <span class="n">ael</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_average_edge_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="L-45"><a href="#L-45"><span class="linenos"> 45</span></a>        <span class="k">return</span> <span class="n">ael</span>
+</span><span id="L-46"><a href="#L-46"><span class="linenos"> 46</span></a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+</span><span id="L-47"><a href="#L-47"><span class="linenos"> 47</span></a>        <span class="sd">&quot;&quot;&quot; Adds node with position p to the graph and returns the</span>
+</span><span id="L-48"><a href="#L-48"><span class="linenos"> 48</span></a><span class="sd">        index of the new node. &quot;&quot;&quot;</span>
+</span><span id="L-49"><a href="#L-49"><span class="linenos"> 49</span></a>        <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+</span><span id="L-50"><a href="#L-50"><span class="linenos"> 50</span></a>    <span class="k">def</span> <span class="nf">remove_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="L-51"><a href="#L-51"><span class="linenos"> 51</span></a>        <span class="sd">&quot;&quot;&quot; Removes the node n passed as argument. This does not change</span>
+</span><span id="L-52"><a href="#L-52"><span class="linenos"> 52</span></a><span class="sd">        any indices of other nodes, but n is then invalid. &quot;&quot;&quot;</span>
+</span><span id="L-53"><a href="#L-53"><span class="linenos"> 53</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_remove_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+</span><span id="L-54"><a href="#L-54"><span class="linenos"> 54</span></a>    <span class="k">def</span> <span class="nf">node_in_use</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="L-55"><a href="#L-55"><span class="linenos"> 55</span></a>        <span class="sd">&quot;&quot;&quot; Checks if n is in_use. This function returns false both</span>
+</span><span id="L-56"><a href="#L-56"><span class="linenos"> 56</span></a><span class="sd">        if n has been removed and if n is an index outside the range of</span>
+</span><span id="L-57"><a href="#L-57"><span class="linenos"> 57</span></a><span class="sd">        indices that are used. &quot;&quot;&quot;</span>
+</span><span id="L-58"><a href="#L-58"><span class="linenos"> 58</span></a>        <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_node_in_use</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+</span><span id="L-59"><a href="#L-59"><span class="linenos"> 59</span></a>    <span class="k">def</span> <span class="nf">connect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">):</span>
+</span><span id="L-60"><a href="#L-60"><span class="linenos"> 60</span></a>        <span class="sd">&quot;&quot;&quot; Creates a new edge connecting nodes n0 and n1. The index of</span>
+</span><span id="L-61"><a href="#L-61"><span class="linenos"> 61</span></a><span class="sd">        the new edge is returned. &quot;&quot;&quot;</span>
+</span><span id="L-62"><a href="#L-62"><span class="linenos"> 62</span></a>        <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_connect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">)</span>
+</span><span id="L-63"><a href="#L-63"><span class="linenos"> 63</span></a>    <span class="k">def</span> <span class="nf">disconnect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">):</span>
+</span><span id="L-64"><a href="#L-64"><span class="linenos"> 64</span></a>        <span class="sd">&quot;&quot;&quot; Disconect nodes n0 and n1&quot;&quot;&quot;</span>
+</span><span id="L-65"><a href="#L-65"><span class="linenos"> 65</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_disconnect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">)</span>
+</span><span id="L-66"><a href="#L-66"><span class="linenos"> 66</span></a>    <span class="k">def</span> <span class="nf">merge_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">):</span>
+</span><span id="L-67"><a href="#L-67"><span class="linenos"> 67</span></a>        <span class="sd">&quot;&quot;&quot; Merge nodes n0 and n1. avg_pos indicates if you want the position to be the average. &quot;&quot;&quot;</span>
+</span><span id="L-68"><a href="#L-68"><span class="linenos"> 68</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_merge_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">)</span>
+</span><span id="L-69"><a href="#L-69"><span class="linenos"> 69</span></a>
+</span><span id="L-70"><a href="#L-70"><span class="linenos"> 70</span></a>
+</span><span id="L-71"><a href="#L-71"><span class="linenos"> 71</span></a><span class="k">def</span> <span class="nf">from_mesh</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+</span><span id="L-72"><a href="#L-72"><span class="linenos"> 72</span></a>    <span class="sd">&quot;&quot;&quot; Creates a graph from a mesh. The argument, m, is the input mesh,</span>
+</span><span id="L-73"><a href="#L-73"><span class="linenos"> 73</span></a><span class="sd">    and the function returns a graph with the same vertices and edges</span>
+</span><span id="L-74"><a href="#L-74"><span class="linenos"> 74</span></a><span class="sd">    as m.&quot;&quot;&quot;</span>
+</span><span id="L-75"><a href="#L-75"><span class="linenos"> 75</span></a>    <span class="n">g</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">()</span>
+</span><span id="L-76"><a href="#L-76"><span class="linenos"> 76</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_from_mesh</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="L-77"><a href="#L-77"><span class="linenos"> 77</span></a>    <span class="k">return</span> <span class="n">g</span>
+</span><span id="L-78"><a href="#L-78"><span class="linenos"> 78</span></a>
+</span><span id="L-79"><a href="#L-79"><span class="linenos"> 79</span></a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+</span><span id="L-80"><a href="#L-80"><span class="linenos"> 80</span></a>    <span class="sd">&quot;&quot;&quot; Load a graph from a file. The argument, fn, is the filename which</span>
+</span><span id="L-81"><a href="#L-81"><span class="linenos"> 81</span></a><span class="sd">    is in a special format similar to Wavefront obj. The loaded graph is</span>
+</span><span id="L-82"><a href="#L-82"><span class="linenos"> 82</span></a><span class="sd">    returned by the function - or None if loading failed. &quot;&quot;&quot;</span>
+</span><span id="L-83"><a href="#L-83"><span class="linenos"> 83</span></a>    <span class="n">s</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">c_char_p</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+</span><span id="L-84"><a href="#L-84"><span class="linenos"> 84</span></a>    <span class="n">g</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">()</span>
+</span><span id="L-85"><a href="#L-85"><span class="linenos"> 85</span></a>    <span class="k">if</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_load</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+</span><span id="L-86"><a href="#L-86"><span class="linenos"> 86</span></a>        <span class="k">return</span> <span class="n">g</span>
+</span><span id="L-87"><a href="#L-87"><span class="linenos"> 87</span></a>    <span class="k">return</span> <span class="kc">None</span>
+</span><span id="L-88"><a href="#L-88"><span class="linenos"> 88</span></a>
+</span><span id="L-89"><a href="#L-89"><span class="linenos"> 89</span></a><span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">g</span><span class="p">):</span>
+</span><span id="L-90"><a href="#L-90"><span class="linenos"> 90</span></a>    <span class="sd">&quot;&quot;&quot; Save graph to a file. The first argument, fn, is the file name,</span>
+</span><span id="L-91"><a href="#L-91"><span class="linenos"> 91</span></a><span class="sd">    and g is the graph. This function returns True if saving happened and</span>
+</span><span id="L-92"><a href="#L-92"><span class="linenos"> 92</span></a><span class="sd">    False otherwise. &quot;&quot;&quot;</span>
+</span><span id="L-93"><a href="#L-93"><span class="linenos"> 93</span></a>    <span class="n">s</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">c_char_p</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+</span><span id="L-94"><a href="#L-94"><span class="linenos"> 94</span></a>    <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_save</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+</span><span id="L-95"><a href="#L-95"><span class="linenos"> 95</span></a>
+</span><span id="L-96"><a href="#L-96"><span class="linenos"> 96</span></a><span class="k">def</span> <span class="nf">to_mesh_cyl</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">fudge</span><span class="p">):</span>
+</span><span id="L-97"><a href="#L-97"><span class="linenos"> 97</span></a>    <span class="sd">&quot;&quot;&quot; Creates a Manifold mesh from the graph. The first argument, g, is the</span>
+</span><span id="L-98"><a href="#L-98"><span class="linenos"> 98</span></a><span class="sd">    graph we want converted, and fudge is a constant that is used to increase the radius</span>
+</span><span id="L-99"><a href="#L-99"><span class="linenos"> 99</span></a><span class="sd">    of every node. This is useful if the radii are 0. &quot;&quot;&quot;</span>
+</span><span id="L-100"><a href="#L-100"><span class="linenos">100</span></a>    <span class="n">m</span> <span class="o">=</span> <span class="n">hmesh</span><span class="o">.</span><span class="n">Manifold</span><span class="p">()</span>
+</span><span id="L-101"><a href="#L-101"><span class="linenos">101</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_to_mesh_cyl</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">fudge</span><span class="p">)</span>
+</span><span id="L-102"><a href="#L-102"><span class="linenos">102</span></a>    <span class="k">return</span> <span class="n">m</span>
+</span><span id="L-103"><a href="#L-103"><span class="linenos">103</span></a>
+</span><span id="L-104"><a href="#L-104"><span class="linenos">104</span></a><span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="nb">iter</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+</span><span id="L-105"><a href="#L-105"><span class="linenos">105</span></a>    <span class="sd">&quot;&quot;&quot; Simple Laplacian smoothing of a graph. The first argument is the Graph, g, iter</span>
+</span><span id="L-106"><a href="#L-106"><span class="linenos">106</span></a><span class="sd">    is the number of iterations, and alpha is the weight. If the weight is high,</span>
+</span><span id="L-107"><a href="#L-107"><span class="linenos">107</span></a><span class="sd">    each iteration causes a lot of smoothing, and a high number of iterations</span>
+</span><span id="L-108"><a href="#L-108"><span class="linenos">108</span></a><span class="sd">    ensures that the effect of smoothing diffuses throughout the graph, i.e. that the</span>
+</span><span id="L-109"><a href="#L-109"><span class="linenos">109</span></a><span class="sd">    effect is more global than local. &quot;&quot;&quot;</span>
+</span><span id="L-110"><a href="#L-110"><span class="linenos">110</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_smooth</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
+</span><span id="L-111"><a href="#L-111"><span class="linenos">111</span></a>
+</span><span id="L-112"><a href="#L-112"><span class="linenos">112</span></a><span class="k">def</span> <span class="nf">edge_contract</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">dist_thresh</span><span class="p">):</span>
+</span><span id="L-113"><a href="#L-113"><span class="linenos">113</span></a>    <span class="sd">&quot;&quot;&quot; Simplifies a graph by contracting edges. The first argument, g, is the graph,</span>
+</span><span id="L-114"><a href="#L-114"><span class="linenos">114</span></a><span class="sd">    and only edges shorter than dist_thresh are contracted. When an edge is contracted</span>
+</span><span id="L-115"><a href="#L-115"><span class="linenos">115</span></a><span class="sd">    the merged vertices are moved to the average of their former positions. Thus,</span>
+</span><span id="L-116"><a href="#L-116"><span class="linenos">116</span></a><span class="sd">    the ordering in which contractions are carried out matters. Hence, edges are</span>
+</span><span id="L-117"><a href="#L-117"><span class="linenos">117</span></a><span class="sd">    contracted in the order of increasing length and edges are only considered if</span>
+</span><span id="L-118"><a href="#L-118"><span class="linenos">118</span></a><span class="sd">    neither end point is the result of a contraction, but the process is then repeated</span>
+</span><span id="L-119"><a href="#L-119"><span class="linenos">119</span></a><span class="sd">    until no more contractions are possible. Returns total number of contractions. &quot;&quot;&quot;</span>
+</span><span id="L-120"><a href="#L-120"><span class="linenos">120</span></a>    <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_edge_contract</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">dist_thresh</span><span class="p">)</span>
+</span><span id="L-121"><a href="#L-121"><span class="linenos">121</span></a>
+</span><span id="L-122"><a href="#L-122"><span class="linenos">122</span></a><span class="k">def</span> <span class="nf">prune</span><span class="p">(</span><span class="n">g</span><span class="p">):</span>
+</span><span id="L-123"><a href="#L-123"><span class="linenos">123</span></a>    <span class="sd">&quot;&quot;&quot; Prune leaves of a graph. The graph, g, is passed as the argument. This function</span>
+</span><span id="L-124"><a href="#L-124"><span class="linenos">124</span></a><span class="sd">        removes leaf nodes (valency 1) whose only neighbour has valency &gt; 2. In practice</span>
+</span><span id="L-125"><a href="#L-125"><span class="linenos">125</span></a><span class="sd">        such isolated leaves are frequently spurious if the graph is a skeleton. Does not</span>
+</span><span id="L-126"><a href="#L-126"><span class="linenos">126</span></a><span class="sd">        return a value. &quot;&quot;&quot;</span>
+</span><span id="L-127"><a href="#L-127"><span class="linenos">127</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_prune</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="L-128"><a href="#L-128"><span class="linenos">128</span></a>    
+</span><span id="L-129"><a href="#L-129"><span class="linenos">129</span></a><span class="k">def</span> <span class="nf">LS_skeleton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-130"><a href="#L-130"><span class="linenos">130</span></a>    <span class="sd">&quot;&quot;&quot; Skeletonize a graph using the local separators approach. The first argument,</span>
+</span><span id="L-131"><a href="#L-131"><span class="linenos">131</span></a><span class="sd">        g, is the graph, and, sampling indicates whether we try to use all vertices</span>
+</span><span id="L-132"><a href="#L-132"><span class="linenos">132</span></a><span class="sd">        (False) as starting points for finding separators or just a sampling (True).</span>
+</span><span id="L-133"><a href="#L-133"><span class="linenos">133</span></a><span class="sd">        The function returns a new graph which is the skeleton of the input graph. &quot;&quot;&quot;</span>
+</span><span id="L-134"><a href="#L-134"><span class="linenos">134</span></a>    <span class="n">skel</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">()</span>
+</span><span id="L-135"><a href="#L-135"><span class="linenos">135</span></a>    <span class="n">mapping</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="L-136"><a href="#L-136"><span class="linenos">136</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_LS_skeleton</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">skel</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">mapping</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">sampling</span><span class="p">)</span>
+</span><span id="L-137"><a href="#L-137"><span class="linenos">137</span></a>    <span class="k">return</span> <span class="n">skel</span>
+</span><span id="L-138"><a href="#L-138"><span class="linenos">138</span></a>    
+</span><span id="L-139"><a href="#L-139"><span class="linenos">139</span></a><span class="k">def</span> <span class="nf">LS_skeleton_and_map</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="L-140"><a href="#L-140"><span class="linenos">140</span></a>    <span class="sd">&quot;&quot;&quot; Skeletonize a graph using the local separators approach. The first argument,</span>
+</span><span id="L-141"><a href="#L-141"><span class="linenos">141</span></a><span class="sd">        g, is the graph, and, sampling indicates whether we try to use all vertices</span>
+</span><span id="L-142"><a href="#L-142"><span class="linenos">142</span></a><span class="sd">        (False) as starting points for finding separators or just a sampling (True).</span>
+</span><span id="L-143"><a href="#L-143"><span class="linenos">143</span></a><span class="sd">        The function returns a tuple containing a new graph which is the skeleton of</span>
+</span><span id="L-144"><a href="#L-144"><span class="linenos">144</span></a><span class="sd">        the input graph and a map from the graph nodes to the skeletal nodes. &quot;&quot;&quot;</span>
+</span><span id="L-145"><a href="#L-145"><span class="linenos">145</span></a>    <span class="n">skel</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">()</span>
+</span><span id="L-146"><a href="#L-146"><span class="linenos">146</span></a>    <span class="n">mapping</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="L-147"><a href="#L-147"><span class="linenos">147</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_LS_skeleton</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">skel</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">mapping</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">sampling</span><span class="p">)</span>
+</span><span id="L-148"><a href="#L-148"><span class="linenos">148</span></a>    <span class="k">return</span> <span class="n">skel</span><span class="p">,</span> <span class="n">mapping</span>
+</span><span id="L-149"><a href="#L-149"><span class="linenos">149</span></a>
+</span><span id="L-150"><a href="#L-150"><span class="linenos">150</span></a><span class="k">def</span> <span class="nf">front_skeleton_and_map</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">colors</span><span class="p">):</span>
+</span><span id="L-151"><a href="#L-151"><span class="linenos">151</span></a>    <span class="sd">&quot;&quot;&quot; Skeletonize a graph using the front separators approach. The first argument,</span>
+</span><span id="L-152"><a href="#L-152"><span class="linenos">152</span></a><span class="sd">        g, is the graph, and, colors is a 2D array where each row contains a sequence</span>
+</span><span id="L-153"><a href="#L-153"><span class="linenos">153</span></a><span class="sd">        of floating point values - one for each node. We can have as many rows as needed</span>
+</span><span id="L-154"><a href="#L-154"><span class="linenos">154</span></a><span class="sd">        for the front separator computation. We can think of this as a coloring</span>
+</span><span id="L-155"><a href="#L-155"><span class="linenos">155</span></a><span class="sd">        of the nodes, hence the name. In practice, a coloring might just be the x-coordinate</span>
+</span><span id="L-156"><a href="#L-156"><span class="linenos">156</span></a><span class="sd">        of the nodes or some other function that indicates something about the structure of the</span>
+</span><span id="L-157"><a href="#L-157"><span class="linenos">157</span></a><span class="sd">        graph. The function returns a tuple containing a new graph which is the</span>
+</span><span id="L-158"><a href="#L-158"><span class="linenos">158</span></a><span class="sd">        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. &quot;&quot;&quot;</span>
+</span><span id="L-159"><a href="#L-159"><span class="linenos">159</span></a>    <span class="n">skel</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">()</span>
+</span><span id="L-160"><a href="#L-160"><span class="linenos">160</span></a>    <span class="n">mapping</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="L-161"><a href="#L-161"><span class="linenos">161</span></a>    <span class="n">colors_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+</span><span id="L-162"><a href="#L-162"><span class="linenos">162</span></a>    <span class="n">N_col</span> <span class="o">=</span> <span class="n">colors_flat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="L-163"><a href="#L-163"><span class="linenos">163</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_front_skeleton</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">skel</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">mapping</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">N_col</span><span class="p">,</span> <span class="n">colors_flat</span><span class="o">.</span><span class="n">ctypes</span><span class="o">.</span><span class="n">data_as</span><span class="p">(</span><span class="n">ct</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ct</span><span class="o">.</span><span class="n">c_double</span><span class="p">)))</span>
+</span><span id="L-164"><a href="#L-164"><span class="linenos">164</span></a>    <span class="k">return</span> <span class="n">skel</span><span class="p">,</span> <span class="n">mapping</span>
+</span></pre></div>
+
+        </details>
+
+            </section>
+                <section id="Graph">
+                                <div class="attr class">
+        <a class="headerlink" href="#Graph">#&nbsp;&nbsp</a>
+
+        
+        <span class="def">class</span>
+        <span class="name">Graph</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph-6"><a href="#Graph-6"><span class="linenos"> 6</span></a><span class="k">class</span> <span class="nc">Graph</span><span class="p">:</span>
+</span><span id="Graph-7"><a href="#Graph-7"><span class="linenos"> 7</span></a>    <span class="sd">&quot;&quot;&quot; This class is for representing graphs embedded in 3D. The class does not in</span>
+</span><span id="Graph-8"><a href="#Graph-8"><span class="linenos"> 8</span></a><span class="sd">    itself come with many features: it contains methods for creating, accessing, and</span>
+</span><span id="Graph-9"><a href="#Graph-9"><span class="linenos"> 9</span></a><span class="sd">    housekeeping. When vertices are used as parameters in the functions below, we usually</span>
+</span><span id="Graph-10"><a href="#Graph-10"><span class="linenos">10</span></a><span class="sd">    use the parameter name n (for node). n is simply an index (i.e. an integer) that</span>
+</span><span id="Graph-11"><a href="#Graph-11"><span class="linenos">11</span></a><span class="sd">    refers to a node (aka vertex).&quot;&quot;&quot;</span>
+</span><span id="Graph-12"><a href="#Graph-12"><span class="linenos">12</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">orig</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="Graph-13"><a href="#Graph-13"><span class="linenos">13</span></a>        <span class="k">if</span> <span class="n">orig</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Graph-14"><a href="#Graph-14"><span class="linenos">14</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_new</span><span class="p">()</span>
+</span><span id="Graph-15"><a href="#Graph-15"><span class="linenos">15</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="Graph-16"><a href="#Graph-16"><span class="linenos">16</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_copy</span><span class="p">(</span><span class="n">orig</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="Graph-17"><a href="#Graph-17"><span class="linenos">17</span></a>    <span class="k">def</span> <span class="fm">__del__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Graph-18"><a href="#Graph-18"><span class="linenos">18</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_delete</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="Graph-19"><a href="#Graph-19"><span class="linenos">19</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Graph-20"><a href="#Graph-20"><span class="linenos">20</span></a>        <span class="sd">&quot;&quot;&quot; Clear the graph. &quot;&quot;&quot;</span>
+</span><span id="Graph-21"><a href="#Graph-21"><span class="linenos">21</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_clear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="Graph-22"><a href="#Graph-22"><span class="linenos">22</span></a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Graph-23"><a href="#Graph-23"><span class="linenos">23</span></a>        <span class="sd">&quot;&quot;&quot; Cleanup reorders the graph nodes such that there is no</span>
+</span><span id="Graph-24"><a href="#Graph-24"><span class="linenos">24</span></a><span class="sd">        gap in the index range. &quot;&quot;&quot;</span>
+</span><span id="Graph-25"><a href="#Graph-25"><span class="linenos">25</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_cleanup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="Graph-26"><a href="#Graph-26"><span class="linenos">26</span></a>    <span class="k">def</span> <span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Graph-27"><a href="#Graph-27"><span class="linenos">27</span></a>        <span class="sd">&quot;&quot;&quot; Get all nodes as an iterable range &quot;&quot;&quot;</span>
+</span><span id="Graph-28"><a href="#Graph-28"><span class="linenos">28</span></a>        <span class="n">nodes</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="Graph-29"><a href="#Graph-29"><span class="linenos">29</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">nodes</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="Graph-30"><a href="#Graph-30"><span class="linenos">30</span></a>        <span class="k">return</span> <span class="n">nodes</span>
+</span><span id="Graph-31"><a href="#Graph-31"><span class="linenos">31</span></a>    <span class="k">def</span> <span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;n&#39;</span><span class="p">):</span>
+</span><span id="Graph-32"><a href="#Graph-32"><span class="linenos">32</span></a>        <span class="sd">&quot;&quot;&quot; Get the neighbors of node n. The final argument is either &#39;n&#39; or &#39;e&#39;. If it is &#39;n&#39;</span>
+</span><span id="Graph-33"><a href="#Graph-33"><span class="linenos">33</span></a><span class="sd">        the function returns all neighboring nodes, and if it is &#39;e&#39; it returns incident edges.&quot;&quot;&quot;</span>
+</span><span id="Graph-34"><a href="#Graph-34"><span class="linenos">34</span></a>        <span class="n">nbors</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="Graph-35"><a href="#Graph-35"><span class="linenos">35</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">nbors</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">ct</span><span class="o">.</span><span class="n">c_char</span><span class="p">(</span><span class="n">mode</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)))</span>
+</span><span id="Graph-36"><a href="#Graph-36"><span class="linenos">36</span></a>        <span class="k">return</span> <span class="n">nbors</span>
+</span><span id="Graph-37"><a href="#Graph-37"><span class="linenos">37</span></a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Graph-38"><a href="#Graph-38"><span class="linenos">38</span></a>        <span class="sd">&quot;&quot;&quot; Get the vertex positions by reference. You can assign to the</span>
+</span><span id="Graph-39"><a href="#Graph-39"><span class="linenos">39</span></a><span class="sd">        positions. &quot;&quot;&quot;</span>
+</span><span id="Graph-40"><a href="#Graph-40"><span class="linenos">40</span></a>        <span class="n">pos</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ct</span><span class="o">.</span><span class="n">c_double</span><span class="p">)()</span>
+</span><span id="Graph-41"><a href="#Graph-41"><span class="linenos">41</span></a>        <span class="n">n</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_positions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">ct</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+</span><span id="Graph-42"><a href="#Graph-42"><span class="linenos">42</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ctypeslib</span><span class="o">.</span><span class="n">as_array</span><span class="p">(</span><span class="n">pos</span><span class="p">,(</span><span class="n">n</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+</span><span id="Graph-43"><a href="#Graph-43"><span class="linenos">43</span></a>    <span class="k">def</span> <span class="nf">average_edge_length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Graph-44"><a href="#Graph-44"><span class="linenos">44</span></a>        <span class="sd">&quot;&quot;&quot; Returns the average edge length. &quot;&quot;&quot;</span>
+</span><span id="Graph-45"><a href="#Graph-45"><span class="linenos">45</span></a>        <span class="n">ael</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_average_edge_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="Graph-46"><a href="#Graph-46"><span class="linenos">46</span></a>        <span class="k">return</span> <span class="n">ael</span>
+</span><span id="Graph-47"><a href="#Graph-47"><span class="linenos">47</span></a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+</span><span id="Graph-48"><a href="#Graph-48"><span class="linenos">48</span></a>        <span class="sd">&quot;&quot;&quot; Adds node with position p to the graph and returns the</span>
+</span><span id="Graph-49"><a href="#Graph-49"><span class="linenos">49</span></a><span class="sd">        index of the new node. &quot;&quot;&quot;</span>
+</span><span id="Graph-50"><a href="#Graph-50"><span class="linenos">50</span></a>        <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+</span><span id="Graph-51"><a href="#Graph-51"><span class="linenos">51</span></a>    <span class="k">def</span> <span class="nf">remove_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="Graph-52"><a href="#Graph-52"><span class="linenos">52</span></a>        <span class="sd">&quot;&quot;&quot; Removes the node n passed as argument. This does not change</span>
+</span><span id="Graph-53"><a href="#Graph-53"><span class="linenos">53</span></a><span class="sd">        any indices of other nodes, but n is then invalid. &quot;&quot;&quot;</span>
+</span><span id="Graph-54"><a href="#Graph-54"><span class="linenos">54</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_remove_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+</span><span id="Graph-55"><a href="#Graph-55"><span class="linenos">55</span></a>    <span class="k">def</span> <span class="nf">node_in_use</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="Graph-56"><a href="#Graph-56"><span class="linenos">56</span></a>        <span class="sd">&quot;&quot;&quot; Checks if n is in_use. This function returns false both</span>
+</span><span id="Graph-57"><a href="#Graph-57"><span class="linenos">57</span></a><span class="sd">        if n has been removed and if n is an index outside the range of</span>
+</span><span id="Graph-58"><a href="#Graph-58"><span class="linenos">58</span></a><span class="sd">        indices that are used. &quot;&quot;&quot;</span>
+</span><span id="Graph-59"><a href="#Graph-59"><span class="linenos">59</span></a>        <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_node_in_use</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+</span><span id="Graph-60"><a href="#Graph-60"><span class="linenos">60</span></a>    <span class="k">def</span> <span class="nf">connect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">):</span>
+</span><span id="Graph-61"><a href="#Graph-61"><span class="linenos">61</span></a>        <span class="sd">&quot;&quot;&quot; Creates a new edge connecting nodes n0 and n1. The index of</span>
+</span><span id="Graph-62"><a href="#Graph-62"><span class="linenos">62</span></a><span class="sd">        the new edge is returned. &quot;&quot;&quot;</span>
+</span><span id="Graph-63"><a href="#Graph-63"><span class="linenos">63</span></a>        <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_connect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">)</span>
+</span><span id="Graph-64"><a href="#Graph-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="nf">disconnect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">):</span>
+</span><span id="Graph-65"><a href="#Graph-65"><span class="linenos">65</span></a>        <span class="sd">&quot;&quot;&quot; Disconect nodes n0 and n1&quot;&quot;&quot;</span>
+</span><span id="Graph-66"><a href="#Graph-66"><span class="linenos">66</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_disconnect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">)</span>
+</span><span id="Graph-67"><a href="#Graph-67"><span class="linenos">67</span></a>    <span class="k">def</span> <span class="nf">merge_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">):</span>
+</span><span id="Graph-68"><a href="#Graph-68"><span class="linenos">68</span></a>        <span class="sd">&quot;&quot;&quot; Merge nodes n0 and n1. avg_pos indicates if you want the position to be the average. &quot;&quot;&quot;</span>
+</span><span id="Graph-69"><a href="#Graph-69"><span class="linenos">69</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_merge_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>This class is for representing graphs embedded in 3D. The class does not in
+itself come with many features: it contains methods for creating, accessing, and
+housekeeping. When vertices are used as parameters in the functions below, we usually
+use the parameter name n (for node). n is simply an index (i.e. an integer) that
+refers to a node (aka vertex).</p>
+</div>
+
+
+                            <div id="Graph.__init__" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.__init__">#&nbsp;&nbsp</a>
+
+        
+            <span class="name">Graph</span><span class="signature">(orig=None)</span>
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.__init__-12"><a href="#Graph.__init__-12"><span class="linenos">12</span></a>    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">orig</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+</span><span id="Graph.__init__-13"><a href="#Graph.__init__-13"><span class="linenos">13</span></a>        <span class="k">if</span> <span class="n">orig</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+</span><span id="Graph.__init__-14"><a href="#Graph.__init__-14"><span class="linenos">14</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_new</span><span class="p">()</span>
+</span><span id="Graph.__init__-15"><a href="#Graph.__init__-15"><span class="linenos">15</span></a>        <span class="k">else</span><span class="p">:</span>
+</span><span id="Graph.__init__-16"><a href="#Graph.__init__-16"><span class="linenos">16</span></a>            <span class="bp">self</span><span class="o">.</span><span class="n">obj</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_copy</span><span class="p">(</span><span class="n">orig</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+    
+
+                            </div>
+                            <div id="Graph.clear" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.clear">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">clear</span><span class="signature">(self)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.clear-19"><a href="#Graph.clear-19"><span class="linenos">19</span></a>    <span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Graph.clear-20"><a href="#Graph.clear-20"><span class="linenos">20</span></a>        <span class="sd">&quot;&quot;&quot; Clear the graph. &quot;&quot;&quot;</span>
+</span><span id="Graph.clear-21"><a href="#Graph.clear-21"><span class="linenos">21</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_clear</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Clear the graph.</p>
+</div>
+
+
+                            </div>
+                            <div id="Graph.cleanup" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.cleanup">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">cleanup</span><span class="signature">(self)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.cleanup-22"><a href="#Graph.cleanup-22"><span class="linenos">22</span></a>    <span class="k">def</span> <span class="nf">cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Graph.cleanup-23"><a href="#Graph.cleanup-23"><span class="linenos">23</span></a>        <span class="sd">&quot;&quot;&quot; Cleanup reorders the graph nodes such that there is no</span>
+</span><span id="Graph.cleanup-24"><a href="#Graph.cleanup-24"><span class="linenos">24</span></a><span class="sd">        gap in the index range. &quot;&quot;&quot;</span>
+</span><span id="Graph.cleanup-25"><a href="#Graph.cleanup-25"><span class="linenos">25</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_cleanup</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Cleanup reorders the graph nodes such that there is no
+gap in the index range.</p>
+</div>
+
+
+                            </div>
+                            <div id="Graph.nodes" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.nodes">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">nodes</span><span class="signature">(self)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.nodes-26"><a href="#Graph.nodes-26"><span class="linenos">26</span></a>    <span class="k">def</span> <span class="nf">nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Graph.nodes-27"><a href="#Graph.nodes-27"><span class="linenos">27</span></a>        <span class="sd">&quot;&quot;&quot; Get all nodes as an iterable range &quot;&quot;&quot;</span>
+</span><span id="Graph.nodes-28"><a href="#Graph.nodes-28"><span class="linenos">28</span></a>        <span class="n">nodes</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="Graph.nodes-29"><a href="#Graph.nodes-29"><span class="linenos">29</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">nodes</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="Graph.nodes-30"><a href="#Graph.nodes-30"><span class="linenos">30</span></a>        <span class="k">return</span> <span class="n">nodes</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Get all nodes as an iterable range</p>
+</div>
+
+
+                            </div>
+                            <div id="Graph.neighbors" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.neighbors">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">neighbors</span><span class="signature">(self, n, mode=&#39;n&#39;)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.neighbors-31"><a href="#Graph.neighbors-31"><span class="linenos">31</span></a>    <span class="k">def</span> <span class="nf">neighbors</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;n&#39;</span><span class="p">):</span>
+</span><span id="Graph.neighbors-32"><a href="#Graph.neighbors-32"><span class="linenos">32</span></a>        <span class="sd">&quot;&quot;&quot; Get the neighbors of node n. The final argument is either &#39;n&#39; or &#39;e&#39;. If it is &#39;n&#39;</span>
+</span><span id="Graph.neighbors-33"><a href="#Graph.neighbors-33"><span class="linenos">33</span></a><span class="sd">        the function returns all neighboring nodes, and if it is &#39;e&#39; it returns incident edges.&quot;&quot;&quot;</span>
+</span><span id="Graph.neighbors-34"><a href="#Graph.neighbors-34"><span class="linenos">34</span></a>        <span class="n">nbors</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="Graph.neighbors-35"><a href="#Graph.neighbors-35"><span class="linenos">35</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_neighbors</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n</span><span class="p">,</span> <span class="n">nbors</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">ct</span><span class="o">.</span><span class="n">c_char</span><span class="p">(</span><span class="n">mode</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;ascii&#39;</span><span class="p">)))</span>
+</span><span id="Graph.neighbors-36"><a href="#Graph.neighbors-36"><span class="linenos">36</span></a>        <span class="k">return</span> <span class="n">nbors</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Get the neighbors of node n. The final argument is either 'n' or 'e'. If it is 'n'
+the function returns all neighboring nodes, and if it is 'e' it returns incident edges.</p>
+</div>
+
+
+                            </div>
+                            <div id="Graph.positions" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.positions">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">positions</span><span class="signature">(self)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.positions-37"><a href="#Graph.positions-37"><span class="linenos">37</span></a>    <span class="k">def</span> <span class="nf">positions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Graph.positions-38"><a href="#Graph.positions-38"><span class="linenos">38</span></a>        <span class="sd">&quot;&quot;&quot; Get the vertex positions by reference. You can assign to the</span>
+</span><span id="Graph.positions-39"><a href="#Graph.positions-39"><span class="linenos">39</span></a><span class="sd">        positions. &quot;&quot;&quot;</span>
+</span><span id="Graph.positions-40"><a href="#Graph.positions-40"><span class="linenos">40</span></a>        <span class="n">pos</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ct</span><span class="o">.</span><span class="n">c_double</span><span class="p">)()</span>
+</span><span id="Graph.positions-41"><a href="#Graph.positions-41"><span class="linenos">41</span></a>        <span class="n">n</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_positions</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">ct</span><span class="o">.</span><span class="n">byref</span><span class="p">(</span><span class="n">pos</span><span class="p">))</span>
+</span><span id="Graph.positions-42"><a href="#Graph.positions-42"><span class="linenos">42</span></a>        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">ctypeslib</span><span class="o">.</span><span class="n">as_array</span><span class="p">(</span><span class="n">pos</span><span class="p">,(</span><span class="n">n</span><span class="p">,</span><span class="mi">3</span><span class="p">))</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Get the vertex positions by reference. You can assign to the
+positions.</p>
+</div>
+
+
+                            </div>
+                            <div id="Graph.average_edge_length" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.average_edge_length">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">average_edge_length</span><span class="signature">(self)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.average_edge_length-43"><a href="#Graph.average_edge_length-43"><span class="linenos">43</span></a>    <span class="k">def</span> <span class="nf">average_edge_length</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+</span><span id="Graph.average_edge_length-44"><a href="#Graph.average_edge_length-44"><span class="linenos">44</span></a>        <span class="sd">&quot;&quot;&quot; Returns the average edge length. &quot;&quot;&quot;</span>
+</span><span id="Graph.average_edge_length-45"><a href="#Graph.average_edge_length-45"><span class="linenos">45</span></a>        <span class="n">ael</span> <span class="o">=</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_average_edge_length</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="Graph.average_edge_length-46"><a href="#Graph.average_edge_length-46"><span class="linenos">46</span></a>        <span class="k">return</span> <span class="n">ael</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Returns the average edge length.</p>
+</div>
+
+
+                            </div>
+                            <div id="Graph.add_node" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.add_node">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">add_node</span><span class="signature">(self, p)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.add_node-47"><a href="#Graph.add_node-47"><span class="linenos">47</span></a>    <span class="k">def</span> <span class="nf">add_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">p</span><span class="p">):</span>
+</span><span id="Graph.add_node-48"><a href="#Graph.add_node-48"><span class="linenos">48</span></a>        <span class="sd">&quot;&quot;&quot; Adds node with position p to the graph and returns the</span>
+</span><span id="Graph.add_node-49"><a href="#Graph.add_node-49"><span class="linenos">49</span></a><span class="sd">        index of the new node. &quot;&quot;&quot;</span>
+</span><span id="Graph.add_node-50"><a href="#Graph.add_node-50"><span class="linenos">50</span></a>        <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_add_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Adds node with position p to the graph and returns the
+index of the new node.</p>
+</div>
+
+
+                            </div>
+                            <div id="Graph.remove_node" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.remove_node">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">remove_node</span><span class="signature">(self, n)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.remove_node-51"><a href="#Graph.remove_node-51"><span class="linenos">51</span></a>    <span class="k">def</span> <span class="nf">remove_node</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="Graph.remove_node-52"><a href="#Graph.remove_node-52"><span class="linenos">52</span></a>        <span class="sd">&quot;&quot;&quot; Removes the node n passed as argument. This does not change</span>
+</span><span id="Graph.remove_node-53"><a href="#Graph.remove_node-53"><span class="linenos">53</span></a><span class="sd">        any indices of other nodes, but n is then invalid. &quot;&quot;&quot;</span>
+</span><span id="Graph.remove_node-54"><a href="#Graph.remove_node-54"><span class="linenos">54</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_remove_node</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Removes the node n passed as argument. This does not change
+any indices of other nodes, but n is then invalid.</p>
+</div>
+
+
+                            </div>
+                            <div id="Graph.node_in_use" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.node_in_use">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">node_in_use</span><span class="signature">(self, n)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.node_in_use-55"><a href="#Graph.node_in_use-55"><span class="linenos">55</span></a>    <span class="k">def</span> <span class="nf">node_in_use</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+</span><span id="Graph.node_in_use-56"><a href="#Graph.node_in_use-56"><span class="linenos">56</span></a>        <span class="sd">&quot;&quot;&quot; Checks if n is in_use. This function returns false both</span>
+</span><span id="Graph.node_in_use-57"><a href="#Graph.node_in_use-57"><span class="linenos">57</span></a><span class="sd">        if n has been removed and if n is an index outside the range of</span>
+</span><span id="Graph.node_in_use-58"><a href="#Graph.node_in_use-58"><span class="linenos">58</span></a><span class="sd">        indices that are used. &quot;&quot;&quot;</span>
+</span><span id="Graph.node_in_use-59"><a href="#Graph.node_in_use-59"><span class="linenos">59</span></a>        <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_node_in_use</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Checks if n is in_use. This function returns false both
+if n has been removed and if n is an index outside the range of
+indices that are used.</p>
+</div>
+
+
+                            </div>
+                            <div id="Graph.connect_nodes" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.connect_nodes">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">connect_nodes</span><span class="signature">(self, n0, n1)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.connect_nodes-60"><a href="#Graph.connect_nodes-60"><span class="linenos">60</span></a>    <span class="k">def</span> <span class="nf">connect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">):</span>
+</span><span id="Graph.connect_nodes-61"><a href="#Graph.connect_nodes-61"><span class="linenos">61</span></a>        <span class="sd">&quot;&quot;&quot; Creates a new edge connecting nodes n0 and n1. The index of</span>
+</span><span id="Graph.connect_nodes-62"><a href="#Graph.connect_nodes-62"><span class="linenos">62</span></a><span class="sd">        the new edge is returned. &quot;&quot;&quot;</span>
+</span><span id="Graph.connect_nodes-63"><a href="#Graph.connect_nodes-63"><span class="linenos">63</span></a>        <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_connect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Creates a new edge connecting nodes n0 and n1. The index of
+the new edge is returned.</p>
+</div>
+
+
+                            </div>
+                            <div id="Graph.disconnect_nodes" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.disconnect_nodes">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">disconnect_nodes</span><span class="signature">(self, n0, n1)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.disconnect_nodes-64"><a href="#Graph.disconnect_nodes-64"><span class="linenos">64</span></a>    <span class="k">def</span> <span class="nf">disconnect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">):</span>
+</span><span id="Graph.disconnect_nodes-65"><a href="#Graph.disconnect_nodes-65"><span class="linenos">65</span></a>        <span class="sd">&quot;&quot;&quot; Disconect nodes n0 and n1&quot;&quot;&quot;</span>
+</span><span id="Graph.disconnect_nodes-66"><a href="#Graph.disconnect_nodes-66"><span class="linenos">66</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_disconnect_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Disconect nodes n0 and n1</p>
+</div>
+
+
+                            </div>
+                            <div id="Graph.merge_nodes" class="classattr">
+                                        <div class="attr function"><a class="headerlink" href="#Graph.merge_nodes">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">merge_nodes</span><span class="signature">(self, n0, n1, avg_pos)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="Graph.merge_nodes-67"><a href="#Graph.merge_nodes-67"><span class="linenos">67</span></a>    <span class="k">def</span> <span class="nf">merge_nodes</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">):</span>
+</span><span id="Graph.merge_nodes-68"><a href="#Graph.merge_nodes-68"><span class="linenos">68</span></a>        <span class="sd">&quot;&quot;&quot; Merge nodes n0 and n1. avg_pos indicates if you want the position to be the average. &quot;&quot;&quot;</span>
+</span><span id="Graph.merge_nodes-69"><a href="#Graph.merge_nodes-69"><span class="linenos">69</span></a>        <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">Graph_merge_nodes</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">n0</span><span class="p">,</span> <span class="n">n1</span><span class="p">,</span> <span class="n">avg_pos</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Merge nodes n0 and n1. avg_pos indicates if you want the position to be the average.</p>
+</div>
+
+
+                            </div>
+                </section>
+                <section id="from_mesh">
+                            <div class="attr function"><a class="headerlink" href="#from_mesh">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">from_mesh</span><span class="signature">(m)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="from_mesh-72"><a href="#from_mesh-72"><span class="linenos">72</span></a><span class="k">def</span> <span class="nf">from_mesh</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+</span><span id="from_mesh-73"><a href="#from_mesh-73"><span class="linenos">73</span></a>    <span class="sd">&quot;&quot;&quot; Creates a graph from a mesh. The argument, m, is the input mesh,</span>
+</span><span id="from_mesh-74"><a href="#from_mesh-74"><span class="linenos">74</span></a><span class="sd">    and the function returns a graph with the same vertices and edges</span>
+</span><span id="from_mesh-75"><a href="#from_mesh-75"><span class="linenos">75</span></a><span class="sd">    as m.&quot;&quot;&quot;</span>
+</span><span id="from_mesh-76"><a href="#from_mesh-76"><span class="linenos">76</span></a>    <span class="n">g</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">()</span>
+</span><span id="from_mesh-77"><a href="#from_mesh-77"><span class="linenos">77</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_from_mesh</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span><span id="from_mesh-78"><a href="#from_mesh-78"><span class="linenos">78</span></a>    <span class="k">return</span> <span class="n">g</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Creates a graph from a mesh. The argument, m, is the input mesh,
+and the function returns a graph with the same vertices and edges
+as m.</p>
+</div>
+
+
+                </section>
+                <section id="load">
+                            <div class="attr function"><a class="headerlink" href="#load">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">load</span><span class="signature">(fn)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="load-80"><a href="#load-80"><span class="linenos">80</span></a><span class="k">def</span> <span class="nf">load</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+</span><span id="load-81"><a href="#load-81"><span class="linenos">81</span></a>    <span class="sd">&quot;&quot;&quot; Load a graph from a file. The argument, fn, is the filename which</span>
+</span><span id="load-82"><a href="#load-82"><span class="linenos">82</span></a><span class="sd">    is in a special format similar to Wavefront obj. The loaded graph is</span>
+</span><span id="load-83"><a href="#load-83"><span class="linenos">83</span></a><span class="sd">    returned by the function - or None if loading failed. &quot;&quot;&quot;</span>
+</span><span id="load-84"><a href="#load-84"><span class="linenos">84</span></a>    <span class="n">s</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">c_char_p</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+</span><span id="load-85"><a href="#load-85"><span class="linenos">85</span></a>    <span class="n">g</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">()</span>
+</span><span id="load-86"><a href="#load-86"><span class="linenos">86</span></a>    <span class="k">if</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_load</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span>
+</span><span id="load-87"><a href="#load-87"><span class="linenos">87</span></a>        <span class="k">return</span> <span class="n">g</span>
+</span><span id="load-88"><a href="#load-88"><span class="linenos">88</span></a>    <span class="k">return</span> <span class="kc">None</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Load a graph from a file. The argument, fn, is the filename which
+is in a special format similar to Wavefront obj. The loaded graph is
+returned by the function - or None if loading failed.</p>
+</div>
+
+
+                </section>
+                <section id="save">
+                            <div class="attr function"><a class="headerlink" href="#save">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">save</span><span class="signature">(fn, g)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="save-90"><a href="#save-90"><span class="linenos">90</span></a><span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">g</span><span class="p">):</span>
+</span><span id="save-91"><a href="#save-91"><span class="linenos">91</span></a>    <span class="sd">&quot;&quot;&quot; Save graph to a file. The first argument, fn, is the file name,</span>
+</span><span id="save-92"><a href="#save-92"><span class="linenos">92</span></a><span class="sd">    and g is the graph. This function returns True if saving happened and</span>
+</span><span id="save-93"><a href="#save-93"><span class="linenos">93</span></a><span class="sd">    False otherwise. &quot;&quot;&quot;</span>
+</span><span id="save-94"><a href="#save-94"><span class="linenos">94</span></a>    <span class="n">s</span> <span class="o">=</span> <span class="n">ct</span><span class="o">.</span><span class="n">c_char_p</span><span class="p">(</span><span class="n">fn</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;utf-8&#39;</span><span class="p">))</span>
+</span><span id="save-95"><a href="#save-95"><span class="linenos">95</span></a>    <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_save</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Save graph to a file. The first argument, fn, is the file name,
+and g is the graph. This function returns True if saving happened and
+False otherwise.</p>
+</div>
+
+
+                </section>
+                <section id="to_mesh_cyl">
+                            <div class="attr function"><a class="headerlink" href="#to_mesh_cyl">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">to_mesh_cyl</span><span class="signature">(g, fudge)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="to_mesh_cyl-97"><a href="#to_mesh_cyl-97"><span class="linenos"> 97</span></a><span class="k">def</span> <span class="nf">to_mesh_cyl</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">fudge</span><span class="p">):</span>
+</span><span id="to_mesh_cyl-98"><a href="#to_mesh_cyl-98"><span class="linenos"> 98</span></a>    <span class="sd">&quot;&quot;&quot; Creates a Manifold mesh from the graph. The first argument, g, is the</span>
+</span><span id="to_mesh_cyl-99"><a href="#to_mesh_cyl-99"><span class="linenos"> 99</span></a><span class="sd">    graph we want converted, and fudge is a constant that is used to increase the radius</span>
+</span><span id="to_mesh_cyl-100"><a href="#to_mesh_cyl-100"><span class="linenos">100</span></a><span class="sd">    of every node. This is useful if the radii are 0. &quot;&quot;&quot;</span>
+</span><span id="to_mesh_cyl-101"><a href="#to_mesh_cyl-101"><span class="linenos">101</span></a>    <span class="n">m</span> <span class="o">=</span> <span class="n">hmesh</span><span class="o">.</span><span class="n">Manifold</span><span class="p">()</span>
+</span><span id="to_mesh_cyl-102"><a href="#to_mesh_cyl-102"><span class="linenos">102</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_to_mesh_cyl</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">fudge</span><span class="p">)</span>
+</span><span id="to_mesh_cyl-103"><a href="#to_mesh_cyl-103"><span class="linenos">103</span></a>    <span class="k">return</span> <span class="n">m</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Creates a Manifold mesh from the graph. The first argument, g, is the
+graph we want converted, and fudge is a constant that is used to increase the radius
+of every node. This is useful if the radii are 0.</p>
+</div>
+
+
+                </section>
+                <section id="smooth">
+                            <div class="attr function"><a class="headerlink" href="#smooth">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">smooth</span><span class="signature">(g, iter=1, alpha=1.0)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="smooth-105"><a href="#smooth-105"><span class="linenos">105</span></a><span class="k">def</span> <span class="nf">smooth</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="nb">iter</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">1.0</span><span class="p">):</span>
+</span><span id="smooth-106"><a href="#smooth-106"><span class="linenos">106</span></a>    <span class="sd">&quot;&quot;&quot; Simple Laplacian smoothing of a graph. The first argument is the Graph, g, iter</span>
+</span><span id="smooth-107"><a href="#smooth-107"><span class="linenos">107</span></a><span class="sd">    is the number of iterations, and alpha is the weight. If the weight is high,</span>
+</span><span id="smooth-108"><a href="#smooth-108"><span class="linenos">108</span></a><span class="sd">    each iteration causes a lot of smoothing, and a high number of iterations</span>
+</span><span id="smooth-109"><a href="#smooth-109"><span class="linenos">109</span></a><span class="sd">    ensures that the effect of smoothing diffuses throughout the graph, i.e. that the</span>
+</span><span id="smooth-110"><a href="#smooth-110"><span class="linenos">110</span></a><span class="sd">    effect is more global than local. &quot;&quot;&quot;</span>
+</span><span id="smooth-111"><a href="#smooth-111"><span class="linenos">111</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_smooth</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="nb">iter</span><span class="p">,</span> <span class="n">alpha</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Simple Laplacian smoothing of a graph. The first argument is the Graph, g, iter
+is the number of iterations, and alpha is the weight. If the weight is high,
+each iteration causes a lot of smoothing, and a high number of iterations
+ensures that the effect of smoothing diffuses throughout the graph, i.e. that the
+effect is more global than local.</p>
+</div>
+
+
+                </section>
+                <section id="edge_contract">
+                            <div class="attr function"><a class="headerlink" href="#edge_contract">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">edge_contract</span><span class="signature">(g, dist_thresh)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="edge_contract-113"><a href="#edge_contract-113"><span class="linenos">113</span></a><span class="k">def</span> <span class="nf">edge_contract</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">dist_thresh</span><span class="p">):</span>
+</span><span id="edge_contract-114"><a href="#edge_contract-114"><span class="linenos">114</span></a>    <span class="sd">&quot;&quot;&quot; Simplifies a graph by contracting edges. The first argument, g, is the graph,</span>
+</span><span id="edge_contract-115"><a href="#edge_contract-115"><span class="linenos">115</span></a><span class="sd">    and only edges shorter than dist_thresh are contracted. When an edge is contracted</span>
+</span><span id="edge_contract-116"><a href="#edge_contract-116"><span class="linenos">116</span></a><span class="sd">    the merged vertices are moved to the average of their former positions. Thus,</span>
+</span><span id="edge_contract-117"><a href="#edge_contract-117"><span class="linenos">117</span></a><span class="sd">    the ordering in which contractions are carried out matters. Hence, edges are</span>
+</span><span id="edge_contract-118"><a href="#edge_contract-118"><span class="linenos">118</span></a><span class="sd">    contracted in the order of increasing length and edges are only considered if</span>
+</span><span id="edge_contract-119"><a href="#edge_contract-119"><span class="linenos">119</span></a><span class="sd">    neither end point is the result of a contraction, but the process is then repeated</span>
+</span><span id="edge_contract-120"><a href="#edge_contract-120"><span class="linenos">120</span></a><span class="sd">    until no more contractions are possible. Returns total number of contractions. &quot;&quot;&quot;</span>
+</span><span id="edge_contract-121"><a href="#edge_contract-121"><span class="linenos">121</span></a>    <span class="k">return</span> <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_edge_contract</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">dist_thresh</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Simplifies a graph by contracting edges. The first argument, g, is the graph,
+and only edges shorter than dist_thresh are contracted. When an edge is contracted
+the merged vertices are moved to the average of their former positions. Thus,
+the ordering in which contractions are carried out matters. Hence, edges are
+contracted in the order of increasing length and edges are only considered if
+neither end point is the result of a contraction, but the process is then repeated
+until no more contractions are possible. Returns total number of contractions.</p>
+</div>
+
+
+                </section>
+                <section id="prune">
+                            <div class="attr function"><a class="headerlink" href="#prune">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">prune</span><span class="signature">(g)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="prune-123"><a href="#prune-123"><span class="linenos">123</span></a><span class="k">def</span> <span class="nf">prune</span><span class="p">(</span><span class="n">g</span><span class="p">):</span>
+</span><span id="prune-124"><a href="#prune-124"><span class="linenos">124</span></a>    <span class="sd">&quot;&quot;&quot; Prune leaves of a graph. The graph, g, is passed as the argument. This function</span>
+</span><span id="prune-125"><a href="#prune-125"><span class="linenos">125</span></a><span class="sd">        removes leaf nodes (valency 1) whose only neighbour has valency &gt; 2. In practice</span>
+</span><span id="prune-126"><a href="#prune-126"><span class="linenos">126</span></a><span class="sd">        such isolated leaves are frequently spurious if the graph is a skeleton. Does not</span>
+</span><span id="prune-127"><a href="#prune-127"><span class="linenos">127</span></a><span class="sd">        return a value. &quot;&quot;&quot;</span>
+</span><span id="prune-128"><a href="#prune-128"><span class="linenos">128</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_prune</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">)</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Prune leaves of a graph. The graph, g, is passed as the argument. This function
+removes leaf nodes (valency 1) whose only neighbour has valency &gt; 2. In practice
+such isolated leaves are frequently spurious if the graph is a skeleton. Does not
+return a value.</p>
+</div>
+
+
+                </section>
+                <section id="LS_skeleton">
+                            <div class="attr function"><a class="headerlink" href="#LS_skeleton">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">LS_skeleton</span><span class="signature">(g, sampling=True)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LS_skeleton-130"><a href="#LS_skeleton-130"><span class="linenos">130</span></a><span class="k">def</span> <span class="nf">LS_skeleton</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="LS_skeleton-131"><a href="#LS_skeleton-131"><span class="linenos">131</span></a>    <span class="sd">&quot;&quot;&quot; Skeletonize a graph using the local separators approach. The first argument,</span>
+</span><span id="LS_skeleton-132"><a href="#LS_skeleton-132"><span class="linenos">132</span></a><span class="sd">        g, is the graph, and, sampling indicates whether we try to use all vertices</span>
+</span><span id="LS_skeleton-133"><a href="#LS_skeleton-133"><span class="linenos">133</span></a><span class="sd">        (False) as starting points for finding separators or just a sampling (True).</span>
+</span><span id="LS_skeleton-134"><a href="#LS_skeleton-134"><span class="linenos">134</span></a><span class="sd">        The function returns a new graph which is the skeleton of the input graph. &quot;&quot;&quot;</span>
+</span><span id="LS_skeleton-135"><a href="#LS_skeleton-135"><span class="linenos">135</span></a>    <span class="n">skel</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">()</span>
+</span><span id="LS_skeleton-136"><a href="#LS_skeleton-136"><span class="linenos">136</span></a>    <span class="n">mapping</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="LS_skeleton-137"><a href="#LS_skeleton-137"><span class="linenos">137</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_LS_skeleton</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">skel</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">mapping</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">sampling</span><span class="p">)</span>
+</span><span id="LS_skeleton-138"><a href="#LS_skeleton-138"><span class="linenos">138</span></a>    <span class="k">return</span> <span class="n">skel</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Skeletonize a graph using the local separators approach. The first argument,
+g, is the graph, and, sampling indicates whether we try to use all vertices
+(False) as starting points for finding separators or just a sampling (True).
+The function returns a new graph which is the skeleton of the input graph.</p>
+</div>
+
+
+                </section>
+                <section id="LS_skeleton_and_map">
+                            <div class="attr function"><a class="headerlink" href="#LS_skeleton_and_map">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">LS_skeleton_and_map</span><span class="signature">(g, sampling=True)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="LS_skeleton_and_map-140"><a href="#LS_skeleton_and_map-140"><span class="linenos">140</span></a><span class="k">def</span> <span class="nf">LS_skeleton_and_map</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">sampling</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+</span><span id="LS_skeleton_and_map-141"><a href="#LS_skeleton_and_map-141"><span class="linenos">141</span></a>    <span class="sd">&quot;&quot;&quot; Skeletonize a graph using the local separators approach. The first argument,</span>
+</span><span id="LS_skeleton_and_map-142"><a href="#LS_skeleton_and_map-142"><span class="linenos">142</span></a><span class="sd">        g, is the graph, and, sampling indicates whether we try to use all vertices</span>
+</span><span id="LS_skeleton_and_map-143"><a href="#LS_skeleton_and_map-143"><span class="linenos">143</span></a><span class="sd">        (False) as starting points for finding separators or just a sampling (True).</span>
+</span><span id="LS_skeleton_and_map-144"><a href="#LS_skeleton_and_map-144"><span class="linenos">144</span></a><span class="sd">        The function returns a tuple containing a new graph which is the skeleton of</span>
+</span><span id="LS_skeleton_and_map-145"><a href="#LS_skeleton_and_map-145"><span class="linenos">145</span></a><span class="sd">        the input graph and a map from the graph nodes to the skeletal nodes. &quot;&quot;&quot;</span>
+</span><span id="LS_skeleton_and_map-146"><a href="#LS_skeleton_and_map-146"><span class="linenos">146</span></a>    <span class="n">skel</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">()</span>
+</span><span id="LS_skeleton_and_map-147"><a href="#LS_skeleton_and_map-147"><span class="linenos">147</span></a>    <span class="n">mapping</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="LS_skeleton_and_map-148"><a href="#LS_skeleton_and_map-148"><span class="linenos">148</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_LS_skeleton</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">skel</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">mapping</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">sampling</span><span class="p">)</span>
+</span><span id="LS_skeleton_and_map-149"><a href="#LS_skeleton_and_map-149"><span class="linenos">149</span></a>    <span class="k">return</span> <span class="n">skel</span><span class="p">,</span> <span class="n">mapping</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Skeletonize a graph using the local separators approach. The first argument,
+g, is the graph, and, sampling indicates whether we try to use all vertices
+(False) as starting points for finding separators or just a sampling (True).
+The function returns a tuple containing a new graph which is the skeleton of
+the input graph and a map from the graph nodes to the skeletal nodes.</p>
+</div>
+
+
+                </section>
+                <section id="front_skeleton_and_map">
+                            <div class="attr function"><a class="headerlink" href="#front_skeleton_and_map">#&nbsp;&nbsp</a>
+
+        
+            <span class="def">def</span>
+            <span class="name">front_skeleton_and_map</span><span class="signature">(g, colors)</span>:
+    </div>
+
+            <details>
+            <summary>View Source</summary>
+            <div class="pdoc-code codehilite"><pre><span></span><span id="front_skeleton_and_map-151"><a href="#front_skeleton_and_map-151"><span class="linenos">151</span></a><span class="k">def</span> <span class="nf">front_skeleton_and_map</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">colors</span><span class="p">):</span>
+</span><span id="front_skeleton_and_map-152"><a href="#front_skeleton_and_map-152"><span class="linenos">152</span></a>    <span class="sd">&quot;&quot;&quot; Skeletonize a graph using the front separators approach. The first argument,</span>
+</span><span id="front_skeleton_and_map-153"><a href="#front_skeleton_and_map-153"><span class="linenos">153</span></a><span class="sd">        g, is the graph, and, colors is a 2D array where each row contains a sequence</span>
+</span><span id="front_skeleton_and_map-154"><a href="#front_skeleton_and_map-154"><span class="linenos">154</span></a><span class="sd">        of floating point values - one for each node. We can have as many rows as needed</span>
+</span><span id="front_skeleton_and_map-155"><a href="#front_skeleton_and_map-155"><span class="linenos">155</span></a><span class="sd">        for the front separator computation. We can think of this as a coloring</span>
+</span><span id="front_skeleton_and_map-156"><a href="#front_skeleton_and_map-156"><span class="linenos">156</span></a><span class="sd">        of the nodes, hence the name. In practice, a coloring might just be the x-coordinate</span>
+</span><span id="front_skeleton_and_map-157"><a href="#front_skeleton_and_map-157"><span class="linenos">157</span></a><span class="sd">        of the nodes or some other function that indicates something about the structure of the</span>
+</span><span id="front_skeleton_and_map-158"><a href="#front_skeleton_and_map-158"><span class="linenos">158</span></a><span class="sd">        graph. The function returns a tuple containing a new graph which is the</span>
+</span><span id="front_skeleton_and_map-159"><a href="#front_skeleton_and_map-159"><span class="linenos">159</span></a><span class="sd">        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. &quot;&quot;&quot;</span>
+</span><span id="front_skeleton_and_map-160"><a href="#front_skeleton_and_map-160"><span class="linenos">160</span></a>    <span class="n">skel</span> <span class="o">=</span> <span class="n">Graph</span><span class="p">()</span>
+</span><span id="front_skeleton_and_map-161"><a href="#front_skeleton_and_map-161"><span class="linenos">161</span></a>    <span class="n">mapping</span> <span class="o">=</span> <span class="n">IntVector</span><span class="p">()</span>
+</span><span id="front_skeleton_and_map-162"><a href="#front_skeleton_and_map-162"><span class="linenos">162</span></a>    <span class="n">colors_flat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">colors</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+</span><span id="front_skeleton_and_map-163"><a href="#front_skeleton_and_map-163"><span class="linenos">163</span></a>    <span class="n">N_col</span> <span class="o">=</span> <span class="n">colors_flat</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+</span><span id="front_skeleton_and_map-164"><a href="#front_skeleton_and_map-164"><span class="linenos">164</span></a>    <span class="n">lib_py_gel</span><span class="o">.</span><span class="n">graph_front_skeleton</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">skel</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">mapping</span><span class="o">.</span><span class="n">obj</span><span class="p">,</span> <span class="n">N_col</span><span class="p">,</span> <span class="n">colors_flat</span><span class="o">.</span><span class="n">ctypes</span><span class="o">.</span><span class="n">data_as</span><span class="p">(</span><span class="n">ct</span><span class="o">.</span><span class="n">POINTER</span><span class="p">(</span><span class="n">ct</span><span class="o">.</span><span class="n">c_double</span><span class="p">)))</span>
+</span><span id="front_skeleton_and_map-165"><a href="#front_skeleton_and_map-165"><span class="linenos">165</span></a>    <span class="k">return</span> <span class="n">skel</span><span class="p">,</span> <span class="n">mapping</span>
+</span></pre></div>
+
+        </details>
+
+            <div class="docstring"><p>Skeletonize a graph using the front separators approach. The first argument,
+g, is the graph, and, colors is a 2D array where each row contains a sequence
+of floating point values - one for each node. We can have as many rows as needed
+for the front separator computation. We can think of this as a coloring
+of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
+of the nodes or some other function that indicates something about the structure of the
+graph. The function returns a tuple containing a new graph which is the
+skeleton of the input graph and a map from the graph nodes to the skeletal nodes.</p>
+</div>
+
+
+                </section>
+    </main>
+<script>
+    function escapeHTML(html) {
+        return document.createElement('div').appendChild(document.createTextNode(html)).parentNode.innerHTML;
+    }
+
+    const originalContent = document.querySelector("main.pdoc");
+    let currentContent = originalContent;
+
+    function setContent(innerHTML) {
+        let elem;
+        if (innerHTML) {
+            elem = document.createElement("main");
+            elem.classList.add("pdoc");
+            elem.innerHTML = innerHTML;
+        } else {
+            elem = originalContent;
+        }
+        if (currentContent !== elem) {
+            currentContent.replaceWith(elem);
+            currentContent = elem;
+        }
+    }
+
+    function getSearchTerm() {
+        return (new URL(window.location)).searchParams.get("search");
+    }
+
+    const searchBox = document.querySelector(".pdoc input[type=search]");
+    searchBox.addEventListener("input", function () {
+        let url = new URL(window.location);
+        if (searchBox.value.trim()) {
+            url.hash = "";
+            url.searchParams.set("search", searchBox.value);
+        } else {
+            url.searchParams.delete("search");
+        }
+        history.replaceState("", "", url.toString());
+        onInput();
+    });
+    window.addEventListener("popstate", onInput);
+
+
+    let search, searchErr;
+
+    async function initialize() {
+        try {
+            search = await new Promise((resolve, reject) => {
+                const script = document.createElement("script");
+                script.type = "text/javascript";
+                script.async = true;
+                script.onload = () => resolve(window.pdocSearch);
+                script.onerror = (e) => reject(e);
+                script.src = "../search.js";
+                document.getElementsByTagName("head")[0].appendChild(script);
+            });
+        } catch (e) {
+            console.error("Cannot fetch pdoc search index");
+            searchErr = "Cannot fetch search index.";
+        }
+        onInput();
+
+        document.querySelector("nav.pdoc").addEventListener("click", e => {
+            if (e.target.hash) {
+                searchBox.value = "";
+                searchBox.dispatchEvent(new Event("input"));
+            }
+        });
+    }
+
+    function onInput() {
+        setContent((() => {
+            const term = getSearchTerm();
+            if (!term) {
+                return null
+            }
+            if (searchErr) {
+                return `<h3>Error: ${searchErr}</h3>`
+            }
+            if (!search) {
+                return "<h3>Searching...</h3>"
+            }
+
+            window.scrollTo({top: 0, left: 0, behavior: 'auto'});
+
+            const results = search(term);
+
+            let html;
+            if (results.length === 0) {
+                html = `No search results for '${escapeHTML(term)}'.`
+            } else {
+                html = `<h4>${results.length} search result${results.length > 1 ? "s" : ""} for '${escapeHTML(term)}'.</h4>`;
+            }
+            for (let result of results.slice(0, 10)) {
+                let doc = result.doc;
+                let url = `../${doc.modulename.replaceAll(".", "/")}.html`;
+                if (doc.qualname) {
+                    url += `#${doc.qualname}`;
+                }
+
+                let heading;
+                switch (result.doc.type) {
+                    case "function":
+                        heading = `<span class="def">${doc.funcdef}</span> <span class="name">${doc.fullname}</span><span class="signature">${doc.signature}:</span>`;
+                        break;
+                    case "class":
+                        heading = `<span class="def">class</span> <span class="name">${doc.fullname}</span>`;
+                        if (doc.bases)
+                            heading += `<wbr>(<span class="base">${doc.bases}</span>)`;
+                        heading += `:`;
+                        break;
+                    case "variable":
+                        heading = `<span class="name">${doc.fullname}</span>`;
+                        if (doc.annotation)
+                            heading += `<span class="annotation">${doc.annotation}</span>`;
+                        if (doc.default_value)
+                            heading += `<span class="default_value">${doc.default_value}</span>`;
+                        break;
+                    default:
+                        heading = `<span class="name">${doc.fullname}</span>`;
+                        break;
+                }
+                html += `
+                        <section class="search-result">
+                        <a href="${url}" class="attr ${doc.type}">${heading}</a>
+                        <div class="docstring">${doc.doc}</div>
+                        </section>
+                    `;
+
+            }
+            return html;
+        })());
+    }
+
+    if (getSearchTerm()) {
+        initialize();
+        searchBox.value = getSearchTerm();
+        onInput();
+    } else {
+        searchBox.addEventListener("focus", initialize, {once: true});
+    }
+
+    searchBox.addEventListener("keydown", e => {
+        if (["ArrowDown", "ArrowUp", "Enter"].includes(e.key)) {
+            let focused = currentContent.querySelector(".search-result.focused");
+            if (!focused) {
+                currentContent.querySelector(".search-result").classList.add("focused");
+            } else if (
+                e.key === "ArrowDown"
+                && focused.nextElementSibling
+                && focused.nextElementSibling.classList.contains("search-result")
+            ) {
+                focused.classList.remove("focused");
+                focused.nextElementSibling.classList.add("focused");
+                focused.nextElementSibling.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "nearest"
+                });
+            } else if (
+                e.key === "ArrowUp"
+                && focused.previousElementSibling
+                && focused.previousElementSibling.classList.contains("search-result")
+            ) {
+                focused.classList.remove("focused");
+                focused.previousElementSibling.classList.add("focused");
+                focused.previousElementSibling.scrollIntoView({
+                    behavior: "smooth",
+                    block: "nearest",
+                    inline: "nearest"
+                });
+            } else if (
+                e.key === "Enter"
+            ) {
+                focused.querySelector("a").click();
+            }
+        }
+    });
+</script></body>
+</html>

@@ -1,0 +1,11 @@
+R (c++) 5.68146
+ ----- 
+Made no val 3 connections
+---- val report -----------------------------
+valency 4
+valency 4
+valency 4
+valency 4
+valency 4
+valency 4
+---- val report -----------------------------
