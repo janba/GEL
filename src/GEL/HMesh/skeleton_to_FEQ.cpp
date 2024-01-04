@@ -1273,7 +1273,7 @@ void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
     FaceAttributeVector<double> face_area;
     for (const FaceID f: m.faces()) {
         double a = area(m, f);
-        if (isnan(a))
+        if (std::isnan(a))
             a = 0;
         face_area[f] = a;
         total_area += a;

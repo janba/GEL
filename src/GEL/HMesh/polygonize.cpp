@@ -117,12 +117,12 @@ namespace HMesh
     {
         auto is_inside = [&](const Vec3i& pi) {
             float val = grid[pi];
-            return !isnan(val) && (high_is_inside == (val > tau));
+            return !std::isnan(val) && (high_is_inside == (val > tau));
         };
         auto is_outside = [&](const Vec3i& pi) {
             if (grid.in_domain(pi)) {
                 float val = grid[pi];
-                return !isnan(val) && (high_is_inside == (val <= tau));
+                return !std::isnan(val) && (high_is_inside == (val <= tau));
             }
             return true;
 

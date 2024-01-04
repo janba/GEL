@@ -81,15 +81,7 @@ namespace CGLA
     
     /// Useful enum that represents coordiante axes.
     enum Axis {XAXIS=0,YAXIS=1,ZAXIS=2};
-    
-    inline bool isnan(double x) {
-#ifdef _MSC_VER // if visual studio
-        return _isnan(x);
-#else
-        return std::isnan(x);
-#endif
-    }
-    
+        
     /// Template for a function that squares the argument.
     template <class Scalar>
     inline Scalar sqr(Scalar x) {///
