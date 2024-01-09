@@ -738,13 +738,11 @@ void all_symmetry_pairs(AMGraph3D& g, double threshold) {
         auto N = g.neighbors(n);
         if(N.size()>2) {
             auto npairs = symmetry_pairs(g, n, threshold);
-            for (auto [a,b]: npairs) {
-                auto na = N[a];
-                auto nb = N[b];
-                g.edge_color[g.find_edge(n, na)] = Vec3f(1,0,0);
-                g.edge_color[g.find_edge(n, nb)] = Vec3f(1,0,0);
-                break;
-            }
+            auto [a,b] = npairs[0];
+            auto na = N[a];
+            auto nb = N[b];
+            g.edge_color[g.find_edge(n, na)] = Vec3f(1,0,0);
+            g.edge_color[g.find_edge(n, nb)] = Vec3f(1,0,0);
         }
     }
     

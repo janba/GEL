@@ -50,7 +50,7 @@ namespace HMesh
             vector<int> indices;
             while(get_multi_line(obj_file,buf))
             {
-                istringstream iss(move(buf));
+                istringstream iss(std::move(buf));
                 string code;
                 if(iss>>code) {
                     if(code == "v") {

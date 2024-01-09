@@ -299,7 +299,7 @@ namespace HMesh
                 tmp_curvature_tensors[*v] /= tmp_area;
             }
         }
-        curvature_tensors = move(tmp_curvature_tensors);
+        curvature_tensors = std::move(tmp_curvature_tensors);
     }
 
     void gaussian_curvature_angle_defects(const Manifold& m, VertexAttributeVector<double>& curvature, int smooth_steps)

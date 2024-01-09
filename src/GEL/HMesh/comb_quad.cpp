@@ -114,8 +114,7 @@ bool connect_val3(HMesh::Manifold& m) {
 
     for (auto [v_first, f_first]: initial_vertex_face_pairs) {
         BreadthFirstSearch bfs(g);
-        for (auto f: m.incident_faces(v_first))
-            bfs.add_init_node(face2node[f_first]);
+        bfs.add_init_node(face2node[f_first]);
         while(bfs.Dijkstra_step()) {
             AMGraph::NodeID n_last = bfs.get_last();
             VertexID v_last = val3vertex[n_last];

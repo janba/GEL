@@ -515,7 +515,7 @@ namespace Geometry {
 
         vector<vector<NodeID>> separators;
         AttribVec<NodeID, int> separator_idx(g.no_nodes(), -1);
-        int first_T0 = shift;
+//        int first_T0 = shift;
         for (const auto&[T0, n0]: nodes_by_tin)
             if (/*T0 >= first_T0 &&*/ separator_idx[n0] == -1) {
                 int new_sep_idx = separators.size();
@@ -985,8 +985,6 @@ namespace Geometry {
                     continue;
                 }
 
-                size_t old_size = sep.sigma.size();
-
                 // Expand.
 
                 NodeSetUnordered Sigma;
@@ -1100,7 +1098,7 @@ namespace Geometry {
 
         count_packed = separator_vector_global.size();
 
-        auto t3 = hrc::now();
+//        auto t3 = hrc::now();
 
         cout << "#####################" << endl;
         cout << "Computed " << count_computed << " separators" << endl;

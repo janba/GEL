@@ -31,13 +31,6 @@ const Vec3d rand_unit_vector()
     return normalize(p);
 }
 
-bool comp_points_sphere(const Vec3d& p0, const Vec3d& p1)
-{
-    double d0 = dot(Vec3d(1,0,0), p0);
-    double d1 = dot(Vec3d(1,0,0), p1);
-    return d0 < d1;
-}
-
 struct SphereTriangle
 {
     Vec3i corners;

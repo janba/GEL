@@ -3265,7 +3265,7 @@ void info()
 /*                                                                           */
 /*****************************************************************************/
 
-void internalerror()
+void internalerror(void)
 {
   printf("  Please report this bug to jrs@cs.berkeley.edu\n");
   printf("  Include the message above, your input data set, and the exact\n");
@@ -4884,7 +4884,7 @@ struct osub *newsubseg;
 /*                                                                           */
 /*****************************************************************************/
 
-void exactinit()
+void exactinit(void)
 {
   REAL half;
   REAL check, lastcheck;
@@ -13204,7 +13204,7 @@ struct behavior *b;
 
 #ifndef CDT_ONLY
 
-void precisionerror()
+void precisionerror(void)
 {
   printf("Try increasing the area criterion and/or reducing the minimum\n");
   printf("  allowable angle so that tiny triangles are not created.\n");

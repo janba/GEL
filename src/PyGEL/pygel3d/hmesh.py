@@ -636,9 +636,9 @@ def inv_correspondence_leqs(m, ref_mesh):
             r_norm = ref_mesh.vertex_normal(r_id)
             m_norm = m.vertex_normal(m_id)
             dot_prod = m_norm @ r_norm
-            if dot_prod > 0.0:
+            if dot_prod > 0.5:
                 v = query_pt - m_pos[m_id]
-                wgt = dot_prod**2
+                wgt = dot_prod - 0.5
                 m_target_pos[m_id] += wgt*query_pt
                 m_cnt[m_id] += wgt
                 
@@ -648,9 +648,9 @@ def inv_correspondence_leqs(m, ref_mesh):
     for vid in m.vertices():
         if m_cnt[vid] > 0.0:
             row_a = np.zeros(N)
-            row_a[vid] = m_cnt[vid]
+            row_a[vid] = 1.0
             A_list.append(row_a)
-            b_list.append(m_target_pos[vid])
+            b_list.append(m_target_pos[vid]/m_cnt[vid])
     return csc_matrix(np.array(A_list)), np.array(b_list)
 
 def fit_mesh_to_ref(m, ref_mesh, iter = 10, dist_wt = 1.0, lap_wt = 0.3):
@@ -662,7 +662,7 @@ def fit_mesh_to_ref(m, ref_mesh, iter = 10, dist_wt = 1.0, lap_wt = 0.3):
         lap_matrix = laplacian_matrix(m)
         lap_b = lap_matrix @ v_pos
         final_A = vstack([lap_wt*lap_matrix, dist_wt*Ai])
-        final_b = np.vstack([0*lap_b, dist_wt*bi])
+        final_b = np.vstack([lap_wt*lap_b, dist_wt*bi])
         opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
         opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
         opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]

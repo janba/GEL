@@ -1088,7 +1088,6 @@ FaceID find_bridge_face(const HMesh::Manifold &m_out,
 
         auto key = std::make_pair(start_node,next_node);
         f0 = branchface.find(key)->second;
-        VertexID v0 = branch_best_vertex.find(key)->second;
     }
     else
         f0 = best_face(start_node,next_node);
