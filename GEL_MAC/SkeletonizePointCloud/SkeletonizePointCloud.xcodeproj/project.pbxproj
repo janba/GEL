@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		BD38402D2B476396005C29CE /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD38402C2B476396005C29CE /* main.cpp */; };
+		BD07F49C2B4D320600E368A9 /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD07F49B2B4D320600E368A9 /* main.cpp */; };
 		BD3840412B476442005C29CE /* GEL.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = BD38403F2B476426005C29CE /* GEL.framework */; };
 /* End PBXBuildFile section */
 
@@ -41,8 +41,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		BD07F49B2B4D320600E368A9 /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../src/demo/SkeletonizePointCloud/main.cpp; sourceTree = "<group>"; };
 		BD3840222B47637D005C29CE /* SkeletonizePointCloud */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = SkeletonizePointCloud; sourceTree = BUILT_PRODUCTS_DIR; };
-		BD38402C2B476396005C29CE /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = main.cpp; path = ../../../src/demo/SkeletonizePointCloud/main.cpp; sourceTree = "<group>"; };
 		BD38403A2B476426005C29CE /* GEL.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = GEL.xcodeproj; path = ../GEL.xcodeproj; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -58,11 +58,19 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		BD07F49A2B4D31DC00E368A9 /* SkeletonizePointCloud */ = {
+			isa = PBXGroup;
+			children = (
+				BD07F49B2B4D320600E368A9 /* main.cpp */,
+			);
+			name = SkeletonizePointCloud;
+			sourceTree = "<group>";
+		};
 		BD3840192B47637D005C29CE = {
 			isa = PBXGroup;
 			children = (
+				BD07F49A2B4D31DC00E368A9 /* SkeletonizePointCloud */,
 				BD38403A2B476426005C29CE /* GEL.xcodeproj */,
-				BD3840242B47637D005C29CE /* SkeletonizePointCloud */,
 				BD3840232B47637D005C29CE /* Products */,
 				BD3840402B476442005C29CE /* Frameworks */,
 			);
@@ -74,14 +82,6 @@
 				BD3840222B47637D005C29CE /* SkeletonizePointCloud */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		BD3840242B47637D005C29CE /* SkeletonizePointCloud */ = {
-			isa = PBXGroup;
-			children = (
-				BD38402C2B476396005C29CE /* main.cpp */,
-			);
-			path = SkeletonizePointCloud;
 			sourceTree = "<group>";
 		};
 		BD38403B2B476426005C29CE /* Products */ = {
@@ -173,7 +173,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				BD38402D2B476396005C29CE /* main.cpp in Sources */,
+				BD07F49C2B4D320600E368A9 /* main.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
