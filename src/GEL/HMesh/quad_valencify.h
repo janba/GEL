@@ -15,4 +15,7 @@
 
 #include <GEL/HMesh/HMesh.h>
 
+/** This function turns the input Manifold m into a mesh where all vertices have valence 4.
+ This is typically not in itself very interesting, but the dual  mesh is then a quad mesh, and that
+ is useful for inverse skeletonization. */
 void quad_valencify(HMesh::Manifold& m);
