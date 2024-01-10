@@ -6,7 +6,7 @@
 //  Copyright © 2023 J. Andreas Bærentzen. All rights reserved.
 //
 
-#include "comb_quad.h"
+#include "quad_valencify.h"
 #include <array>
 #include <queue>
 

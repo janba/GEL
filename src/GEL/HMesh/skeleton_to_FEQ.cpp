@@ -10,7 +10,7 @@
 #include <GEL/Geometry/graph_io.h>
 #include <GEL/Geometry/graph_util.h>
 #include <GEL/Geometry/SphereDelaunay.h>
-#include <GEL/HMesh/comb_quad.h>
+#include <GEL/HMesh/quad_valencify.h>
 
 using namespace Geometry;
 using namespace CGLA;
