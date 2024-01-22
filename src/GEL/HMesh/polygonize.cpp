@@ -168,7 +168,7 @@ namespace HMesh
         
         struct Corner {
             float val;
-            bool inside;
+            bool in_domain;
             Vec3d pos;
         };
         array<Corner,8> corners;
@@ -180,12 +180,12 @@ namespace HMesh
             for (int i=0;i<8;++i) {
                 Vec3i pbi = pi + CubeCorners8i[i];
                 if (grid.in_domain(pbi)) {
-                    corners[i].inside = true;
+                    corners[i].in_domain = true;
                     va += corners[i].val = grid[pbi];
                     pa += corners[i].pos = Vec3d(pbi);
                     ++cnt;
                 }
-                else corners[i].inside = false;
+                else corners[i].in_domain = false;
             }
             pa /= cnt;
             va /= cnt;
@@ -193,7 +193,7 @@ namespace HMesh
             Vec3d p(0.0);
             cnt = 0;
             for (int i=0;i<8;++i)
-                if (corners[i].inside) {
+                if (corners[i].in_domain) {
                     float vb = corners[i].val;
                     if(max(va,vb)>tau && min(va,vb)<=tau) {
                         float delta = vb - va;
