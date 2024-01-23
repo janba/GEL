@@ -837,7 +837,7 @@ namespace Geometry {
     }
 
     NodeSetVec local_separators(AMGraph3D &g, SamplingType sampling, double quality_noise_level, int optimization_steps,
-                                size_t advanced_sampling_threshold) {
+                                size_t advanced_sampling_threshold, bool quiet) {
 
         // Because we are greedy: all cores belong to this task!
         const int CORES = thread::hardware_concurrency();
@@ -904,11 +904,13 @@ namespace Geometry {
         auto sep_aft = node_set_vec_global.size();
         auto t3 = hrc::now();
 
-        cout << "Computed " << cnt << " separators" << endl;
-        cout << "Found " << sep_bef << " separators" << endl;
-        cout << "Packed " << sep_aft << " separators" << endl;
-        cout << "Finding separators: " << (t2 - t1).count() * 1e-9 << endl;
-        cout << "Packing separators: " << (t3 - t2).count() * 1e-9 << endl;
+        if (quiet) {
+            cout << "Computed " << cnt << " separators" << endl;
+            cout << "Found " << sep_bef << " separators" << endl;
+            cout << "Packed " << sep_aft << " separators" << endl;
+            cout << "Finding separators: " << (t2 - t1).count() * 1e-9 << endl;
+            cout << "Packing separators: " << (t3 - t2).count() * 1e-9 << endl;
+        }
 
         // Color the node sets selected by packing, so we can get a sense of the
         // selection.
@@ -917,11 +919,11 @@ namespace Geometry {
         return node_set_vec_global;
     }
 
-    NodeSetVec multiscale_local_separators(AMGraph3D &g, SamplingType sampling,const size_t grow_threshold,double quality_noise_level, int optimization_steps) {
+    NodeSetVec multiscale_local_separators(AMGraph3D &g, SamplingType sampling,const size_t grow_threshold,double quality_noise_level, int optimization_steps, const int desired_threads, bool quiet) {
         // Because we are greedy: all cores belong to this task!
         //const unsigned int CORES = std::min(8u,thread::hardware_concurrency());
-
-        const int CORES = thread::hardware_concurrency();
+        
+        const int CORES = desired_threads > 0 ? desired_threads : thread::hardware_concurrency();
         const int CORES_SEC = std::min(CORES,2);
 
         Util::AttribVec<NodeID, size_t> touched(g.no_nodes(), 0);
@@ -1100,20 +1102,22 @@ namespace Geometry {
 
 //        auto t3 = hrc::now();
 
-        cout << "#####################" << endl;
-        cout << "Computed " << count_computed << " separators" << endl;
-        cout << "Found " << count_found << " separators" << endl;
-        cout << "Packed " << count_packed << " separators" << endl;
-        cout << "#####################" << endl;
-        cout << "Building multilayer graph: " << (t2 - t1).count() * 1e-9 << endl;
-        //cout << "Creating separators: " << (t3 - t2).count() * 1e-9 << endl;
-        //cout << "#####################" << endl;
-        cout << "Searching for restricted separators: " << time_creating_separators * 1e-9 << endl;
-        cout << "Packing separators: " << time_packing * 1e-9 << endl;
-        cout << "Expanding separators: " << time_expanding * 1e-9 << endl;
-        cout << "Shrinking separators: " << time_shrinking * 1e-9 << endl;
-        cout << "Filtering separators: " << time_filtering * 1e-9 << endl;
-        cout << "#####################" << endl;
+        if (quiet) {
+            cout << "#####################" << endl;
+            cout << "Computed " << count_computed << " separators" << endl;
+            cout << "Found " << count_found << " separators" << endl;
+            cout << "Packed " << count_packed << " separators" << endl;
+            cout << "#####################" << endl;
+            cout << "Building multilayer graph: " << (t2 - t1).count() * 1e-9 << endl;
+            //cout << "Creating separators: " << (t3 - t2).count() * 1e-9 << endl;
+            //cout << "#####################" << endl;
+            cout << "Searching for restricted separators: " << time_creating_separators * 1e-9 << endl;
+            cout << "Packing separators: " << time_packing * 1e-9 << endl;
+            cout << "Expanding separators: " << time_expanding * 1e-9 << endl;
+            cout << "Shrinking separators: " << time_shrinking * 1e-9 << endl;
+            cout << "Filtering separators: " << time_filtering * 1e-9 << endl;
+            cout << "#####################" << endl;
+        }
 
         // Color the node sets selected by packing, so we can get a sense of the
         // selection.
