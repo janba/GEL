@@ -191,6 +191,7 @@ namespace HMesh
             va /= cnt;
             
             Vec3d p(0.0);
+            Vec3d n = normal(mani, v);
             cnt = 0;
             for (int i=0;i<8;++i)
                 if (corners[i].in_domain) {
@@ -198,8 +199,10 @@ namespace HMesh
                     if(max(va,vb)>tau && min(va,vb)<=tau) {
                         float delta = vb - va;
                         Vec3d pb = corners[i].pos;
-                        p += pa * (vb-tau)/delta - pb * (va-tau)/delta;
-                        ++cnt;
+                        if(dot(n, pb-pa)>0.0) {
+                            p += pa * (vb-tau)/delta - pb * (va-tau)/delta;
+                            ++cnt;
+                        }
                     }
                 }
             mani.pos(v) = (cnt>0)? p / cnt : pa;
