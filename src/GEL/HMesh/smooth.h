@@ -42,7 +42,7 @@ namespace HMesh
     void taubin_smooth_cot(HMesh::Manifold& m, int iter=1);
 
     /** Smooth meshes by first filtering normals and then refitting the mesh */
-    void anisotropic_smooth(HMesh::Manifold& m, int iter, NormalSmoothMethod nsm);
+    void anisotropic_smooth(HMesh::Manifold& m, int iter, double sharpness);
 
     /// Tangential area weighted smoothing.
     void TAL_smoothing(HMesh::Manifold& m, float w, int iter=1);

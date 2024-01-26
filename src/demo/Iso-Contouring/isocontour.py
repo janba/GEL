@@ -11,9 +11,9 @@ for idx in np.ndindex(dim):
     x,y,z = array(idx) * 0.25
     vol[idx] = sin(x)*cos(y)+sin(y)*cos(z)+sin(z)*cos(x) 
 
-m = hmesh.volumetric_isocontour(vol, high_is_inside=False)
+m = hmesh.volumetric_isocontour(vol, high_is_inside=True)
 v = gl.Viewer()
-v.display(m)
+v.display(m, smooth=False)
 
 dim = (16,16,16)
 vol = np.zeros(dim)

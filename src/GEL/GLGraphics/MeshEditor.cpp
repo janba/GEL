@@ -1374,34 +1374,13 @@ namespace GLGraphics {
             return;
         }
 
-            
-        void console_fvm_anisotropic_smooth(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(wantshelp(args)){
-                me->printf("usage: smooth.fuzzy_vector_median <iter>");
-                me->printf("Smooth normals using fuzzy vector median smoothing. iter (default=1) is the number of iterations");
-                me->printf("This function does a very good job of preserving sharp edges.");
-                return;
-            }
-            me->save_active_mesh();
-            
-            int iter=1;
-            if(args.size() > 0){
-                istringstream a0(args[0]);
-                a0 >> iter;
-            }
-            // Fuzzy vector median smoothing is effective when it comes to preserving sharp edges.
-            anisotropic_smooth(me->active_mesh(),  iter, FVM_NORMAL_SMOOTH);
-            
-            return;
-        }
-        
         void console_bilateral_anisotropic_smooth(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)){
-                me->printf("usage: smooth.fuzzy_vector_median <iter>");
-                me->printf("Smooth normals using fuzzy vector median smoothing. iter (default=1) is the number of iterations");
-                me->printf("This function does a very good job of preserving sharp edges.");
+                me->printf("usage: smooth.bilateral_anisotropic <iter> <sharpness>");
+                me->printf("Smooth normals using a bilateral filter and then update");
+                me->printf("geometry. iter (default=1) is the number of iterations. ");
+                me->printf("high sharpness (default=4) preserves features better.");
                 return;
             }
             me->save_active_mesh();
@@ -1411,8 +1390,13 @@ namespace GLGraphics {
                 istringstream a0(args[0]);
                 a0 >> iter;
             }
-            
-            anisotropic_smooth(me->active_mesh(),  iter, BILATERAL_NORMAL_SMOOTH);
+            double sharpness=4.0;
+            if(args.size() > 1){
+                istringstream a0(args[1]);
+                a0 >> sharpness;
+            }
+
+            anisotropic_smooth(me->active_mesh(),  iter, sharpness);
             
             return;
         }
@@ -2059,7 +2043,6 @@ namespace GLGraphics {
         register_console_function("smooth.laplacian", console_laplacian_smooth,"");
         register_console_function("smooth.taubin", console_taubin_smooth,"");
         register_console_function("smooth.TAL", console_TAL_smooth,"");
-        register_console_function("smooth.fuzzy_vector_median_anisotropic", console_fvm_anisotropic_smooth ,"");
         register_console_function("smooth.bilateral_anisotropic", console_bilateral_anisotropic_smooth ,"");
         
         register_console_function("optimize.valency", console_optimize_valency,"");
