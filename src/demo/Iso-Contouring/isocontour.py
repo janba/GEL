@@ -9,11 +9,12 @@ dim = (40,40,40)
 vol = np.zeros(dim)
 for idx in np.ndindex(dim):
     x,y,z = array(idx) * 0.25
-    vol[idx] = sin(x)*cos(y)+sin(y)*cos(z)+sin(z)*cos(x) 
+    vol[idx] = sin(x)*cos(y)+sin(y)*cos(z)+sin(z)*cos(x)
 
 m = hmesh.volumetric_isocontour(vol, high_is_inside=True)
+
 v = gl.Viewer()
-v.display(m, smooth=False)
+v.display(m, mode='g', smooth=True)
 
 dim = (16,16,16)
 vol = np.zeros(dim)
@@ -38,4 +39,5 @@ vol = vol.reshape(dim)
 
 m = hmesh.volumetric_isocontour(vol, plo, phi, high_is_inside=False)
 d = np.clip(D.signed_distance(m.positions()), -0.0005, 0.0005)
+v.display(m, mode='w')
 v.display(m, mode='s', data=d)

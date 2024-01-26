@@ -843,6 +843,7 @@
 		0D52EB14197D18C1002C7150 /* HMesh */ = {
 			isa = PBXGroup;
 			children = (
+				0D52EBB5197D1930002C7150 /* header */,
 				0D52EB16197D18C1002C7150 /* cleanup.cpp */,
 				BDC3325D29D378AA003073FE /* quad_valencify.cpp */,
 				0D52EB18197D18C1002C7150 /* ConnectivityKernel.cpp */,
@@ -867,7 +868,6 @@
 				0D52EB3F197D18C1002C7150 /* triangulate.cpp */,
 				0D52EB42197D18C1002C7150 /* x3d_load.cpp */,
 				0D52EB44197D18C1002C7150 /* x3d_save.cpp */,
-				0D52EBB5197D1930002C7150 /* header */,
 			);
 			name = HMesh;
 			path = ../../src/GEL/HMesh;

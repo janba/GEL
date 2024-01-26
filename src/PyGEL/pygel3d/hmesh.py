@@ -545,13 +545,19 @@ def laplacian_smooth(m, w=0.5, iter=1):
     lib_py_gel.laplacian_smooth(m.obj, w, iter)
     
 def volumetric_isocontour(data, bbox_min = None, bbox_max = None,
-                          tau=0.0, make_triangles=True, high_is_inside=True):
-    """ Creates a polygonal mesh by dual contouring of the volumetric data. The dimensions
+                          tau=0.0,
+                          make_triangles=True,
+                          high_is_inside=True,
+                          dual_connectivity=False):
+    """ Creates a polygonal mesh from volumetric data by isocontouring. The dimensions
     are given by dims, bbox_min (defaults to [0,0,0] ) and bbox_max (defaults to dims) are
     the corners of the bounding box in R^3 that corresponds to the volumetric grid, tau is
     the iso value (defaults to 0). If make_triangles is True (default), we turn the quads
     into triangles. Finally, high_is_inside=True (default) means that values greater than
-    tau are interior and smaller values are exterior. """
+    tau are interior and smaller values are exterior. If dual_connectivity is False (default)
+    the function produces marching cubes connectivity and if True it produces dual contouring
+    connectivity. MC connectivity tends to produce less nice triangle shapes but since the
+    vertices always lie on edges, the geometry is arguably better defined for MC. """
     m = Manifold()
     dims = data.shape
     if bbox_min is None:
@@ -565,7 +571,7 @@ def volumetric_isocontour(data, bbox_min = None, bbox_max = None,
                                      data_float.ctypes.data_as(ct.POINTER(ct.c_float)),
                                      bbox_min_d.ctypes.data_as(ct.POINTER(ct.c_double)),
                                      bbox_max_d.ctypes.data_as(ct.POINTER(ct.c_double)), tau,
-                                     make_triangles, high_is_inside)
+                                     make_triangles, high_is_inside, dual_connectivity)
     return m
 
 def triangulate(m, clip_ear=True):

@@ -195,14 +195,18 @@ void laplacian_smooth(Manifold_ptr m_ptr, float weight, int iter) {
 }
 
 void volumetric_isocontour(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim, float* data,
-                           double* _pmin, double* _pmax, float tau, bool make_triangles, bool high_is_inside) {
+                           double* _pmin, double* _pmax, float tau, 
+                           bool make_triangles,
+                           bool high_is_inside,
+                           bool dual_connectivity) {
     Vec3i dims(x_dim, y_dim, z_dim);
     const Vec3d pmin = *(reinterpret_cast<Vec3d*>(_pmin));
     const Vec3d pmax = *(reinterpret_cast<Vec3d*>(_pmax));
     XForm xform(pmin, pmax, dims, 0.0);
     RGrid<float> grid(dims);
     memcpy(grid.get(), data, grid.get_size() * sizeof(float));
-    volume_polygonize(xform, grid, *(reinterpret_cast<Manifold*>(m_ptr)), tau, make_triangles, high_is_inside);
+    Manifold& m_ref = *(reinterpret_cast<Manifold*>(m_ptr));
+    m_ref = volume_polygonize(xform, grid, tau, make_triangles, high_is_inside, dual_connectivity);
 }
 
 
