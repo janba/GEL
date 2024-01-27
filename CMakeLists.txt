@@ -10,6 +10,7 @@ endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
   set(CMAKE_CXX_FLAGS "-std=c++1z")
+  add_definitions(-DGLEW_STATIC)
 endif ()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
