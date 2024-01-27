@@ -18,17 +18,18 @@ PyGEL is on PyPI and can be installed with pip. For most potential users, there 
 ```
 pip install PyGEL3D
 ```
-The PyPI package is called PyGEL3D and not PyGEL. Turns out just PyGEL was taken by a completely unrelated library. 
+The PyPI package is called PyGEL3D and not PyGEL. The library relies on OpenGL. Probably this is already installed, but you may have to do it. On Ubuntu Linux 
+```
+sudo apt-get install libglu1 libgl1
+```
+should suffice. On Google Colab, I recommend having this as the first cell:
+```
+!apt-get install libglu1 libgl1
+!pip install PyGEL3D
+```
 ## BUILDING AND INSTALLING GEL AND PYGEL
-If you need or wish to compile GEL there are a few options:
-- For all platforms, there are the CMake files. These can be used to build both GEL and PyGEL but not the demos or tests. The setup.py script which is used to make a PyPI package is only useful with this option for building PyGEL.
-- For Mac OS there is an Xcode project (in GEL_MAC). There are also projects for demos, tests, and PyGEL.
-- For Windows there is a Visual Studio Solution (in GEL_WIN) for GEL and demos.
-- For Unices there is a python script (in GEL_UNIX) for building GEL and PyGEL
 
-Especially if you intend to be a user of GEL or PyGEL and not a developer, I _strongly_ recommend that you use CMake to build. GEL and PyGEL are built every commit using GitHub's continuous integration based on the CMake files. Thus, this should be a robust way to compile the project.
-
-Since GEL is primarily developed on Mac OS, the Xcode projects are actively maintained and cover everything. **The two last build options are not actively maintained**. However, they may prove of some use and hence not removed.
+If you need or wish to build GEL/PyGEL from source, please download or clone it from [https://github.com/janba/GEL](https://github.com/janba/GEL). Below you will find instructions for how to build and create a package for PyGEL that can be installed via pip. If you look around you will find some other build options for Windows, Mac and Linux. Since GEL is primarily developed on Mac OS, the Xcode projects are actively maintained and cover everything. **The two last build options are not actively maintained**. However, they may prove of some use and hence not removed.
 
 ### Building with CMake
 If you are using a unix-like command line, build with
