@@ -262,7 +262,7 @@ namespace Geometry {
         cout << "Done!" << endl;
         cout << "Meshing ..." << endl;
         cout << grid.get_dims() << endl;
-        m = volume_polygonize(xform, grid, tau, true, false, true);
+        m = volume_polygonize(xform, grid, tau, true, false);
         cout << "Done!" << endl;
     }
 
