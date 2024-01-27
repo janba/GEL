@@ -2,8 +2,9 @@ from pygel3d import hmesh, graph, gl_display as gl
 
 import numpy as np
 from math import cos, sin
-
 array = np.array
+
+v = gl.Viewer()
 
 dim = (40,40,40)
 vol = np.zeros(dim)
@@ -12,9 +13,11 @@ for idx in np.ndindex(dim):
     vol[idx] = sin(x)*cos(y)+sin(y)*cos(z)+sin(z)*cos(x)
 
 m = hmesh.volumetric_isocontour(vol, high_is_inside=True)
+v.display(m, mode='w', smooth=True)
 
-v = gl.Viewer()
-v.display(m, mode='g', smooth=True)
+m = hmesh.volumetric_isocontour(vol, high_is_inside=True, dual_connectivity=True)
+v.display(m, mode='w', smooth=True)
+
 
 dim = (16,16,16)
 vol = np.zeros(dim)
