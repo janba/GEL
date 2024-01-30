@@ -9,7 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  set(CMAKE_CXX_FLAGS "-std=c++1z")
+#  set(CMAKE_CXX_FLAGS "-std=c++1z")
   add_definitions(-DGLEW_STATIC)
 endif ()
 
