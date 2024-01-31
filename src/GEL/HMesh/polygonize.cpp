@@ -115,8 +115,10 @@ namespace  HMesh {
         for(auto v: mani.vertices())
             mani.pos(v) = xform.inverse(mani.pos(v));
         
-        if(make_triangles)
+        if(make_triangles) {
             triangulate(mani);
+            remove_needles(mani, 0.4, true);
+        }
         
         mani.cleanup();
         
