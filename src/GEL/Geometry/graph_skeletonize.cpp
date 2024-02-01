@@ -683,6 +683,9 @@ namespace Geometry {
             if (temp > max) max = temp;
         }
         return (double) min / max;
+        auto [c,r] = approximate_bounding_sphere(g, s);
+//        int n = front_components(g, s).size();
+        return pow(s.size()/r, 16.0)*min/(double(max));
     }
 
     void thicken_separator(const AMGraph3D& g, NodeSetUnordered& sigma){
