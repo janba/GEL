@@ -127,7 +127,7 @@ DLLEXPORT void graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVe
     for(int i=0;i<N_col; ++i) {
         dvv[i] = AttribVecDouble(g_ptr->no_nodes());
         for(auto n: g_ptr->node_ids())
-            dvv[i][n] = colors[i*N+n];
+            dvv[i][n] = colors[N_col*n+i];
     }
     
     auto seps = front_separators(*g_ptr, dvv);
