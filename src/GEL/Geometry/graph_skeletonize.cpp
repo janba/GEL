@@ -89,9 +89,9 @@ namespace Geometry {
             if (temp > greatest) greatest = temp;
         }
         auto Q = double(smallest) / greatest;
-        //        return Q;
-        auto [c,r] = approximate_bounding_sphere(g,s);
-        return Q*(s.size()/(r*r));
+        return Q;
+//        auto [c,r] = approximate_bounding_sphere(g,s);
+//        return Q*(s.size()/(r*r));
     }
 
     template<typename T>
@@ -1281,6 +1281,21 @@ namespace Geometry {
         }
         
         return msg;
+    }
+
+
+    NodeSetVec combined_separators(AMGraph3D &g, 
+                                   SamplingType sampling,
+                                   const size_t grow_threshold,
+                                   double quality_noise_level,
+                                   int optimization_steps,
+                                   const vector<AttribVecDouble> &dvv)
+    {
+        NodeSetVec nsv1 = multiscale_local_separators(g, sampling, grow_threshold, quality_noise_level, optimization_steps);
+        NodeSetVec nsv2 = front_separators(g, dvv);
+        nsv1.insert(nsv1.end(), begin(nsv2), end(nsv2));
+        greedy_weighted_packing(g, nsv1, false);
+        return nsv1;
     }
 
 }

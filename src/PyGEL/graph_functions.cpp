@@ -130,7 +130,7 @@ DLLEXPORT void graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVe
             dvv[i][n] = colors[N_col*n+i];
     }
     
-    auto seps = front_separators(*g_ptr, dvv);
+    auto seps = combined_separators(*g_ptr, Geometry::SamplingType::Advanced, 256, 0.1, 0, dvv);
 
     auto [skel, mapping]  = skeleton_from_node_set_vec(*g_ptr, seps);
     *skel_ptr = skel;

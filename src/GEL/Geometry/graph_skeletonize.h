@@ -180,5 +180,13 @@ namespace Geometry {
      */
     NodeSetVec maximize_node_set_vec(AMGraph3D &g, const NodeSetVec &node_set_vec);
 
+    NodeSetVec combined_separators(AMGraph3D &g,
+                                   SamplingType sampling,
+                                   const size_t grow_threshold,
+                                   double quality_noise_level,
+                                   int optimization_steps,
+                                   const std::vector<AttribVecDouble> &dvv);
+
+
 }
 #endif /* graph_skeletonize_hpp */
