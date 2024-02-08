@@ -114,7 +114,7 @@ void graph_saturate(Graph_ptr _g_ptr, int hops, double dist_frac, double rad) {
     saturate_graph(*g_ptr, hops, dist_frac, rad);
 }
 
-DLLEXPORT void graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map_ptr, int N_col, double* colors){
+DLLEXPORT void graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map_ptr, int N_col, double* colors, int intervals){
     using IntVector = vector<size_t>;
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
@@ -130,7 +130,7 @@ DLLEXPORT void graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVe
             dvv[i][n] = colors[N_col*n+i];
     }
     
-    auto seps = combined_separators(*g_ptr, Geometry::SamplingType::Advanced, 256, 0.1, 0, dvv);
+    auto seps = combined_separators(*g_ptr, Geometry::SamplingType::Advanced, 256, 0.1, 0, dvv, intervals);
 
     auto [skel, mapping]  = skeleton_from_node_set_vec(*g_ptr, seps);
     *skel_ptr = skel;

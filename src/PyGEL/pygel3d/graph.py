@@ -189,7 +189,7 @@ def MSLS_skeleton_and_map(g, grow_thresh=64):
     return skel, mapping
 
 
-def front_skeleton_and_map(g, colors):
+def front_skeleton_and_map(g, colors, intervals=100):
     """ Skeletonize a graph using the front separators approach. The first argument,
         g, is the graph, and, colors is a 2D array where each row contains a sequence
         of floating point values - one for each node. We can have as many rows as needed
@@ -204,5 +204,5 @@ def front_skeleton_and_map(g, colors):
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
     print("N_col:", N_col)
     pos = g.positions()
-    lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)))
+    lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel, mapping

@@ -185,7 +185,8 @@ namespace Geometry {
                                    const size_t grow_threshold,
                                    double quality_noise_level,
                                    int optimization_steps,
-                                   const std::vector<AttribVecDouble> &dvv);
+                                   const std::vector<AttribVecDouble> &dvv,
+                                   int intervals);
 
 
 }

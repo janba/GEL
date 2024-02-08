@@ -756,62 +756,107 @@ namespace Geometry {
         return nsv;
     }
 
-    SepVec separating_node_sets(const AMGraph3D &g, const AttribVec<NodeID, double> &dist, int shift) {
-        BreadthFirstSearch bfs(g, dist);
-        while (bfs.step());
-        vector<pair<int, NodeID>> nodes_by_tin;
-        for (auto n: g.node_ids())
-            nodes_by_tin.push_back(make_pair(bfs.T_in[n], n));
-        sort(begin(nodes_by_tin), end(nodes_by_tin));
-        //        shuffle(begin(nodes_by_tin), end(nodes_by_tin), default_random_engine(rand()));
-        
-        
-        vector<vector<NodeID>> separators;
-        AttribVec<NodeID, int> separator_idx(g.no_nodes(), -1);
-        for (const auto& [T0, n0]: nodes_by_tin)
-            if (separator_idx[n0] == -1) {
-                int new_sep_idx = separators.size();
-                vector<NodeID> sep({n0});
-                queue<NodeID> nq({n0});
-                separator_idx[n0] = new_sep_idx;
-                bool intersects_previous = false;
-                while (!nq.empty() && !intersects_previous) {
-                    NodeID n = nq.front();
-                    nq.pop();
-                    for (auto nn: g.neighbors(n)) {
-                        if (bfs.T_in[nn] <= T0 && T0 <  bfs.T_out[nn]) {
-                            if (separator_idx[nn] == -1) {
-                                sep.push_back(nn);
-                                nq.push(nn);
-                                separator_idx[nn] = new_sep_idx;
-                            }
-                            else if (separator_idx[nn] != new_sep_idx) {
-                                intersects_previous = true;
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (intersects_previous) {
-                    for (auto n: sep)
-                        separator_idx[n] = -1;
-                }
-                else separators.push_back(sep);
-            }
-        
-        SepVec nsv_for_skel;
-        for (const auto &nv: separators) {
-            NodeSetUnordered nsu = NodeSetUnordered(begin(nv), end(nv));
-            auto [c,r] = approximate_bounding_sphere(g,nsu);
-            nsv_for_skel.push_back(shrink_separator(g, nsu, c, 0));
-        }
-        return nsv_for_skel;
+//    SepVec separating_node_sets(const AMGraph3D &g, const AttribVec<NodeID, double> &dist, int shift) {
+//        BreadthFirstSearch bfs(g, dist);
+//        while (bfs.step());
+//        vector<pair<int, NodeID>> nodes_by_tin;
+//        for (auto n: g.node_ids())
+//            nodes_by_tin.push_back(make_pair(bfs.T_in[n], n));
+//        sort(begin(nodes_by_tin), end(nodes_by_tin));
+//        //        shuffle(begin(nodes_by_tin), end(nodes_by_tin), default_random_engine(rand()));
+//        
+//        
+//        vector<vector<NodeID>> separators;
+//        AttribVec<NodeID, int> separator_idx(g.no_nodes(), -1);
+//        for (const auto& [T0, n0]: nodes_by_tin)
+//            if (separator_idx[n0] == -1) {
+//                int new_sep_idx = separators.size();
+//                vector<NodeID> sep({n0});
+//                queue<NodeID> nq({n0});
+//                separator_idx[n0] = new_sep_idx;
+//                bool intersects_previous = false;
+//                while (!nq.empty() && !intersects_previous) {
+//                    NodeID n = nq.front();
+//                    nq.pop();
+//                    for (auto nn: g.neighbors(n)) {
+//                        if (bfs.T_in[nn] <= T0 && T0 <  bfs.T_out[nn]) {
+//                            if (separator_idx[nn] == -1) {
+//                                sep.push_back(nn);
+//                                nq.push(nn);
+//                                separator_idx[nn] = new_sep_idx;
+//                            }
+//                            else if (separator_idx[nn] != new_sep_idx) {
+//                                intersects_previous = true;
+//                                break;
+//                            }
+//                        }
+//                    }
+//                }
+//                if (intersects_previous) {
+//                    for (auto n: sep)
+//                        separator_idx[n] = -1;
+//                }
+//                else separators.push_back(sep);
+//            }
+//        
+//        SepVec nsv_for_skel;
+//        for (const auto &nv: separators) {
+//            NodeSetUnordered nsu = NodeSetUnordered(begin(nv), end(nv));
+//            auto [c,r] = approximate_bounding_sphere(g,nsu);
+//            nsv_for_skel.push_back(shrink_separator(g, nsu, c, 0));
+//        }
+//        return nsv_for_skel;
+//    }
+
+SepVec separating_node_sets(const AMGraph3D &g, const AttribVec<NodeID, double> &dist, int intervals) {
+    
+    double dist_min=DBL_MAX;
+    double dist_max=-DBL_MAX;
+    for (auto n: g.node_ids()) {
+        dist_min = min(dist_min, dist[n]);
+        dist_max = max(dist_min, dist[n]);
     }
+    double delta = (dist_max-dist_min)/intervals;
+    auto interval = [&](NodeID n) { return int((dist[n]-dist_min)/delta);};
+    AttribVec<NodeID, int> visited(g.no_nodes(), 0);
+    
+    vector<NodeSetUnordered> separators;
+
+    for (auto n0: g.node_ids())
+        if (!visited[n0]) {
+            NodeSetUnordered sep;
+            int i0 = interval(n0);
+            queue<NodeID> q;
+            q.push(n0);
+            sep.insert(n0);
+            visited[n0] = 1;
+            while(!q.empty()) {
+                NodeID n = q.front();
+                q.pop();
+                for (auto m: g.neighbors(n))
+                    if (!visited[m] && interval(m)==i0) {
+                        q.push(m);
+                        visited[m] = 1;
+                        sep.insert(m);
+                }
+            }
+            separators.push_back(sep);
+    }
+    SepVec nsv_for_skel;
+    for (auto &nsu: separators) {
+        auto [c,r] = approximate_bounding_sphere(g,nsu);
+        auto s = shrink_separator(g, nsu, c, 0);
+        nsv_for_skel.push_back(s);
+    }
+    return nsv_for_skel;
+
+    
+}
 
 
-    NodeSetVec front_separators(AMGraph3D &g, const vector<AttribVecDouble> &dvv) {
-        auto process_dist = [](const AMGraph3D &g, const AttribVecDouble &dist, int shift) -> SepVec {
-            auto node_set_vec = separating_node_sets(g, dist, shift);
+    NodeSetVec front_separators(AMGraph3D &g, const vector<AttribVecDouble> &dvv, int intervals) {
+        auto process_dist = [](const AMGraph3D &g, const AttribVecDouble &dist, int intervals) -> SepVec {
+            auto node_set_vec = separating_node_sets(g, dist, intervals);
             return node_set_vec;
         };
         
@@ -820,7 +865,7 @@ namespace Geometry {
         vector<future<SepVec>> nsvfutures(N);
         
         for(int i=0;i<N;++i)
-            nsvfutures[i] = async(launch::async, process_dist, ref(g), dvv[i], 0);
+            nsvfutures[i] = async(launch::async, process_dist, ref(g), dvv[i], intervals);
         
         for(int i=0;i<N;++i) {
             SepVec nsv = nsvfutures[i].get();
@@ -1289,12 +1334,13 @@ namespace Geometry {
                                    const size_t grow_threshold,
                                    double quality_noise_level,
                                    int optimization_steps,
-                                   const vector<AttribVecDouble> &dvv)
+                                   const vector<AttribVecDouble> &dvv, int intervals)
     {
-        NodeSetVec nsv1 = multiscale_local_separators(g, sampling, grow_threshold, quality_noise_level, optimization_steps);
-        NodeSetVec nsv2 = front_separators(g, dvv);
+        NodeSetVec nsv1  = multiscale_local_separators(g, sampling, grow_threshold, quality_noise_level, optimization_steps);
+        NodeSetVec nsv2 = front_separators(g, dvv, intervals);
         nsv1.insert(nsv1.end(), begin(nsv2), end(nsv2));
         greedy_weighted_packing(g, nsv1, false);
+        color_graph_node_sets(g, nsv1);
         return nsv1;
     }
 
