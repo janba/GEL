@@ -42,6 +42,9 @@ DLLEXPORT void graph_MSLS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVecto
 
 DLLEXPORT void graph_front_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, int N_col, double* colors, int intervals);
 
+DLLEXPORT void graph_combined_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, int N_col, double* colors, int intervals);
+
+
 
 
 #ifdef __cplusplus

@@ -47,6 +47,7 @@ namespace Geometry {
      @brief Compute separators by marching a front along a scalar field.
      @param g  the graph that we operate on.
      @param dvv  a vector of scalar fields defined on the graph vertices.
+     @param intervals an integer which indicates the desired density of separators (lower means higher density)
      @returns This function returns a vector of NodeSets containing a
      number of non-overlapping (local) separators.
      
@@ -56,7 +57,7 @@ namespace Geometry {
      vector of non-overlapping node sets which is then returned.  This can be seen
      as a mix of Reeb graphs - or as a representation which can be turned into that.
      */
-    NodeSetVec front_separators(AMGraph3D &g, const std::vector<AttribVecDouble> &dvv);
+    NodeSetVec front_separators(AMGraph3D &g, const std::vector<AttribVecDouble> &dvv, int intervals);
 
 // SHOULD NOT BE EXPOSED DIRECTLY IN INTERFACE
 //    /**
@@ -180,6 +181,14 @@ namespace Geometry {
      */
     NodeSetVec maximize_node_set_vec(AMGraph3D &g, const NodeSetVec &node_set_vec);
 
+
+    /**
+     @brief Computes a set of local separators from a graph by combining local separators and front separators
+     @returns a node set vector such that all graph nodes belong to precisely one node set
+     
+     This function runs both the multiscale local separators function and also front separators. Then it combines the
+     results.
+     */
     NodeSetVec combined_separators(AMGraph3D &g,
                                    SamplingType sampling,
                                    const size_t grow_threshold,

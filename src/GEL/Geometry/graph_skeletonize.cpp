@@ -808,50 +808,77 @@ namespace Geometry {
 //        return nsv_for_skel;
 //    }
 
-SepVec separating_node_sets(const AMGraph3D &g, const AttribVec<NodeID, double> &dist, int intervals) {
-    
-    double dist_min=DBL_MAX;
-    double dist_max=-DBL_MAX;
-    for (auto n: g.node_ids()) {
-        dist_min = min(dist_min, dist[n]);
-        dist_max = max(dist_min, dist[n]);
-    }
-    double delta = (dist_max-dist_min)/intervals;
-    auto interval = [&](NodeID n) { return int((dist[n]-dist_min)/delta);};
-    AttribVec<NodeID, int> visited(g.no_nodes(), 0);
-    
-    vector<NodeSetUnordered> separators;
+//SepVec separating_node_sets(const AMGraph3D &g, const AttribVec<NodeID, double> &dist, int intervals) {
+//    
+//    double dist_min=DBL_MAX;
+//    double dist_max=-DBL_MAX;
+//    for (auto n: g.node_ids()) {
+//        dist_min = min(dist_min, dist[n]);
+//        dist_max = max(dist_min, dist[n]);
+//    }
+//    double delta = (dist_max-dist_min)/intervals;
+//    auto interval = [&](NodeID n) { return int((dist[n]-dist_min)/delta);};
+//    AttribVec<NodeID, int> visited(g.no_nodes(), 0);
+//    
+//    vector<NodeSetUnordered> separators;
+//
+//    for (auto n0: g.node_ids())
+//        if (!visited[n0]) {
+//            NodeSetUnordered sep;
+//            int i0 = interval(n0);
+//            queue<NodeID> q;
+//            q.push(n0);
+//            sep.insert(n0);
+//            visited[n0] = 1;
+//            while(!q.empty()) {
+//                NodeID n = q.front();
+//                q.pop();
+//                for (auto m: g.neighbors(n))
+//                    if (!visited[m] && interval(m)==i0) {
+//                        q.push(m);
+//                        visited[m] = 1;
+//                        sep.insert(m);
+//                }
+//            }
+//            separators.push_back(sep);
+//    }
+//    SepVec nsv_for_skel;
+//    for (auto &nsu: separators) {
+//        auto [c,r] = approximate_bounding_sphere(g,nsu);
+//        auto s = shrink_separator(g, nsu, c, 0);
+//        nsv_for_skel.push_back(s);
+//    }
+//    return nsv_for_skel;
+//
+//    
+//}
 
-    for (auto n0: g.node_ids())
-        if (!visited[n0]) {
-            NodeSetUnordered sep;
-            int i0 = interval(n0);
-            queue<NodeID> q;
-            q.push(n0);
-            sep.insert(n0);
-            visited[n0] = 1;
-            while(!q.empty()) {
-                NodeID n = q.front();
-                q.pop();
-                for (auto m: g.neighbors(n))
-                    if (!visited[m] && interval(m)==i0) {
-                        q.push(m);
-                        visited[m] = 1;
-                        sep.insert(m);
+    SepVec separating_node_sets(const AMGraph3D &g, const AttribVec<NodeID, double> &dist, int intervals) {
+        BreadthFirstSearch bfs(g, dist);
+        int iter=0;
+        vector<NodeSetUnordered> separators;
+        while (bfs.step()) {
+            if (++iter % intervals == 0) {
+                vector<NodeSet> nsv = connected_components(g, bfs.get_front());
+                int ns_max_idx = 0;
+                for (int i=0; i< nsv.size(); ++i) {
+                    if (nsv[i].size() > nsv[ns_max_idx].size())
+                        ns_max_idx = i;
                 }
+                NodeSetUnordered nsu(nsv[ns_max_idx].begin(), nsv[ns_max_idx].end());
+                separators.push_back(nsu);
             }
-            separators.push_back(sep);
-    }
-    SepVec nsv_for_skel;
-    for (auto &nsu: separators) {
-        auto [c,r] = approximate_bounding_sphere(g,nsu);
-        auto s = shrink_separator(g, nsu, c, 0);
-        nsv_for_skel.push_back(s);
-    }
-    return nsv_for_skel;
+        }
 
-    
-}
+        
+        SepVec nsv_for_skel;
+        for (auto &nsu: separators) {
+            auto [c,r] = approximate_bounding_sphere(g,nsu);
+            auto s = shrink_separator(g, nsu, c, 0);
+            nsv_for_skel.push_back(s);
+        }
+        return nsv_for_skel;
+    }
 
 
     NodeSetVec front_separators(AMGraph3D &g, const vector<AttribVecDouble> &dvv, int intervals) {
@@ -1336,7 +1363,7 @@ SepVec separating_node_sets(const AMGraph3D &g, const AttribVec<NodeID, double> 
                                    int optimization_steps,
                                    const vector<AttribVecDouble> &dvv, int intervals)
     {
-        NodeSetVec nsv1  = multiscale_local_separators(g, sampling, grow_threshold, quality_noise_level, optimization_steps);
+        NodeSetVec nsv1 = multiscale_local_separators(g, sampling, grow_threshold, quality_noise_level, optimization_steps);
         NodeSetVec nsv2 = front_separators(g, dvv, intervals);
         nsv1.insert(nsv1.end(), begin(nsv2), end(nsv2));
         greedy_weighted_packing(g, nsv1, false);
