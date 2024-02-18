@@ -230,7 +230,7 @@ namespace Geometry {
                 double wsum = 0;
                 auto N = g.neighbors(n);
                 for(auto nn: N) {
-                    double w = 1.0;
+                    double w = (g.node_color[nn][1]+0.001)/(g.node_color[n][1]+0.001);
                     new_pos[n] += w*g.pos[nn];
                     new_col[n] += w*g.node_color[nn];
                     wsum += w;

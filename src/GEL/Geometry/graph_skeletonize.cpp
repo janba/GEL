@@ -1365,6 +1365,8 @@ namespace Geometry {
     {
         NodeSetVec nsv1 = multiscale_local_separators(g, sampling, grow_threshold, quality_noise_level, optimization_steps);
         NodeSetVec nsv2 = front_separators(g, dvv, intervals);
+        for (auto& s: nsv2)
+            s.first *= 2;
         nsv1.insert(nsv1.end(), begin(nsv2), end(nsv2));
         greedy_weighted_packing(g, nsv1, false);
         color_graph_node_sets(g, nsv1);

@@ -60,44 +60,33 @@ vector<NodeID> next_neighbours(const Geometry::AMGraph3D& g, NodeID prev, NodeID
 void id_preserving_cc(HMesh::Manifold& m_in) {
 
     vector<FaceID> base_faces;
-    int Invalid = -1;
-    HalfEdgeAttributeVector<int> htouched(m_in.allocated_halfedges(), Invalid);
-    int Valid = 1;
-    map<FaceID,VertexID> face2centerv;
     vector<HalfEdgeID> base_edges;
-
     vector<HalfEdgeID> new_edges;
-
 
     for(auto f: m_in.faces())
         base_faces.push_back(f);
 
     for(auto h: m_in.halfedges())
-        base_edges.push_back(h);
+        if (h < m_in.walker(h).opp().halfedge())
+            base_edges.push_back(h);
 
-    for(auto f: base_faces)
-        if(m_in.in_use(f)) {
-            VertexID center_v = m_in.split_face_by_vertex(f);
-            for(Walker w = m_in.walker(center_v); !w.full_circle(); w = w.circulate_vertex_ccw()) {
-                new_edges.push_back(w.halfedge());
-                face2centerv.insert(std::make_pair(w.face(), center_v));
-            }
-        }
-
-    FaceAttributeVector<int> ftouched(m_in.allocated_faces(), Invalid);
+    for(auto f: base_faces) {
+        VertexID center_v = m_in.split_face_by_vertex(f);
+        for (auto h: m_in.incident_halfedges(center_v))
+            new_edges.push_back(h);
+    }
 
     for (auto h: base_edges) {
-        FaceID f1 = m_in.walker(h).face();
-        FaceID f2 = m_in.walker(h).opp().face();
-        if(ftouched[f1]==Invalid && ftouched[f2]==Invalid) {
-            VertexID opp_v = m_in.split_edge(h);
-            ftouched[f1] = Valid;
-            ftouched[f2] = Valid;
-            m_in.split_face_by_edge(f1, face2centerv.find(f1)->second, opp_v);
-            m_in.split_face_by_edge(f2, face2centerv.find(f2)->second, opp_v);
-        }
-
+        Walker w = m_in.walker(h);
+        VertexID v1 = w.next().vertex();
+        FaceID f1 = w.face();
+        VertexID v2 = w.opp().next().vertex();
+        FaceID f2 = w.opp().face();
+        VertexID v = m_in.split_edge(h);
+        m_in.split_face_by_edge(f1, v1, v);
+        m_in.split_face_by_edge(f2, v2, v);
     }
+
     for (auto h_dissolve: new_edges)
         if(m_in.in_use(h_dissolve))
             m_in.merge_faces(m_in.walker(h_dissolve).face(), h_dissolve);
@@ -696,8 +685,6 @@ void construct_bnps(HMesh::Manifold &m_out,
                     bool use_symmetry)
 {
 
-    map<int, pair<NodeID, NodeID>> spts2branch;
-    map<int, VertexID> spts2vertexid;
 
     for (auto n : g.node_ids())
     {
@@ -706,30 +693,24 @@ void construct_bnps(HMesh::Manifold &m_out,
         if (N.size() > 2)
         {
             Manifold m;
-            int node_vertex_count = 0;
             Vec3d pn = g.pos[n];
 
             vector<Vec3d> spts;
-            int spts_vertex_count = 0;
-
-            spts2branch.clear();
-            spts2vertexid.clear();
-
-            for (auto nn : N)
+            vector<pair<NodeID, NodeID>> spts2branch;
+            
+            for (int i=0; i< N.size(); ++i)
             {
+                auto nn = N[i];
                 Vec3d pnn = g.pos[nn];
                 spts.push_back(normalize(pnn - pn));
-
-                auto spts_value = std::make_pair(n, nn);
-                auto spts_key = spts_vertex_count;
-                spts2branch.insert(std::make_pair(spts_key, spts_value));
-                spts_vertex_count++;
+                spts2branch.push_back(std::make_pair(n, nn));
             }
 
             // If we are supposed to symmetrize, we try to find symmetry pairs
             vector<pair<int, int>> npv;
             if (use_symmetry && N.size() < 6)
                 npv = symmetry_pairs(g, n, 0.1);
+
 
             std::vector<CGLA::Vec3i> stris = SphereDelaunay(spts);
 
@@ -752,23 +733,28 @@ void construct_bnps(HMesh::Manifold &m_out,
             }
 
             // Finally, we construct the BNP mesh from the triangle set.
+            VertexAttributeVector<int> vertexid2spts;
             for (auto tri : stris)
             {
                 vector<Vec3d> triangle_pts;
                 for (int i = 0; i < 3; ++i)
                 {
                     triangle_pts.push_back(spts[tri[i]]);
-                    node_vertex_count++;
                 }
-                m.add_face(triangle_pts);
+                FaceID f = m.add_face(triangle_pts);
+                int i=0;
+                for (auto v: m.incident_vertices(f))
+                    vertexid2spts[v] = tri[i++];
             }
+
             stitch_mesh(m, 1e-10);
 
+            vector<VertexID> spts2vertexid(spts.size());
             // Build mapping from spts to vertices in the BNP mesh
-            for (auto v : m.vertices())
-                for (int i = 0; i < spts.size(); i++)
-                    if (sqr_length(m.pos(v) - spts[i]) < 0.0001)
-                        spts2vertexid.insert(std::make_pair(i, v));
+            for (auto v : m.vertices()) {
+                int i = vertexid2spts[v];
+                spts2vertexid[i] = v;
+            }
 
             // Refine the BNP mesh by splitting edges and faces if
             // symmetry pairs were found
@@ -787,7 +773,6 @@ void construct_bnps(HMesh::Manifold &m_out,
                     symmetrize_tetrahedron(m, v1, v2);
                 }
             }
-
             // Project the BNP mesh to the sphere, make all vertices
             // valency 4, and do one step of catmull clark to make
             // the mesh a quadrilateral only mesh.
@@ -797,9 +782,9 @@ void construct_bnps(HMesh::Manifold &m_out,
 
             for (int i = 0; i < spts.size(); i++)
             {
-                auto key = spts2branch.find(i)->second;
-                auto value = m.pos(spts2vertexid.find(i)->second);
-                branch2vert.insert(std::make_pair(key, value));
+                auto key = spts2branch[i];
+                auto branch_vert = m.pos(spts2vertexid[i]);
+                branch2vert.insert(std::make_pair(key, branch_vert));
             }
             m.cleanup();
 
@@ -807,6 +792,7 @@ void construct_bnps(HMesh::Manifold &m_out,
             size_t no_vertices_before_merge = m_out.allocated_vertices();
 
             m_out.merge(m);
+
             for (auto f : m_out.faces())
                 if (f.index >= no_faces_before_merge)
                     node2fs[n].insert(f);
@@ -1208,9 +1194,9 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
             l = min(l, sqrt(g.sqr_dist(n, m)));
         node_radii[n] = 0.25*l;
     }
-
     VertexAttributeVector<NodeID> vertex2node(AMGraph::InvalidNodeID);
     construct_bnps(m_out, g, node2fs, vertex2node, node_radii, use_symmetry);
+
     init_branch_degree(m_out, g, node2fs);
     init_branch_face_pairs(m_out, g, node2fs);
     merge_branch_faces(m_out, g, node2fs);
