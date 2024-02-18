@@ -144,7 +144,7 @@ void quad_mesh_leaves(HMesh::Manifold& m, VertexAttributeVector<NodeID>& vertex2
 //Graph - Mesh relationship Functions
 
 VertexID branch2vertex (const HMesh::Manifold &m_out, const Geometry::AMGraph3D& g,
-                        NodeID n, NodeID nn, const Util::AttribVec<NodeID, FaceSet>& node2fs) {
+                        NodeID n, NodeID nn) {
 
     Vec3d vert_pos = branch2vert.find(std::make_pair(n,nn))->second;
 
@@ -156,8 +156,7 @@ VertexID branch2vertex (const HMesh::Manifold &m_out, const Geometry::AMGraph3D&
 
 }
 
-void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g,
-                        const Util::AttribVec<NodeID, FaceSet>& node2fs) {
+void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g) {
 
 
     for (auto n:g.node_ids()) {
@@ -172,7 +171,7 @@ void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g,
 
             for (auto nn: N) {
 
-                int src_branch_degree = valency(m, branch2vertex(m, g, n,nn, node2fs));
+                int src_branch_degree = valency(m, branch2vertex(m, g, n,nn));
                 vector<NodeID> branch_path;
                 NodeID curr_node = nn;
                 NodeID prev_node = n;
@@ -203,7 +202,7 @@ void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g,
                     dest_branch_degree = src_branch_degree;
                 }
                 else
-                    dest_branch_degree = valency(m, branch2vertex(m, g, curr_node, prev_node, node2fs));
+                    dest_branch_degree = valency(m, branch2vertex(m, g, curr_node, prev_node));
 
 
                 int path_degree = 0;
@@ -260,7 +259,7 @@ FaceID branch2face (const HMesh::Manifold &m_out,
                     const Geometry::AMGraph3D& g, NodeID n, NodeID nn,
                     Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
-    VertexID v = branch2vertex(m_out, g, n, nn, node2fs);
+    VertexID v = branch2vertex(m_out, g, n, nn);
     vector<FaceID> face_set;
 
     double d_max = FLT_MAX;
@@ -344,7 +343,7 @@ void init_branch_face_pairs(const HMesh::Manifold &m, const Geometry::AMGraph3D&
                 FaceID f = branch2face(m, g, n, nn, node2fs);
                 branch_best_face.insert(std::make_pair(key,f));
 
-                VertexID v = branch2vertex(m, g, n, nn, node2fs);
+                VertexID v = branch2vertex(m, g, n, nn);
                 branch_best_vertex.insert(std::make_pair(key,v));
             }
         }
@@ -803,8 +802,7 @@ void construct_bnps(HMesh::Manifold &m_out,
     }
 }
 
-void merge_branch_faces(HMesh::Manifold &m, const Geometry::AMGraph3D &g,
-                        const Util::AttribVec<NodeID, FaceSet> &node2fs)
+void merge_branch_faces(HMesh::Manifold &m, const Geometry::AMGraph3D &g)
 {
 
     VertexID v;
@@ -1197,9 +1195,9 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
     VertexAttributeVector<NodeID> vertex2node(AMGraph::InvalidNodeID);
     construct_bnps(m_out, g, node2fs, vertex2node, node_radii, use_symmetry);
 
-    init_branch_degree(m_out, g, node2fs);
+    init_branch_degree(m_out, g);
     init_branch_face_pairs(m_out, g, node2fs);
-    merge_branch_faces(m_out, g, node2fs);
+    merge_branch_faces(m_out, g);
     val2nodes_to_face_pairs(g, m_out, node2fs, vertex2node, node_radii);
     bridge_branch_node_meshes(m_out, g, node2fs);
     quad_mesh_leaves(m_out, vertex2node);
