@@ -214,6 +214,9 @@ void quad_valencify(HMesh::Manifold& m) {
     reduce_valency(m);
     while (connect_same_face_val3(m));
     while (connect_val3(m));
+    for(auto v: m.vertices())
+        if (valency(m, v) == 3)
+            cout << "VAL 3 LEFT!!!" << endl;
 }
 
 

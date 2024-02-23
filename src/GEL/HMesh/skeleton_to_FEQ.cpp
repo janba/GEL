@@ -145,7 +145,18 @@ void quad_mesh_leaves(HMesh::Manifold& m, VertexAttributeVector<NodeID>& vertex2
 
 VertexID branch2vertex (const HMesh::Manifold &m_out, const Geometry::AMGraph3D& g,
                         NodeID n, NodeID nn) {
-
+    /* This is cursed and must be changed:
+     
+     first the sqr_length test should be replaced with a straight test for
+     equality since we really want to check whether the branch2vert position is _exactly_
+     the same as the vertex position.
+     
+     Secondly, we should not do this every time but convert branch2vert to a direct mapping from
+     node pair to vertex ID.
+     
+     Lastly, this will mean that we can do the mapping using just a map and without a function
+      that takes both the graph and hte manifold.
+     */
     Vec3d vert_pos = branch2vert.find(std::make_pair(n,nn))->second;
 
     for (auto v: m_out.vertices())
@@ -175,6 +186,7 @@ void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g) 
                 vector<NodeID> branch_path;
                 NodeID curr_node = nn;
                 NodeID prev_node = n;
+
 
                 int leaf_flag = 0;
 
@@ -303,7 +315,6 @@ double face_dist(const HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Nod
     Vec3d pnn = g.pos[nn];
     Vec3d v_n_nn = pnn - pn;
 
-
     if(!m_out.in_use(f))
         return 1;
 
@@ -317,9 +328,7 @@ double face_dist(const HMesh::Manifold &m_out, const Geometry::AMGraph3D& g, Nod
 
     Vec3d intersection_pt = pn + intersection_x*v_n_nn;
 
-    float d = sqr_length(face_center - intersection_pt);
-
-    return d;
+    return sqr_length(face_center - intersection_pt);
 
 }
 
@@ -354,7 +363,8 @@ void init_branch_face_pairs(const HMesh::Manifold &m, const Geometry::AMGraph3D&
 //Functions for constructing / editing mesh elements from skeletal nodes
 
 vector<Vec3d> get_face_points(int n) {
-
+    // Cursed: just use pi and maybe fold this function into
+    // create_face_pair
     vector<Vec3d> face_vertices;
     double h = 0.5;
     double angle = 0;
@@ -397,6 +407,7 @@ vector<FaceID> create_face_pair(Manifold& m, const Vec3d& pos, const Mat3x3d& _R
     }
     fvec.push_back(m.add_face(front_pts));
 
+    /* Code below is cursed: Can't we just reverse front_pts to create the back_pts ?!!!! */
     vector<Vec3d> back_pts;
     for (int i = 0; i < num_sides; i++) {
         int curr_index = 1 - i;
@@ -538,9 +549,7 @@ int add_ghosts(const vector<Vec3i> &tris, vector<Vec3d> &pts, double thresh)
         ghost_pts_new[cluster_id[i]] += ghost_pts[i];
     }
 
-    /* Finally, we cull ghost points too close to an existing non-ghost point.
-     The threshold of 0.4 allows ghost points to be a little closer to other
-     points than each other. */
+    /* Finally, we cull ghost points too close to an existing non-ghost point. */
     ghost_pts.resize(0);
     for (auto &p : ghost_pts_new)
     {
@@ -683,11 +692,8 @@ void construct_bnps(HMesh::Manifold &m_out,
                     const vector<double> &r_arr,
                     bool use_symmetry)
 {
-
-
     for (auto n : g.node_ids())
     {
-
         auto N = g.neighbors(n);
         if (N.size() > 2)
         {
@@ -697,9 +703,7 @@ void construct_bnps(HMesh::Manifold &m_out,
             vector<Vec3d> spts;
             vector<pair<NodeID, NodeID>> spts2branch;
             
-            for (int i=0; i< N.size(); ++i)
-            {
-                auto nn = N[i];
+            for (auto nn : N) {
                 Vec3d pnn = g.pos[nn];
                 spts.push_back(normalize(pnn - pn));
                 spts2branch.push_back(std::make_pair(n, nn));
@@ -772,6 +776,15 @@ void construct_bnps(HMesh::Manifold &m_out,
                     symmetrize_tetrahedron(m, v1, v2);
                 }
             }
+            
+            if(m.no_faces()<8) {
+                cout << "Less than octahedron: " << endl;
+                cout << "m faces: " << m.no_faces() << endl;
+                cout << "m vertices: " << m.no_vertices() << endl;
+                cout << "Neighbors: " << N.size() << endl;
+                cout << "symmetries: " << npv.size() << endl;
+            }
+            
             // Project the BNP mesh to the sphere, make all vertices
             // valency 4, and do one step of catmull clark to make
             // the mesh a quadrilateral only mesh.
