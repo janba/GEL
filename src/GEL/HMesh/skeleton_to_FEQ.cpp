@@ -1,6 +1,7 @@
 #include <array>
 #include <cmath>
 #include <algorithm>
+#include <unordered_map>
 
 #include <GEL/CGLA/CGLA.h>
 #include <GEL/Geometry/KDTree.h>
@@ -19,6 +20,18 @@ using namespace std;
 using NodeID = AMGraph::NodeID;
 using NodeSet = AMGraph::NodeSet;
 
+struct HashVec3d {
+    size_t operator()(const CGLA::Vec3d& v) const noexcept {
+        const size_t k = 83492791;
+        size_t h = *reinterpret_cast<const size_t*>(&v[0]);
+        for(unsigned int i=1; i<v.get_dim(); ++i) {
+            h *= k;
+            h += *reinterpret_cast<const size_t*>(&v[i]);
+        }
+        return h;
+    }
+};
+
 // Initialize global arrays
 
 map<NodeID, int> val2deg;
@@ -26,7 +39,7 @@ map<pair<NodeID,NodeID>, int> branchdeg;
 map<pair<NodeID,NodeID>, HMesh::FaceID> branchface;
 map<pair<NodeID,NodeID>, HMesh::FaceID> branch_best_face;
 map<pair<NodeID,NodeID>, HMesh::VertexID> branch_best_vertex;
-map<pair<NodeID,NodeID>, CGLA::Vec3d> branch2vert;
+map<pair<NodeID,NodeID>, HMesh::VertexID> branch2vert;
 map<FaceID, VertexID> one_ring_face_vertex;
 
 void clear_global_arrays() {
@@ -95,7 +108,6 @@ void id_preserving_cc(HMesh::Manifold& m_in) {
 }
 
 void quad_mesh_leaves(HMesh::Manifold& m, VertexAttributeVector<NodeID>& vertex2node) {
-
     vector<FaceID> base_faces;
     vector<HalfEdgeID> new_edges;
 
@@ -125,46 +137,24 @@ void quad_mesh_leaves(HMesh::Manifold& m, VertexAttributeVector<NodeID>& vertex2
                     new_edges.push_back(w.halfedge());
                 counter++;
             }
-
         }
-
 
     for (auto h_dissolve: new_edges)
         if(m.in_use(h_dissolve))
             m.merge_faces(m.walker(h_dissolve).face(), h_dissolve);
 
-
     return;
-
-
 }
 
 
 
 //Graph - Mesh relationship Functions
 
-VertexID branch2vertex (const HMesh::Manifold &m_out, const Geometry::AMGraph3D& g,
-                        NodeID n, NodeID nn) {
-    /* This is cursed and must be changed:
-     
-     first the sqr_length test should be replaced with a straight test for
-     equality since we really want to check whether the branch2vert position is _exactly_
-     the same as the vertex position.
-     
-     Secondly, we should not do this every time but convert branch2vert to a direct mapping from
-     node pair to vertex ID.
-     
-     Lastly, this will mean that we can do the mapping using just a map and without a function
-      that takes both the graph and hte manifold.
-     */
-    Vec3d vert_pos = branch2vert.find(std::make_pair(n,nn))->second;
-
-    for (auto v: m_out.vertices())
-        if(sqr_length(m_out.pos(v) - vert_pos) == 0)
-            return v;
-
+VertexID branch2vertex (NodeID n, NodeID nn) {
+    auto iter = branch2vert.find(std::make_pair(n,nn));
+    if (iter != branch2vert.end())
+        return iter->second;
     return InvalidVertexID;
-
 }
 
 void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g) {
@@ -182,7 +172,7 @@ void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g) 
 
             for (auto nn: N) {
 
-                int src_branch_degree = valency(m, branch2vertex(m, g, n,nn));
+                int src_branch_degree = valency(m, branch2vertex(n,nn));
                 vector<NodeID> branch_path;
                 NodeID curr_node = nn;
                 NodeID prev_node = n;
@@ -214,7 +204,7 @@ void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g) 
                     dest_branch_degree = src_branch_degree;
                 }
                 else
-                    dest_branch_degree = valency(m, branch2vertex(m, g, curr_node, prev_node));
+                    dest_branch_degree = valency(m, branch2vertex(curr_node, prev_node));
 
 
                 int path_degree = 0;
@@ -271,7 +261,7 @@ FaceID branch2face (const HMesh::Manifold &m_out,
                     const Geometry::AMGraph3D& g, NodeID n, NodeID nn,
                     Util::AttribVec<NodeID, FaceSet>& node2fs) {
 
-    VertexID v = branch2vertex(m_out, g, n, nn);
+    VertexID v = branch2vertex(n, nn);
     vector<FaceID> face_set;
 
     double d_max = FLT_MAX;
@@ -352,7 +342,7 @@ void init_branch_face_pairs(const HMesh::Manifold &m, const Geometry::AMGraph3D&
                 FaceID f = branch2face(m, g, n, nn, node2fs);
                 branch_best_face.insert(std::make_pair(key,f));
 
-                VertexID v = branch2vertex(m, g, n, nn);
+                VertexID v = branch2vertex(n, nn);
                 branch_best_vertex.insert(std::make_pair(key,v));
             }
         }
@@ -362,29 +352,8 @@ void init_branch_face_pairs(const HMesh::Manifold &m, const Geometry::AMGraph3D&
 
 //Functions for constructing / editing mesh elements from skeletal nodes
 
-vector<Vec3d> get_face_points(int n) {
-    // Cursed: just use pi and maybe fold this function into
-    // create_face_pair
-    vector<Vec3d> face_vertices;
-    double h = 0.5;
-    double angle = 0;
-
-    for(int i =0; i<n; i++) {
-
-        Vec3d face_vertex = Vec3d(0, h*cos(angle), h*sin(angle));
-        face_vertices.push_back(face_vertex);
-        angle+=2*22.0/(7.0*n);
-    }
-    return face_vertices;
-}
-
-vector<FaceID> create_face_pair(Manifold& m, const Vec3d& pos, const Mat3x3d& _R, int axis, int num_sides) {
-    if(num_sides == 0) {
-        vector<FaceID>fvec;
-        return fvec;
-    }
-
-    vector<Vec3d> face_points = get_face_points(num_sides);
+vector<FaceID> create_face_pair(Manifold& m, const Vec3d& pos, const Mat3x3d& _R, int axis) {
+    int num_sides = 8;
     Mat3x3d R = _R;
     double det = determinant(R);
     if(abs(det))
@@ -395,34 +364,21 @@ vector<FaceID> create_face_pair(Manifold& m, const Vec3d& pos, const Mat3x3d& _R
         }
 
     vector<FaceID> fvec;
-    vector<Vec3d> front_pts;
+    vector<Vec3d> pts;
+    double angle = 0.0;
     for(int i = 0; i < num_sides; i++)
     {
-        Vec3d _p = face_points[i];
+        Vec3d _p = 0.5*Vec3d(0, cos(angle), sin(angle));
+        angle += 2*M_PI/num_sides;
         Vec3d p(0);
         p[(0+axis)%3] += _p[0];
         p[(1+axis)%3] += _p[1];
         p[(2+axis)%3] += _p[2];
-        front_pts.push_back(R*p+pos);
+        pts.push_back(R*p+pos);
     }
-    fvec.push_back(m.add_face(front_pts));
-
-    /* Code below is cursed: Can't we just reverse front_pts to create the back_pts ?!!!! */
-    vector<Vec3d> back_pts;
-    for (int i = 0; i < num_sides; i++) {
-        int curr_index = 1 - i;
-        if(curr_index < 0 )
-            curr_index = num_sides + curr_index;
-        Vec3d _p = face_points[curr_index];
-        Vec3d p(0);
-        p[(0+axis)%3] += _p[0];
-        p[(1+axis)%3] += _p[1];
-        p[(2+axis)%3] += _p[2];
-        back_pts.push_back(R*p+pos);
-    }
-
-
-    fvec.push_back(m.add_face(back_pts));
+    fvec.push_back(m.add_face(pts));
+    reverse(begin(pts), end(pts));
+    fvec.push_back(m.add_face(pts));
 
     for (auto f: fvec) 
         one_ring_face_vertex[f] = m.walker(fvec[0]).vertex();
@@ -491,7 +447,7 @@ void val2nodes_to_face_pairs(const Geometry::AMGraph3D &g, HMesh::Manifold &mani
                         {
                             Vec3d s(r[m]);
                             Mat3x3d S = scaling_Mat3x3d(s);
-                            auto face_list = create_face_pair(mani, g.pos[m], transpose(warp_frame[m]) * S, max_idx, 8);
+                            auto face_list = create_face_pair(mani, g.pos[m], transpose(warp_frame[m]) * S, max_idx);
                             stitch_mesh(mani, 1e-10);
                             for (auto f : face_list)
                             {
@@ -692,6 +648,7 @@ void construct_bnps(HMesh::Manifold &m_out,
                     const vector<double> &r_arr,
                     bool use_symmetry)
 {
+    unordered_map<Vec3d, pair<NodeID,NodeID>,HashVec3d> pos_to_branch;
     for (auto n : g.node_ids())
     {
         auto N = g.neighbors(n);
@@ -777,14 +734,6 @@ void construct_bnps(HMesh::Manifold &m_out,
                 }
             }
             
-            if(m.no_faces()<8) {
-                cout << "Less than octahedron: " << endl;
-                cout << "m faces: " << m.no_faces() << endl;
-                cout << "m vertices: " << m.no_vertices() << endl;
-                cout << "Neighbors: " << N.size() << endl;
-                cout << "symmetries: " << npv.size() << endl;
-            }
-            
             // Project the BNP mesh to the sphere, make all vertices
             // valency 4, and do one step of catmull clark to make
             // the mesh a quadrilateral only mesh.
@@ -793,11 +742,8 @@ void construct_bnps(HMesh::Manifold &m_out,
             id_preserving_cc(m);
 
             for (int i = 0; i < spts.size(); i++)
-            {
-                auto key = spts2branch[i];
-                auto branch_vert = m.pos(spts2vertexid[i]);
-                branch2vert.insert(std::make_pair(key, branch_vert));
-            }
+                pos_to_branch[m.pos(spts2vertexid[i])] = spts2branch[i];
+
             m.cleanup();
 
             size_t no_faces_before_merge = m_out.no_faces();
@@ -813,6 +759,9 @@ void construct_bnps(HMesh::Manifold &m_out,
                     vertex2node[v] = n;
         }
     }
+    for(auto v: m_out.vertices())
+        branch2vert[pos_to_branch[m_out.pos(v)]] = v;
+
 }
 
 void merge_branch_faces(HMesh::Manifold &m, const Geometry::AMGraph3D &g)
