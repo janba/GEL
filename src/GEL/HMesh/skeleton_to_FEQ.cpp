@@ -158,8 +158,6 @@ VertexID branch2vertex (NodeID n, NodeID nn) {
 }
 
 void init_branch_degree(const HMesh::Manifold &m, const Geometry::AMGraph3D& g) {
-
-
     for (auto n:g.node_ids()) {
         auto N = g.neighbors(n);
 
@@ -475,7 +473,7 @@ int add_ghosts(const vector<Vec3i> &tris, vector<Vec3d> &pts, double thresh)
     {
         Vec3d v1 = pts[t[1]] - pts[t[0]];
         Vec3d v2 = pts[t[2]] - pts[t[0]];
-        Vec3d n = cross(v1, v2);
+        Vec3d n = cond_normalize(cross(v1, v2));
         ghost_pts.push_back(n);
     }
 
@@ -486,24 +484,16 @@ int add_ghosts(const vector<Vec3i> &tris, vector<Vec3d> &pts, double thresh)
     for (int i = 0; i < ghost_pts.size(); ++i)
     {
         if (cluster_id[i] == -1)
-        {
             cluster_id[i] = max_id++;
-        }
         for (int j = i + 1; j < ghost_pts.size(); ++j)
-        {
             if (cluster_id[j] == -1)
-            {
-                if (dot(normalize(ghost_pts[i]), normalize(ghost_pts[j])) > thresh)
+                if (dot(ghost_pts[i], ghost_pts[j]) > thresh)
                     cluster_id[j] = cluster_id[i];
-            }
-        }
     }
 
     vector<Vec3d> ghost_pts_new(max_id, Vec3d(0));
     for (int i = 0; i < ghost_pts.size(); ++i)
-    {
         ghost_pts_new[cluster_id[i]] += ghost_pts[i];
-    }
 
     /* Finally, we cull ghost points too close to an existing non-ghost point. */
     ghost_pts.resize(0);
@@ -668,14 +658,21 @@ void construct_bnps(HMesh::Manifold &m_out,
 
             // If we are supposed to symmetrize, we try to find symmetry pairs
             vector<pair<int, int>> npv;
-            if (use_symmetry && N.size() < 6)
-                npv = symmetry_pairs(g, n, 0.1);
+            if (N.size() < 6)
+                npv = symmetry_pairs(g, n, 0.1, !use_symmetry);
 
 
             std::vector<CGLA::Vec3i> stris = SphereDelaunay(spts);
 
-            if (N.size() == 5)
-            {
+            if (N.size() < 5) {
+                if (npv.size() == 0) {
+                    int n_ghosts = add_ghosts(stris, spts, 0.8);
+                    if (n_ghosts > 0)
+                        stris = SphereDelaunay(spts);
+                    else cout << "NPV size " << npv.size() << " " << N.size() <<  " " << n_ghosts << endl;
+                }
+            }
+            else if (N.size() == 5) {
                 int n_ghosts = add_ghosts(stris, spts, 0.25);
                 if (npv.size() > 0 && n_ghosts < 2)
                 {
@@ -685,9 +682,8 @@ void construct_bnps(HMesh::Manifold &m_out,
                 else if (n_ghosts > 0)
                     stris = SphereDelaunay(spts);
             }
-            else if (N.size() > 5 || npv.size() == 0)
-            {
-                int n_ghosts = add_ghosts(stris, spts, 0.75);
+            else if (N.size() > 5) {
+                int n_ghosts = add_ghosts(stris, spts, 0.8);
                 if (n_ghosts > 0)
                     stris = SphereDelaunay(spts);
             }
@@ -739,6 +735,22 @@ void construct_bnps(HMesh::Manifold &m_out,
             // the mesh a quadrilateral only mesh.
             project_to_sphere(m, pn, r_arr[n]);
             quad_valencify(m);
+            
+            for(auto v: m.vertices()) {
+                if (valency(m, v) != 4) {
+                    cout << "bad bad face: " << endl;
+                    cout << "stats: " << m.no_vertices() << ", " << m.no_faces() << endl;
+                    cout << "incident edges: " << N.size() << endl;
+                    cout << "symmetries: " << npv.size() << endl;
+                    cout << "valencies: ";
+                    for (auto vv: m.vertices())
+                        cout << valency(m, vv) <<  " ";
+                    cout << endl;
+                    break;
+                }
+            }
+            
+            
             id_preserving_cc(m);
 
             for (int i = 0; i < spts.size(); i++)
