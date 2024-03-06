@@ -854,29 +854,37 @@ namespace Geometry {
 //}
 
     SepVec separating_node_sets(const AMGraph3D &g, const AttribVec<NodeID, double> &dist, int intervals) {
+        cout << "Entering separating_node_sets" << endl;
         BreadthFirstSearch bfs(g, dist);
         int iter=0;
         vector<NodeSetUnordered> separators;
         while (bfs.step()) {
             if (++iter % intervals == 0) {
                 vector<NodeSet> nsv = connected_components(g, bfs.get_front());
-                int ns_max_idx = 0;
-                for (int i=0; i< nsv.size(); ++i) {
-                    if (nsv[i].size() > nsv[ns_max_idx].size())
-                        ns_max_idx = i;
+                if (nsv.size()>0) {
+                    int ns_max_idx = 0;
+                    for (int i=0; i< nsv.size(); ++i) {
+                        if (nsv[i].size() > nsv[ns_max_idx].size())
+                            ns_max_idx = i;
+                    }
+                    NodeSetUnordered nsu(nsv[ns_max_idx].begin(), nsv[ns_max_idx].end());
+                    separators.push_back(nsu);
                 }
-                NodeSetUnordered nsu(nsv[ns_max_idx].begin(), nsv[ns_max_idx].end());
-                separators.push_back(nsu);
+                else cout << "nsv size: " << nsv.size() << endl;
             }
         }
 
-        
+        cout << "I have computed separators. Going to shrink them" << endl;
+
         SepVec nsv_for_skel;
         for (auto &nsu: separators) {
             auto [c,r] = approximate_bounding_sphere(g,nsu);
             auto s = shrink_separator(g, nsu, c, 0);
             nsv_for_skel.push_back(s);
         }
+        
+        cout << "Exiting separating_node_sets" << endl;
+
         return nsv_for_skel;
     }
 

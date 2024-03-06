@@ -697,50 +697,6 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(const HMesh::Manifold& m, F
 }
 
 
-void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
-                              Manifold& m_out,
-                              const VertexAttributeVector<NodeID>& vertex2node,
-                              const vector<double>& node_radii) {
-    const int N_dir_idx = 50;
-    for (int dir_idx=0;dir_idx<N_dir_idx; ++dir_idx) {
-
-
-        Util::AttribVec<AMGraph::NodeID,Vec3d> barycenters(g.no_nodes(), Vec3d(0));
-        Util::AttribVec<AMGraph::NodeID,int> cluster_cnt(g.no_nodes(), 0);
-        for(auto v: m_out.vertices()) {
-            NodeID n = vertex2node[v];
-            barycenters[n] += m_out.pos(v);
-            cluster_cnt[n] += 1;
-        }
-
-        for(auto n: g.node_ids()) 
-            barycenters[n] /= cluster_cnt[n];
-
-        auto new_pos = m_out.positions_attribute_vector();
-        for (auto v: m_out.vertices()) {
-            NodeID n = vertex2node[v];
-            double w_sum = 0.0;
-            Vec3d lap(0.0);
-            Vec3d p0 = m_out.pos(v);
-            for (auto vn: m_out.incident_vertices(v)) {
-                double w = vertex2node[vn] == n ? 1 : 0.25;
-                lap += w * (m_out.pos(vn)-p0);
-                w_sum += w;
-            }
-            lap /= w_sum;
-            Vec3d dir = cond_normalize(m_out.pos(v) + 0.5 * lap - barycenters[n]);
-            Vec3d norm = normal(m_out, v);
-            if (dot(dir, norm)<0.0)
-                dir = norm;
-            dir = cond_normalize(dir);
-            double r = node_radii[n] * sqrt(g.valence(n)/2.0);
-            new_pos[v] = 0.5 * (dir * r + g.pos[n] + m_out.pos(v));
-        }
-        m_out.positions_attribute_vector() = new_pos;
-    }
-
-
-}
 
 void bridge_branch_node_meshes(const AMGraph3D& g,
                                Manifold& m_out,
@@ -789,6 +745,52 @@ void bridge_branch_node_meshes(const AMGraph3D& g,
     }
 
 }
+
+void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
+                              Manifold& m_out,
+                              const VertexAttributeVector<NodeID>& vertex2node,
+                              const vector<double>& node_radii) {
+    const int N_dir_idx = 50;
+    for (int dir_idx=0;dir_idx<N_dir_idx; ++dir_idx) {
+
+
+        Util::AttribVec<AMGraph::NodeID,Vec3d> barycenters(g.no_nodes(), Vec3d(0));
+        Util::AttribVec<AMGraph::NodeID,int> cluster_cnt(g.no_nodes(), 0);
+        for(auto v: m_out.vertices()) {
+            NodeID n = vertex2node[v];
+            barycenters[n] += m_out.pos(v);
+            cluster_cnt[n] += 1;
+        }
+
+        for(auto n: g.node_ids())
+            barycenters[n] /= cluster_cnt[n];
+
+        auto new_pos = m_out.positions_attribute_vector();
+        for (auto v: m_out.vertices()) {
+            NodeID n = vertex2node[v];
+            double w_sum = 0.0;
+            Vec3d lap(0.0);
+            Vec3d p0 = m_out.pos(v);
+            for (auto vn: m_out.incident_vertices(v)) {
+                double w = vertex2node[vn] == n ? 1 : 0.25;
+                lap += w * (m_out.pos(vn)-p0);
+                w_sum += w;
+            }
+            lap /= w_sum;
+            Vec3d dir = cond_normalize(m_out.pos(v) + 0.5 * lap - barycenters[n]);
+            Vec3d norm = normal(m_out, v);
+            if (dot(dir, norm)<0.0)
+                dir = norm;
+            dir = cond_normalize(dir);
+            double r = node_radii[n] * sqrt(g.valence(n)/2.0);
+            new_pos[v] = 0.5 * (dir * r + g.pos[n] + m_out.pos(v));
+        }
+        m_out.positions_attribute_vector() = new_pos;
+    }
+
+
+}
+
 
 
 //Main functions
