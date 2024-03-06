@@ -14,7 +14,11 @@ for idx in np.ndindex(dim):
 m = hmesh.volumetric_isocontour(vol, high_is_inside=True)
 
 v = gl.Viewer()
-v.display(m, mode='g', smooth=True)
+v.display(m, mode='w', smooth=False)
+
+m = hmesh.volumetric_isocontour(vol, high_is_inside=True, dual_connectivity=True)
+v.display(m, mode='w', smooth=False)
+
 
 dim = (16,16,16)
 vol = np.zeros(dim)

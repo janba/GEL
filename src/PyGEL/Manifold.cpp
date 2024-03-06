@@ -48,6 +48,13 @@ Manifold_ptr Manifold_copy(Manifold_ptr _self)
     return reinterpret_cast<Manifold_ptr>(new Manifold(*self));
 }
 
+void Manifold_merge(Manifold_ptr _self, Manifold_ptr _other)
+{
+    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* other = reinterpret_cast<Manifold*>(_other);
+    self->merge(*other);
+}
+
 
 void Manifold_delete(Manifold_ptr _self)
 {

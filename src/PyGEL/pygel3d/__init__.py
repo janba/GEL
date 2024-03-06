@@ -85,6 +85,7 @@ lib_py_gel.Manifold_from_points.restype = ct.c_void_p
 lib_py_gel.Manifold_new.restype = ct.c_void_p
 lib_py_gel.Manifold_copy.restype = ct.c_void_p
 lib_py_gel.Manifold_copy.argtypes = (ct.c_void_p,)
+lib_py_gel.Manifold_merge.argtypes = (ct.c_void_p,ct.c_void_p)
 lib_py_gel.Manifold_delete.argtypes = (ct.c_void_p,)
 lib_py_gel.Manifold_positions.restype = ct.c_size_t
 lib_py_gel.Manifold_positions.argtypes = (ct.c_void_p, ct.POINTER(ct.POINTER(ct.c_double)))
