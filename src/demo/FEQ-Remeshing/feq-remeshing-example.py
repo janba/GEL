@@ -27,7 +27,7 @@ for o_file in obj_files:
         print('Building FEQ')
         m_skel = hmesh.skeleton_to_feq(s, node_radii=0.0, symmetrize=True)
 
-        print('Fitting to reference mesh')
+        # print('Fitting to reference mesh')
         fit_mesh = hmesh.Manifold(m_skel)
         fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh)
         hmesh.cc_split(fit_mesh)

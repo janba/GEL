@@ -180,6 +180,7 @@ void val2nodes_to_face_pairs(const Geometry::AMGraph3D &g, HMesh::Manifold &mani
 {
     Util::AttribVec<NodeID, int> touched(g.no_nodes(), 0);
     Util::AttribVec<NodeID, Mat3x3d> warp_frame(g.no_nodes(), identity_Mat3x3d());
+    Util::AttribVec<NodeID, int> max_idx(g.no_nodes(), 0);
 
     queue<NodeID> Q;
 
@@ -196,66 +197,65 @@ void val2nodes_to_face_pairs(const Geometry::AMGraph3D &g, HMesh::Manifold &mani
                     {
                         Q.push(m);
                         touched[m] = 1;
+                        size_t N_size = g.neighbors(m).size();
+                        
                         Vec3d vect = normalize(g.pos[m] - g.pos[n]);
-                        if (g.neighbors(m).size() <= 2)
+                        if (N_size == 2)
                         {
-                            auto node_list = next_neighbours(g, n, m);
-                            if (!node_list.empty())
-                            {
-                                Vec3d nb_v(0);
-                                for (auto m_nb : node_list)
-                                    nb_v = g.pos[m_nb];
-                                nb_v /= node_list.size();
-                                vect += normalize(nb_v - g.pos[m]);
-                            }
+                            NodeID o = next_neighbours(g, n, m)[0];
+                            vect = normalize((g.pos[o]-g.pos[n]));
                         }
                         vect = normalize(vect);
                         Vec3d warp_v = warp_frame[n] * vect;
 
                         double max_sgn = sign(warp_v[0]);
                         double max_val = abs(warp_v[0]);
-                        int max_idx = 0;
                         for (int i = 1; i < 3; ++i)
                         {
                             if (abs(warp_v[i]) > max_val)
                             {
                                 max_sgn = sign(warp_v[i]);
                                 max_val = abs(warp_v[i]);
-                                max_idx = i;
+                                max_idx[m] = i;
                             }
                         }
                         auto v_target = max_sgn * vect;
                         Quatd q;
-                        q.make_rot((warp_frame[n])[max_idx], v_target);
-
+                        q.make_rot((warp_frame[n])[max_idx[m]], v_target);
                         warp_frame[m] = transpose(q.get_Mat3x3d() * transpose(warp_frame[n]));
 
-                        if (g.neighbors(m).size() <= 2)
-                        {
-                            Vec3d s(r[m]);
-                            Mat3x3d S = scaling_Mat3x3d(s);
-                            auto face_list = create_face_pair(mani, g.pos[m], transpose(warp_frame[m]) * S, max_idx, one_ring_face_vertex);
-                            stitch_mesh(mani, 1e-10);
-                            for (auto f : face_list)
-                            {
-                                for (auto v : mani.incident_vertices(f))
-                                    vertex2node[v] = m;
-                            }
-                            int idx_sum=0;
-                            for (auto mm: g.neighbors(m)) {
-                                Vec3d m_mm_v = g.pos[mm] - g.pos[m];
-                                Vec3d n0 = normal(mani, face_list[0]);
-                                Vec3d n1 = normal(mani, face_list[1]);
-
-                                int idx = (dot(n0, m_mm_v) > dot(n1, m_mm_v)) ? 0 : 1;
-                                branch2mesh_map[make_pair(m,mm)].face = face_list[idx];
-                            }
-                            if(idx_sum == 1)
-                                cout << "error: doubly assigned face in bridge node " << endl;
-                        }
                     }
             }
         }
+    
+    for (auto m: g.node_ids())
+    {
+        size_t N_size = g.neighbors(m).size();
+        if (N_size == 1 || N_size == 2)
+        {
+            Vec3d s(r[m]);
+            Mat3x3d S = scaling_Mat3x3d(s);
+            auto face_list = create_face_pair(mani, g.pos[m], transpose(warp_frame[m]) * S, max_idx[m], one_ring_face_vertex);
+            stitch_mesh(mani, 1e-10);
+            for (auto f : face_list)
+            {
+                for (auto v : mani.incident_vertices(f))
+                    vertex2node[v] = m;
+            }
+            int idx_sum=0;
+            for (auto mm: g.neighbors(m)) {
+                Vec3d m_mm_v = g.pos[mm] - g.pos[m];
+                Vec3d n0 = normal(mani, face_list[0]);
+                Vec3d n1 = normal(mani, face_list[1]);
+                
+                int idx = (dot(n0, m_mm_v) > dot(n1, m_mm_v)) ? 0 : 1;
+                branch2mesh_map[make_pair(m,mm)].face = face_list[idx];
+            }
+            if(idx_sum == 1)
+                cout << "error: doubly assigned face in bridge node " << endl;
+        }
+    }
+
 }
 
 int add_ghosts(const vector<Vec3i> &tris, vector<Vec3d> &pts, double thresh)
@@ -895,7 +895,7 @@ void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
         double w_sum = 0;
         Vec3d p(0);
         // The point is just a random affine combination of the polygon's
-        // ve   rtices.
+        // vertices.
         for (VertexID v: m.incident_vertices(f)) {
             double w = rand_num();
             p += w * m.pos(v);
@@ -929,8 +929,8 @@ void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
         {
             int i_m = pts_m_1d[j].second;
             int i_ref = pts_ref_1d[j].second;
-        //    displace[] = V * (pts_ref_1d[j].first - pts_m_1d[j].first);
-           displace[i_m] = V * dot(V, m_ref_pts[i_ref]-m_pts[i_m]);
+            displace[i_m] = m_ref_pts[i_ref]-m_pts[i_m];
+//           displace[i_m] = V * dot(V, m_ref_pts[i_ref]-m_pts[i_m]);
         }
 
         for (VertexID v : m.vertices())
@@ -941,11 +941,11 @@ void non_rigid_registration(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
             {
                 for (int i : m_pts_idx[f])
                 {
-                    p += displace[i] + m_pts[i];
+                    p += displace[i];
                     ++n;
                 }
             }
-            new_pos[v] += p / n;
+            new_pos[v] += p / n + m.pos(v);
         }
     }
     cout << __FILE__ << __LINE__ << " : " << call_no << endl;
