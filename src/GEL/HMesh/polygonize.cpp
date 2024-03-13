@@ -86,16 +86,17 @@ namespace  HMesh {
               &faces[0],
               &indices[0]);
         
-        stitch_mesh(mani, 0.001);
+        stitch_mesh(mani, 1e-10);
         
         if (dual_connectivity) {
             for(auto v: mani.vertices()) {
                 Vec3d p(0);
                 int cnt = 0;
-                for (auto f: mani.incident_faces(v)) {
-                    auto id = f.get_index();
-                    p += edge_intersections[id];
-                    ++cnt;
+                for (auto f: mani.incident_faces(v)) 
+                    if (mani.in_use(f)) {
+                        auto id = f.get_index();
+                        p += edge_intersections[id];
+                        ++cnt;
                 }
                 mani.pos(v) = p/cnt;
             }
@@ -105,10 +106,12 @@ namespace  HMesh {
             for (auto v: mani.vertices()) {
                 vector<Vec3d> points;
                 for (auto f: mani.incident_faces(v))
-                    points.push_back(edge_intersections[f.get_index()]);
-                mc_mesh.add_face(points);
+                    if (mani.in_use(f))
+                        points.push_back(edge_intersections[f.get_index()]);
+                if(points.size()>2)
+                    mc_mesh.add_face(points);
             }
-            stitch_mesh(mc_mesh, 0.001);
+            stitch_mesh(mc_mesh, 1e-10);
             mani = mc_mesh;
         }
         
@@ -116,8 +119,8 @@ namespace  HMesh {
             mani.pos(v) = xform.inverse(mani.pos(v));
         
         if(make_triangles) {
-            triangulate(mani);
-            remove_needles(mani, 0.4, true);
+            triangulate(mani,SHORTEST_EDGE);
+            remove_needles(mani, 0.1, true);
         }
         
         mani.cleanup();
