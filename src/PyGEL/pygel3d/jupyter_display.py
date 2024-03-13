@@ -35,7 +35,7 @@ def display(m,wireframe=True,smooth=True,data=None):
     if isinstance(m,hmesh.Manifold):
         xyz = array([ p for p in m.positions()])
         m_tri = hmesh.Manifold(m)
-        hmesh.triangulate(m_tri)
+        hmesh.triangulate(m_tri, clip_ear=False)
         ijk = array([[ idx for idx in m_tri.circulate_face(f,'v')] for f in m_tri.faces()])
         mesh = go.Mesh3d(x=xyz[:,0],y=xyz[:,1],z=xyz[:,2],
                 i=ijk[:,0],j=ijk[:,1],k=ijk[:,2],color='#dddddd',flatshading=not smooth)
