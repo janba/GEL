@@ -16,6 +16,9 @@ print("c.flags", c.flags)
 print("d(a)", D.signed_distance(a))
 print("d(c)", D.signed_distance(c))
 print("d(d)", D.signed_distance(d))
-print("d(a)", D.ray_inside_test(a))
-print("d(c)", D.ray_inside_test(c))
-print("d(d)", D.ray_inside_test(d))
+print("I(a)", D.ray_inside_test(a))
+print("I(c)", D.ray_inside_test(c))
+print("I(d)", D.ray_inside_test(d))
+
+for v in a:
+    print(D.intersect(v, array((0.0, 1.0, 0.0))))

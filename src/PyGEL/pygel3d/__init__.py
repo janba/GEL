@@ -32,10 +32,10 @@ __all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial"]
 
 import ctypes as ct
 import numpy as np
+from numpy.ctypeslib import ndpointer
 import os
 from sys import platform, prefix
 
-ndpointer = np.ctypeslib.ndpointer
 
 def _get_script_path():
     return os.path.dirname(__file__)
@@ -80,9 +80,9 @@ lib_py_gel.I3DTree_closest_point.argtypes = (ct.c_void_p, ct.c_double, ct.c_doub
 lib_py_gel.I3DTree_in_sphere.argtypes = (ct.c_void_p, ct.c_double, ct.c_double, ct.c_double, ct.c_double, ct.c_void_p,ct.c_void_p)
 
 # Manifold class
-lib_py_gel.Manifold_from_triangles.argtypes = (ct.c_size_t,ct.c_size_t, np.ctypeslib.ndpointer(ct.c_double), np.ctypeslib.ndpointer(ct.c_int))
+lib_py_gel.Manifold_from_triangles.argtypes = (ct.c_size_t,ct.c_size_t, ndpointer(np.float64, ndim=2, flags='C'), ndpointer(ct.c_int, ndim=2, flags='C'))
 lib_py_gel.Manifold_from_triangles.restype = ct.c_void_p
-lib_py_gel.Manifold_from_points.argtypes = (ct.c_size_t,np.ctypeslib.ndpointer(ct.c_double), np.ctypeslib.ndpointer(ct.c_double),np.ctypeslib.ndpointer(ct.c_double))
+lib_py_gel.Manifold_from_points.argtypes = (ct.c_size_t,ndpointer(np.float64, ndim=2, flags='C'), ndpointer(np.float64, shape=3),ndpointer(np.float64, shape=3))
 lib_py_gel.Manifold_from_points.restype = ct.c_void_p
 lib_py_gel.Manifold_new.restype = ct.c_void_p
 lib_py_gel.Manifold_copy.restype = ct.c_void_p
@@ -106,7 +106,7 @@ lib_py_gel.Manifold_circulate_vertex.restype = ct.c_size_t
 lib_py_gel.Manifold_circulate_vertex.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_char, ct.c_void_p)
 lib_py_gel.Manifold_circulate_face.restype = ct.c_size_t
 lib_py_gel.Manifold_circulate_face.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_char, ct.c_void_p)
-lib_py_gel.Manifold_add_face.argtypes = (ct.c_void_p, ct.c_size_t, np.ctypeslib.ndpointer(ct.c_double))
+lib_py_gel.Manifold_add_face.argtypes = (ct.c_void_p, ct.c_size_t, ndpointer(np.float64, ndim=2, flags='C'))
 lib_py_gel.Manifold_remove_face.restype = ct.c_bool
 lib_py_gel.Manifold_remove_face.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.Manifold_remove_edge.restype = ct.c_bool
@@ -227,7 +227,7 @@ lib_py_gel.MeshDistance_new.restype = ct.c_void_p
 lib_py_gel.MeshDistance_new.argtypes = (ct.c_void_p,)
 lib_py_gel.MeshDistance_signed_distance.argtypes = (ct.c_void_p,ct.c_int, ndpointer(dtype=ct.c_float,flags='C'),ndpointer(dtype=ct.c_float,flags='C',ndim=1),ct.c_float)
 lib_py_gel.MeshDistance_ray_inside_test.argtypes = (ct.c_void_p,ct.c_int, ndpointer(dtype=ct.c_float,flags='C'),ndpointer(dtype=ct.c_int,flags='C',ndim=1),ct.c_int)
-lib_py_gel.MeshDistance_ray_intersect.argtypes = (ct.c_void_p,ct.POINTER(ct.c_float),ct.POINTER(ct.c_float),ct.POINTER(ct.c_float))
+lib_py_gel.MeshDistance_ray_intersect.argtypes = (ct.c_void_p,ndpointer(dtype=ct.c_float,shape=3),ndpointer(dtype=ct.c_float,shape=3),ct.POINTER(ct.c_float))
 lib_py_gel.MeshDistance_ray_intersect.restype = ct.c_bool
 lib_py_gel.MeshDistance_delete.argtypes = (ct.c_void_p,)
 
@@ -246,7 +246,7 @@ lib_py_gel.Graph_positions.argtypes = (ct.c_void_p,ct.POINTER(ct.POINTER(ct.c_do
 lib_py_gel.Graph_positions.restype = ct.c_size_t
 lib_py_gel.Graph_average_edge_length.argtypes = (ct.c_void_p,)
 lib_py_gel.Graph_average_edge_length.restype = ct.c_double
-lib_py_gel.Graph_add_node.argtypes = (ct.c_void_p, np.ctypeslib.ndpointer(ct.c_double))
+lib_py_gel.Graph_add_node.argtypes = (ct.c_void_p, ndpointer(ct.c_double))
 lib_py_gel.Graph_add_node.restype = ct.c_size_t
 lib_py_gel.Graph_remove_node.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.Graph_node_in_use.argtypes = (ct.c_void_p, ct.c_size_t)
@@ -271,7 +271,7 @@ lib_py_gel.graph_prune.argtypes = (ct.c_void_p,)
 lib_py_gel.graph_saturate.argtypes = (ct.c_void_p, ct.c_int, ct.c_double, ct.c_double)
 lib_py_gel.graph_LS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_bool)
 lib_py_gel.graph_MSLS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int)
-lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,order='C'))
+lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,flags='C'))
 
 class IntVector:
     """ Vector of integer values.

@@ -1,5 +1,6 @@
 """ This is a module with a function, display, that provides functionality for displaying a
-    Manifold or a Graph as an interactive 3D model in a Jupyter Notebook. """
+    Manifold or a Graph as an interactive 3D model in a Jupyter Notebook. It is based on 
+    plotly. """
 from pygel3d import hmesh, graph
 from numpy import array
 import plotly.graph_objs as go

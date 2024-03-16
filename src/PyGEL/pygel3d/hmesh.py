@@ -1,4 +1,10 @@
-""" The hmesh module provides an halfedge based mesh representation."""
+""" The hmesh module provides an halfedge based mesh representation. 
+In addition this module contains a variety of functions for mesh manipulation and inspection.
+Specifcally, the module contains functions for mesh simplification, smoothing, subdivision, 
+and editing of vertices, faces, and edges. The volumetric_isocontour function allows us to 
+create a polygonal mesh from volumetric data by isocontouring. The skeleton_to_feq function 
+allows us to turn a skeleton graph into a Face Extrusion Quad Mesh.
+"""
 import ctypes as ct
 import numpy as np
 from math import sqrt
@@ -32,7 +38,9 @@ class Manifold:
         """ Given a list of vertices and triangles (faces), this function produces
         a Manifold mesh."""
         m = cls()
-        m.obj = lib_py_gel.Manifold_from_triangles(len(vertices),len(faces),np.array(vertices,dtype=np.float64), np.array(faces,dtype=ct.c_int))
+        vertices = np.asarray(vertices,dtype=np.float64, order='C')
+        faces = np.asarray(faces,dtype=ct.c_int, order='C')
+        m.obj = lib_py_gel.Manifold_from_triangles(len(vertices),len(faces),vertices,faces)
         return m
     @classmethod
     def from_points(cls,pts,xaxis=np.array([1,0,0]),yaxis=np.array([0,1,0])):
@@ -42,7 +50,10 @@ class Manifold:
         give surprising results if the surface represented by the points is not
         well represented as a 2.5D surface, aka a height field. """
         m = cls()
-        m.obj = lib_py_gel.Manifold_from_points(len(pts),np.array(pts,dtype=np.float64), np.array(xaxis,dtype=np.float64), np.array(yaxis,dtype=np.float64))
+        pts = np.asarray(pts,dtype=np.float64, order='C')
+        xaxis = np.asarray(xaxis,dtype=np.float64, order='C')
+        yaxis = np.asarray(yaxis,dtype=np.float64, order='C')
+        m.obj = lib_py_gel.Manifold_from_points(len(pts), pts, xaxis, yaxis)
         return m
     def __del__(self):
         lib_py_gel.Manifold_delete(self.obj)
@@ -52,7 +63,8 @@ class Manifold:
         in the mesh with those points as vertices. The function returns the index
         of the created face.
         """
-        return lib_py_gel.Manifold_add_face(self.obj, len(pts), np.array(pts))
+        pts = np.asarray(pts,dtype=np.float64, order='C')
+        return lib_py_gel.Manifold_add_face(self.obj, len(pts), pts)
     def positions(self):
         """ Retrieve an array containing the vertex positions of the Manifold.
         It is not a copy: any changes are made to the actual vertex positions. """
@@ -717,20 +729,16 @@ class MeshDistance:
             n = p.shape[0]
         else:
             raise Exception("you must pass signed_distance pts as a 1D array or a 2D array of dim nx3")
-
         s = np.ndarray(n, dtype=ct.c_int)
         lib_py_gel.MeshDistance_ray_inside_test(self.obj,n,p,s,no_rays)
         return s
     def intersect(self, p0, dir, _t=0):
         """ Intersect the ray starting in p0 with direction, dir, with the stored mesh. Returns
         the point of intersection if there is one, otherwise None. """
-        p0 = np.array(p0,dtype=ct.c_float)
-        dir = np.array(dir,dtype=ct.c_float)
+        p0 = np.asarray(p0,dtype=ct.c_float)
+        dir = np.asarray(dir,dtype=ct.c_float)
         t = ct.c_float(_t)
-        p0_ct = p0.ctypes.data_as(ct.POINTER(ct.c_float))
-        dir_ct = dir.ctypes.data_as(ct.POINTER(ct.c_float))
-        p = (ct.c_float*3)()
-        r = lib_py_gel.MeshDistance_ray_intersect(self.obj, p0_ct,dir_ct, ct.byref(t))
+        r = lib_py_gel.MeshDistance_ray_intersect(self.obj, p0, dir, ct.byref(t))
         if r:
             return t.value, p0, dir
         return None
