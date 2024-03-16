@@ -200,7 +200,7 @@ def front_skeleton_and_map(g, colors):
         skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
     skel = Graph()
     mapping = IntVector()
-    colors_flat = np.asarray(colors, dtype=np.float64)
+    colors_flat = np.asarray(colors, dtype=np.float64, order='C')
     N_col = colors_flat.shape[0]
-    lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)))
+    lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat)
     return skel, mapping

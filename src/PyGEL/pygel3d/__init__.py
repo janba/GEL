@@ -160,23 +160,23 @@ lib_py_gel.boundary_edge.restype = ct.c_bool
 lib_py_gel.boundary_edge.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_size_t)
 lib_py_gel.valency.restype = ct.c_size_t
 lib_py_gel.valency.argtypes = (ct.c_void_p, ct.c_size_t)
-lib_py_gel.vertex_normal.argtypes = (ct.c_void_p, ct.c_size_t, ct.POINTER(ct.c_double*3))
+lib_py_gel.vertex_normal.argtypes = (ct.c_void_p, ct.c_size_t, ndpointer(dtype=np.float64, shape=(3,)))
 lib_py_gel.connected.restype = ct.c_bool
 lib_py_gel.connected.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_size_t)
 lib_py_gel.no_edges.restype = ct.c_size_t
 lib_py_gel.no_edges.argtypes = (ct.c_void_p, ct.c_size_t)
-lib_py_gel.face_normal.argtypes = (ct.c_void_p, ct.c_size_t, ct.POINTER(ct.c_double*3))
+lib_py_gel.face_normal.argtypes = (ct.c_void_p, ct.c_size_t, ndpointer(dtype=np.float64, shape=(3,)))
 lib_py_gel.area.restype = ct.c_double
 lib_py_gel.area.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.perimeter.restype = ct.c_double
 lib_py_gel.perimeter.argtypes = (ct.c_void_p, ct.c_size_t)
-lib_py_gel.centre.argtypes = (ct.c_void_p, ct.c_size_t, ct.POINTER(ct.c_double*3))
+lib_py_gel.centre.argtypes = (ct.c_void_p, ct.c_size_t, ndpointer(dtype=np.float64, shape=(3,)))
 lib_py_gel.valid.restype = ct.c_bool
 lib_py_gel.valid.argtypes = (ct.c_void_p,)
 lib_py_gel.closed.restype = ct.c_bool
 lib_py_gel.closed.argtypes = (ct.c_void_p,)
-lib_py_gel.bbox.argtypes = (ct.c_void_p, ct.POINTER(ct.c_double*3),ct.POINTER(ct.c_double*3))
-lib_py_gel.bsphere.argtypes = (ct.c_void_p, ct.POINTER(ct.c_double*3), ct.POINTER(ct.c_double))
+lib_py_gel.bbox.argtypes = (ct.c_void_p, ndpointer(dtype=np.float64, shape=(3,)),ndpointer(dtype=np.float64, shape=(3,)))
+lib_py_gel.bsphere.argtypes = (ct.c_void_p, ndpointer(dtype=np.float64, shape=(3,)), ct.POINTER(ct.c_double))
 lib_py_gel.stitch_mesh.argtypes = (ct.c_void_p,ct.c_double)
 lib_py_gel.stitch_mesh.restype = ct.c_int
 lib_py_gel.obj_save.argtypes = (ct.c_char_p, ct.c_void_p)
@@ -214,12 +214,12 @@ lib_py_gel.regularize_quads.argtypes = (ct.c_void_p,ct.c_float,ct.c_float,ct.c_i
 lib_py_gel.loop_smooth.argtypes = (ct.c_void_p,)
 lib_py_gel.ear_clip_triangulate.argtypes = (ct.c_void_p,)
 lib_py_gel.shortest_edge_triangulate.argtypes = (ct.c_void_p,)
-lib_py_gel.graph_to_feq.argtypes = (ct.c_void_p, ct.c_void_p, ct.POINTER(ct.c_double), ct.c_bool, ct.c_bool)
+lib_py_gel.graph_to_feq.argtypes = (ct.c_void_p, ct.c_void_p, ndpointer(dtype=np.float64, ndim=1), ct.c_bool, ct.c_bool)
 lib_py_gel.graph_to_feq.restype = ct.c_void_p
 lib_py_gel.non_rigid_registration.argtypes = (ct.c_void_p, ct.c_void_p)
 lib_py_gel.taubin_smooth.argtypes = (ct.c_void_p, ct.c_int)
 lib_py_gel.laplacian_smooth.argtypes = (ct.c_void_p, ct.c_float, ct.c_int)
-lib_py_gel.volumetric_isocontour.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_int, ndpointer(ndim=3, dtype=ct.c_float), ndpointer(dtype=ct.c_double,shape=(3,)), ndpointer(dtype=ct.c_double,shape=(3,)), ct.c_float, ct.c_bool, ct.c_bool, ct.c_bool )
+lib_py_gel.volumetric_isocontour.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_int, ndpointer(ndim=3, dtype=ct.c_float,flags='F'), ndpointer(dtype=ct.c_double,shape=(3,)), ndpointer(dtype=ct.c_double,shape=(3,)), ct.c_float, ct.c_bool, ct.c_bool, ct.c_bool )
 
 
 # MeshDistance allows us to compute the signed distance to a mesh
@@ -271,7 +271,7 @@ lib_py_gel.graph_prune.argtypes = (ct.c_void_p,)
 lib_py_gel.graph_saturate.argtypes = (ct.c_void_p, ct.c_int, ct.c_double, ct.c_double)
 lib_py_gel.graph_LS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_bool)
 lib_py_gel.graph_MSLS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int)
-lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ct.POINTER(ct.c_double))
+lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,order='C'))
 
 class IntVector:
     """ Vector of integer values.

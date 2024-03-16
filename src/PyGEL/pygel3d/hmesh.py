@@ -2,6 +2,7 @@
 import ctypes as ct
 import numpy as np
 from math import sqrt
+from numpy import ndarray
 from numpy.linalg import norm
 from pygel3d import lib_py_gel, IntVector, Vec3dVector, spatial
 from scipy.sparse import csc_matrix, vstack
@@ -260,9 +261,9 @@ class Manifold:
         return lib_py_gel.valency(self.obj,vid)
     def vertex_normal(self, vid):
         """ Returns vertex normal (angle weighted) of vertex given by vid """
-        n = (ct.c_double*3)()
-        lib_py_gel.vertex_normal(self.obj, vid, ct.byref(n))
-        return np.array([n[0],n[1],n[2]])
+        n = ndarray(3,dtype=np.float64)
+        lib_py_gel.vertex_normal(self.obj, vid, n)
+        return n
     def connected(self, v0, v1):
         """ Returns true if the two argument vertices, v0 and v1, are in each other's one-rings."""
         return lib_py_gel.connected(self.obj,v0,v1)
@@ -273,9 +274,9 @@ class Manifold:
         """ Compute the normal of a face fid. If the face is not a triangle,
         the normal is not defined, but computed using the first three
         vertices of the face. """
-        n = (ct.c_double*3)()
-        lib_py_gel.face_normal(self.obj, fid, ct.byref(n))
-        return np.array([n[0],n[1],n[2]])
+        n = ndarray(3, dtype=np.float64)
+        lib_py_gel.face_normal(self.obj, fid, n)
+        return n
     def area(self, fid):
         """ Returns the area of a face fid. """
         return lib_py_gel.area(self.obj, fid)
@@ -284,9 +285,9 @@ class Manifold:
         return lib_py_gel.perimeter(self.obj, fid)
     def centre(self, fid):
         """ Returns the centre of a face. """
-        v = (ct.c_double*3)()
-        lib_py_gel.centre(self.obj, fid, ct.byref(v))
-        return v
+        c = ndarray(3, dtype=np.float64)
+        lib_py_gel.centre(self.obj, fid, c)
+        return c
 
 def valid(m):
     """This function performs a series of tests to check that this
@@ -301,17 +302,17 @@ def closed(m):
 
 def bbox(m):
     """ Returns the min and max corners of the bounding box of Manifold m. """
-    pmin = (ct.c_double*3)()
-    pmax = (ct.c_double*3)()
-    lib_py_gel.bbox(m.obj, ct.byref(pmin),ct.byref(pmax))
-    return (np.ctypeslib.as_array(pmin,3),np.ctypeslib.as_array(pmax,3))
+    pmin = ndarray(3,dtype=np.float64)
+    pmax = ndarray(3,dtype=np.float64)
+    lib_py_gel.bbox(m.obj, pmin, pmax)
+    return pmin, pmax
 
 def bsphere(m):
     """ Calculate the bounding sphere of the manifold m.
     Returns centre,radius """
-    c = (ct.c_double*3)()
+    c = ndarray(3,dtype=np.float64)
     r = (ct.c_double)()
-    lib_py_gel.bsphere(m.obj,ct.byref(c),ct.byref(r))
+    lib_py_gel.bsphere(m.obj, c, ct.byref(r))
     return (c,r)
 
 def stitch(m, rad=1e-30):
@@ -599,7 +600,7 @@ def skeleton_to_feq(g, node_radii = None, symmetrize=True):
             node_radii = [node_radii] * len(g.nodes())
 
     node_rs_flat = np.asarray(node_radii, dtype=np.float64)
-    lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat.ctypes.data_as(ct.POINTER(ct.c_double)), symmetrize, use_graph_radii)
+    lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat, symmetrize, use_graph_radii)
     return m
 
 def non_rigid_registration(m, ref_mesh):
