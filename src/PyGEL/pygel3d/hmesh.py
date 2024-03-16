@@ -564,13 +564,11 @@ def volumetric_isocontour(data, bbox_min = None, bbox_max = None,
         bbox_min = (0,0,0)
     if bbox_max is None:
         bbox_max = dims
-    data_float = np.asarray(data.flatten(order='F'), dtype=ct.c_float)
+    data_float = np.asarray(data, dtype=ct.c_float, order='F')
     bbox_min_d = np.asarray(bbox_min, dtype=np.float64, order='C')
     bbox_max_d = np.asarray(bbox_max, dtype=np.float64, order='C')
     lib_py_gel.volumetric_isocontour(m.obj, dims[0], dims[1], dims[2],
-                                     data_float.ctypes.data_as(ct.POINTER(ct.c_float)),
-                                     bbox_min_d.ctypes.data_as(ct.POINTER(ct.c_double)),
-                                     bbox_max_d.ctypes.data_as(ct.POINTER(ct.c_double)), tau,
+                                     data_float, bbox_min_d, bbox_max_d, tau,
                                      make_triangles, high_is_inside, dual_connectivity)
     return m
 
@@ -676,7 +674,6 @@ def fit_mesh_to_ref(m, ref_mesh, iter = 10, dist_wt = 1.0, lap_wt = 0.3):
         regularize_quads(m, w=0.5, shrink=0.8, iter=3)
     return m
 
-
 class MeshDistance:
     """ This class allows you to compute the distance from any point in space to
     a Manifold (which must be triangulated). The constructor creates an instance
@@ -692,12 +689,17 @@ class MeshDistance:
         for each point. The distance corresponding to a point is positive if the point
         is outside and negative if inside. The upper parameter can be used to threshold
         how far away the distance is of interest. """
-        p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
-        n = p.shape[0]
+        p = np.asarray(pts, dtype=ct.c_float, order='C')
+        ndim = len(p.shape)
+        if ndim==1:
+            n = p.shape[0]//3
+        elif ndim==2:
+            n = p.shape[0]
+        else:
+            raise Exception("you must pass signed_distance pts as a 1D array or a 2D array of dim nx3")
+        
         d = np.ndarray(n, dtype=ct.c_float)
-        p_ct = p.ctypes.data_as(ct.POINTER(ct.c_float))
-        d_ct = d.ctypes.data_as(ct.POINTER(ct.c_float))
-        lib_py_gel.MeshDistance_signed_distance(self.obj,n,p_ct,d_ct,upper)
+        lib_py_gel.MeshDistance_signed_distance(self.obj, n, p, d, upper)
         return d
     def ray_inside_test(self,pts,no_rays=3):
         """Check whether each point in pts is inside or outside the stored mesh by
@@ -706,12 +708,17 @@ class MeshDistance:
         ray is more robust than using the sign computed locally. Returns an array of
         N integers which are either 1 or 0 depending on whether the corresponding point
         is inside (1) or outside (0). """
-        p = np.reshape(np.array(pts,dtype=ct.c_float), (-1,3))
-        n = p.shape[0]
+        p = np.asarray(pts, dtype=ct.c_float, order='C')
+        ndim = len(p.shape)
+        if ndim==1:
+            n = p.shape[0]//3
+        elif ndim==2:
+            n = p.shape[0]
+        else:
+            raise Exception("you must pass signed_distance pts as a 1D array or a 2D array of dim nx3")
+
         s = np.ndarray(n, dtype=ct.c_int)
-        p_ct = p.ctypes.data_as(ct.POINTER(ct.c_float))
-        s_ct = s.ctypes.data_as(ct.POINTER(ct.c_int))
-        lib_py_gel.MeshDistance_ray_inside_test(self.obj,n,p_ct,s_ct,no_rays)
+        lib_py_gel.MeshDistance_ray_inside_test(self.obj,n,p,s,no_rays)
         return s
     def intersect(self, p0, dir, _t=0):
         """ Intersect the ray starting in p0 with direction, dir, with the stored mesh. Returns

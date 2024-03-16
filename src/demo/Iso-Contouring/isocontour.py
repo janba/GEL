@@ -5,7 +5,7 @@ from math import cos, sin
 
 array = np.array
 
-dim = (40,40,40)
+dim = (40,50,60)
 vol = np.zeros(dim)
 for idx in np.ndindex(dim):
     x,y,z = array(idx) * 0.25
@@ -14,7 +14,7 @@ for idx in np.ndindex(dim):
 m = hmesh.volumetric_isocontour(vol, high_is_inside=True)
 
 v = gl.Viewer()
-v.display(m, mode='g', smooth=True)
+v.display(m, mode='g', smooth=False)
 
 dim = (16,16,16)
 vol = np.zeros(dim)
@@ -34,7 +34,7 @@ plo, phi = hmesh.bbox(m_in)
 
 dim = tuple(int(x) for x in np.ceil((phi-plo) / 0.0025))
 spacing = (phi-plo)/(array(dim) - 1)
-vol = np.array([D.signed_distance(array(idx)*spacing + plo) for idx in np.ndindex(dim)])
+vol = D.signed_distance( [ array(idx)*spacing + plo for idx in np.ndindex(dim) ])
 vol = vol.reshape(dim)
 
 m = hmesh.volumetric_isocontour(vol, plo, phi, high_is_inside=False)

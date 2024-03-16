@@ -33,7 +33,9 @@ __all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial"]
 import ctypes as ct
 import numpy as np
 import os
-from sys import platform,prefix
+from sys import platform, prefix
+
+ndpointer = np.ctypeslib.ndpointer
 
 def _get_script_path():
     return os.path.dirname(__file__)
@@ -217,14 +219,14 @@ lib_py_gel.graph_to_feq.restype = ct.c_void_p
 lib_py_gel.non_rigid_registration.argtypes = (ct.c_void_p, ct.c_void_p)
 lib_py_gel.taubin_smooth.argtypes = (ct.c_void_p, ct.c_int)
 lib_py_gel.laplacian_smooth.argtypes = (ct.c_void_p, ct.c_float, ct.c_int)
-lib_py_gel.volumetric_isocontour.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_int, ct.POINTER(ct.c_float), ct.POINTER(ct.c_double), ct.POINTER(ct.c_double), ct.c_float, ct.c_bool, ct.c_bool, ct.c_bool )
+lib_py_gel.volumetric_isocontour.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_int, ndpointer(ndim=3, dtype=ct.c_float), ndpointer(dtype=ct.c_double,shape=(3,)), ndpointer(dtype=ct.c_double,shape=(3,)), ct.c_float, ct.c_bool, ct.c_bool, ct.c_bool )
 
 
 # MeshDistance allows us to compute the signed distance to a mesh
 lib_py_gel.MeshDistance_new.restype = ct.c_void_p
 lib_py_gel.MeshDistance_new.argtypes = (ct.c_void_p,)
-lib_py_gel.MeshDistance_signed_distance.argtypes = (ct.c_void_p,ct.c_int, ct.POINTER(ct.c_float),ct.POINTER(ct.c_float),ct.c_float)
-lib_py_gel.MeshDistance_ray_inside_test.argtypes = (ct.c_void_p,ct.c_int, ct.POINTER(ct.c_float),ct.POINTER(ct.c_int),ct.c_int)
+lib_py_gel.MeshDistance_signed_distance.argtypes = (ct.c_void_p,ct.c_int, ndpointer(dtype=ct.c_float,flags='C'),ndpointer(dtype=ct.c_float,flags='C',ndim=1),ct.c_float)
+lib_py_gel.MeshDistance_ray_inside_test.argtypes = (ct.c_void_p,ct.c_int, ndpointer(dtype=ct.c_float,flags='C'),ndpointer(dtype=ct.c_int,flags='C',ndim=1),ct.c_int)
 lib_py_gel.MeshDistance_ray_intersect.argtypes = (ct.c_void_p,ct.POINTER(ct.c_float),ct.POINTER(ct.c_float),ct.POINTER(ct.c_float))
 lib_py_gel.MeshDistance_ray_intersect.restype = ct.c_bool
 lib_py_gel.MeshDistance_delete.argtypes = (ct.c_void_p,)
