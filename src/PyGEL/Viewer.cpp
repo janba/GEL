@@ -325,12 +325,9 @@ void GLManifoldViewer::display() {
     double rad = 0.01*glv->get_eye_dist();
     if(do_pick) {
         float depth;
-        int W,H,WF,HF;
-        glfwGetWindowSize(window, &W, &H);
-        glfwGetFramebufferSize(window, &WF, &HF);
-        double x = mouse_pos[0]*double(WF)/W;
-        double y = mouse_pos[1]*double(HF)/H;
-        if(depth_pick(x,y, depth)) {
+        double x = mouse_pos[0];
+        double y = mouse_pos[1];
+        if(depth_pick(mouse_pos[0],mouse_pos[1], depth)) {
             Vec3d picked_point = screen2world(x,y, depth);
             bool clicked_existing = false;
             for(int i = 0;i<annotation_points.size();++i)
