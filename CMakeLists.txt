@@ -85,6 +85,18 @@ else ()
     target_link_libraries(PyGEL GEL)
 endif ()
 
+# Set public include directory for GEL and PyGEL
+
+target_include_directories(GEL PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<INSTALL_INTERFACE:include>
+        )
+
+target_include_directories(PyGEL PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+        $<INSTALL_INTERFACE:include>
+        )
+
 install(TARGETS GEL)
 
 install(TARGETS PyGEL GEL
