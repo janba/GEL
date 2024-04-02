@@ -5,6 +5,8 @@ from pygel3d import hmesh, graph
 from numpy import array
 import plotly.graph_objs as go
 import plotly.offline as py
+import plotly.express as px
+
 
 EXPORT_MODE = False
 
@@ -42,6 +44,7 @@ def display(m,wireframe=True,smooth=True,data=None):
                 i=ijk[:,0],j=ijk[:,1],k=ijk[:,2],color='#dddddd',flatshading=not smooth)
         if data is not None:
             mesh['intensity'] = data
+            mesh['contour'] = {'show': True, 'color': '#ff0000'}
         mesh_data += [mesh]
         if wireframe:
             pos = m.positions()
