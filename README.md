@@ -1,11 +1,22 @@
 ## INTRODUCTION
-GEL is a C++ library of geometry processing tools mostly intended for computer graphics applications. In particular, GEL contains a fairly mature half-edge based polygonal mesh (sub)library, a graph data structure, and various spatial data structures.
-
-Functionality includes a number of mesh algorithms such as Garland-Heckbert simplification, mesh optimization, distance field computation, iso-surface polygonization, a function for computing curve skeletons, and more. 
+GEL is a C++ library of geometry processing tools mostly intended for computer graphics applications. In particular, GEL contains 
+- a fairly mature half-edge based polygonal mesh data structure, 
+- a graph data structure,  
+- voxel grid data structures,
+- spatial data structures for triangles and points
+Functionality includes
+- Local Separator Skeletonization
+- Inverse skeletonization: Face extrusion quad meshes (FEQ) from graphs.
+- Garland-Heckbert simplification of triangle meshes, 
+- signed distance field (SDF) computation, 
+- edge flipping-based mesh optimization, 
+- iso-surface polygonization, 
+- mesh smoothing (including anisotropic smoothing), 
 
 A linear algebra library for small vectors and matrices (2D, 3D, and 4D) is also included as well as tools for visualizing meshes using OpenGL. 
 
 GEL requires a recent C++ compiler but has very few dependencies. For visualization, OpenGL and GLFW are required, but these dependencies can be omitted if visualization is not needed. This somewhat limits the capabilities of GEL, and most projects that use GEL would also require other libraries (such as a linear algebra library) but by not requiring these to be installed as dependencies of GEL, compilation is simplified and porting to new platforms becomes much easier.
+
 ### PyGEL
 PyGEL is a set of Python bindings for a _subset_ of the features in GEL. In particular, PyGEL covers almost all the mesh features. In addition PyGEL has its own viewer based on OpenGL, and PyGEL can be used from Jupyter notebooks. In this case, it is possible to visualize meshes using a plotly widget. A significant benefit here is that when the notebook is exported to HTML, the 3D view comes along. In fact, this makes PyGEL a useful tool for teaching geometry processing since work can be carried out in a Jupyter notebook and assignments submitted as HTML files. Moreover, PyGEL works in Google [colab](https://colab.research.google.com) notebooks.
 
@@ -45,7 +56,10 @@ Install using something like
 ```
 pip install dist/PyGEL3D-*.whl
 ```
-For this to work, you need to have wheel and setuptools installed. Also `python` and `pip` should be version 3 variants.
+For this to work, you need to have wheel and setuptools installed. Also `python` and `pip` should be version 3 variants. There is shell script called `build_pygel.sh` that automates the tasks above. If you want to build PyGEL with a minimum of fuss, type 
+```
+sh build_pygel.sh
+```
 ## Practical Issues
 Compiling both GEL and PyGEL requires that you have OpenGL installed unless you choose not to compile graphics support which you can do by setting `Use_GLGraphics` to `OFF` in the CMake file. GLFW is also needed, but CMake fetches GLFW from github and compiles it along with the GEL code. If you compile in some of the other ways (e.g. using XCode, Visual Studio) there is no simple way to avoid the dependency on graphics libraries. Thus, if you need to avoid the OpenGL requirements, CMake is the way to go.
 
