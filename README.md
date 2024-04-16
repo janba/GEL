@@ -5,16 +5,18 @@ GEL is a C++ library of geometry processing tools mostly intended for computer g
 - voxel grid data structures,
 - spatial data structures for triangles and points
 
-Functionality includes
+Unique functionality includes
 - Local Separator Skeletonization
 - Inverse skeletonization: Face extrusion quad meshes (FEQ) from graphs.
+
+There are also several features that you might find elsewhere but which are included in GEL and work well.
 - Garland-Heckbert simplification of triangle meshes, 
 - signed distance field (SDF) computation, 
-- edge flipping-based mesh optimization, 
 - iso-surface polygonization, 
-- mesh smoothing (including anisotropic smoothing), 
+- edge flipping-based mesh optimization, 
+- mesh smoothing (including anisotropic smoothing).
 
-A linear algebra library for small vectors and matrices (2D, 3D, and 4D) is also included as well as tools for visualizing meshes using OpenGL. 
+GEL also contains a linear algebra library for small vectors and matrices (2D, 3D, and 4D) as well as tools for visualizing meshes using OpenGL. One could argue that using a library such as Eigen for the former and perhaps PolyScope for that latter would be more appropriate. However, having these things be part of GEL makes the library more self contained. 
 
 GEL requires a recent C++ compiler but has very few dependencies. For visualization, OpenGL and GLFW are required, but these dependencies can be omitted if visualization is not needed. This somewhat limits the capabilities of GEL, and most projects that use GEL would also require other libraries (such as a linear algebra library) but by not requiring these to be installed as dependencies of GEL, compilation is simplified and porting to new platforms becomes much easier.
 
@@ -61,6 +63,8 @@ For this to work, you need to have wheel and setuptools installed. Also `python`
 ```
 sh build_pygel.sh
 ```
+If you run this script the C++ code is compiled and then the PyGEL3D wheel is created and installed. If the PyGEL3D package is already installed it will be replaced.
+
 ## Practical Issues
 Compiling both GEL and PyGEL requires that you have OpenGL installed unless you choose not to compile graphics support which you can do by setting `Use_GLGraphics` to `OFF` in the CMake file. GLFW is also needed, but CMake fetches GLFW from github and compiles it along with the GEL code. If you compile in some of the other ways (e.g. using XCode, Visual Studio) there is no simple way to avoid the dependency on graphics libraries. Thus, if you need to avoid the OpenGL requirements, CMake is the way to go.
 
