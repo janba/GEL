@@ -4,6 +4,7 @@ GEL is a C++ library of geometry processing tools mostly intended for computer g
 - a graph data structure,  
 - voxel grid data structures,
 - spatial data structures for triangles and points
+
 Functionality includes
 - Local Separator Skeletonization
 - Inverse skeletonization: Face extrusion quad meshes (FEQ) from graphs.
