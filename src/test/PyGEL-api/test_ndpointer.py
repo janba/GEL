@@ -1,6 +1,6 @@
 """This script performs very basic test of the PyGEL API."""
-from pygel3d import gl_display as gl, hmesh
 from random import uniform
+from pygel3d import gl_display as gl, hmesh
 
 m = hmesh.load("../../../data/tetra.obj")
 

@@ -30,12 +30,11 @@ generic class, so this is perhaps not the most important part of PyGEL.
 """
 __all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial"]
 
+import os
+from sys import platform, prefix
 import ctypes as ct
 import numpy as np
 from numpy.ctypeslib import ndpointer
-import os
-from sys import platform, prefix
-
 
 def _get_script_path():
     return os.path.dirname(__file__)
@@ -87,6 +86,7 @@ lib_py_gel.Manifold_from_points.restype = ct.c_void_p
 lib_py_gel.Manifold_new.restype = ct.c_void_p
 lib_py_gel.Manifold_copy.restype = ct.c_void_p
 lib_py_gel.Manifold_copy.argtypes = (ct.c_void_p,)
+lib_py_gel.Manifold_merge.argtypes = (ct.c_void_p,ct.c_void_p)
 lib_py_gel.Manifold_delete.argtypes = (ct.c_void_p,)
 lib_py_gel.Manifold_positions.restype = ct.c_size_t
 lib_py_gel.Manifold_positions.argtypes = (ct.c_void_p, ct.POINTER(ct.POINTER(ct.c_double)))
@@ -271,7 +271,8 @@ lib_py_gel.graph_prune.argtypes = (ct.c_void_p,)
 lib_py_gel.graph_saturate.argtypes = (ct.c_void_p, ct.c_int, ct.c_double, ct.c_double)
 lib_py_gel.graph_LS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_bool)
 lib_py_gel.graph_MSLS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int)
-lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,flags='C'))
+lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,flags='C'), ct.c_int)
+lib_py_gel.graph_combined_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,flags='C'), ct.c_int)
 
 class IntVector:
     """ Vector of integer values.

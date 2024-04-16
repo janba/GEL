@@ -23,27 +23,6 @@ namespace Geometry {
     using ExpansionMap = std::vector<std::vector<AMGraph::NodeID>>;
     using CapacityVecVec = std::vector<std::vector<size_t>>;
 
-    // A more advanced separator than the NodeSetVec elements.
-    // This allows for holding more data together with the separator.
-    struct Separator {
-        size_t id = 0; // Mostly used for debugging.
-        double quality = -1.0;
-        NodeSetUnordered sigma;
-        // Any grouping can be used but usually refers to the level where the separator was found.
-        mutable int grouping = -1; // Is mutable so it can be updated while filtering.
-        size_t growth_measure = 0; // The size of sigma before shrinking.
-
-        Separator() = default;
-
-        Separator(double quality, const NodeSetUnordered &node_set, size_t id = 0, int grouping = -1, size_t growth_measure = 0) {
-            this->quality = quality;
-            this->sigma = node_set;
-            this->id = id;
-            this->grouping = grouping;
-            this->growth_measure = growth_measure;
-        };
-    };
-
     // A set of graphs of different sizes representing the same original graph.
     struct MultiScaleGraph {
         std::vector<AMGraph3D> layers;
@@ -68,6 +47,7 @@ namespace Geometry {
      @brief Compute separators by marching a front along a scalar field.
      @param g  the graph that we operate on.
      @param dvv  a vector of scalar fields defined on the graph vertices.
+     @param intervals an integer which indicates the desired density of separators (lower means higher density)
      @returns This function returns a vector of NodeSets containing a
      number of non-overlapping (local) separators.
      
@@ -77,23 +57,22 @@ namespace Geometry {
      vector of non-overlapping node sets which is then returned.  This can be seen
      as a mix of Reeb graphs - or as a representation which can be turned into that.
      */
-    NodeSetVec front_separators(AMGraph3D &g,
-                                const std::vector<AttribVecDouble> &dvv);
+    NodeSetVec front_separators(AMGraph3D &g, const std::vector<AttribVecDouble> &dvv, int intervals);
 
-
-    /**
-     For a given graph, g,  and a given node n0, we compute a local separator.
-     The algorithm proceeds in a way similar to Dijkstra, finding a set of nodes separator such that there is anoter set of nodes, front,
-     connected to separator via edges and front consists of two connected components.
-     thick_front indicates whether we want to add a layer of nodes to the front before checking the number of connected  components.
-     persistence is how many iterations the front must have two connected components before we consider the interior
-     a local separator.
-     The growth_threshold sets a maximum size of the separator, with -1 being infinite size.
-     The final node set returned is then thinned to the minimal separator.
-     */
-    Separator
-    local_separator(const AMGraph3D &g, NodeID n0, double quality_noise_level, int optimization_steps,
-                    size_t growth_threshold = -1, const CGLA::Vec3d* static_centre = nullptr);
+// SHOULD NOT BE EXPOSED DIRECTLY IN INTERFACE
+//    /**
+//     For a given graph, g,  and a given node n0, we compute a local separator.
+//     The algorithm proceeds in a way similar to Dijkstra, finding a set of nodes separator such that there is anoter set of nodes, front,
+//     connected to separator via edges and front consists of two connected components.
+//     thick_front indicates whether we want to add a layer of nodes to the front before checking the number of connected  components.
+//     persistence is how many iterations the front must have two connected components before we consider the interior
+//     a local separator.
+//     The growth_threshold sets a maximum size of the separator, with -1 being infinite size.
+//     The final node set returned is then thinned to the minimal separator.
+//     */
+//    Separator
+//    local_separator(const AMGraph3D &g, NodeID n0, double quality_noise_level, int optimization_steps,
+//                    size_t growth_threshold = -1, const CGLA::Vec3d* static_centre = nullptr);
 
 
     enum class SamplingType {
@@ -201,6 +180,23 @@ namespace Geometry {
      to the node set from which it was reached during the run of Dijkstra
      */
     NodeSetVec maximize_node_set_vec(AMGraph3D &g, const NodeSetVec &node_set_vec);
+
+
+    /**
+     @brief Computes a set of local separators from a graph by combining local separators and front separators
+     @returns a node set vector such that all graph nodes belong to precisely one node set
+     
+     This function runs both the multiscale local separators function and also front separators. Then it combines the
+     results.
+     */
+    NodeSetVec combined_separators(AMGraph3D &g,
+                                   SamplingType sampling,
+                                   const size_t grow_threshold,
+                                   double quality_noise_level,
+                                   int optimization_steps,
+                                   const std::vector<AttribVecDouble> &dvv,
+                                   int intervals);
+
 
 }
 #endif /* graph_skeletonize_hpp */

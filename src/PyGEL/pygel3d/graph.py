@@ -1,7 +1,7 @@
 """ This module provides a Graph class and functionality for skeletonization using graphs. """
-from pygel3d import hmesh, lib_py_gel, IntVector
 import ctypes as ct
 import numpy as np
+from pygel3d import hmesh, lib_py_gel, IntVector
 
 class Graph:
     """ This class is for representing graphs embedded in 3D. The class does not in
@@ -189,10 +189,10 @@ def MSLS_skeleton_and_map(g, grow_thresh=64):
     return skel, mapping
 
 
-def front_skeleton_and_map(g, colors):
+def front_skeleton_and_map(g, colors, intervals=100):
     """ Skeletonize a graph using the front separators approach. The first argument,
-        g, is the graph, and, colors is a 2D array where each row contains a sequence
-        of floating point values - one for each node. We can have as many rows as needed
+        g, is the graph, and, colors is an nD array where each column contains a sequence
+        of floating point values - one for each node. We can have as many columns as needed
         for the front separator computation. We can think of this as a coloring
         of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
         of the nodes or some other function that indicates something about the structure of the
@@ -200,7 +200,63 @@ def front_skeleton_and_map(g, colors):
         skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
     skel = Graph()
     mapping = IntVector()
-    colors_flat = np.asarray(colors, dtype=np.float64, order='C')
-    N_col = colors_flat.shape[0]
-    lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat)
+    colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
+    N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
+    print("N_col:", N_col)
+    pos = g.positions()
+    lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel, mapping
+
+def front_skeleton(g, colors, intervals=100):
+    """ Skeletonize a graph using the front separators approach. The first argument,
+        g, is the graph, and, colors is a nD array where each column contains a sequence
+        of floating point values - one for each node. We can have as many columns as needed
+        for the front separator computation. We can think of this as a coloring
+        of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
+        of the nodes or some other function that indicates something about the structure of the
+        graph. The function returns a tuple containing a new graph which is the
+        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
+    skel = Graph()
+    mapping = IntVector()
+    colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
+    N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
+    print("N_col:", N_col)
+    pos = g.positions()
+    lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
+    return skel
+
+def combined_skeleton_and_map(g, colors, intervals=100):
+    """ Skeletonize a graph using both the front separators approach and the multi scale local separators.
+        The first argument, g, is the graph, and, colors is an nD array where each column contains a sequence
+        of floating point values - one for each node. We can have as many columns as needed
+        for the front separator computation. We can think of this as a coloring
+        of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
+        of the nodes or some other function that indicates something about the structure of the
+        graph. The function returns a tuple containing a new graph which is the
+        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
+    skel = Graph()
+    mapping = IntVector()
+    colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
+    N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
+    print("N_col:", N_col)
+    pos = g.positions()
+    lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
+    return skel, mapping
+
+def combined_skeleton(g, colors, intervals=100):
+    """ Skeletonize a graph using both the front separators approach and the multi scale local separators.
+        The first argument, g, is the graph, and, colors is an nD array where each column contains a sequence
+        of floating point values - one for each node. We can have as many columns as needed
+        for the front separator computation. We can think of this as a coloring
+        of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
+        of the nodes or some other function that indicates something about the structure of the
+        graph. The function returns a new graph which is the
+        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
+    skel = Graph()
+    mapping = IntVector()
+    colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
+    N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
+    print("N_col:", N_col)
+    pos = g.positions()
+    lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
+    return skel

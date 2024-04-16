@@ -130,9 +130,11 @@ namespace Geometry {
                         is_minimum = false;
                 }
                 if(is_minimum) {
-                    T_in[n] = T;
                     pq.push(PrimPQElem(-dist[n], n, AMGraph::InvalidNodeID));
-                    front.insert(n);
+//                    cout << dist[n] << " (";
+//                    for (auto m: g_ptr->neighbors(n))
+//                        cout << dist[m] << " ";
+//                    cout << ")" <<endl;
                 }
             }
             
@@ -176,12 +178,15 @@ namespace Geometry {
     
     bool BreadthFirstSearch::step() {
         if(!pq.empty()) {
-            ++T;
-            last = pq.top();
-            auto n = last.node;
-            front.erase(n);
-            T_out[n] = T;
+            auto n = pq.top().node;
             pq.pop();
+            if (T_in[n] == INT_MAX) {
+                T_in[n] = T;
+                front.insert(n);
+            }
+            T = T + 1;
+            T_out[n] = T;
+            front.erase(n);
             visited.insert(n);
             for(auto m: g_ptr->neighbors(n))
                 if(mask[m])

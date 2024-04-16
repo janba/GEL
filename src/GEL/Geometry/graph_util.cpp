@@ -230,7 +230,7 @@ namespace Geometry {
                 double wsum = 0;
                 auto N = g.neighbors(n);
                 for(auto nn: N) {
-                    double w = 1.0;
+                    double w = (g.node_color[nn][1]+0.001)/(g.node_color[n][1]+0.001);
                     new_pos[n] += w*g.pos[nn];
                     new_col[n] += w*g.node_color[nn];
                     wsum += w;
@@ -645,10 +645,10 @@ double node_symmetry(const AMGraph3D& g,  NodeID n0, int i, int j) {
                 }
             sym_score *= a_sym_score;
         }
-    return sym_score;
+    return sqr(sym_score);
 }
 
-std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold) {
+std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, double threshold, bool local_only) {
     const int N_iter = 10; // Maybe excessive, but this is a relatively cheap step
     double ael = g.average_edge_length();
     auto average_vector = [](const vector<Vec3d> &pt_vec)
@@ -705,7 +705,7 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
             // New axis is normalized match vectors
             axis = normalize(match_vec);
         }
-        return (1-err/max(ael,rad)) * sqr(node_symmetry(g, n, i, j));
+        return (1-err/max(ael,rad)) * node_symmetry(g, n, i, j);
     };
 
     // Finally, we compute the symmetry scores and keep only the best non-conflicting
@@ -714,8 +714,12 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
     for (int i=0; i<nbors.size(); ++i)
         for (int j=i+1; j<nbors.size(); ++j)
             //if (pt_vecs[i].size()>1 && pt_vecs[j].size()>1)
-             {                
-                double sscore = min(symmetry_score(i, j), symmetry_score(j, i));
+             {       
+                 double sscore = 0;
+                 if (local_only)
+                     sscore = min(node_symmetry(g,n,i, j), node_symmetry(g,n,j, i));
+                 else
+                     sscore = min(symmetry_score(i, j), symmetry_score(j, i));
                 if (sscore > threshold)
                     sym_scores.push_back(make_tuple(-sscore, i, j));
             }
@@ -733,20 +737,20 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
     return npv;
 }
 
-void all_symmetry_pairs(AMGraph3D& g, double threshold) {
-    for (auto n: g.node_ids()) {
-        auto N = g.neighbors(n);
-        if(N.size()>2) {
-            auto npairs = symmetry_pairs(g, n, threshold);
-            auto [a,b] = npairs[0];
-            auto na = N[a];
-            auto nb = N[b];
-            g.edge_color[g.find_edge(n, na)] = Vec3f(1,0,0);
-            g.edge_color[g.find_edge(n, nb)] = Vec3f(1,0,0);
-        }
-    }
-    
-}
+//void all_symmetry_pairs(AMGraph3D& g, double threshold) {
+//    for (auto n: g.node_ids()) {
+//        auto N = g.neighbors(n);
+//        if(N.size()>2) {
+//            auto npairs = symmetry_pairs(g, n, threshold);
+//            auto [a,b] = npairs[0];
+//            auto na = N[a];
+//            auto nb = N[b];
+//            g.edge_color[g.find_edge(n, na)] = Vec3f(1,0,0);
+//            g.edge_color[g.find_edge(n, nb)] = Vec3f(1,0,0);
+//        }
+//    }
+//    
+//}
 
 
 }

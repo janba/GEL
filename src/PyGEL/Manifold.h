@@ -33,6 +33,7 @@ extern "C" {
     DLLEXPORT Manifold_ptr Manifold_from_points(int N, double* pts, double* X_axis, double* Y_axis);
 
     DLLEXPORT Manifold_ptr Manifold_copy(Manifold_ptr self);
+    DLLEXPORT void Manifold_merge(Manifold_ptr self, Manifold_ptr other);
 
     DLLEXPORT void Manifold_delete(Manifold_ptr self);
     DLLEXPORT size_t Manifold_positions(Manifold_ptr self, double** pos);

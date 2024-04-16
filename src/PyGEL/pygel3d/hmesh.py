@@ -57,6 +57,11 @@ class Manifold:
         return m
     def __del__(self):
         lib_py_gel.Manifold_delete(self.obj)
+    def merge_with(self, other):
+        """ Merge this Manifold with another one given as the argument. This function
+        does not return anything. It simply combines the two meshes in the Manifold on which
+        the method is called. """
+        lib_py_gel.Manifold_merge(self.obj, other.obj)
     def add_face(self,pts):
         """ Add a face to the Manifold.
         This function takes a list of 3D points, pts, as argument and creates a face
