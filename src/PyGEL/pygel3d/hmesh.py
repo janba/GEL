@@ -535,6 +535,16 @@ def cc_smooth(m):
     subdivision of m."""
     lib_py_gel.cc_smooth(m.obj)
 
+def cc_subdivide(m):
+    """ Perform a full Catmull-Clark subdivision step on mesh m. """
+    lib_py_gel.cc_split(m.obj)
+    lib_py_gel.cc_smooth(m.obj)
+
+def loop_subdivide(m):
+    """ Perform a full Loop subdivision step on mesh m. """
+    lib_py_gel.loop_split(m.obj)
+    lib_py_gel.loop_smooth(m.obj)   
+
 def volume_preserving_cc_smooth(m, iter):
     """ This function does the same type of smoothing as in Catmull-Clark
     subdivision, but to preserve volume it actually performs two steps, and the
@@ -561,6 +571,17 @@ def laplacian_smooth(m, w=0.5, iter=1):
     """ This function performs Laplacian smoothing on the mesh m for iter number
     of iterations. w is the weight applied. """
     lib_py_gel.laplacian_smooth(m.obj, w, iter)
+
+def anisotropic_smooth(m, sharpness=0.5, iter=1):
+    """ This function performs anisotropic smoothing on the mesh m for iter number
+    of iterations. A bilateral filtering controlled by sharpness is performed on 
+    the face normals followed by a rotation of the faces to match the new normals.
+    The updated vertex positions are the average positions of the corners of the 
+    rotated faces. For sharpness==0 the new normal is simply the area weighted 
+    average of the normals of incident faces. For sharpness>0 the weight of the
+    neighbouring face normals is a Gaussian function of the angle between the
+    face normals. The greater the sharpness, the more the smoothing is anisotropic."""
+    lib_py_gel.anisotropic_smooth(m.obj, sharpness, iter)
     
 def volumetric_isocontour(data, bbox_min = None, bbox_max = None,
                           tau=0.0,
@@ -620,12 +641,11 @@ def skeleton_to_feq(g, node_radii = None, symmetrize=True):
     lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat, symmetrize, use_graph_radii)
     return m
 
-def non_rigid_registration(m, ref_mesh):
-    """ Perform non-rigid registration of m to ref_mesh. """
-    lib_py_gel.non_rigid_registration(m.obj, ref_mesh.obj)
+# def non_rigid_registration(m, ref_mesh):
+#     """ Perform non-rigid registration of m to ref_mesh. """
+#     lib_py_gel.non_rigid_registration(m.obj, ref_mesh.obj)
 
 def laplacian_matrix(m):
-    """ Returns the sparse uniform laplacian matrix for a polygonal mesh m. """
     num_verts = m.no_allocated_vertices()
     laplacian = np.full((num_verts,num_verts), 0.0)
     for i in m.vertices():
@@ -638,8 +658,6 @@ def laplacian_matrix(m):
 
 
 def inv_correspondence_leqs(m, ref_mesh):
-    """ Helper function to compute correspondences between a skeletal mesh m and a reference mesh ref_mesh, given a MeshDistance object dist_obj for the ref mesh. """
-
     m_pos = m.positions()
     ref_pos = ref_mesh.positions()
 

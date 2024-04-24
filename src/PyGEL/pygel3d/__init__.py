@@ -219,6 +219,7 @@ lib_py_gel.graph_to_feq.restype = ct.c_void_p
 lib_py_gel.non_rigid_registration.argtypes = (ct.c_void_p, ct.c_void_p)
 lib_py_gel.taubin_smooth.argtypes = (ct.c_void_p, ct.c_int)
 lib_py_gel.laplacian_smooth.argtypes = (ct.c_void_p, ct.c_float, ct.c_int)
+lib_py_gel.anisotropic_smooth.argtypes = (ct.c_void_p, ct.c_float, ct.c_int)
 lib_py_gel.volumetric_isocontour.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_int, ndpointer(ndim=3, dtype=ct.c_float,flags='F'), ndpointer(dtype=ct.c_double,shape=(3,)), ndpointer(dtype=ct.c_double,shape=(3,)), ct.c_float, ct.c_bool, ct.c_bool, ct.c_bool )
 
 
@@ -250,6 +251,7 @@ lib_py_gel.Graph_add_node.argtypes = (ct.c_void_p, ndpointer(ct.c_double))
 lib_py_gel.Graph_add_node.restype = ct.c_size_t
 lib_py_gel.Graph_remove_node.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.Graph_node_in_use.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.Graph_node_in_use.restype = ct.c_bool
 lib_py_gel.Graph_connect_nodes.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_size_t)
 lib_py_gel.Graph_connect_nodes.restype = ct.c_size_t
 lib_py_gel.Graph_disconnect_nodes.argtypes = (ct.c_void_p, ct.c_size_t, ct.c_size_t)

@@ -194,6 +194,10 @@ void laplacian_smooth(Manifold_ptr m_ptr, float weight, int iter) {
     laplacian_smooth(*(reinterpret_cast<Manifold*>(m_ptr)), weight, iter);
 }
 
+void anisotropic_smooth(Manifold_ptr m_ptr, float sharpness, int iter) {
+    anisotropic_smooth(*(reinterpret_cast<Manifold*>(m_ptr)), iter, sharpness);
+}
+
 void volumetric_isocontour(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim, float* data,
                            double* _pmin, double* _pmax, float tau, 
                            bool make_triangles,

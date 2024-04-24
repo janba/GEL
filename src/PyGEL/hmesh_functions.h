@@ -93,6 +93,8 @@ extern "C" {
 
     DLLEXPORT void laplacian_smooth(Manifold_ptr m_ptr, float weight, int iter);
 
+    DLLEXPORT void anisotropic_smooth(Manifold_ptr m_ptr, float sharpness, int iter); 
+
     DLLEXPORT void volumetric_isocontour(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim, float* data,
                                          double* pmin, double* pmax, 
                                          float tau,

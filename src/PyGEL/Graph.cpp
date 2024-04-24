@@ -89,9 +89,9 @@ void Graph_remove_node(Graph_ptr _self, size_t n){
     self->remove_node(NodeID(n));
 }
 
-void Graph_node_in_use(Graph_ptr _self, size_t n){
+bool Graph_node_in_use(Graph_ptr _self, size_t n){
     AMGraph3D* self = reinterpret_cast<AMGraph3D*>(_self);
-    self->in_use(NodeID(n));
+    return self->in_use(NodeID(n));
 }
 
 size_t Graph_connect_nodes(Graph_ptr _self, size_t n0, size_t n1){

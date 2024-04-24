@@ -38,7 +38,7 @@ DLLEXPORT double Graph_average_edge_length(Graph_ptr self);
 
 DLLEXPORT size_t Graph_add_node(Graph_ptr self, double* pos);
 DLLEXPORT void Graph_remove_node(Graph_ptr self, size_t n);
-DLLEXPORT void Graph_node_in_use(Graph_ptr self, size_t n);
+DLLEXPORT bool Graph_node_in_use(Graph_ptr self, size_t n);
 DLLEXPORT size_t Graph_connect_nodes(Graph_ptr self, size_t n0, size_t n1);
 DLLEXPORT void Graph_disconnect_nodes(Graph_ptr self, size_t n0, size_t n1);
 DLLEXPORT void Graph_merge_nodes(Graph_ptr self, size_t n0, size_t n1, bool avg);
