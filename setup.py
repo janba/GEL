@@ -15,7 +15,7 @@ copytree("src/PyGEL/pygel3d","build/pygel3d",dirs_exist_ok=True)
 
 # Copy the libraries to the right place.	
 libs_data = []
-libs = glob('build/*.dylib')+glob('build/*.so*')+glob('build/**/*.dll',recursive=True)
+libs = glob('build/*.dylib')+glob('build/*.so*')+glob('build/*.dll',recursive=True)
 for lib_file in libs:
     _,fn = path.split(lib_file)
     dst = "build/pygel3d/"+fn
