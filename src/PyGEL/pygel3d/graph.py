@@ -260,3 +260,19 @@ def combined_skeleton(g, colors, intervals=100):
     pos = g.positions()
     lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel
+
+def minimum_spanning_tree(g, root_node=0):
+    """ Compute the minimum spanning tree of g using Prim's algorithm.
+    The second argument is the root node to start from. """
+    mst = Graph()
+    lib_py_gel.graph_minimum_spanning_tree(g.obj, mst.obj, root_node)
+    return mst
+
+def close_chordless_cycles(g, node=None, hops=5, rad=None):
+    if rad is None:
+        rad = g.average_edge_length()
+    if node is None:
+        for n in g.nodes():
+            lib_py_gel.graph_close_chordless_cycles(g.obj, n, hops, rad)
+    else:
+        lib_py_gel.graph_close_chordless_cycles(g.obj, node, hops, rad)

@@ -275,6 +275,8 @@ lib_py_gel.graph_LS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, 
 lib_py_gel.graph_MSLS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int)
 lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,flags='C'), ct.c_int)
 lib_py_gel.graph_combined_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,flags='C'), ct.c_int)
+lib_py_gel.graph_minimum_spanning_tree.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_int)
+lib_py_gel.graph_close_chordless_cycles.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_double)
 
 class IntVector:
     """ Vector of integer values.

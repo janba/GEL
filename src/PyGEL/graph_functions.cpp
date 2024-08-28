@@ -163,3 +163,18 @@ DLLEXPORT void graph_combined_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, In
     for(auto n: g_ptr->node_ids())
         (*map_ptr)[n] = mapping[n];
 }
+
+
+
+DLLEXPORT void graph_minimum_spanning_tree(Graph_ptr _g_ptr, Graph_ptr _mst_ptr, int _root) {
+    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
+    AMGraph3D* mst_ptr = reinterpret_cast<AMGraph3D*>(_mst_ptr);
+    auto root = AMGraph3D::NodeID(_root);
+    *mst_ptr = minimum_spanning_tree(*g_ptr, root);
+}
+
+DLLEXPORT void graph_close_chordless_cycles(Graph_ptr _g_ptr, int _root, int hops, double rad) {
+    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
+    auto root = AMGraph3D::NodeID(_root);
+    close_chordless_cycles(*g_ptr, root, hops, rad);
+}
