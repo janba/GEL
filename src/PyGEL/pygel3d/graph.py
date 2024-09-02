@@ -2,6 +2,7 @@
 import ctypes as ct
 import numpy as np
 from pygel3d import hmesh, lib_py_gel, IntVector
+from random import shuffle
 
 class Graph:
     """ This class is for representing graphs embedded in 3D. The class does not in
@@ -272,7 +273,9 @@ def close_chordless_cycles(g, node=None, hops=5, rad=None):
     if rad is None:
         rad = g.average_edge_length()
     if node is None:
-        for n in g.nodes():
+        l = list(g.nodes())
+        shuffle(l)
+        for n in l:
             lib_py_gel.graph_close_chordless_cycles(g.obj, n, hops, rad)
     else:
         lib_py_gel.graph_close_chordless_cycles(g.obj, node, hops, rad)

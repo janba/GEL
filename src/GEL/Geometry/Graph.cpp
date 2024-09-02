@@ -268,6 +268,8 @@ bool BreadthFirstSearch::Prim_step() {
 
 void close_chordless_cycles(AMGraph3D& g, AMGraph::NodeID root, int hops, double rad)
 {
+    g.node_color[root] = Vec3f(1,0,0);
+    
     double sq_rad = rad*rad;
     
     using NodeID = AMGraph3D::NodeID;
@@ -276,36 +278,52 @@ void close_chordless_cycles(AMGraph3D& g, AMGraph::NodeID root, int hops, double
         root = 0;
     
     AttribVec<NodeID, int> cnt(g.no_nodes(), -1);
+    AttribVec<NodeID, double> dist(g.no_nodes(), 1e32);
     AttribVec<NodeID, NodeID> parent(g.no_nodes(), AMGraph::InvalidNodeID);
     cnt[root] = 0;
+    dist[root] = 0;
     parent[root] = root;
     priority_queue<QElem> Q;
     for (auto n: g.neighbors(root)) {
-        auto d = sqr_length(g.pos[n]-g.pos[root]);
-        Q.push(make_tuple(-d, root, n));
+        auto sq_dist = sqr_length(g.pos[n]-g.pos[root]);
+        if (sq_dist < sq_rad) {
+            double d = sqrt(sq_dist);
+            Q.push(make_tuple(-d, root, n));
+            dist[n] = d;
+        }
     }
-
-    vector<pair<NodeID, NodeID>> loop_pairs;
+    
+    vector<NodeID> bridge_nodes;
     while(!Q.empty()) {
         auto [d,n,m] = Q.top();
         Q.pop();
-        int c = cnt[n]+1;
         
-        if (parent[m]==AMGraph::InvalidNodeID) {
+        if (-d == dist[m]) {
+            int c = cnt[n]+1;
             parent[m] = n;
             cnt[m] = c;
+            bridge_nodes.push_back(m);
             if (c<hops)
                 for (auto nn: g.neighbors(m)) {
                     auto sq_dist = sqr_length(g.pos[nn]-g.pos[root]);
-                    if (sq_dist < sq_rad && parent[nn]==AMGraph::InvalidNodeID) {
-                        auto d_nn_m = sqr_length(g.pos[nn]-g.pos[m]);
-                        Q.push(make_tuple(-d_nn_m, m, nn));
+                    auto d_nn = length(g.pos[nn]-g.pos[m]) + dist[m];
+                    if (sq_dist < sq_rad && d_nn < dist[nn]) {
+                        Q.push(make_tuple(-d_nn, m, nn));
+                        dist[nn] = d_nn;
                     }
                 }
         }
-        else loop_pairs.push_back(make_pair(n, m));
     }
     
+    vector<pair<NodeID, NodeID>> loop_pairs;
+    for (auto n: bridge_nodes) {
+        for (auto m: g.neighbors(n))
+            if(parent[m] != AMGraph3D::InvalidNodeID)
+                if(n < m && parent[m] != n && parent[n] != m)
+                    loop_pairs.push_back(make_pair(n, m));
+    }
+
+
     auto trace_back = [&](NodeID n) {
         vector<NodeID> path;
         while(n != root) {
@@ -319,8 +337,9 @@ void close_chordless_cycles(AMGraph3D& g, AMGraph::NodeID root, int hops, double
     for (auto [n,m]: loop_pairs) {
         auto p0 = trace_back(n);
         auto p1 = trace_back(m);
-        if (p0.size()+p1.size()+1>3)
-            if (p0.size()==0 || p1.size()==0 || p0.back() != p1.back()) { // Loop goes back to root
+        if (p0.size()>0 && p1.size()>0 && p0.back()==p1.back())
+            continue;
+        if (p0.size()+p1.size()+1>3) {
                 p0.push_back(root);
                 p0.insert(p0.end(), p1.rbegin(), p1.rend());
                 bool found_chord = false;
@@ -342,8 +361,9 @@ void close_chordless_cycles(AMGraph3D& g, AMGraph::NodeID root, int hops, double
                 if (!found_chord) {
                     int i = 0;
                     for (int j=2; j<p0.size()-1;++j) {
-//                        cout << "Adding chord" << endl;
-                        g.connect_nodes(p0[i], p0[j]);
+//                        cout << "Adding chord " << p0.size() << " " << p0[i] << ", " << p0[j] << endl;
+                        auto eid = g.connect_nodes(p0[i], p0[j]);
+                        g.edge_color[eid] = Vec3f(0,1,0);
                     }
                 }
                     

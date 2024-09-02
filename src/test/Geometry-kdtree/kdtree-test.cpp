@@ -92,7 +92,7 @@ int main()
     }
     
     cout << "\n45 closest" << endl;
-    vec = tree.m_closest(45, p0, 1.95);
+    vec = tree.m_closest(45, p0, 1e32);
     for (auto e: vec) {
         cout << sqrt(e.d) << e.k << ", " << e.v << endl;
     }
