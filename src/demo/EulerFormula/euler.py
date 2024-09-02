@@ -9,7 +9,7 @@ from pygel3d import hmesh, gl_display as gl
 from sys import argv as args
 from time import sleep
 
-m = hmesh.load(args[1])
+m = hmesh.load(args[1] if len(args)>1 else '../../../data/cube-1side.obj')
 
 def removable(m, f):
     '''Returns True if the face f is removable, False otherwise. 
