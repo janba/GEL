@@ -429,27 +429,23 @@ namespace Geometry
     {
         ScalarType dist = nodes[n].dist(p);
         assert(n<nodes.size());
-        if(dist<max_dist)
-        {
+        if(dist<max_dist) {
             nq.push(KDTreeRecord<KeyT, ValT>(dist,nodes[n].key,nodes[n].val));
             if(nq.at_capacity())
                 max_dist = std::min(max_dist, nq.top().d);
         }
-        if(nodes[n].dsc != -1)
-        {
+        if(nodes[n].dsc != -1) {
             const short dsc = nodes[n].dsc;
             const ScalarType dsc_dist  = CGLA::sqr(nodes[n].key[dsc]-p[dsc]);
             
             bool left_son = comp(dsc, p, nodes[n].key);
             
-            if(left_son||dsc_dist<max_dist)
-            {
+            if(left_son||dsc_dist<max_dist) {
                 unsigned left_child = 2*n;
                 if(left_child < nodes.size())
                     m_closest_priv(left_child, p, max_dist, nq);
             }
-            if(!left_son||dsc_dist<max_dist)
-            {
+            if(!left_son||dsc_dist<max_dist) {
                 unsigned right_child = 2*n+1;
                 if(right_child < nodes.size())
                     m_closest_priv(right_child, p, max_dist, nq);

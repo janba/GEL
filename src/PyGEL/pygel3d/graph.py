@@ -264,7 +264,8 @@ def combined_skeleton(g, colors, intervals=100):
 
 def minimum_spanning_tree(g, root_node=0):
     """ Compute the minimum spanning tree of g using Prim's algorithm.
-    The second argument is the root node to start from. """
+    The second argument is the root node to start from. The spanning tree
+    of the connected component containing the root node is returned. """
     mst = Graph()
     lib_py_gel.graph_minimum_spanning_tree(g.obj, mst.obj, root_node)
     return mst
