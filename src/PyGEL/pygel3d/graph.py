@@ -271,6 +271,7 @@ def minimum_spanning_tree(g, root_node=0):
     return mst
 
 def close_chordless_cycles(g, node=None, hops=5, rad=None):
+    """ This function closes chordless cycles. A chordless cycle is a cycle in a graph such that two nodes that belong to the cycle are not connected unless they are adjacent in the cycle. The first argument is the graph, g, the second argument is the starting node. If none is provided, the procedure is executed for all nodes. hops indicates how far from the starting node we venture in the search for cycles. Finally, rad (if provided) indicates how far away the farthest node in the cycle is allowed to be."""
     if rad is None:
         rad = g.average_edge_length()
     if node is None:

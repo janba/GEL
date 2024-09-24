@@ -19,22 +19,20 @@ namespace HMesh
     using std::string;
     
     void right_trim(std::string& str) {
-        if (!str.empty())
-            while(isspace(str.back()))
-                str.pop_back();
+        while((!str.empty()) && isspace(str.back()))
+            str.pop_back();
     }
     
     istream& get_multi_line(istream& is, string& buf) {
         getline(is,buf);
         right_trim(buf);
-        if (!buf.empty())
-            while(buf.back() == '\\') {
-                buf.pop_back();
-                string continuation;
-                getline(is, continuation);
-                right_trim(continuation);
-                buf += continuation;
-            }
+        while(!buf.empty() && buf.back() == '\\') {
+            buf.pop_back();
+            string continuation;
+            getline(is, continuation);
+            right_trim(continuation);
+            buf += continuation;
+        }
         return is;
     }
     
