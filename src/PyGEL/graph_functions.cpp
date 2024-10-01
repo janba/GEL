@@ -139,7 +139,7 @@ DLLEXPORT void graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVe
         (*map_ptr)[n] = mapping[n];
 } 
 
-DLLEXPORT void graph_combined_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map_ptr, int N_col, double* colors, int intervals){
+DLLEXPORT void graph_combined_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map_ptr, int N_col, double* colors, int intervals){ 
     using IntVector = vector<size_t>;
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);

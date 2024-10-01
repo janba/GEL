@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       
     # - if: startsWith(matrix.os, 'Windows')
     #   name: Add GLFW to Windows environment
@@ -64,7 +64,7 @@ jobs:
       run: ctest -C $BUILD_TYPE
       
     - name: Packaging
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: build products
         path: ${{github.workspace}}/build/
