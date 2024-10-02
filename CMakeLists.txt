@@ -9,7 +9,7 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-  add_definitions(-DGLEW_STATIC)
+    add_definitions(-DGLEW_STATIC)
 endif ()
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     include_directories(./src/GEL)
