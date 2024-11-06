@@ -1,0 +1,7 @@
+{
+    "files.associations": {
+        "*.case": "jsonc",
+        "*.hip": "cpp",
+        "ostream": "cpp"
+    }
+}

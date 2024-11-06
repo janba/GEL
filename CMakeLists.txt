@@ -63,7 +63,7 @@ if (Use_GLGraphics)
     add_library(GEL STATIC ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MSH_SRC_LIST} ${UTL_SRC_LIST} ${GL_SRC_LIST} ${GLG_SRC_LIST})
     target_link_libraries(GEL Threads::Threads OpenGL::GLU OpenGL::GL ${COCOA_LIBRARY})
     # not right now ...
-    # add_subdirectory(./src/demo)
+    add_subdirectory(./src/demo/MeshEditGlut)
 else ()
     add_library(GEL STATIC ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MSH_SRC_LIST} ${UTL_SRC_LIST})
     target_link_libraries(GEL Threads::Threads)

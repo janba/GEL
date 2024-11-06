@@ -1,0 +1,14 @@
+load_mesh data/bunny.stl
+load_mesh data/bunny.stl
+load_mesh data/bunny.stl
+load_mesh data/bunny.stl
+load_mesh data/bunny.stl
+load_mesh data/bunny.stl
+load_mesh data/box.stl
+load_mesh data/box.stl
+load_mesh data/box.stl
+load_mesh data/box_bin.stl
+help
+help controls
+help control
+help.controls 
