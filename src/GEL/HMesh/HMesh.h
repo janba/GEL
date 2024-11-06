@@ -15,6 +15,7 @@
 #include <GEL/HMesh/off_load.h>
 #include <GEL/HMesh/off_save.h>
 #include <GEL/HMesh/ply_load.h>
+#include <GEL/HMesh/stl_load.h>
 #include <GEL/HMesh/polygonize.h>
 #include <GEL/HMesh/quadric_simplify.h>
 #include <GEL/HMesh/refine_edges.h>
