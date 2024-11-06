@@ -197,7 +197,6 @@ namespace HMesh {
 
         if (missing_edges > 0) {
             cerr << "Could not stitch " << missing_edges << " edges" << endl;
-            return false;
         }
 
         m.cleanup();
