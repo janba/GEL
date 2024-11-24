@@ -247,6 +247,8 @@
 		E105AACE2897C8A400F45A96 /* skeleton_to_FEQ.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E105AACB2897C83700F45A96 /* skeleton_to_FEQ.h */; };
 		E1246E0D242CF7F500653E54 /* bounding_sphere.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */; };
 		E1246E0E242D0A5000653E54 /* bounding_sphere.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1246E0C242CF7F500653E54 /* bounding_sphere.h */; };
+		E1405F712CF3500E00577418 /* face_loop.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1405F702CF3500E00577418 /* face_loop.cpp */; };
+		E1405F722CF3635700577418 /* face_loop.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E1405F6F2CF3500E00577418 /* face_loop.h */; };
 		E166EB952544BE09008DE5C0 /* Circulators.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E166EB932544B074008DE5C0 /* Circulators.h */; };
 		E19C2F4A260BE3ED003950DE /* Serialization.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDAC7CAA201885F600197925 /* Serialization.h */; };
 		E1FDAF9725650C10007114CD /* graph_util.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E1FDAF9125650C10007114CD /* graph_util.cpp */; };
@@ -414,6 +416,7 @@
 			dstPath = ../Headers/HMesh;
 			dstSubfolderSpec = 7;
 			files = (
+				E1405F722CF3635700577418 /* face_loop.h in CopyFiles */,
 				BDC3326029D378EA003073FE /* quad_valencify.h in CopyFiles */,
 				E105AACE2897C8A400F45A96 /* skeleton_to_FEQ.h in CopyFiles */,
 				E166EB952544BE09008DE5C0 /* Circulators.h in CopyFiles */,
@@ -717,6 +720,8 @@
 		E105AACB2897C83700F45A96 /* skeleton_to_FEQ.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = skeleton_to_FEQ.h; sourceTree = "<group>"; };
 		E1246E0B242CF7F500653E54 /* bounding_sphere.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = bounding_sphere.cpp; sourceTree = "<group>"; };
 		E1246E0C242CF7F500653E54 /* bounding_sphere.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = bounding_sphere.h; sourceTree = "<group>"; };
+		E1405F6F2CF3500E00577418 /* face_loop.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = face_loop.h; sourceTree = "<group>"; };
+		E1405F702CF3500E00577418 /* face_loop.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = face_loop.cpp; sourceTree = "<group>"; };
 		E166EB932544B074008DE5C0 /* Circulators.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Circulators.h; sourceTree = "<group>"; };
 		E1FDAF9125650C10007114CD /* graph_util.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = graph_util.cpp; sourceTree = "<group>"; };
 		E1FDAF9225650C10007114CD /* graph_util.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph_util.h; sourceTree = "<group>"; };
@@ -850,6 +855,7 @@
 				0D52EB1A197D18C1002C7150 /* curvature.cpp */,
 				BD4ACED4214A6010004EEC2F /* Delaunay_triangulate.cpp */,
 				0D52EB1C197D18C1002C7150 /* dual.cpp */,
+				E1405F702CF3500E00577418 /* face_loop.cpp */,
 				0DA7DC5E1CEBA687009FD206 /* graph_algorithm.cpp */,
 				0D52EB25197D18C1002C7150 /* load.cpp */,
 				0D52EB27197D18C1002C7150 /* Manifold.cpp */,
@@ -1029,6 +1035,7 @@
 		0D52EBB5197D1930002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				E1405F6F2CF3500E00577418 /* face_loop.h */,
 				BDC3325E29D378AA003073FE /* quad_valencify.h */,
 				0D52EB15197D18C1002C7150 /* AttributeVector.h */,
 				E166EB932544B074008DE5C0 /* Circulators.h */,
@@ -1308,6 +1315,7 @@
 				0D52EB67197D18C1002C7150 /* Vec2i.cpp in Sources */,
 				0D52EB7A197D18C1002C7150 /* QEM.cpp in Sources */,
 				0D52EB92197D18C1002C7150 /* stb_image.c in Sources */,
+				E1405F712CF3500E00577418 /* face_loop.cpp in Sources */,
 				0D52EB9C197D18C1002C7150 /* Manifold.cpp in Sources */,
 				0D52EB7E197D18C1002C7150 /* ThreeDDDA.cpp in Sources */,
 				0D52EB74197D18C1002C7150 /* GradientFilter.cpp in Sources */,
