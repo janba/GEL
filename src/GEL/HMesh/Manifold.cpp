@@ -766,8 +766,9 @@ namespace HMesh
             return InvalidVertexID;
         
         // Slitting always creates a new vertex.
+
         VertexID v_new = kernel.add_vertex();
-        pos(v_new) = pos(v);
+        pos(v_new) = Vec3d(pos(v));
         
         // Go counter clockwise from h_out to h_in. Set all
         // halfedges that used to point to v to point to v_new

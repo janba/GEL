@@ -157,6 +157,7 @@ void face_loops_compute_contained_area(Manifold& m, vector<FaceLoop>& face_loops
                 
             }
         }
+        else l.interior_area = DBL_MAX;
     }
 }
 
@@ -266,13 +267,10 @@ FaceSet extrude_along_edge_loop(Manifold& m, const HalfEdgeSet& hset)
 {
     vector<pair<HalfEdgeID, HalfEdgeID>> h_pairs;
     
-    cout << "extruding " << hset.size() << " edges, vertices of val";
     for(auto h: hset) {
         auto w = m.walker(h);
-        cout << valency(m,w.vertex()) << ", ";
         h_pairs.push_back(make_pair(w.halfedge(), w.opp().halfedge()));
     }
-    cout << endl;
     
     // Slit edges
     for(auto h_in: hset) {
@@ -281,7 +279,7 @@ FaceSet extrude_along_edge_loop(Manifold& m, const HalfEdgeSet& hset)
         for(auto h_out: hset) {
             Walker w_out = m.walker(h_out);
             if(w_out.opp().vertex() == v) {
-                m.slit_vertex(v, h_in, h_out);
+                auto vnew = m.slit_vertex(v, h_in, h_out);
                 break;
             }
         }
@@ -335,13 +333,13 @@ FaceSet extrude_face_set(Manifold& m, const FaceSet& face_set)
 {
     HalfEdgeSet hset;
     
-    for(auto f: face_set)
+    for(auto f: face_set) {
         circulate_face_ccw(m, f, [&](Walker& w){
             if(face_set.find(w.opp().face()) == face_set.end()) {
                 hset.insert(w.halfedge());
             }
         });
-    
+    }
     return extrude_along_edge_loop(m, hset);
 }
 
@@ -593,6 +591,7 @@ void kill_face_loop(Manifold& m) {
     
     // Visit all face loops
     auto& l  = loops.front();
+    cout << "Interior area " << l.interior_area << endl;
     auto& hvec_min = l.hvec;
     // Find the boundary vertices and then the interior vertices
     // the interior vertices are used below when we flatten the interior.
@@ -610,21 +609,11 @@ void kill_face_loop(Manifold& m) {
                 interior_vertices.insert(v);
         });
     
-    vector<vector<Vec3d>> hex_vec;
-    for(auto f: l.interior) {
-        int i = 0;
-        vector<Vec3d> pts(8);
-        circulate_face_ccw(m, f, [&](VertexID v){
-            pts[i++] = m.pos(v);
-        });
-        hex_vec.push_back(pts);
-    }
-
     // Remove the actual loop...
     remove_face_loop(m, l);
 
     // Finally smooth the patch inside region bounded by the killed loop.
-    for(int iter=0;iter<50;++iter)
+    for(int iter=0;iter<10;++iter)
     {
         for(auto v: interior_vertices)
             if(m.in_use(v))

@@ -17,7 +17,8 @@
 
 #include <stdbool.h>
 
-typedef  char* Manifold_ptr;
+typedef char* Manifold_ptr;
+typedef char* IntVector_ptr;
 typedef char* Graph_ptr;
 
 
@@ -109,6 +110,11 @@ extern "C" {
     DLLEXPORT void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double* node_radii, bool symmetrize, bool use_graph_radii);
 
     DLLEXPORT void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
+
+    DLLEXPORT void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr);
+
+    DLLEXPORT void kill_face_loop(Manifold_ptr _m_ptr);
+
 
 #ifdef __cplusplus
 }

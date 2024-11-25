@@ -22,7 +22,7 @@ namespace Geometry
 
 			Strictly speaking, this class is not 
 			abstract, since it does not have any virtual functions.
-			However, operator[]() and store() simply call 
+			However, operator[]() and store() simply call
 			functions in derived classes. To do so, you must pass
 			the derived class as a template argument to this class
 			when you define the derived class. This is called the
@@ -73,7 +73,7 @@ namespace Geometry
 
 		/** Access (read only) a voxel in a grid. 
 
-				This is the operator[] which is passed a Vec3i 
+				This is the operator[] which is passed a Vec3i
 				and returns a const reference to a voxel.
 				This function is "statically virtual", i.e.
 				it simply calls the store function of a derived 
@@ -95,7 +95,7 @@ namespace Geometry
 				class. 
 				
 				Yes, it would be simpler to provide a non-const
-				operator[], however, a non-const operator[] will
+				operator[], however, a non-const operator[] will
 				often be called even when no writing takes place.
 				(Scott Meyers, "More Effective C++, p. 218)
 				If a grid implementation allocates memory when 

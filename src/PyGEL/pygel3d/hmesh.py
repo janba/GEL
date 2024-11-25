@@ -618,6 +618,17 @@ def triangulate(m, clip_ear=True):
         lib_py_gel.ear_clip_triangulate(m.obj)
     else:
         lib_py_gel.shortest_edge_triangulate(m.obj)
+        
+def extrude_faces(m, fset):
+    fvec = np.asarray(list(fset), dtype=ct.c_int)
+    face_loop_out = IntVector()
+    lib_py_gel.extrude_faces(m.obj,fvec,len(fvec), face_loop_out.obj)
+    fset_out = set(face_loop_out)
+    del face_loop_out
+    return fset_out
+    
+def kill_face_loop(m):
+    lib_py_gel.kill_face_loop(m.obj)
 
 def skeleton_to_feq(g, node_radii = None, symmetrize=True):
     """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node.

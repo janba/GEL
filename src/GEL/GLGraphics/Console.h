@@ -121,7 +121,7 @@ private:
         std::stringstream ss(source);
         if (!(ss >> target))
         {
-            std::stringstream ss;
+//            std::stringstream ss;
             ss << "Cannot convert "
                << source << " to '" << typeid(T).name() << "'.";
             throw std::invalid_argument(ss.str());

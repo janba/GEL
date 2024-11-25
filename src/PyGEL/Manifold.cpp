@@ -64,7 +64,7 @@ void Manifold_delete(Manifold_ptr _self)
 size_t Manifold_positions(Manifold_ptr _self, double** pos) {
     Manifold* self = reinterpret_cast<Manifold*>(_self);
     auto N = self->positions_attribute_vector().size();
-    *pos = reinterpret_cast<double*>(&(self->positions_attribute_vector().get(VertexID(0))));
+    *pos = reinterpret_cast<double*>(self->positions.data());
     return N;
 }
 
