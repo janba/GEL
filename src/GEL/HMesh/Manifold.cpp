@@ -1605,4 +1605,28 @@ namespace HMesh
         return (m.pos(w.vertex()) - m.pos(w.opp().vertex())).length();
     }
 
+    Manifold::Vec barycenter(const Manifold& m) {
+        Manifold::Vec c(0);
+        for (auto v: m.vertices()) {
+            c += m.pos(v);
+        }
+        return c/m.no_vertices();
+    }
+
+    double volume(const Manifold& m) {
+        Vec3d c;
+        float r;
+        bsphere(m, c, r);
+
+        double vol = 0.0;
+        for(auto f: m.faces()) {
+            double A = area(m, f);
+            Vec3d n = normal(m, f);
+            Vec3d p = m.pos(m.walker(f).vertex());
+            double h = dot(n, p-c);
+            vol += A*h/3.0;
+        }
+        return vol;
+    }
+
 }

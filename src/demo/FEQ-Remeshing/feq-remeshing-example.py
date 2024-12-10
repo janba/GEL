@@ -25,13 +25,15 @@ for o_file in obj_files:
             graph.smooth(s, alpha=0.5)
 
         print('Building FEQ')
-        m_skel = hmesh.skeleton_to_feq(s, node_radii=0.0, symmetrize=True)
+        m_skel = hmesh.skeleton_to_feq(s, symmetrize=True)
 
         # print('Fitting to reference mesh')
         fit_mesh = hmesh.Manifold(m_skel)
-        fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh)
-        hmesh.cc_split(fit_mesh)
-        fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh)
+        # fit_mesh.cleanup()
+        # hmesh.cc_split(fit_mesh)
+        # fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh)
+        # hmesh.cc_split(fit_mesh)
+        # fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh)
 
         # viewer.display(fit_mesh, bg_col=[1,1,1], reset_view=True)
         out_file = base_name + "-" + mode + "-out.obj"

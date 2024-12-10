@@ -5,6 +5,6 @@ cmake ..
 make -j 12 
 cd .. 
 rm -fr dist 
-python -m build -w
+python -m build -nwx
 pip uninstall --yes PyGEL3D 
 pip install dist/*whl

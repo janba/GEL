@@ -438,7 +438,13 @@ namespace HMesh
         return 0.5 * (m.pos(w.vertex()) + m.pos(w.opp().vertex()));
     }
 
+    /// Compute the barycenter of all vertices of mesh
+    Manifold::Vec barycenter(const Manifold& m);
 
+
+    /** Compute the mesh volume. Could be slightly inaccurate since it does not take
+     non-flat faces into account */
+    double volume(const Manifold& m);
 
     /*******************************************************************
     * Manifold code
