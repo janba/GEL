@@ -276,7 +276,9 @@ namespace HMesh
                 
             });
         }
-        m.positions_attribute_vector() = new_vertices;
+        cout << "old vertices size:" << m.positions.size() << endl;
+        cout << "New vertices size: " << new_vertices.size() << endl;
+        m.positions = new_vertices;
     }
 
     void cc_smooth(Manifold& m)

@@ -24,16 +24,17 @@ for o_file in obj_files:
         if 's' in mode:
             graph.smooth(s, alpha=0.5)
 
+        avg_edge_len = s.average_edge_length()
+        print(avg_edge_len)
         print('Building FEQ')
-        m_skel = hmesh.skeleton_to_feq(s, symmetrize=True)
+        m_skel = hmesh.skeleton_to_feq(s, node_radii=0.5*avg_edge_len, symmetrize=True)
 
-        # print('Fitting to reference mesh')
+        print('Fitting to reference mesh')
         fit_mesh = hmesh.Manifold(m_skel)
-        # fit_mesh.cleanup()
         # hmesh.cc_split(fit_mesh)
-        # fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh)
-        # hmesh.cc_split(fit_mesh)
-        # fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh)
+        # for _ in range(3):
+        #     hmesh.cc_smooth(fit_mesh)
+        #     fit_mesh = hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh)
 
         # viewer.display(fit_mesh, bg_col=[1,1,1], reset_view=True)
         out_file = base_name + "-" + mode + "-out.obj"

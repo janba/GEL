@@ -58,9 +58,17 @@ namespace HMesh
             return items.at(idx.index);
         }
 
-        /// resize the vector (may be necessary if associated container size grows)
-        void resize(size_t _size, ITEM _default_value = ITEM()) {
+        /** resize the vector (may be necessary if associated container size grows). This
+         version of the function takes a new default value as argument. This will override and
+         overwrite the previous default value. Rarely useful since the default value can be set
+         in the constructor. */
+        void resize(size_t _size, ITEM _default_value) {
             default_value = _default_value;
+            items.resize(_size, default_value);
+        }
+
+        /// resize the vector (may be necessary if associated container size grows)
+        void resize(size_t _size) {
             items.resize(_size, default_value);
         }
 
