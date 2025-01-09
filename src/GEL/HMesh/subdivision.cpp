@@ -59,50 +59,37 @@ namespace HMesh
         }
     }
     
-    void cc_split(Manifold& m_in, Manifold& m_out)
+    void cc_split(Manifold& m, Manifold& m_out)
     {
-        const int Invalid = -1;
-
-        vector<Vec3d> new_points;
-        new_points.reserve(m_in.no_vertices());
-
-        VertexAttributeVector<int> vtouched(m_in.allocated_vertices(), Invalid);
-        HalfEdgeAttributeVector<int> htouched(m_in.allocated_halfedges(), Invalid);
-
-        int npsize = 0;
-        for(VertexIDIterator v = m_in.vertices_begin(); v != m_in.vertices_end(); ++v){       
-            vtouched[*v] = npsize;
-            new_points.push_back(m_in.pos(*v));
-            ++npsize;
+        VertexAttributeVector<int> touched(m.no_vertices(), -1);
+        // Mark all original vertices
+        for (auto v: m.vertices())
+            touched[v] = 1;
+        
+        // Split all of the original edges by inserting
+        // a vertex on them.
+        vector<HalfEdgeID> orig_edges;
+        for (auto h: m.halfedges())
+            if (h == m.walker(h).hmin())
+                orig_edges.push_back(h);
+        for (auto h: orig_edges)
+            m.split_edge(h);
+        
+        // Split all vertices by inserting a vertex in the middle
+        vector fvec(begin(m.faces()), end(m.faces()));
+        for(auto f: fvec) {
+            auto vnew = m.split_face_by_vertex(f);
+            touched[vnew] = 2;
         }
 
-        for(HalfEdgeIDIterator h = m_in.halfedges_begin(); h != m_in.halfedges_end(); ++h){
-            if(htouched[*h] != Invalid)
-                continue;
-
-            Walker w = m_in.walker(*h);
-            htouched[*h] = htouched[w.opp().halfedge()] = npsize;
-            new_points.push_back((m_in.pos(w.vertex()) + m_in.pos(w.opp().vertex())) * 0.5f);
-            ++npsize;
-
-        }
-        vector<int> indices;
-        vector<int> faces;
-
-        for(FaceIDIterator f = m_in.faces_begin(); f != m_in.faces_end(); ++f){           
-            for(Walker w = m_in.walker(*f); !w.full_circle(); w = w.circulate_face_cw()){
-                indices.push_back(npsize);
-                indices.push_back(htouched[w.halfedge()]);
-                indices.push_back(vtouched[w.vertex()]);
-                indices.push_back(htouched[w.next().halfedge()]);
-                faces.push_back(4);
+        // Remove edges from the face points to original vertices.
+        for(auto h: m.halfedges())
+            if (m.in_use(h)) {
+                auto w = m.walker(h);
+                if(touched[w.vertex()] == 1 && touched[w.opp().vertex()] == 2)
+                    m.merge_faces(w.face(), h);
             }
-            new_points.push_back(centre(m_in, *f));
-            ++npsize;
-        }
-
-        m_out.clear();
-        build(m_out, npsize, reinterpret_cast<double*>(&new_points[0]), faces.size(), &faces[0], &indices[0]);
+        m_out = m;
     }
     
     void root3_subdivide(Manifold& m_in, Manifold& m)
@@ -276,8 +263,6 @@ namespace HMesh
                 
             });
         }
-        cout << "old vertices size:" << m.positions.size() << endl;
-        cout << "New vertices size: " << new_vertices.size() << endl;
         m.positions = new_vertices;
     }
 

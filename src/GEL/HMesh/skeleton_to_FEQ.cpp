@@ -2,16 +2,19 @@
 #include <cmath>
 #include <algorithm>
 #include <unordered_map>
+#include <ctime>
 
 #include <GEL/CGLA/CGLA.h>
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/Geometry/Graph.h>
+#include <GEL/Geometry/graph_util.h>
 #include <GEL/HMesh/HMesh.h>
 #include <GEL/Geometry/GridAlgorithm.h>
 #include <GEL/Geometry/graph_io.h>
 #include <GEL/Geometry/graph_util.h>
 #include <GEL/Geometry/SphereDelaunay.h>
 #include <GEL/HMesh/quad_valencify.h>
+#include <GEL/HMesh/face_loop.h>
 
 using namespace Geometry;
 using namespace CGLA;
@@ -555,6 +558,13 @@ construct_bnps(const Geometry::AMGraph3D &g,
             for (auto v : m.vertices())
                 m.pos(v) = norms[v];
             
+//            string path = "/Users/janba/GEL/src/demo/FEQ-Remeshing/";
+//            time_t x = time(0) + random();
+//            string file_name = path + "BNP_" + to_string(x) + ".obj";
+//            obj_save(file_name, m);
+//            HMesh::VertexAttributeVector<CGLA::Vec3f> vcol;
+//            HMesh::HalfEdgeAttributeVector<CGLA::Vec3f> hcol;
+//            HMesh::FaceAttributeVector<CGLA::Vec3f> fcol;
             quad_valencify(m);
                         
             for(auto v: m.vertices()) {
@@ -572,39 +582,20 @@ construct_bnps(const Geometry::AMGraph3D &g,
             }
             
             Manifold m_dual;
-            vector<FaceID> spts2faceid(spts.size());
-            for (auto v: m.vertices())
-            {
+            FaceAttributeVector<Vec3d> dual_verts;
+            for (auto f: m.faces())
+                dual_verts[f] = normalize(centre(m,f))*r_arr[n]+pn;
+            for (auto v: m.vertices()) {
                 vector<Vec3d> barycenters;
-                for (auto f: m.incident_faces(v)) {
-                    Vec3d c = centre(m, f);
-                    c = c*r_arr[n]+pn;
-                    barycenters.push_back(c);
-                }
-                auto f = m_dual.add_face(barycenters);
+                for (auto f: m.incident_faces(v))
+                    barycenters.push_back(dual_verts[f]);
+                m_dual.add_face(barycenters);
             }
             stitch_mesh(m_dual, 1e-10);
+//            while(collapse_double_crossed_quads(m_dual));
+//            int cnt = split_double_crossed_quads(m_dual) + split_double_crossed_quads(m_dual);
+//            cout << "Split " << cnt << " double crossed quad" << endl;
             m_dual.cleanup();
-//            FaceAttributeVector<Vec3d> fit_norms;
-//            for (int i = 0; i < spts.size(); i++) {
-//                FaceID f = spts2faceid[i];
-//                fit_norms[f] = spts[i];
-//            }
-//            double vol_bef = volume(m_dual);
-//            for (int iter=0;iter<5; ++iter) {
-//                refit_faces_to_normals(m_dual, fit_norms, 1);
-//                double vol_aft = volume(m_dual);
-//                double s = min(2.0, max(1.0, vol_bef/vol_aft));
-////                cout << s << " " << vol_bef << " " << vol_aft << endl;
-//                Vec3d c = barycenter(m_dual);
-//                for (auto v: m_dual.vertices())
-//                    m_dual.pos(v) = s*(m_dual.pos(v)-c)+pn;
-//            }
-            
-            m_dual.cleanup();
-            
-            
-            
             
             size_t no_vertices_before_merge = m_out.allocated_vertices();
             size_t no_faces_before_merge = m_out.allocated_faces();
@@ -614,16 +605,16 @@ construct_bnps(const Geometry::AMGraph3D &g,
                 if (v.index >= no_vertices_before_merge)
                     vertex2node[v] = n;
             
-            vector<FaceID> f_ids;
+            FaceSet fset;
             for (auto f: m_out.faces())
                 if (f.index >= no_faces_before_merge)
-                    f_ids.push_back(f);
+                    fset.insert(f);
 
             for (auto nn : N) {
                 double max_dot=-1;
                 FaceID max_dot_f = InvalidFaceID;
                 Vec3d branch_dir = normalize(g.pos[nn] - pn);
-                for (auto f: f_ids) {
+                for (auto f: fset) {
                     Vec3d norm = normal(m_out, f);
                     double d = dot(branch_dir, norm);
                     if (d > max_dot) {
@@ -632,6 +623,7 @@ construct_bnps(const Geometry::AMGraph3D &g,
                     }
                 }
                 branch2mesh_map[std::make_pair(n, nn)].face = max_dot_f;
+                fset.erase(max_dot_f);
             }
                     
                 
@@ -692,11 +684,37 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(const HMesh::Manifold& m, F
 void align_branch_node_meshes(const AMGraph3D& g,
                                Manifold& m_out,
                                BranchMeshMap& branch2mesh_map) {
-    for (int iter=0;iter<50;++iter)
-        for (auto n: g.node_ids()) {
+    BreadthFirstSearch bfs(g);
+    for (auto n: g.node_ids()) {
+        auto N = g.neighbors(n);
+        if (N.size() >= 3)
+            bfs.add_init_node(n);
+    }
+    while(bfs.Dijkstra_step());
+    
+    vector<pair<double, NodeID>> pri_node_vec;
+    double d0 = 1.0;
+    for (auto n: g.node_ids()) {
+        if (g.neighbors(n).size()<3)
+        {
+            if(bfs.dist[n]>1e100) {
+                bfs.dist[n] = d0;
+                d0 = d0 + 1;
+            }
+            pri_node_vec.push_back(make_pair(bfs.dist[n], n));
+        }
+    }
+    
+    sort(begin(pri_node_vec), end(pri_node_vec));
+    
+    
+    for (int iter=0;iter<5;++iter) {
+        double w = 1.0;//0.2 + 0.5 * (iter/50.0);
+        for (auto [priority, n]: pri_node_vec) {
             auto N = g.neighbors(n);
-            if (N.size()<3)
-                for(auto nn: N) {
+            for(auto nn: N)
+                if (bfs.dist[nn] <= priority) {
+//                    cout << "aligning " << n << " ( " << bfs.dist[n] << " ) and " << nn << " ( " << bfs.dist[nn] << " ) " << endl;
                     FaceID f0 = branch2mesh_map[make_pair(n,nn)].face;
                     FaceID f1 = branch2mesh_map[make_pair(nn,n)].face;
                     if (not(f0 == InvalidFaceID || f1 == InvalidFaceID)) {
@@ -704,7 +722,7 @@ void align_branch_node_meshes(const AMGraph3D& g,
                         if (connections.size() != 0)
                         {
                             Vec3d c0 = barycenter(m_out, f0);
-                            Vec3d Z = normal(m_out, f0);
+                            Vec3d Z = normalize(g.pos[nn]-g.pos[n]);
                             double alpha_sum = 0;
                             for (auto [v0, v1]: connections) {
                                 Vec3d X = m_out.pos(v0) - c0;
@@ -712,7 +730,7 @@ void align_branch_node_meshes(const AMGraph3D& g,
                                 Vec3d p1 = m_out.pos(v1) - c0;
                                 alpha_sum += atan2(dot(p1,Y), dot(p1,X));
                             }
-                            double alpha = alpha_sum / 4;
+                            double alpha = w * alpha_sum / 4;
                             for (auto v: m_out.incident_vertices(f0)) {
                                 Vec3d X = m_out.pos(v) - c0;
                                 Vec3d Y = cross(Z,X);
@@ -721,7 +739,11 @@ void align_branch_node_meshes(const AMGraph3D& g,
                         }
                     }
                 }
+//                else {
+//                    cout << "not aligning " << n << " ( " << bfs.dist[n] << " ) and " << nn << " ( " << bfs.dist[nn] << " ) " << endl;
+//                }
         }
+    }
 }
 
 
@@ -805,10 +827,10 @@ HMesh::Manifold graph_to_FEQ(const Geometry::AMGraph3D& g, const vector<double>&
         node_radii[n] = 0.25*l;
     }
     auto [m_out, branch2mesh_map, vertex2node] = construct_bnps(g, node_radii, use_symmetry);
-//    val2nodes_to_face_pairs(g, m_out, branch2mesh_map, vertex2node, node_radii);
-//    align_branch_node_meshes(g, m_out, branch2mesh_map);
-//    bridge_branch_node_meshes(g, m_out, branch2mesh_map);
-//    skeleton_aware_smoothing(g, m_out, vertex2node, _node_radii);
+    val2nodes_to_face_pairs(g, m_out, branch2mesh_map, vertex2node, node_radii);
+    align_branch_node_meshes(g, m_out, branch2mesh_map);
+    bridge_branch_node_meshes(g, m_out, branch2mesh_map);
+    skeleton_aware_smoothing(g, m_out, vertex2node, _node_radii);
     m_out.cleanup();
     return m_out;
 }

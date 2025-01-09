@@ -201,7 +201,7 @@ void collapse_face_loops(Manifold& m, vector<FaceLoop>& face_loops)
     }
 }
 
-void collapse_double_crossed_quads(HMesh::Manifold& m)
+int collapse_double_crossed_quads(HMesh::Manifold& m)
 {
     auto face_loops = find_face_loops(m);
     double DE_min = DBL_MAX;
@@ -254,11 +254,41 @@ void collapse_double_crossed_quads(HMesh::Manifold& m)
         FaceID f2 = m.split_face_by_edge(f_min, va_min, vb_min);
         if (f2 != InvalidFaceID) {
             Walker w = m.walker(f2);
-            if(precond_collapse_edge(m, w.halfedge()))
+            if(precond_collapse_edge(m, w.halfedge())) {
                 m.collapse_edge(w.halfedge(),true);
+                return 1;
+            }
         }
     }
+    return 0;
 }
+
+
+int split_double_crossed_quads(HMesh::Manifold& m)
+{
+    int cnt=0;
+    auto face_loops = find_face_loops(m);
+    FaceSet faces_to_split;
+    for(auto& fl: face_loops )
+        faces_to_split.insert(begin(fl.double_cross_faces), end(fl.double_cross_faces));
+                
+    for(auto f: faces_to_split)
+    {
+        Walker w = m.walker(f); VertexID v0 = w.vertex();
+        VertexID v1 = w.next().vertex();
+        VertexID v2 = w.next().next().vertex();
+        VertexID v3 = w.next().next().next().vertex();
+        if(sqr_length(m.pos(v0)-m.pos(v2)) > sqr_length(m.pos(v1)-m.pos(v3))) {
+            swap(v0,v1);
+            swap(v2,v3);
+        }
+        auto fnew = m.split_face_by_edge(f, v0, v2);
+        m.split_edge(m.walker(fnew).halfedge());
+        cnt += 1;
+    }
+    return cnt;
+}
+
 
 
 
