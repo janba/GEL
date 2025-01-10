@@ -15,6 +15,7 @@ from scipy.sparse import csc_matrix, vstack
 from scipy.sparse.linalg import lsqr
 from collections import defaultdict
 from scipy.spatial import KDTree
+from igl import fast_winding_number_for_meshes
 
 
 class Manifold:
@@ -697,41 +698,6 @@ def inv_correspondence_leqs(m, ref_mesh):
             b_list.append(m_target_pos[vid]/m_cnt[vid])
     return csc_matrix(np.array(A_list)), np.array(b_list)
     
-#def inflate_mesh(m, mesh_dist, iter=1):
-#    pos = m.positions()
-#    new_pos = np.zeros(m.positions().shape)
-#    cnt = np.zeros(len(m.vertices()))
-#    ael = 0.5*average_edge_length(m)
-#    for _ in range(iter):
-#        for f in m.faces():
-#            c = m.centre(f)
-#            d = max(-ael, min(ael, mesh_dist.signed_distance(c)))
-#            norm = m.face_normal(f)
-##            norm = sum([m.vertex_normal(v) for v in m.circulate_face(f)])
-##            norm /= (norm@norm)**0.5
-#            for v in m.circulate_face(f):
-#                new_pos[v] += pos[v] - d * norm
-#                cnt[v] += 1
-#        pos[:] = new_pos/cnt[:,np.newaxis]
-
-#def inflate_mesh(m, mesh_dist):
-#    pos = m.positions()
-#    new_pos = np.zeros(m.positions().shape)
-#    max_d = 0.4*average_edge_length(m)
-#    for v in m.vertices():
-#        d = min(max_d, max(-max_d, mesh_dist.signed_distance(pos[v])))
-#        norm = m.vertex_normal(v)
-#        new_pos[v] = pos[v] - d * norm
-#    A_list = []
-#    b_list = []
-#    N = m.no_allocated_vertices()
-#    for v in m.vertices():
-#        row_a = np.zeros(N)
-#        row_a[v] = 1.0
-#        A_list.append(row_a)
-#        b_list.append(new_pos[v])
-#    return csc_matrix(np.array(A_list)), np.array(b_list)
-
 def distance_gradient(mesh_dist, p, eps=1e-3):
     """Compute the gradient of the distance field given by mesh_dist at point p"""
     grad = np.zeros(3)
@@ -747,54 +713,53 @@ def distance_gradient(mesh_dist, p, eps=1e-3):
             print("diff issue: ", d1, d2, p, i)
     return grad
 
-def inflate_mesh(m, mesh_dist):
+# def inflate_mesh(m: Manifold, mesh_dist):
+#     pos = m.positions()
+#     ael = average_edge_length(m)
+#     max_dist = ael
+#     eps = 0.05*ael
+#     disp = np.zeros((m.no_allocated_faces(), 3))
+#     for f in m.faces():
+#         p = m.centre(f)
+#         g = distance_gradient(mesh_dist, p, eps)
+#         n = m.face_normal(f)
+#         k = (n@g)
+#         d = max(-max_dist, min(max_dist, mesh_dist.signed_distance(p)))
+#         disp[f] = - abs(k) * d * n
+#     for v in m.vertices():
+#         disp_v = np.zeros(3)
+#         C_f = m.circulate_vertex(v, mode='f')
+#         for f in C_f:
+#             disp_v += disp[f]
+#         pos[v] += disp_v / len(C_f)
+
+
+def gwn(m: Manifold):
+    circulations = [m.circulate_face(f) for f in m.faces()]
+    faces = []
+    for f in circulations:
+        faces.append([f[0], f[1], f[2]])
+        faces.append([f[2], f[3], f[0]])
+    faces = np.array(faces)
+    pos = m.positions()
+    return fast_winding_number_for_meshes(pos, faces, pos)
+
+def inflate_mesh(m: Manifold, mesh_dist):
     pos = m.positions()
     ael = average_edge_length(m)
-    max_dist = ael
+    max_dist = 0.25*ael
     eps = 0.05*ael
-    disp = np.zeros(m.positions().shape)
-    # cnt = np.array([1.0/(m.valency(v)+1) for v in m.vertices()])
+    new_pos = np.array(pos)
+    winding_number = gwn(m)
     for v in m.vertices():
-        g = distance_gradient(mesh_dist, pos[v], eps)
+        p = pos[v]
+        g = distance_gradient(mesh_dist, p, eps)
         n = m.vertex_normal(v)
         k = (n@g)
-        d = max(-max_dist, min(max_dist, mesh_dist.signed_distance(pos[v])))
-        if k > 0.0:
-            disp[v] = - g*d
-        elif d < 0.0:
-            disp[v] = 0.5*ael * n
-    # for _ in range(0):
-    #     new_disp = np.array(disp)
-    #     for v in m.vertices():
-    #         new_disp[v] += sum([disp[vn] for vn in m.circulate_vertex(v)])
-    #     disp = (new_disp.T*cnt).T
-    for v in m.vertices():
-        pos[v] += disp[v]
-
-
-# def inflate_mesh(m, mesh_dist):
-#     pos = m.positions()
-#     new_pos = np.zeros(m.positions().shape)
-#     cnt = np.zeros(len(m.vertices()))
-#     max_d = 0.1*average_edge_length(m)
-#     for f in m.faces():
-#         c = m.centre(f)
-#         d = max(-max_d, min(max_d, mesh_dist.signed_distance(c)))
-#         norm = m.face_normal(f)
-#         for v in m.circulate_face(f):
-#             new_pos[v] += pos[v] - d * norm
-#             cnt[v] += 1
-#     new_pos = new_pos/cnt[:,np.newaxis]
-#     pos[:] = new_pos
-    # A_list = []
-    # b_list = []
-    # N = m.no_allocated_vertices()
-    # for v in m.vertices():
-    #     row_a = np.zeros(N)
-    #     row_a[v] = 1.0
-    #     A_list.append(row_a)
-    #     b_list.append(new_pos[v])
-    # return csc_matrix(np.array(A_list)), np.array(b_list)
+        d = max(-max_dist, min(max_dist, mesh_dist.signed_distance(p)))
+        if winding_number[v] < 0.5:
+            new_pos[v] = pos[v] - abs(k) * d * n
+    pos[:] = new_pos
 
 
 def barycentrics(p, p0, p1, p2):
@@ -829,61 +794,30 @@ def inv_map(m, ref, ref_orig):
         p = pos_m[v]
         v_ref = closest_ref_verts[v]
         pos_m[v] = pos_ref_orig[v_ref]
-        # for f_ref in ref.circulate_vertex(v_ref):
-        #     verts_ref = ref.circulate_face(f_ref)
-        #     pts = pos_ref[verts_ref]
-        #     b = barycentrics(p, *pts)
-        #     print(b)
-        #     if b[0]>=0 and b[1]>=0 and b[2]>=0:
-        #         pos_m[v] = sum([ b[i]*pos_ref_orig[verts_ref[i]] for i in range(3)])
-        #         print(sum(b))
-        #         break
     
+def min_max(iterable):
+    return min(iterable), max(iterable)
 
-
-# def fit_mesh_to_ref(m, ref_mesh, iterations = 10, dist_wt = 0.5, lap_wt = 0.5):
-#     """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
-#     pos = m.positions()
-#     mesh_dist = MeshDistance(ref_mesh)
-#     lap_matrix = laplacian_matrix(m)
-#     for i in range(iterations):
-#         taubin_smooth(m, iter=10)
-#         Ai,bi = inflate_mesh(m, mesh_dist)
-#         lap_b = lap_matrix @ pos
-#         lap_b_z = np.zeros(lap_b.shape)
-#         final_A = vstack([lap_wt*lap_matrix, dist_wt*Ai])
-#         final_b = np.vstack([lap_wt*lap_b_z, dist_wt*bi])
-#         opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
-#         opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
-#         opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
-#         pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
-#     return m
-    
-def fit_mesh_mmh(m, ref_mesh, iterations=10):
+def fit_mesh_mmh(m: Manifold, ref_mesh: Manifold, iterations=10):
     """ Fits a mesh m to ref_mesh by iteratively moving m towards ref_mesh and vice versa."""
     mrc = Manifold(ref_mesh)
     triangulate(mrc, clip_ear=False)
     print("Triangulated. Now fitting")
-    taubin_smooth(mrc, iter=100)
+    taubin_smooth(mrc, iter=30)
+    obj_save(f"mrc.obj", mrc)
+    mesh_dist = MeshDistance(mrc)
     for i in range(iterations):
-        # taubin_smooth(mrc, iter=1)
         print("Inflate mc")
-        regularize_quads(m, w=0.25, shrink=0.8, iter=5)
-        # laplacian_smooth(mc, w=0.1, iter=10)
-        inflate_mesh(m, MeshDistance(mrc))
-        # print("Inflate mrc")
-        # inflate_mesh(mrc, MeshDistance(mc))
-        # print("Mesh to ref")
-        # fit_mesh_to_ref(mc,mrc,iterations=1, dist_wt=0.5,lap_wt=0.5)
-        # print("Ref to mesh")
-        # fit_mesh_to_ref(mrc,mc,iterations=1, dist_wt=0.5,lap_wt=0.5)
-        obj_save(f"mc_{i:03}.obj", m)
-        # obj_save(f"mrc_{i:03}.obj", mrc)
+        # taubin_smooth(m,30)
+        # laplacian_smooth(m, w=0.5, iter=10)
+        volume_preserving_cc_smooth(m, 8)
+        inflate_mesh(m, mesh_dist=mesh_dist)
+        regularize_quads(m, w=0.125, shrink=1, iter=2)
+        obj_save(f"mc.obj", m)
+
     print("")
     print("Doing the MMH map")
     inv_map(m,mrc,ref_mesh)
-    # print("Writing back positions")
-    # m.positions()[:] = mc.positions()
 
     
 

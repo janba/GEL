@@ -33,6 +33,7 @@ for o_file in obj_files:
         print('Fitting to reference mesh')
         fit_mesh = hmesh.Manifold(m_skel)
         hmesh.cc_subdivide(fit_mesh)
+        hmesh.cc_subdivide(fit_mesh)
         hmesh.fit_mesh_mmh(fit_mesh, ref_mesh, iterations=150)
         # hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, iter=15)
         # hmesh.cc_subdivide(fit_mesh)
