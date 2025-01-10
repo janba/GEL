@@ -747,7 +747,7 @@ def gwn(m: Manifold):
 def inflate_mesh(m: Manifold, mesh_dist):
     pos = m.positions()
     ael = average_edge_length(m)
-    max_dist = 0.25*ael
+    max_dist = 0.5*ael
     eps = 0.05*ael
     new_pos = np.array(pos)
     winding_number = gwn(m)
@@ -758,7 +758,10 @@ def inflate_mesh(m: Manifold, mesh_dist):
         k = (n@g)
         d = max(-max_dist, min(max_dist, mesh_dist.signed_distance(p)))
         if winding_number[v] < 0.5:
-            new_pos[v] = pos[v] - abs(k) * d * n
+            new_pos[v] = pos[v] - d * n
+        else:
+            new_pos[v] = pos[v] - max_dist * max(0, winding_number[v]-0.5) * n
+
     pos[:] = new_pos
 
 
@@ -810,7 +813,7 @@ def fit_mesh_mmh(m: Manifold, ref_mesh: Manifold, iterations=10):
         print("Inflate mc")
         # taubin_smooth(m,30)
         # laplacian_smooth(m, w=0.5, iter=10)
-        volume_preserving_cc_smooth(m, 8)
+        volume_preserving_cc_smooth(m, 4)
         inflate_mesh(m, mesh_dist=mesh_dist)
         regularize_quads(m, w=0.125, shrink=1, iter=2)
         obj_save(f"mc.obj", m)
