@@ -1569,6 +1569,15 @@ namespace HMesh
             area += 0.5 * dot(norm,cross(vertices[i]-vertices[0], vertices[(i+1 )]-vertices[0]));
         return area;
     }
+
+    double one_ring_area(const Manifold& m, VertexID v) {
+        double a=0;
+        for(auto f: m.incident_faces(v)) {
+            a += area(m, f);
+        }
+        return a;
+    }
+
     
     Manifold::Vec centre(const Manifold& m, FaceID f)
     {

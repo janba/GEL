@@ -421,6 +421,9 @@ namespace HMesh
     /// Compute the area of a face. 
     double area(const Manifold& m, FaceID f);
 
+    /// Compute the area of all faces that are incident on the vertex v
+    double one_ring_area(const Manifold& m, VertexID v);
+
     /// Compute the perimeter of a face. 
     double perimeter(const Manifold& m, FaceID f);
 

@@ -334,6 +334,10 @@ double area(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return area(*m_ptr,FaceID(_f));
 }
+double one_ring_area(const Manifold_ptr _m_ptr, size_t _v) {
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    return one_ring_area(*m_ptr,VertexID(_v));
+}
 double perimeter(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return perimeter(*m_ptr,FaceID(_f));

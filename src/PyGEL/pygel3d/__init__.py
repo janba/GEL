@@ -168,6 +168,8 @@ lib_py_gel.no_edges.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.face_normal.argtypes = (ct.c_void_p, ct.c_size_t, ndpointer(dtype=np.float64, shape=(3,)))
 lib_py_gel.area.restype = ct.c_double
 lib_py_gel.area.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.one_ring_area.restype = ct.c_double
+lib_py_gel.one_ring_area.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.perimeter.restype = ct.c_double
 lib_py_gel.perimeter.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.centre.argtypes = (ct.c_void_p, ct.c_size_t, ndpointer(dtype=np.float64, shape=(3,)))
@@ -209,7 +211,7 @@ lib_py_gel.root3_subdivide.argtypes = (ct.c_void_p,)
 lib_py_gel.rootCC_subdivide.argtypes = (ct.c_void_p,)
 lib_py_gel.butterfly_subdivide.argtypes = (ct.c_void_p,)
 lib_py_gel.cc_smooth.argtypes = (ct.c_void_p,)
-lib_py_gel.volume_preserving_cc_smooth.argtypes = (ct.c_void_p,ct.c_int)
+lib_py_gel.volume_preserving_cc_smooth.argtypes = (ct.c_void_p,ct.c_double,ct.c_int)
 lib_py_gel.regularize_quads.argtypes = (ct.c_void_p,ct.c_float,ct.c_float,ct.c_int)
 lib_py_gel.loop_smooth.argtypes = (ct.c_void_p,)
 lib_py_gel.ear_clip_triangulate.argtypes = (ct.c_void_p,)

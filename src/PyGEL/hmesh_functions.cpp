@@ -166,8 +166,8 @@ void cc_smooth(Manifold_ptr m_ptr) {
     cc_smooth(*(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
-void volume_preserving_cc_smooth(Manifold_ptr m_ptr, int iter) {
-    volume_preserving_cc_smooth(*(reinterpret_cast<Manifold*>(m_ptr)), iter);
+void volume_preserving_cc_smooth(Manifold_ptr m_ptr, double w, int iter) {
+    volume_preserving_cc_smooth(*(reinterpret_cast<Manifold*>(m_ptr)), w, iter);
 }
 
 void regularize_quads(Manifold_ptr m_ptr, float weight, float shrink, int iter) {

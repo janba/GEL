@@ -92,6 +92,7 @@ extern "C" {
     DLLEXPORT size_t no_edges(const Manifold_ptr m_ptr, size_t _f);
     DLLEXPORT void face_normal(const Manifold_ptr m_ptr, size_t _f, double*);
     DLLEXPORT double area(const Manifold_ptr m_ptr, size_t _f);
+    DLLEXPORT double one_ring_area(const Manifold_ptr m_ptr, size_t _v);
     DLLEXPORT double perimeter(const Manifold_ptr m_ptr, size_t _f);
     DLLEXPORT void centre(const Manifold_ptr m_ptr, size_t _f, double*);
     
