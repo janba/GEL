@@ -760,20 +760,6 @@ def inv_correspondence_leqs(m: Manifold, ref_mesh):
             b_list.append(m_target_pos[vid]/m_cnt[vid])
     return csc_matrix(np.array(A_list)), np.array(b_list)
     
-def distance_gradient(mesh_dist: MeshDistance, p, eps=1e-3):
-    """Compute the gradient of the distance field given by mesh_dist at point p"""
-    grad = np.zeros(3)
-    for i in range(3):
-        p1 = np.copy(p)
-        p2 = np.copy(p)
-        p1[i] += eps
-        p2[i] -= eps
-        d1 = mesh_dist.signed_distance(p1) 
-        d2 = mesh_dist.signed_distance(p2)
-        grad[i] = (d1-d2) / (2 * eps)
-        if grad[i] > 1.0:
-            print("diff issue: ", d1, d2, p, i)
-    return grad
 
 # def inflate_mesh(m: Manifold, mesh_dist):
 #     pos = m.positions()
@@ -796,15 +782,6 @@ def distance_gradient(mesh_dist: MeshDistance, p, eps=1e-3):
 #         pos[v] += disp_v / len(C_f)
 
 
-def self_intersection_test(m: Manifold, target_pos):
-    circulations = [m.circulate_face(f) for f in m.faces()]
-    faces = []
-    for f in circulations:
-        faces.append([f[0], f[1], f[2]])
-        faces.append([f[2], f[3], f[0]])
-    faces = np.array(faces)
-    pos = m.positions()
-    return fast_winding_number_for_meshes(pos, faces, target_pos)
 
 # def mc_vec(m: Manifold, v):
 #     pos = m.positions()
@@ -816,24 +793,6 @@ def self_intersection_test(m: Manifold, target_pos):
 #         return n*(curv_weight[0]+curv_weight[1])
 #     return np.zeros(3)
 
-def inflate_mesh(m: Manifold, mesh_dist: MeshDistance, ael):
-    pos = m.positions()
-    max_dist = 0.5 * ael
-    eps = 0.05*ael
-    target_pos = np.array(pos)
-    for v in m.vertices():
-        p = pos[v]
-        n = m.vertex_normal(v)
-        g = distance_gradient(mesh_dist, p, eps)
-        g /= norm(g)
-        k = 1#n@g 
-        d = np.clip(mesh_dist.signed_distance(p), -abs(k)*max_dist, abs(k)*max_dist)
-        # print("lnd: ", norm(l), norm(n), d)
-        target_pos[v] += - d * n
-    si_test_target = self_intersection_test(m, target_pos=target_pos)
-    for v in m.vertices():
-        if si_test_target[v] < 0.5:
-            pos[v] = target_pos[v]
 
 
 def barycentrics(p, p0, p1, p2):
@@ -872,22 +831,63 @@ def inv_map(m: Manifold, ref, ref_orig):
 def min_max(iterable):
     return min(iterable), max(iterable)
 
+def self_intersection_test(m: Manifold, target_pos):
+    circulations = [m.circulate_face(f) for f in m.faces()]
+    faces = np.array([[f[0],f[1],f[2]] for f in circulations])
+    pos = m.positions()
+    return fast_winding_number_for_meshes(pos, faces, target_pos)
+
+def gradient(df, p, eps=1e-3):
+    """Compute the gradient of the distance field given by mesh_dist at point p"""
+    grad = np.zeros(3)
+    for i in range(3):
+        p1 = np.copy(p)
+        p2 = np.copy(p)
+        p1[i] += eps
+        p2[i] -= eps
+        d1 = df(p1) 
+        d2 = df(p2)
+        grad[i] = (d1-d2) / (2 * eps)
+    return grad
+
+
+def inflate_mesh(m: Manifold, mesh_dist: MeshDistance, mesh_dist_ref: MeshDistance):
+    pos = m.positions()
+    ael = average_edge_length(m)
+    max_dist = ael
+    target_pos = np.array(pos)
+    dist = lambda p: 0.5*(mesh_dist.signed_distance(p) + mesh_dist_ref.signed_distance(p))
+    # si_test = self_intersection_test(m,target_pos=pos)
+    for v in m.vertices():
+        p = pos[v]
+        n = m.vertex_normal(v)
+        d = dist(p)
+        g = gradient(dist, p, 0.05*ael)
+        k = abs(g@n)
+        d = np.clip(d, -k*max_dist, k*max_dist)
+        # l = np.average([pos[vn]-pos[v] for vn in m.circulate_vertex(v)])
+        # if si_test[v] < 0.5:
+        target_pos[v] -= d * n
+    pos[:] = target_pos
+
 def fit_mesh_mmh(m: Manifold, ref_mesh: Manifold, iterations=10):
     """ Fits a mesh m to ref_mesh by iteratively moving m towards ref_mesh and vice versa."""
+    mc = Manifold(m)
     mrc = Manifold(ref_mesh)
+    triangulate(mc, clip_ear=False)
     triangulate(mrc, clip_ear=False)
-    print("Triangulated. Now fitting")
     taubin_smooth(mrc, iter=30)
-    obj_save(f"mrc.obj", mrc)
-    mesh_dist = MeshDistance(mrc)
-    ael = average_edge_length(m)
+    print("Running")
     for i in range(iterations):
-        print("Inflate mc")
-        inflate_mesh(m, mesh_dist, ael)
-        smooth_iter = 4
-        # volume_preserving_cc_smooth(m, w=1.0, iter=smooth_iter)
-        regularize_quads(m, w=0.5, shrink=1, iter=smooth_iter)
-        obj_save(f"mc.obj", m)
+        print(".",end='',flush=True)
+        mesh_dist = MeshDistance(mc)
+        mesh_dist_ref = MeshDistance(mrc)
+        inflate_mesh(mc, mesh_dist=mesh_dist, mesh_dist_ref=mesh_dist_ref)
+        inflate_mesh(mrc, mesh_dist=mesh_dist, mesh_dist_ref=mesh_dist_ref)
+        taubin_smooth(mc,iter=10)
+        taubin_smooth(mrc,iter=10)
+        obj_save(f"mc.obj", mc)
+        obj_save(f"mrc.obj", mrc)
 
     print("")
     print("Doing the MMH map")
