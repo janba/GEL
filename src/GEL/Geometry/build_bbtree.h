@@ -24,8 +24,8 @@ namespace Geometry
 typedef BoundingTree<OBox> OBBTree;
 typedef BoundingTree<AABox> AABBTree;
 
-void build_OBBTree(HMesh::Manifold& m, OBBTree& tree);
-void build_AABBTree(HMesh::Manifold& m, AABBTree& tree);
+void build_OBBTree(const HMesh::Manifold& m, OBBTree& tree);
+void build_AABBTree(const HMesh::Manifold& m, AABBTree& tree);
 
 }
 #endif
