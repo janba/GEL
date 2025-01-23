@@ -259,4 +259,10 @@ void kill_face_loop(Manifold_ptr _m_ptr) {
     kill_face_loop(*m_ptr);
 }
 
+void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    Manifold* m_ref_ptr = reinterpret_cast<Manifold*>(_m_ref_ptr);
+    stable_marriage_registration(*m_ptr, *m_ref_ptr);
+}
+
 

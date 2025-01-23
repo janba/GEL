@@ -11,6 +11,6 @@
 
 #include <GEL/HMesh/HMesh.h>
 
-double stable_marriage_match(HMesh::Manifold& m, HMesh::Manifold& m_ref, int N);
+double stable_marriage_registration(HMesh::Manifold& m, HMesh::Manifold& m_ref);
 
 #endif /* stable_marriage_matching_hpp */

@@ -115,6 +115,8 @@ extern "C" {
 
     DLLEXPORT void kill_face_loop(Manifold_ptr _m_ptr);
 
+    DLLEXPORT void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
+
 
 #ifdef __cplusplus
 }
