@@ -41,7 +41,7 @@ namespace HMesh
 
     /** This function is inspired by Taubin smoothing and works roughly like CC smooth
      but causes less shrinkage. Very homegrown - use at your own risk. */
-    void volume_preserving_cc_smooth(Manifold& m, double w=0.9, int iter=1);
+    void volume_preserving_cc_smooth(Manifold& m, int iter=1);
 
     /** Perform Loop smoothing. If this function follows loop_split, the result is
      Loop subdivision implemented in a factored fashion. */

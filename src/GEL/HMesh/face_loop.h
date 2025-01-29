@@ -22,10 +22,13 @@ struct FaceLoop {
     int interior_faces = 0;
     double area = 0;
     double avg_len = 0;
+    double min_len = DBL_MAX;
     double interior_area = 0;
     double cylindricity = 0;
     double valency_imbalance = 0;
     double integral_geodesic_curvature = 0;
+    double min_aspect=1.0;
+    double mean_aspect=0;
     CGLA::Vec3d avg_edge = CGLA::Vec3d(0,0,0);
     CGLA::Vec3d center = CGLA::Vec3d(0,0,0);
     int id=-1;
@@ -70,7 +73,7 @@ HMesh::FaceSet extrude_face_set(HMesh::Manifold& m, const HMesh::FaceSet& face_s
 HMesh::FaceSet extrude_halfedge_set(HMesh::Manifold& m, HMesh::HalfEdgeSet& halfedge_set);
 
 /** Remove the FacLoop l from m.*/
-bool remove_face_loop(HMesh::Manifold& m, const FaceLoop& l);
+bool remove_face_loop(HMesh::Manifold& m, const FaceLoop& l, bool average=false);
 
 /** Refine a face loop by splitting it longitudinally.*/
 int refine_loop(HMesh::Manifold& m);
@@ -78,6 +81,9 @@ int refine_loop(HMesh::Manifold& m);
 /** This function first finds all face loops, sorts them according to the area enclosed on one side of the face loop (the one with the smallest area).
  It then proceeds to remove the face loop with the smallest area. */
 void kill_face_loop(HMesh::Manifold& m);
+
+/** This function removes face loops if they are very thin, i.e. the edges connecting either side are short.*/
+void kill_degenerate_face_loops(HMesh::Manifold& m, double thresh);
 
 /** Constructs a skeleton from the system of face loops of a mesh m. The face loops are sorted in order of decreasing cylindricity. Then a skeleton
  edge is created for each loop as long as it does not contain a face of a previously seleced face loop. Finally skeleton edges inherit the mesh connectivity

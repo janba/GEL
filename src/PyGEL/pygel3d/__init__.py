@@ -211,7 +211,7 @@ lib_py_gel.root3_subdivide.argtypes = (ct.c_void_p,)
 lib_py_gel.rootCC_subdivide.argtypes = (ct.c_void_p,)
 lib_py_gel.butterfly_subdivide.argtypes = (ct.c_void_p,)
 lib_py_gel.cc_smooth.argtypes = (ct.c_void_p,)
-lib_py_gel.volume_preserving_cc_smooth.argtypes = (ct.c_void_p,ct.c_double,ct.c_int)
+lib_py_gel.volume_preserving_cc_smooth.argtypes = (ct.c_void_p,ct.c_int)
 lib_py_gel.regularize_quads.argtypes = (ct.c_void_p,ct.c_float,ct.c_float,ct.c_int)
 lib_py_gel.loop_smooth.argtypes = (ct.c_void_p,)
 lib_py_gel.ear_clip_triangulate.argtypes = (ct.c_void_p,)
@@ -225,8 +225,10 @@ lib_py_gel.anisotropic_smooth.argtypes = (ct.c_void_p, ct.c_float, ct.c_int)
 lib_py_gel.volumetric_isocontour.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_int, ndpointer(ndim=3, dtype=ct.c_float,flags='F'), ndpointer(dtype=ct.c_double,shape=(3,)), ndpointer(dtype=ct.c_double,shape=(3,)), ct.c_float, ct.c_bool, ct.c_bool, ct.c_bool )
 lib_py_gel.extrude_faces.argtypes = (ct.c_void_p, ndpointer(dtype=ct.c_int, ndim=1), ct.c_int, ct.c_void_p)
 lib_py_gel.kill_face_loop.argtypes = (ct.c_void_p,)
+lib_py_gel.kill_degenerate_face_loops.argtypes = (ct.c_void_p,ct.c_double)
 lib_py_gel.stable_marriage_registration.argtypes = (ct.c_void_p,ct.c_void_p)
 lib_py_gel.stable_marriage_registration.restype = ct.c_int
+
 
 
 # MeshDistance allows us to compute the signed distance to a mesh

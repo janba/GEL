@@ -43,7 +43,6 @@ void create_hex(Manifold& m, vector<Vec3d>& pts, double scale) {
     m.add_face({pts[5],pts[6],pts[2],pts[1]});
     m.add_face({pts[6],pts[7],pts[3],pts[2]});
     m.add_face({pts[7],pts[4],pts[0],pts[3]});
-
 }
 
 double geodesic_curvature(Manifold& m, Walker& w) {
@@ -52,6 +51,20 @@ double geodesic_curvature(Manifold& m, Walker& w) {
     Vec3d vn = m.pos(wn.opp().vertex())-m.pos(wn.vertex());
     return acos(min(1.0,max(-1.0,dot(v,vn)/(length(v)*length(vn)))));
 };
+
+
+double aspect(Manifold& m, FaceID f) {
+    double lmin=DBL_MAX;
+    double lmax=1e-30;
+    for (auto h: m.incident_halfedges(f)) {
+        double l = length(m, h);
+        lmin = min(l, lmin);
+        lmax = max(l, lmax);
+    }
+    return lmin/lmax;
+}
+
+
 
 FaceLoop trace_face_loop(Manifold& m, HalfEdgeAttributeVector<int>& touched, HalfEdgeID h) {
     auto comp_valency_imbalance = [](Manifold& m, Walker& w) {
@@ -84,12 +97,17 @@ FaceLoop trace_face_loop(Manifold& m, HalfEdgeAttributeVector<int>& touched, Hal
         Vec3d p0 = m.pos(w.vertex());
         Vec3d p1 = m.pos(w.opp().vertex());
         Vec3d edg = (p0 - p1);
+        double edg_len = edg.length();
         center += p0 + p1;
         avg_edge += edg;
-        avg_len += edg.length();
+        avg_len += edg_len;
         int imbalance = comp_valency_imbalance(m, w);
         loop.valency_imbalance += imbalance;
         loop.integral_geodesic_curvature += geodesic_curvature(m,w);
+        loop.min_len = min(loop.min_len, edg_len);
+        double a = aspect(m, w.face());
+        loop.min_aspect = min(loop.min_aspect, a);
+        loop.mean_aspect += a;
         w = w.next().next().opp();
     }
     while(w.halfedge() != h && !touched[w.halfedge()]);
@@ -99,7 +117,8 @@ FaceLoop trace_face_loop(Manifold& m, HalfEdgeAttributeVector<int>& touched, Hal
     loop.center = center / (2.0 * loop.hvec.size());
     loop.integral_geodesic_curvature /= loop.area;
     loop.valency_imbalance /= loop.area;
-    loop.cylindricity /= loop.area;
+    loop.mean_aspect /= loop.hvec.size();
+//    loop.cylindricity;// /= loop.area;
     
     return loop;
 }
@@ -531,13 +550,13 @@ vector<FaceID> create_box(Manifold& m, const Vec3d& pos, const Mat3x3d& _R, doub
 }
 
 
-bool remove_face_loop(Manifold& m, const FaceLoop& l) {
+bool remove_face_loop(Manifold& m, const FaceLoop& l, bool average) {
     
     VertexAttributeVector<int> cluster_id(m.allocated_vertices(), -1);
     vector<VertexSet> cluster;
     int cid_N = 0;
     
-    // The block of code below makes a list of faceds to remove but it also
+    // The block of code below makes a list of faces to remove but it also
     // clusters vertices such that we can stitch the mesh when the faces have
     // been removed.
     vector<FaceID> fvec;
@@ -545,10 +564,14 @@ bool remove_face_loop(Manifold& m, const FaceLoop& l) {
         Walker w = m.walker(h);
         VertexID v0 = w.vertex();
         VertexID v1 = w.opp().vertex();
-        
+        assert(m.in_use(v0));
+        assert(m.in_use(v1));
+        assert(m.in_use(h));
+
         int cid_max = max(cluster_id[v0],cluster_id[v1]);
         if(cid_max == -1) {
-            cid_max = cid_N++;
+            cid_max = cid_N;
+            cid_N += 1;
             VertexSet c;
             cluster_id[v0] = cid_max;
             cluster_id[v1] = cid_max;
@@ -583,13 +606,15 @@ bool remove_face_loop(Manifold& m, const FaceLoop& l) {
         Walker w = m.walker(h);
         VertexID v0 = w.opp().vertex();
         int cid = cluster_id[v0];
-        if(cluster[cid].size() == 2)
+        if(!average && cluster[cid].size() == 2)
             m.pos(v0) = m.pos(w.vertex());
         else {
             Vec3d p(0);
             for(auto v : cluster[cid])
                 p += m.pos(v);
-            m.pos(v0) = m.pos(w.vertex()) = p / cluster[cid].size();
+            p /= cluster[cid].size();
+            m.pos(v0) = p;
+            m.pos(w.vertex()) = p;
         }
     }
     
@@ -653,8 +678,45 @@ void kill_face_loop(Manifold& m) {
                 m.pos(v) = avg_pos;
             }
     }
-
 }
+
+void kill_degenerate_face_loops(Manifold& m, double thresh) {
+    double avg_edge_len = average_edge_length(m);
+    bool did_work = true;
+    int cnt = 0;
+    VertexAttributeVector<bool> touched(false);
+    while (did_work) {
+        did_work = false;
+        auto loops = find_face_loops(m);
+        sort(begin(loops), end(loops), [](const FaceLoop& f1, const FaceLoop& f2) {
+            return f1.mean_aspect<f2.mean_aspect;
+        });
+        if (loops[0].mean_aspect < thresh) {
+            bool allowable = true;
+            for (auto h: loops[0].hvec) {
+                auto w = m.walker(h);
+                if ( (valency(m, w.vertex())<4 and valency(m, w.opp().vertex())<4) or
+                    (touched[w.vertex()] or touched[w.opp().vertex()]) ) {
+                    allowable = false;
+                    break;
+                }
+            }
+            if (allowable) {
+                did_work = true;
+                for (auto h: loops[0].hvec) {
+                    auto w = m.walker(h);
+                    touched[w.vertex()] = true;
+                    touched[w.opp().vertex()] = true;
+                }
+                remove_face_loop(m, loops[0], true);
+                ++cnt;
+            }
+        }
+    }
+//    cout << "Killed " << cnt << " face loops " << endl;
+    m.cleanup();
+}
+
 
 int refine_loop(Manifold& m) {
     

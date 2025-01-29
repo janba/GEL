@@ -713,6 +713,7 @@
 		BD4E9FA8201CB17B0029AEA2 /* GEL copy-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = "GEL copy-Info.plist"; path = "/Users/janba/GEL/GEL_MAC/GEL copy-Info.plist"; sourceTree = "<absolute>"; };
 		BD8B952C2D423CEC0049DDBC /* stable_marriage_registration.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = stable_marriage_registration.h; sourceTree = "<group>"; };
 		BD8B952D2D423CEC0049DDBC /* stable_marriage_registration.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = stable_marriage_registration.cpp; sourceTree = "<group>"; };
+		BD8B952F2D4382F10049DDBC /* math_utils.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = math_utils.h; sourceTree = "<group>"; };
 		BDAC7CAA201885F600197925 /* Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serialization.h; sourceTree = "<group>"; };
 		BDC3325D29D378AA003073FE /* quad_valencify.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = quad_valencify.cpp; sourceTree = "<group>"; };
 		BDC3325E29D378AA003073FE /* quad_valencify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = quad_valencify.h; sourceTree = "<group>"; };
@@ -1079,6 +1080,7 @@
 		0D52EBB7197D196D002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				BD8B952F2D4382F10049DDBC /* math_utils.h */,
 				BDAC7CAA201885F600197925 /* Serialization.h */,
 				0D52EB4E197D18C1002C7150 /* ArgExtracter.h */,
 				0D37DF931C85905A00CD0A07 /* AttribVec.h */,

@@ -226,14 +226,16 @@ namespace HMesh
     
     void subd_smooth(Subd subd_method, Manifold& m)
     {
-        VertexAttributeVector<Vec3d> new_vertices(Vec3d(0));
-        
+        auto new_vertices = m.positions;
+        for (auto v: m.vertices())
+            new_vertices[v] = Vec3d(0);
+
         for(auto f: m.faces())
         {
             circulate_face_ccw(m, f, [&](VertexID v0) {
-                double val = valency(m, v0);
+                int val = valency(m, v0);
+                assert(val>0);
                 double A,B;
-                
                 switch(subd_method)
                 {
                     case QUAD_SUBD:
@@ -249,7 +251,7 @@ namespace HMesh
                         B = 3.0 / (8.0 * val);
                         break;
                     case LOOP_SUBD:
-                        float w = 5.0/8.0 - sqr(3.0/8.0 + 0.25 * cos(2.0*M_PI/val));
+                        double w = 5.0/8.0 - sqr(3.0/8.0 + 0.25 * cos(2.0*M_PI/val));
                         A = (1.0-2.0*w)/val;
                         B = w/val;
                         break;
@@ -271,36 +273,15 @@ namespace HMesh
         subd_smooth(CC_SUBD, m);
     }
 
-    void volume_preserving_cc_smooth(Manifold& m, double w, int iter) {
-        FaceAttributeVector<double> face_area;
-        for (auto f: m.faces())
-            face_area[f] = area(m, f);
-        VertexAttributeVector<double> one_ring_area(m.allocated_vertices(),0);
-        double avg_one_ring_area = 0;
-        for (auto v: m.vertices()) {
-            for (auto f: m.incident_faces(v))
-                one_ring_area[v] += face_area[f];
-            avg_one_ring_area += one_ring_area[v];
-        }
-        avg_one_ring_area /= m.no_vertices();
+    void volume_preserving_cc_smooth(Manifold& m, int iter) {
         for (int i=0;i<iter;++i) {
-            auto non_smooth_pos = m.positions_attribute_vector();
             subd_smooth(CC_SUBD, m);
-            for (auto v: m.vertices()) {
-                double w = min(0.95, 0.25*one_ring_area[v]/avg_one_ring_area);
-                m.pos(v) = (1-w) * m.pos(v) + w * non_smooth_pos[v];
-            }
+            auto pos1 = m.positions;
+            subd_smooth(CC_SUBD, m);
+            auto pos2 = m.positions;
+            for (auto v: m.vertices())
+                m.pos(v) = 2 * pos1[v] - pos2[v];
         }
-
-//        for (int i=0;i<iter;++i) {
-//            subd_smooth(CC_SUBD, m);
-//            auto old_pos = m.positions_attribute_vector();
-//            subd_smooth(CC_SUBD, m);
-//            for (auto v: m.vertices()) {
-//                double w_local = w*(one_ring_area[v]/max_one_ring_area);
-//                m.pos(v) = old_pos[v] - w_local *(m.pos(v) - old_pos[v]);
-//            }
-//        }
     }
 
     

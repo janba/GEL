@@ -20,49 +20,6 @@
 using namespace HMesh;
 using namespace CGLA;
 using namespace Geometry;
-//
-//double stable_marriage_match(HMesh::Manifold& m, const HMesh::Manifold& m_ref) {
-//    // The inputs m and m_ref are polygonal meshes. They are stored using the GEL api:
-//    // https://github.com/janba/GEL
-//    
-//    // Make a point vector, P, with all vertices of m. Generate points on m
-//    // and add them to P until |P| == m_ref.no_vertices().
-//    // For each point, p, of P, store associated normal and closest vertex of m.
-//    // The closest vertex of m is chosen from among those incident on p.
-//    
-//    // For each point in P, compute pseudo distance to all vertices of m_ref.
-//    // Pseudo distance should be computed as d * (1+epsilon-dot(n, n_ref))
-//    // In other words if two points are close (d is small) or the dot product
-//    // between the normal n and the normal n_ref from the reference mesh is
-//    // close to 1, the pseudo distance is small. For each vertex of m_ref make
-//    // and sort increasing order a vector of pseudo distances and indices of points in P.
-//    
-//    
-//    // Now, we loop, computing a stable marriage of vertices in m_ref and points in P.
-//    // For each unassigned vertex, v, in m_ref:
-//    //   if v does not have an associated point, loop over P in order of increasing pseudo distance until
-//    //   you find a point, p, in P for which the
-//    //   vertex. If there is no currently assigned vertex, v is simply assigne. Otherwise if the pseudo distance from v
-//    //   to p is smaller than the pseudo distance from v' to p where v' is the currently assigned vertex, then v' is
-//    //   unassigned and v is assigned to p.
-//    // This loop is repeated while unassigned vertices remain. It will terminate since the number of vertices in m_ref
-//    // is equal to the number of points in P.
-//    // This is the Gale–Shapley algorithm.
-//    
-//    // For each point, p, of P, compute the vector to the assigned vertex, v, of m_ref. for every vertex of
-//    // m average these vectors for all associated points in P. Move vertex by adding this averaged vector
-//    // to its position.
-//    // return sum of pseudo distances between points in P and their final assigned vertices.
-//    
-//    return 0;
-//}
-//
-//
-//#include "HMesh/Manifold.h"
-//#include "HMesh/VertexAttributeVector.h"
-//
-//using namespace HMesh;
-
 using namespace std;
 
 Vec3d rand_point_in_face(const Manifold& m, FaceID f) {
@@ -90,14 +47,12 @@ struct P_type {
 
 VertexAttributeVector<set<int>> trace_to_surface(const Manifold& m_ref, const vector<P_type>& P) {
     
-    cout << "Building AABB tree" << endl;
     AABBTree T;
     build_AABBTree(m_ref, T);
     int N = P.size();
     double ael = average_edge_length(m_ref);
     vector<double> dists(N,0);
     vector<Vec3d> pts(N);
-    cout << "Tracing to surface" << endl;
     for (int i=0; i<N; ++i) {
         Vec3f p(P[i].pos);
         Vec3f dir(P[i].norm);
@@ -108,7 +63,6 @@ VertexAttributeVector<set<int>> trace_to_surface(const Manifold& m_ref, const ve
         }
         pts[i] = Vec3d(p);
     }
-    cout << "Building KD tree of reference vertices" << endl;
 
     KDTree<Vec3d, VertexID> vertex_tree;
     for (auto v: m_ref.vertices())
@@ -116,7 +70,6 @@ VertexAttributeVector<set<int>> trace_to_surface(const Manifold& m_ref, const ve
     vertex_tree.build();
     
     int no_closest=0;
-    cout << "creating index sets for each vertex" << endl;
     VertexAttributeVector<set<int>> vertex_pt_sets;
     for (int i=0;i<N;++i) {
         KDTree<Vec3d, VertexID>::ScalarType d = 10 * ael;
@@ -139,7 +92,6 @@ VertexAttributeVector<set<int>> trace_to_surface(const Manifold& m_ref, const ve
         }
         else no_closest++;
     }
-    cout << "For " << no_closest << " points we have no match on reference." << endl;
     return vertex_pt_sets;
 }
 
@@ -148,7 +100,6 @@ pair<vector<P_type>, FaceAttributeVector<vector<int>>> generate_points(const Man
     std::mt19937 gen(rd());
     std::uniform_real_distribution<> dis(0.0, 1.0);
 
-    cout << "Generating points on m" << endl;
     // Generate points on m until |P| == m_ref.no_vertices()
     FaceAttributeVector<double> face_areas;
     double total_area = 0.0;
@@ -173,19 +124,9 @@ pair<vector<P_type>, FaceAttributeVector<vector<int>>> generate_points(const Man
         Vec3d p = rand_point_in_face(m, f);
         return {p,f};
     };
-
-
     std::vector<P_type> P;
-    vector<FaceID> face_vec = vector(begin(m.faces()), end(m.faces()));
-    shuffle(begin(face_vec), end(face_vec), gen);
-    for(int idx=0;idx<min(size_t(N),face_vec.size()); ++idx) {
-        FaceID f = face_vec[idx];
-        Vec3d p = centre(m, f);
-        P.push_back({p, normal(m,f), f, InvalidVertexID});
-    }
     
     while (P.size() < N) {
-        int idx = P.size();
         auto [p,f] = gen_pt_in_face();
         P.push_back({p, normal(m,f), f, InvalidVertexID});
     }
@@ -200,7 +141,7 @@ pair<vector<P_type>, FaceAttributeVector<vector<int>>> generate_points(const Man
         for (int idx=0; idx<N; ++idx) {
             vector<Vec3d> keys;
             vector<int> vals;
-            int cnt = pt_tree.in_sphere(P[idx].pos, min_dist, keys, vals);
+            pt_tree.in_sphere(P[idx].pos, min_dist, keys, vals);
             for (int v: vals) {
                 if (v < idx and idx >= m.no_faces()) {
                     recycled.push_back(idx);
@@ -208,7 +149,6 @@ pair<vector<P_type>, FaceAttributeVector<vector<int>>> generate_points(const Man
                 }
             }
         }
-        cout << "Recycling " << recycled.size() << endl;
         if (recycled.size() == 0)
             break;
         
@@ -243,20 +183,17 @@ double stable_marriage_registration(Manifold& m, Manifold& m_ref) {
     double ael = average_edge_length(m_ref);
     auto [P, face2P_idx] = generate_points(m, m_ref.no_vertices(), 0.1 * ael);
     
-    cout << "Computing distances ... " << endl;
     // For each point in P, compute pseudo distance to all vertices of m_ref
-    
     auto vertex_pt_sets = trace_to_surface(m_ref, P);
     VertexAttributeVector<std::vector<std::pair<double, int>>> pseudo_distances;
     for (auto v_ref : m_ref.vertices()) {
         const Vec3d& p_ref = m_ref.pos(v_ref);
         for (int i: vertex_pt_sets[v_ref]) {
-            double d = length(P[i].pos-p_ref)*(1.01-dot(P[i].norm, normal(m_ref, v_ref)));
+            double dot_prod = dot(P[i].norm, normal(m_ref, v_ref));
+            double d = dot_prod >0.5 ? sqr_length(P[i].pos-p_ref) : DBL_MAX;
             pseudo_distances[v_ref].emplace_back(d, i);
         }
     }
-    cout << "on to sorting " << endl;
-
     // Sort pseudo distances for each vertex in m_ref
     int zero_cnt = 0;
     for (auto v_ref: m_ref.vertices()) {
@@ -265,9 +202,6 @@ double stable_marriage_registration(Manifold& m, Manifold& m_ref) {
         else zero_cnt += 1;
     }
     
-    cout << zero_cnt << " vertices lacked matches?!" << endl;
-
-    cout << "Stable marriage matching ..." << endl;
     // Stable marriage algorithm
     VertexAttributeVector<int> assignment(m_ref.no_vertices(), -1);
     std::vector<bool> assigned(P.size(), false);
@@ -300,9 +234,6 @@ double stable_marriage_registration(Manifold& m, Manifold& m_ref) {
             }
         }
     }
-    
-    cout << "Move vertices ..." << endl;
-
     for (auto v : m.vertices()) {
         Vec3d avg_vector(0, 0, 0);
         int count = 0;
@@ -312,20 +243,17 @@ double stable_marriage_registration(Manifold& m, Manifold& m_ref) {
             for (int p_idx: face2P_idx[f]) {
                 const auto& pt = P[p_idx];
                 if (pt.v_ref != InvalidVertexID) {
-//                    double w = exp(-sqr_length(m.pos(v)-pt.pos)/(0.1*ael));
-                    avg_vector += (m_ref.pos(pt.v_ref) - pt.pos);
+                    double w = 1;//exp(-sqr_length(m.pos(v)-pt.pos)/(3.0*ael));
+                    avg_vector += w*(m_ref.pos(pt.v_ref) - pt.pos);
                     count += 1;
-//                    weight_sum += w;
+                    weight_sum += w;
                 }
             }
         }
         if (count > 0) {
-            m.pos(v) += avg_vector / count;
-        }
-        else {
-            cout << "vertex " << v.index << " came up empty" << endl;
+            m.pos(v) += avg_vector / weight_sum;
         }
     }
 
-    return 0;//total_pseudo_distance;
+    return 0;
 }

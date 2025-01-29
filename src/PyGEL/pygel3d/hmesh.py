@@ -410,7 +410,7 @@ def load(fn):
 
 def save(fn, m):
     """ Save a Manifold, m, to an X3D/OBJ/OFF file. """
-    name, extension = splitext(fn)
+    _, extension = splitext(fn)
     if extension.lower() == ".x3d":
         x3d_save(fn, m)
     elif extension.lower() == ".obj":
@@ -531,10 +531,11 @@ def butterfly_subdivide(m):
     """ Butterfly subidiviosn on m. An interpolatory scheme. Creates the same connectivity as Loop. """
     lib_py_gel.butterfly_subdivide(m.obj)
 
-def cc_smooth(m):
+def cc_smooth(m,iter=1):
     """ If called after cc_split, this function completes a step of Catmull-Clark
     subdivision of m."""
-    lib_py_gel.cc_smooth(m.obj)
+    for _ in range(iter):
+        lib_py_gel.cc_smooth(m.obj)
 
 def cc_subdivide(m):
     """ Perform a full Catmull-Clark subdivision step on mesh m. """
@@ -630,6 +631,10 @@ def extrude_faces(m, fset):
     
 def kill_face_loop(m):
     lib_py_gel.kill_face_loop(m.obj)
+    
+def kill_degenerate_face_loops(m, thresh=0.01):
+    lib_py_gel.kill_degenerate_face_loops(m.obj, thresh)
+
 
 def skeleton_to_feq(g, node_radii = None, symmetrize=True):
     """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node.
@@ -735,16 +740,16 @@ def distance_gradient(mesh_dist, p, eps=1e-3):
 def inflate_mesh(m: Manifold, mesh_dist):
     pos = m.positions()
     ael = average_edge_length(m)
-    max_dist = 10*ael
+    max_dist = ael
     eps = 0.05*ael
     new_pos = np.array(pos)
     for v in m.vertices():
         p = pos[v]
         g = distance_gradient(mesh_dist, p, eps)
         n = m.vertex_normal(v)
-        k = (n@g)
-        d = max(-max_dist, min(max_dist, mesh_dist.signed_distance(p)))
-        new_pos[v] = pos[v] - abs(k) * d * n
+        k = max(0.0, min(1.0, n@g))
+        d = max(-k*max_dist, min(k*max_dist, mesh_dist.signed_distance(p)))
+        new_pos[v] = pos[v] - d * n
     pos[:] = new_pos
 
 
@@ -789,21 +794,43 @@ def fit_mesh_mmh(m, ref_mesh, iterations=10):
     taubin_smooth(mrc, iter=30)
     obj_save(f"mrc.obj", mrc)
     mesh_dist = MeshDistance(mrc)
-    for i in range(iterations):
+    for _ in range(iterations):
         print("Inflate mc")
-        for _ in range(10):
-            cc_smooth(m)
-        # laplacian_smooth(m, w=0.25, iter=50)
+        cc_smooth(m,1)
         inflate_mesh(m, mesh_dist=mesh_dist)
-        regularize_quads(m, w=0.125, shrink=1, iter=2)
         obj_save(f"mc.obj", m)
-
-    print("")
-    print("Doing the MMH map")
-    inv_map(m,mrc,ref_mesh)
+    # print("")
+    # print("Doing the MMH map")
+    # inv_map(m,mrc,ref_mesh)
+    
+    
+def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wts = None, lap_wt = 0.3):
+    """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
+    v_pos = m.positions()
+    ref_pos = ref_mesh.positions()
+    A_list = []
+    b_list = []
+    N = len(m.vertices())
+    for vid in m.vertices():
+        row_a = np.zeros(N)
+        row_a[vid] = dist_wts[vid]
+        A_list.append(row_a)
+        b_list.append(ref_pos[vid]*dist_wts[vid])
+    Ai, bi = csc_matrix(np.array(A_list)), np.array(b_list)
+    lap_matrix = laplacian_matrix(m)
+    lap_b = lap_matrix @ v_pos
+    final_A = vstack([lap_wt*lap_matrix, Ai])
+    final_b = np.vstack([0*lap_b, bi])
+    opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
+    opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
+    opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
+    v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
 
 def stable_marriage_registration(m, m_ref):
     lib_py_gel.stable_marriage_registration(m.obj, m_ref.obj)
+
+
+
 
 class MeshDistance:
     """ This class allows you to compute the distance from any point in space to

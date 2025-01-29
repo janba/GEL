@@ -84,7 +84,7 @@ extern "C" {
 
     DLLEXPORT void cc_smooth(Manifold_ptr m_ptr);
     
-    DLLEXPORT void volume_preserving_cc_smooth(Manifold_ptr m_ptr, double w, int iter);
+    DLLEXPORT void volume_preserving_cc_smooth(Manifold_ptr m_ptr, int iter);
 
     DLLEXPORT void regularize_quads(Manifold_ptr m_ptr, float weight, float shrink, int iter);
 
@@ -114,6 +114,8 @@ extern "C" {
     DLLEXPORT void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr);
 
     DLLEXPORT void kill_face_loop(Manifold_ptr _m_ptr);
+
+    DLLEXPORT void kill_degenerate_face_loops(Manifold_ptr _m_ptr, double thresh);
 
     DLLEXPORT void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
 
