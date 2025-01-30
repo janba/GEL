@@ -271,7 +271,6 @@ namespace Geometry
             }
             return nv;
         }
-        
     };
     
     template<class KeyT, class ValT>
@@ -440,7 +439,27 @@ namespace Geometry
             
             bool left_son = comp(dsc, p, nodes[n].key);
             
-            if(left_son||dsc_dist<max_dist) {
+            if (left_son) {
+                unsigned left_child = 2 * n;
+                if (left_child < nodes.size())
+                    m_closest_priv(left_child, p, max_dist, nq);
+                if (dsc_dist < max_dist) {
+                    unsigned right_child = 2 * n + 1;
+                    if (right_child < nodes.size())
+                        m_closest_priv(right_child, p, max_dist, nq);
+                }
+            }
+            else {
+                unsigned right_child = 2 * n + 1;
+                if (right_child < nodes.size())
+                    m_closest_priv(right_child, p, max_dist, nq);
+                if (dsc_dist < max_dist) {
+                    unsigned left_child = 2 * n;
+                    if (left_child < nodes.size())
+                        m_closest_priv(left_child, p, max_dist, nq);
+                }
+            }
+            /*if(left_son||dsc_dist<max_dist) {
                 unsigned left_child = 2*n;
                 if(left_child < nodes.size())
                     m_closest_priv(left_child, p, max_dist, nq);
@@ -449,7 +468,7 @@ namespace Geometry
                 unsigned right_child = 2*n+1;
                 if(right_child < nodes.size())
                     m_closest_priv(right_child, p, max_dist, nq);
-            }
+            }*/
         }
     }
 }

@@ -110,6 +110,7 @@ extern "C" {
 
     DLLEXPORT void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
 
+    DLLEXPORT void rsr_recon(const char* path, Manifold_ptr m_ptr);
 #ifdef __cplusplus
 }
 #endif

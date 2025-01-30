@@ -14,6 +14,7 @@
 #include <GEL/Geometry/graph_skeletonize.h>
 #include <GEL/Geometry/graph_util.h>
 #include <GEL/Geometry/GridAlgorithm.h>
+#include <GEL/HMesh/RsR.h>
 #include "Graph.h"
 #include "Manifold.h"
 
@@ -238,4 +239,14 @@ void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
     non_rigid_registration(*m_ptr, *m_ref_ptr);
 }
 
+void rsr_recon(const char* path, Manifold_ptr m_ptr) {
+    std::cout << string(path) << std::endl;
+    read_config(string(path));
+    std::cout << "end_config" << std::endl;
+
+    reconstruct_single(*(reinterpret_cast<Manifold*>(m_ptr)));
+    std::cout << "end_recon" << std::endl;
+
+    return; 
+}
 
