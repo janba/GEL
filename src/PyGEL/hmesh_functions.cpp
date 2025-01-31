@@ -15,6 +15,7 @@
 #include <GEL/Geometry/graph_skeletonize.h>
 #include <GEL/Geometry/graph_util.h>
 #include <GEL/Geometry/GridAlgorithm.h>
+#include <GEL/HMesh/RsR.h>
 #include "Graph.h"
 #include "Manifold.h"
 #include "IntVector.h"
@@ -239,6 +240,18 @@ void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
     non_rigid_registration(*m_ptr, *m_ref_ptr);
 }
 
+
+void rsr_recon(const char* path, Manifold_ptr m_ptr) {
+    std::cout << string(path) << std::endl;
+    read_config(string(path));
+    std::cout << "end_config" << std::endl;
+
+    reconstruct_single(*(reinterpret_cast<Manifold*>(m_ptr)));
+    std::cout << "end_recon" << std::endl;
+
+    return; 
+}
+
 using IntVector = vector<size_t>;
 
 void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr) {
@@ -270,5 +283,6 @@ void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) 
     Manifold* m_ref_ptr = reinterpret_cast<Manifold*>(_m_ref_ptr);
     stable_marriage_registration(*m_ptr, *m_ref_ptr);
 }
+
 
 

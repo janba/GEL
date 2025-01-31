@@ -86,7 +86,6 @@ namespace HMesh
             return true;
         }
         return false;
-        
     }
     
     bool obj_load(const string& filename, Manifold& m) {

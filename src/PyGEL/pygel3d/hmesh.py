@@ -658,6 +658,13 @@ def skeleton_to_feq(g, node_radii = None, symmetrize=True):
     lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat, symmetrize, use_graph_radii)
     return m
 
+def rsr_recon(fn):
+    """ RsR Reconstruction """
+    m = Manifold()
+    s = ct.c_char_p(fn.encode('utf-8'))
+    lib_py_gel.rsr_recon(s, m.obj)
+    return m
+
 # def non_rigid_registration(m, ref_mesh):
 #     """ Perform non-rigid registration of m to ref_mesh. """
 #     lib_py_gel.non_rigid_registration(m.obj, ref_mesh.obj)

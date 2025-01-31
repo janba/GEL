@@ -111,6 +111,8 @@ extern "C" {
 
     DLLEXPORT void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
 
+    DLLEXPORT void rsr_recon(const char* path, Manifold_ptr m_ptr);
+
     DLLEXPORT void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr);
 
     DLLEXPORT void kill_face_loop(Manifold_ptr _m_ptr);
