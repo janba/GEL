@@ -21,11 +21,11 @@ namespace CGLA {
 		      const ArithVec2Float<T,V>& c,
 		      T& x,
 		      T& y) 
-  {
-    Vec2d xy = invert(Mat2x2d(a[0],b[0],a[1],b[1])) * Vec2d(c[0], c[1]);
-    x = xy[0];
-    y = xy[1];
-    return true;
+{
+      V xy(invert(Mat2x2d(a[0],b[0],a[1],b[1])) * Vec2d(c[0], c[1]));
+      x = xy[0];
+      y = xy[1];
+      return true;
   }
 	
 

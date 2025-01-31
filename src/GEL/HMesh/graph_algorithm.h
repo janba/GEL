@@ -16,6 +16,7 @@ namespace HMesh {
     struct DijkstraOutput {
         VertexAttributeVector<double> dist;
         VertexAttributeVector<VertexID> pred;
+        VertexAttributeVector<HalfEdgeID> pred_edge;
         VertexSet leaves;
         DijkstraOutput(int n):
         dist(n, DBL_MAX), pred(n, InvalidVertexID) {}

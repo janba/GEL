@@ -141,8 +141,8 @@ namespace
 	template<class V, class M>
 	M adjoint(const ArithSqMat4x4Float<V,M>& in)
 	{
-		double a1, a2, a3, a4, b1, b2, b3, b4;
-		double c1, c2, c3, c4, d1, d2, d3, d4;
+        typename M::ScalarType a1, a2, a3, a4, b1, b2, b3, b4;
+        typename M::ScalarType c1, c2, c3, c4, d1, d2, d3, d4;
 
 		/* assign to individual variable names to aid  */
 		/* selecting correct values  */
@@ -190,7 +190,7 @@ namespace
 	template<class V, class M>
 	M invert(const ArithSqMat4x4Float<V,M>& in)
 	{
-		double det = determinant( in );
+        typename M::ScalarType det = determinant( in );
 		if (is_tiny(det)) 
 			throw(Mat4x4fSingular("Tried to invert Singular matrix"));
 		M out = adjoint(in);
