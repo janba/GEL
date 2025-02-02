@@ -11,7 +11,7 @@ jobs:
     strategy: 
       fail-fast: false
       matrix:
-        os: [ubuntu-20.04, macos-latest, windows-latest]
+        os: [ubuntu-24.04, ubuntu-22.04, ubuntu-24.04-arm, ubuntu-22.04-arm, macos-latest, windows-latest]
     
       # The CMake configure and build commands are platform agnostic and should work equally
       # well on Windows or Mac.  You can convert this to a matrix build if you need
@@ -20,7 +20,7 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v4
       
     # - if: startsWith(matrix.os, 'Windows')
     #   name: Add GLFW to Windows environment
@@ -64,7 +64,7 @@ jobs:
       run: ctest -C $BUILD_TYPE
       
     - name: Packaging
-      uses: actions/upload-artifact@v2
+      uses: actions/upload-artifact@v4
       with:
         name: build products
         path: ${{github.workspace}}/build/
