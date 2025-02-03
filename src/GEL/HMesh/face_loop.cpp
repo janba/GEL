@@ -684,7 +684,7 @@ void kill_degenerate_face_loops(Manifold& m, double thresh) {
     double avg_edge_len = average_edge_length(m);
     bool did_work = true;
     int cnt = 0;
-    VertexAttributeVector<bool> touched(false);
+    VertexAttributeVector<int> touched(0);
     while (did_work) {
         did_work = false;
         auto loops = find_face_loops(m);
@@ -705,8 +705,8 @@ void kill_degenerate_face_loops(Manifold& m, double thresh) {
                 did_work = true;
                 for (auto h: loops[0].hvec) {
                     auto w = m.walker(h);
-                    touched[w.vertex()] = true;
-                    touched[w.opp().vertex()] = true;
+                    touched[w.vertex()] = 1;
+                    touched[w.opp().vertex()] = 1;
                 }
                 remove_face_loop(m, loops[0], true);
                 ++cnt;

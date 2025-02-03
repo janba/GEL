@@ -234,6 +234,7 @@
 		0DD3C0BF1B7C983300C02626 /* CGLA.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D57306D1ABB570900F33E40 /* CGLA.h */; };
 		0DD3C0C01B7C983800C02626 /* ls_solve.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0DD53BE91ABB69C50074B704 /* ls_solve.h */; };
 		0DE1F9071B35B9210012ACF9 /* HMesh.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D2378ED1ABB593200874F06 /* HMesh.h */; };
+		BD0444212D4CF50300C33761 /* RsR.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD0444202D4CF50300C33761 /* RsR.cpp */; };
 		BD4ACED2214A5C88004EEC2F /* jrs_triangle.c in Sources */ = {isa = PBXBuildFile; fileRef = BD4ACED1214A5C88004EEC2F /* jrs_triangle.c */; };
 		BD4ACED6214A6010004EEC2F /* Delaunay_triangulate.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD4ACED4214A6010004EEC2F /* Delaunay_triangulate.cpp */; };
 		BD4ACED8214A76B2004EEC2F /* jrs_triangle.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BD4ACED3214A5F03004EEC2F /* jrs_triangle.h */; };
@@ -241,6 +242,7 @@
 		BD8B952E2D423CED0049DDBC /* stable_marriage_registration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD8B952D2D423CEC0049DDBC /* stable_marriage_registration.cpp */; };
 		BDC3325F29D378AA003073FE /* quad_valencify.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDC3325D29D378AA003073FE /* quad_valencify.cpp */; };
 		BDC3326029D378EA003073FE /* quad_valencify.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDC3325E29D378AA003073FE /* quad_valencify.h */; };
+		BDF839DF2D50F2330090F280 /* normal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDF839DE2D50F2330090F280 /* normal.cpp */; };
 		E105AAC528972A6500F45A96 /* skeleton_to_FEQ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E105AAC428972A6500F45A96 /* skeleton_to_FEQ.cpp */; };
 		E105AACA2897C7D800F45A96 /* SphereDelaunay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E105AAC92897C7D800F45A96 /* SphereDelaunay.cpp */; };
 		E105AACC2897C88E00F45A96 /* DynCon.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = E105AAC72897C7D800F45A96 /* DynCon.h */; };
@@ -706,6 +708,8 @@
 		0DA7DC5F1CEBA687009FD206 /* graph_algorithm.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = graph_algorithm.h; sourceTree = "<group>"; };
 		0DA848C3193D02520067DA3B /* OpenGL.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = OpenGL.framework; path = System/Library/Frameworks/OpenGL.framework; sourceTree = SDKROOT; };
 		0DD53BE91ABB69C50074B704 /* ls_solve.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = ls_solve.h; sourceTree = "<group>"; };
+		BD04441F2D4CF50300C33761 /* RsR.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = RsR.h; sourceTree = "<group>"; };
+		BD0444202D4CF50300C33761 /* RsR.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = RsR.cpp; sourceTree = "<group>"; };
 		BD4ACED1214A5C88004EEC2F /* jrs_triangle.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = jrs_triangle.c; sourceTree = "<group>"; };
 		BD4ACED3214A5F03004EEC2F /* jrs_triangle.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = jrs_triangle.h; sourceTree = "<group>"; };
 		BD4ACED4214A6010004EEC2F /* Delaunay_triangulate.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = Delaunay_triangulate.cpp; sourceTree = "<group>"; };
@@ -717,6 +721,9 @@
 		BDAC7CAA201885F600197925 /* Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serialization.h; sourceTree = "<group>"; };
 		BDC3325D29D378AA003073FE /* quad_valencify.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = quad_valencify.cpp; sourceTree = "<group>"; };
 		BDC3325E29D378AA003073FE /* quad_valencify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = quad_valencify.h; sourceTree = "<group>"; };
+		BDF839DC2D50F2330090F280 /* etf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = etf.h; sourceTree = "<group>"; };
+		BDF839DD2D50F2330090F280 /* normal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = normal.h; sourceTree = "<group>"; };
+		BDF839DE2D50F2330090F280 /* normal.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = normal.cpp; sourceTree = "<group>"; };
 		E105AAC428972A6500F45A96 /* skeleton_to_FEQ.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = skeleton_to_FEQ.cpp; sourceTree = "<group>"; };
 		E105AAC72897C7D800F45A96 /* DynCon.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = DynCon.h; sourceTree = "<group>"; };
 		E105AAC82897C7D800F45A96 /* SphereDelaunay.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = SphereDelaunay.h; sourceTree = "<group>"; };
@@ -788,19 +795,20 @@
 				0D52EABF197D18C1002C7150 /* geo_load.cpp */,
 				0D52EAC0197D18C1002C7150 /* geo_obj_load.cpp */,
 				0D52EAC1197D18C1002C7150 /* GradientFilter.cpp */,
+				0D6583D91C1871DF005C966A /* Graph.cpp */,
 				E1FDAF9525650C10007114CD /* graph_io.cpp */,
 				E1FDAF9325650C10007114CD /* graph_skeletonize.cpp */,
 				E1FDAF9125650C10007114CD /* graph_util.cpp */,
-				0D6583D91C1871DF005C966A /* Graph.cpp */,
 				0D52EAC5197D18C1002C7150 /* Implicit.cpp */,
 				BD4ACED1214A5C88004EEC2F /* jrs_triangle.c */,
 				0D52EACA197D18C1002C7150 /* load_raw.cpp */,
 				0D52EACD197D18C1002C7150 /* Neighbours.cpp */,
+				BDF839DE2D50F2330090F280 /* normal.cpp */,
 				0D52EAD0197D18C1002C7150 /* OBox.cpp */,
 				0D52EAD3197D18C1002C7150 /* Polygonizer.cpp */,
 				0D52EAD5197D18C1002C7150 /* QEM.cpp */,
-				0D52EADB197D18C1002C7150 /* rply_load.cpp */,
 				0D52EAD9197D18C1002C7150 /* rply.c */,
+				0D52EADB197D18C1002C7150 /* rply_load.cpp */,
 				E105AAC92897C7D800F45A96 /* SphereDelaunay.cpp */,
 				0D52EADD197D18C1002C7150 /* tessellate.cpp */,
 				0D52EADF197D18C1002C7150 /* ThreeDDDA.cpp */,
@@ -872,6 +880,7 @@
 				BDC3325D29D378AA003073FE /* quad_valencify.cpp */,
 				0D52EB37197D18C1002C7150 /* quadric_simplify.cpp */,
 				0D52EB39197D18C1002C7150 /* refine_edges.cpp */,
+				BD0444202D4CF50300C33761 /* RsR.cpp */,
 				E105AAC428972A6500F45A96 /* skeleton_to_FEQ.cpp */,
 				0D52EB3B197D18C1002C7150 /* smooth.cpp */,
 				BD8B952D2D423CEC0049DDBC /* stable_marriage_registration.cpp */,
@@ -953,8 +962,6 @@
 		0D52EBB2197D1901002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
-				E105AAC72897C7D800F45A96 /* DynCon.h */,
-				E105AAC82897C7D800F45A96 /* SphereDelaunay.h */,
 				0D52EAAE197D18C1002C7150 /* AABox.h */,
 				0D52EAAF197D18C1002C7150 /* AncestorGrid.h */,
 				0D52EAB1197D18C1002C7150 /* BBox.h */,
@@ -966,21 +973,24 @@
 				0D52EABB197D18C1002C7150 /* BSPTree.h */,
 				0D52EABD197D18C1002C7150 /* build_bbtree.h */,
 				0D52EABE197D18C1002C7150 /* Cell.h */,
+				E105AAC72897C7D800F45A96 /* DynCon.h */,
+				BDF839DC2D50F2330090F280 /* etf.h */,
 				0D52EAC2197D18C1002C7150 /* GradientFilter.h */,
+				0D1028331C74A95200250431 /* Graph.h */,
 				E1FDAF9625650C10007114CD /* graph_io.h */,
 				E1FDAF9425650C10007114CD /* graph_skeletonize.h */,
 				E1FDAF9225650C10007114CD /* graph_util.h */,
-				0D1028331C74A95200250431 /* Graph.h */,
 				0D52EAC3197D18C1002C7150 /* GridAlgorithm.h */,
 				0D52EAC4197D18C1002C7150 /* HGrid.h */,
 				0D52EAC6197D18C1002C7150 /* Implicit.h */,
 				0D52EAC7197D18C1002C7150 /* IndexedFaceSet.h */,
 				BD4ACED3214A5F03004EEC2F /* jrs_triangle.h */,
 				0D52EAC8197D18C1002C7150 /* KDTree.h */,
-				0D52EACB197D18C1002C7150 /* load_raw.h */,
 				0D52EAC9197D18C1002C7150 /* load.h */,
+				0D52EACB197D18C1002C7150 /* load_raw.h */,
 				0D52EACC197D18C1002C7150 /* Material.h */,
 				0D52EACE197D18C1002C7150 /* Neighbours.h */,
+				BDF839DD2D50F2330090F280 /* normal.h */,
 				0D52EACF197D18C1002C7150 /* obj_load.h */,
 				0D52EAD1197D18C1002C7150 /* OBox.h */,
 				0D52EAD2197D18C1002C7150 /* ply_load.h */,
@@ -990,6 +1000,7 @@
 				0D52EAD8197D18C1002C7150 /* RGrid.h */,
 				0D52EADA197D18C1002C7150 /* rply.h */,
 				0D52EADC197D18C1002C7150 /* save_raw.h */,
+				E105AAC82897C7D800F45A96 /* SphereDelaunay.h */,
 				0D52EADE197D18C1002C7150 /* tessellate.h */,
 				0D52EAE0197D18C1002C7150 /* ThreeDDDA.h */,
 				0D52EAE2197D18C1002C7150 /* Triangle.h */,
@@ -1073,6 +1084,7 @@
 				0D52EB43197D18C1002C7150 /* x3d_load.h */,
 				0D52EB45197D18C1002C7150 /* x3d_save.h */,
 				BD8B952C2D423CEC0049DDBC /* stable_marriage_registration.h */,
+				BD04441F2D4CF50300C33761 /* RsR.h */,
 			);
 			name = header;
 			sourceTree = "<group>";
@@ -1279,10 +1291,12 @@
 				0D52EB9D197D18C1002C7150 /* mesh_optimization.cpp in Sources */,
 				BD4ACED2214A5C88004EEC2F /* jrs_triangle.c in Sources */,
 				0D52EB6A197D18C1002C7150 /* AABox.cpp in Sources */,
+				BDF839DF2D50F2330090F280 /* normal.cpp in Sources */,
 				0D52EB78197D18C1002C7150 /* OBox.cpp in Sources */,
 				0D52EB69197D18C1002C7150 /* Vec3i.cpp in Sources */,
 				0D52EB5D197D18C1002C7150 /* ArithVec2Float.cpp in Sources */,
 				0D52EBA3197D18C1002C7150 /* polygonize.cpp in Sources */,
+				BD0444212D4CF50300C33761 /* RsR.cpp in Sources */,
 				E1246E0D242CF7F500653E54 /* bounding_sphere.cpp in Sources */,
 				0D52EB97197D18C1002C7150 /* curvature.cpp in Sources */,
 				0D52EB9E197D18C1002C7150 /* obj_load.cpp in Sources */,

@@ -88,18 +88,17 @@ namespace Geometry
     }
 
     template<typename KeyType>
-    inline bool comp(int dsc, const KeyType& k0, const KeyType& k1) {
+    inline unsigned int comp(int dsc, const KeyType& k0, const KeyType& k1) {
         constexpr unsigned dim=KeyType::get_dim();
         for(unsigned i=0;i<dim;i++)
         {
             unsigned j=(dsc+i)%dim;
             if(k0[j]<k1[j])
-                return true;
+                return 0;
             if(k0[j]>k1[j])
-                return false;
+                return 1;
         }
-        return false;
-
+        return 1;
     }
     
     
@@ -334,7 +333,7 @@ namespace Geometry
         // will be smaller than or equal the median. All elements to the right
         // will be greater than or equal to the median.
         
-        auto compare_func = [disc](const KDNode& a, const KDNode& b) { return comp(disc, a.key, b.key);};
+        auto compare_func = [disc](const KDNode& a, const KDNode& b) { return comp(disc, a.key, b.key)==0;};
         KDNode* data = &init_nodes[0];
         std::nth_element(data+kvec_beg,
                          data+median,
@@ -366,23 +365,20 @@ namespace Geometry
         }
         if(nodes[n].dsc != -1)
         {
-            short dsc         = nodes[n].dsc;
+            short dsc = nodes[n].dsc;
             ScalarType dsc_dist  = CGLA::sqr(nodes[n].key[dsc]-p[dsc]);
-            bool left_son   = comp(dsc, p, nodes[n].key);
-            
-            if(left_son||dsc_dist<dist)
-            {
-                unsigned left_child = 2*n;
-                if(left_child < nodes.size())
-                    if(unsigned nl=closest_point_priv(left_child, p, dist))
+            unsigned first_branch = comp(dsc, p, nodes[n].key);
+
+            unsigned child_node = 2*n + first_branch;
+            if(child_node < nodes.size())
+                if(unsigned nl=closest_point_priv(child_node, p, dist))
+                    ret_node = nl;
+
+            if (dsc_dist<dist) {
+                child_node = 2*n + 1 - first_branch;
+                if(child_node < nodes.size())
+                    if(unsigned nl=closest_point_priv(child_node, p, dist))
                         ret_node = nl;
-            }
-            if(!left_son||dsc_dist<dist)
-            {
-                unsigned right_child = 2*n+1;
-                if(right_child < nodes.size())
-                    if(unsigned nr = closest_point_priv(right_child, p, dist))
-                        ret_node = nr;
             }
         }
         return ret_node;
@@ -403,15 +399,15 @@ namespace Geometry
             const short dsc = nodes[n].dsc;
             const ScalarType dsc_dist = CGLA::sqr(nodes[n].key[dsc]-p[dsc]);
             
-            bool left_son = comp(dsc, p, nodes[n].key);
+            unsigned int first_branch = comp(dsc, p, nodes[n].key);
             
-            if(left_son||dsc_dist<dist)
+            if(first_branch==0||dsc_dist<dist)
             {
                 unsigned left_child = 2*n;
                 if(left_child < nodes.size())
                     in_sphere_priv(left_child, p, dist, records);
             }
-            if(!left_son||dsc_dist<dist)
+            if(first_branch==1||dsc_dist<dist)
             {
                 unsigned right_child = 2*n+1;
                 if(right_child < nodes.size())
@@ -437,38 +433,17 @@ namespace Geometry
             const short dsc = nodes[n].dsc;
             const ScalarType dsc_dist  = CGLA::sqr(nodes[n].key[dsc]-p[dsc]);
             
-            bool left_son = comp(dsc, p, nodes[n].key);
+            unsigned int first_branch = comp(dsc, p, nodes[n].key);
             
-            if (left_son) {
-                unsigned left_child = 2 * n;
-                if (left_child < nodes.size())
-                    m_closest_priv(left_child, p, max_dist, nq);
-                if (dsc_dist < max_dist) {
-                    unsigned right_child = 2 * n + 1;
-                    if (right_child < nodes.size())
-                        m_closest_priv(right_child, p, max_dist, nq);
-                }
+            unsigned child_node = 2 * n + first_branch;
+            if (child_node < nodes.size())
+                m_closest_priv(child_node, p, max_dist, nq);
+
+            if (dsc_dist < max_dist) {
+                child_node = 2 * n + 1 - first_branch;
+                if (child_node < nodes.size())
+                    m_closest_priv(child_node, p, max_dist, nq);
             }
-            else {
-                unsigned right_child = 2 * n + 1;
-                if (right_child < nodes.size())
-                    m_closest_priv(right_child, p, max_dist, nq);
-                if (dsc_dist < max_dist) {
-                    unsigned left_child = 2 * n;
-                    if (left_child < nodes.size())
-                        m_closest_priv(left_child, p, max_dist, nq);
-                }
-            }
-            /*if(left_son||dsc_dist<max_dist) {
-                unsigned left_child = 2*n;
-                if(left_child < nodes.size())
-                    m_closest_priv(left_child, p, max_dist, nq);
-            }
-            if(!left_son||dsc_dist<max_dist) {
-                unsigned right_child = 2*n+1;
-                if(right_child < nodes.size())
-                    m_closest_priv(right_child, p, max_dist, nq);
-            }*/
         }
     }
 }
