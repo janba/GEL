@@ -315,7 +315,15 @@ def valid(m: Manifold):
 def closed(m: Manifold):
     """ Returns true if m is closed, i.e. has no boundary."""
     return lib_py_gel.closed(m.obj)
-
+    
+def area(m: Manifold):
+    """ This function computes the sum of all the faces' areas """
+    return lib_py_gel.total_area(m.obj)
+    
+def volume(m: Manifold):
+    """ Computes the volume of a mesh. Presupposes that the mesh is closed. """
+    return lib_py_gel.volume(m.obj)
+    
 def bbox(m: Manifold):
     """ Returns the min and max corners of the bounding box of Manifold m. """
     pmin = ndarray(3,dtype=np.float64)
@@ -887,6 +895,12 @@ def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wts = None, lap_wt = 0
     v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
 
 def stable_marriage_registration(m, m_ref):
+    """ Register m to m_ref using Gale Shapley """
     lib_py_gel.stable_marriage_registration(m.obj, m_ref.obj)
 
-
+def rsr_recon(fn):
+    """ Rotation System Reconstruction """
+    m = Manifold()
+    s = ct.c_char_p(fn.encode('utf-8'))
+    lib_py_gel.rsr_recon(s, m.obj)
+    return m
