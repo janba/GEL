@@ -10,10 +10,10 @@ import numpy as np
 from math import sqrt
 from numpy import ndarray
 from numpy.linalg import norm
-from pygel3d import lib_py_gel, IntVector, Vec3dVector, spatial
+from pygel3d import lib_py_gel, IntVector
+from pygel3d.graph import Graph
 from scipy.sparse import csc_matrix, vstack
 from scipy.sparse.linalg import lsqr
-from collections import defaultdict
 from scipy.spatial import KDTree
 
 
@@ -307,25 +307,25 @@ class Manifold:
         lib_py_gel.centre(self.obj, fid, c)
         return c
 
-def valid(m):
+def valid(m: Manifold):
     """This function performs a series of tests to check that this
     is a valid manifold. This function is not rigorously constructed but seems
     to catch all problems so far. The function returns true if the mesh is valid
     and false otherwise. """
     return lib_py_gel.valid(m.obj)
 
-def closed(m):
+def closed(m: Manifold):
     """ Returns true if m is closed, i.e. has no boundary."""
     return lib_py_gel.closed(m.obj)
 
-def bbox(m):
+def bbox(m: Manifold):
     """ Returns the min and max corners of the bounding box of Manifold m. """
     pmin = ndarray(3,dtype=np.float64)
     pmax = ndarray(3,dtype=np.float64)
     lib_py_gel.bbox(m.obj, pmin, pmax)
     return pmin, pmax
 
-def bsphere(m):
+def bsphere(m: Manifold):
     """ Calculate the bounding sphere of the manifold m.
     Returns centre,radius """
     c = ndarray(3,dtype=np.float64)
@@ -333,7 +333,7 @@ def bsphere(m):
     lib_py_gel.bsphere(m.obj, c, ct.byref(r))
     return (c,r)
 
-def stitch(m, rad=1e-30):
+def stitch(m: Manifold, rad=1e-30):
     """ Stitch together edges of m whose endpoints coincide geometrically. This
     function allows you to create a mesh as a bunch of faces and then stitch
     these together to form a coherent whole. What this function adds is a
@@ -342,17 +342,17 @@ def stitch(m, rad=1e-30):
     would introduce a non-manifold situation."""
     return lib_py_gel.stitch_mesh(m.obj,rad)
 
-def obj_save(fn, m):
+def obj_save(fn, m: Manifold):
     """ Save Manifold m to Wavefront obj file. """
     s = ct.c_char_p(fn.encode('utf-8'))
     lib_py_gel.obj_save(s, m.obj)
 
-def off_save(fn, m):
+def off_save(fn, m: Manifold):
     """ Save Manifold m to OFF file. """
     s = ct.c_char_p(fn.encode('utf-8'))
     lib_py_gel.off_save(s, m.obj)
 
-def x3d_save(fn, m):
+def x3d_save(fn, m: Manifold):
     """ Save Manifold m to X3D file. """
     s = ct.c_char_p(fn.encode('utf-8'))
     lib_py_gel.x3d_save(s, m.obj)
@@ -408,7 +408,7 @@ def load(fn):
         return ply_load(fn)
     return None
 
-def save(fn, m):
+def save(fn, m: Manifold):
     """ Save a Manifold, m, to an X3D/OBJ/OFF file. """
     _, extension = splitext(fn)
     if extension.lower() == ".x3d":
@@ -419,7 +419,7 @@ def save(fn, m):
         off_save(fn, m)
 
 
-def remove_caps(m, thresh=2.9):
+def remove_caps(m: Manifold, thresh=2.9):
     """ Remove caps from a manifold, m, consisting of only triangles. A cap is a
     triangle with two very small angles and an angle close to pi, however a cap
     does not necessarily have a very short edge. Set the ang_thresh to a value
@@ -429,7 +429,7 @@ def remove_caps(m, thresh=2.9):
     document more carefully !!! """
     lib_py_gel.remove_caps(m.obj,thresh)
 
-def remove_needles(m, thresh=0.05, average_positions=False):
+def remove_needles(m: Manifold, thresh=0.05, average_positions=False):
     """  Remove needles from a manifold, m, consisting of only triangles. A needle
     is a triangle with a single very short edge. It is moved by collapsing the
     short edge. The thresh parameter sets the length threshold (in terms of the average edge length
@@ -437,28 +437,28 @@ def remove_needles(m, thresh=0.05, average_positions=False):
     abs_thresh = thresh * average_edge_length(m)
     lib_py_gel.remove_needles(m.obj,abs_thresh, average_positions)
 
-def close_holes(m, max_size=100):
+def close_holes(m: Manifold, max_size=100):
     """  This function replaces holes in m by faces. It is really a simple function
     that just finds all loops of edges next to missing faces. """
     lib_py_gel.close_holes(m.obj, max_size)
 
-def flip_orientation(m):
+def flip_orientation(m: Manifold):
     """  Flip the orientation of a mesh, m. After calling this function, normals
     will point the other way and clockwise becomes counter clockwise """
     lib_py_gel.flip_orientation(m.obj)
 
-def merge_coincident_boundary_vertices(m, rad = 1.0e-30):
+def merge_coincident_boundary_vertices(m: Manifold, rad = 1.0e-30):
     """  Merge vertices of m that are boundary vertices and coincident.
         However, if one belongs to the other's one ring or the one
         rings share a vertex, they will not be merged. """
     lib_py_gel.merge_coincident_boundary_vertices(m.obj, rad)
 
-def minimize_curvature(m,anneal=False):
+def minimize_curvature(m: Manifold,anneal=False):
     """ Minimizes mean curvature of m by flipping edges. Hence, no vertices are moved.
      This is really the same as dihedral angle minimization, except that we weight by edge length. """
     lib_py_gel.minimize_curvature(m.obj, anneal)
 
-def minimize_dihedral_angle(m,max_iter=10000, anneal=False, alpha=False, gamma=4.0):
+def minimize_dihedral_angle(m: Manifold,max_iter=10000, anneal=False, alpha=False, gamma=4.0):
     """ Minimizes dihedral angles in m by flipping edges.
         Arguments:
         max_iter is the maximum number of iterations for simulated annealing.
@@ -468,19 +468,19 @@ def minimize_dihedral_angle(m,max_iter=10000, anneal=False, alpha=False, gamma=4
     lib_py_gel.minimize_dihedral_angle(m.obj, max_iter, anneal,alpha,ct.c_double(gamma))
 
 
-def maximize_min_angle(m,dihedral_thresh=0.95,anneal=False):
+def maximize_min_angle(m: Manifold,dihedral_thresh=0.95,anneal=False):
     """ Maximizes the minimum angle of triangles by flipping edges of m. Makes the mesh more Delaunay."""
     lib_py_gel.maximize_min_angle(m.obj,dihedral_thresh,anneal)
 
-def optimize_valency(m,anneal=False):
+def optimize_valency(m: Manifold,anneal=False):
     """ Tries to achieve valence 6 internally and 4 along edges by flipping edges of m. """
     lib_py_gel.optimize_valency(m.obj, anneal)
 
-def randomize_mesh(m,max_iter=1):
+def randomize_mesh(m: Manifold,max_iter=1):
     """  Make random flips in m. Useful for generating synthetic test cases. """
     lib_py_gel.randomize_mesh(m.obj, max_iter)
 
-def quadric_simplify(m,keep_fraction,singular_thresh=1e-4,error_thresh=1):
+def quadric_simplify(m: Manifold,keep_fraction,singular_thresh=1e-4,error_thresh=1):
     """ Garland Heckbert simplification of mesh m. keep_fraction is the fraction of vertices
     to retain. The singular_thresh determines how subtle features are preserved. For values
     close to 1 the surface is treated as smooth even in the presence of sharp edges of low
@@ -491,90 +491,90 @@ def quadric_simplify(m,keep_fraction,singular_thresh=1e-4,error_thresh=1):
     vertices approximately equal to keep_fraction times the original number of vertices."""
     lib_py_gel.quadric_simplify(m.obj, keep_fraction, singular_thresh,error_thresh)
 
-def average_edge_length(m):
+def average_edge_length(m: Manifold):
     """ Returns the average edge length of mesh m. """
     return lib_py_gel.average_edge_length(m.obj)
 
-def median_edge_length(m):
+def median_edge_length(m: Manifold):
     """ Returns the median edge length of m"""
     return lib_py_gel.median_edge_length(m.obj)
 
-def refine_edges(m,threshold):
+def refine_edges(m: Manifold,threshold):
     """ Split all edges in m which are longer
     than the threshold (second arg) length. A split edge
     results in a new vertex of valence two."""
     return lib_py_gel.refine_edges(m.obj, threshold)
 
-def cc_split(m):
+def cc_split(m: Manifold):
     """ Perform a Catmull-Clark split on m, i.e. a split where each face is divided
     into new quadrilateral faces formed by connecting a corner with a point on
     each incident edge and a point at the centre of the face."""
     lib_py_gel.cc_split(m.obj)
 
-def loop_split(m):
+def loop_split(m: Manifold):
     """ Perform a loop split on m where each edge is divided into two segments, and
     four new triangles are created for each original triangle. """
     lib_py_gel.loop_split(m.obj)
 
-def root3_subdivide(m):
+def root3_subdivide(m: Manifold):
     """ Leif Kobbelt's subdivision scheme applied to m. A vertex is placed in the
     center of each face and all old edges are flipped. """
     lib_py_gel.root3_subdivide(m.obj)
 
-def rootCC_subdivide(m):
+def rootCC_subdivide(m: Manifold):
     """ This subdivision scheme creates a vertex inside each original (quad) face of m,
     producing four triangles. Triangles sharing an old edge are then merged.
     Two steps produce something similar to Catmull-Clark. """
     lib_py_gel.rootCC_subdivide(m.obj)
 
-def butterfly_subdivide(m):
+def butterfly_subdivide(m: Manifold):
     """ Butterfly subidiviosn on m. An interpolatory scheme. Creates the same connectivity as Loop. """
     lib_py_gel.butterfly_subdivide(m.obj)
 
-def cc_smooth(m,iter=1):
+def cc_smooth(m: Manifold,iter=1):
     """ If called after cc_split, this function completes a step of Catmull-Clark
     subdivision of m."""
     for _ in range(iter):
         lib_py_gel.cc_smooth(m.obj)
 
-def cc_subdivide(m):
+def cc_subdivide(m: Manifold):
     """ Perform a full Catmull-Clark subdivision step on mesh m. """
     lib_py_gel.cc_split(m.obj)
     lib_py_gel.cc_smooth(m.obj)
 
-def loop_subdivide(m):
+def loop_subdivide(m: Manifold):
     """ Perform a full Loop subdivision step on mesh m. """
     lib_py_gel.loop_split(m.obj)
     lib_py_gel.loop_smooth(m.obj)   
 
-def volume_preserving_cc_smooth(m, iter):
+def volume_preserving_cc_smooth(m: Manifold, iter):
     """ This function does the same type of smoothing as in Catmull-Clark
     subdivision, but to preserve volume it actually performs two steps, and the
     second step is negative as in Taubin smoothing."""
     lib_py_gel.volume_preserving_cc_smooth(m.obj, iter)
 
-def regularize_quads(m, w=0.5, shrink=0.0, iter=1):
+def regularize_quads(m: Manifold, w=0.5, shrink=0.0, iter=1):
     """ This function smooths a quad mesh by regularizing quads. Essentially,
     regularization just makes them more rectangular. """
     lib_py_gel.regularize_quads(m.obj, w, shrink, iter)
 
 
-def loop_smooth(m):
+def loop_smooth(m: Manifold):
     """ If called after Loop split, this function completes a step of Loop
     subdivision of m. """
     lib_py_gel.loop_smooth(m.obj)
     
-def taubin_smooth(m, iter=1):
+def taubin_smooth(m: Manifold, iter=1):
     """ This function performs Taubin smoothing on the mesh m for iter number
     of iterations. """
     lib_py_gel.taubin_smooth(m.obj, iter)
 
-def laplacian_smooth(m, w=0.5, iter=1):
+def laplacian_smooth(m: Manifold, w=0.5, iter=1):
     """ This function performs Laplacian smoothing on the mesh m for iter number
     of iterations. w is the weight applied. """
     lib_py_gel.laplacian_smooth(m.obj, w, iter)
 
-def anisotropic_smooth(m, sharpness=0.5, iter=1):
+def anisotropic_smooth(m: Manifold, sharpness=0.5, iter=1):
     """ This function performs anisotropic smoothing on the mesh m for iter number
     of iterations. A bilateral filtering controlled by sharpness is performed on 
     the face normals followed by a rotation of the faces to match the new normals.
@@ -613,223 +613,32 @@ def volumetric_isocontour(data, bbox_min = None, bbox_max = None,
                                      make_triangles, high_is_inside, dual_connectivity)
     return m
 
-def triangulate(m, clip_ear=True):
+def triangulate(m: Manifold, clip_ear=True):
     """ Turn a general polygonal mesh, m, into a triangle mesh by repeatedly
         splitting a polygon into smaller polygons. """
     if clip_ear:
         lib_py_gel.ear_clip_triangulate(m.obj)
     else:
         lib_py_gel.shortest_edge_triangulate(m.obj)
-        
-def extrude_faces(m, fset):
+
+def extrude_faces(m: Manifold, fset):
+    """ Inserts a new face loop around a set of faces given by fset."""
     fvec = np.asarray(list(fset), dtype=ct.c_int)
     face_loop_out = IntVector()
     lib_py_gel.extrude_faces(m.obj,fvec,len(fvec), face_loop_out.obj)
     fset_out = set(face_loop_out)
     del face_loop_out
     return fset_out
-    
-def kill_face_loop(m):
+
+def kill_face_loop(m: Manifold):
+    """ Removes the face loop surrounding the patch of smallest area. This function has
+    undefined effecto on a mesh that is not a pure quad mesh."""
     lib_py_gel.kill_face_loop(m.obj)
     
-def kill_degenerate_face_loops(m, thresh=0.01):
+def kill_degenerate_face_loops(m: Manifold, thresh=0.01):
+    """ Removes face loops which contain very poorly shaped faces. Must be called on a pure
+    quad mesh. """
     lib_py_gel.kill_degenerate_face_loops(m.obj, thresh)
-
-
-def skeleton_to_feq(g, node_radii = None, symmetrize=True):
-    """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node.
-    If symmetrize is True (default) the graph is made symmetrical. If node_radii are supplied then they
-    are used in the reconstruction. Otherwise, the radii are obtained from the skeleton. They are stored in 
-    the green channel of the vertex color during skeletonization, so for a skeletonized shape that is how the
-    radius of each node is obtained. This is a questionable design decision and will probably change 
-    in the future. """
-    m = Manifold()
-    if node_radii is None:
-        node_radii = [0.0] * len(g.nodes())
-        use_graph_radii = True
-    else:
-        use_graph_radii = False
-        if isinstance(node_radii, (int, float)):
-            if node_radii <= 0.0:
-                node_radii = 0.25 * g.average_edge_length()
-            node_radii = [node_radii] * len(g.nodes())
-
-    node_rs_flat = np.asarray(node_radii, dtype=np.float64)
-    lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat, symmetrize, use_graph_radii)
-    return m
-
-# def non_rigid_registration(m, ref_mesh):
-#     """ Perform non-rigid registration of m to ref_mesh. """
-#     lib_py_gel.non_rigid_registration(m.obj, ref_mesh.obj)
-
-def laplacian_matrix(m):
-    num_verts = m.no_allocated_vertices()
-    laplacian = np.full((num_verts,num_verts), 0.0)
-    for i in m.vertices():
-        neighbors = m.circulate_vertex(i)
-        deg = len(neighbors)
-        laplacian[i][i] = 1.0
-        for v in neighbors:
-            laplacian[i][v] = -1/deg
-    return csc_matrix(laplacian)
-
-
-def inv_correspondence_leqs(m, ref_mesh):
-    m_pos = m.positions()
-    ref_pos = ref_mesh.positions()
-    m_tree = KDTree(m_pos)
-    m_target_pos = np.zeros(m.positions().shape)
-    m_cnt = np.zeros(m.no_allocated_vertices())
-    _, m_indices = m_tree.query(ref_pos[ref_mesh.vertices()])
-    for r_id, m_id in enumerate(m_indices):
-        r_norm = ref_mesh.vertex_normal(r_id)
-        m_norm = m.vertex_normal(m_id)
-        dot_prod = m_norm @ r_norm
-        if (dot_prod > 0.5):
-            v = ref_pos[r_id] - m_pos[m_id]
-            wgt = dot_prod-0.5
-            m_target_pos[m_id] += wgt*ref_pos[r_id]
-            m_cnt[m_id] += wgt
-
-    N = m.no_allocated_vertices()
-    A_list = []
-    b_list = []
-    for vid in m.vertices():
-        if (m_cnt[vid] > 0.0):
-            row_a = np.zeros(N)
-            row_a[vid] = 1.0
-            A_list.append(row_a)
-            b_list.append(m_target_pos[vid]/m_cnt[vid])
-    return csc_matrix(np.array(A_list)), np.array(b_list)
-    
-def distance_gradient(mesh_dist, p, eps=1e-3):
-    """Compute the gradient of the distance field given by mesh_dist at point p"""
-    grad = np.zeros(3)
-    for i in range(3):
-        p1 = np.copy(p)
-        p2 = np.copy(p)
-        p1[i] += eps
-        p2[i] -= eps
-        d1 = mesh_dist.signed_distance(p1) 
-        d2 = mesh_dist.signed_distance(p2)
-        grad[i] = (d1-d2) / (2 * eps)
-        if grad[i] > 1.0:
-            print("diff issue: ", d1, d2, p, i)
-    return grad
-
-# def inflate_mesh(m: Manifold, mesh_dist):
-#     pos = m.positions()
-#     ael = average_edge_length(m)
-#     max_dist = ael
-#     eps = 0.05*ael
-#     disp = np.zeros((m.no_allocated_faces(), 3))
-#     for f in m.faces():
-#         p = m.centre(f)
-#         g = distance_gradient(mesh_dist, p, eps)
-#         n = m.face_normal(f)
-#         k = (n@g)
-#         d = max(-max_dist, min(max_dist, mesh_dist.signed_distance(p)))
-#         disp[f] = - abs(k) * d * n
-#     for v in m.vertices():
-#         disp_v = np.zeros(3)
-#         C_f = m.circulate_vertex(v, mode='f')
-#         for f in C_f:
-#             disp_v += disp[f]
-#         pos[v] += disp_v / len(C_f)
-
-def inflate_mesh(m: Manifold, mesh_dist):
-    pos = m.positions()
-    ael = average_edge_length(m)
-    max_dist = ael
-    eps = 0.05*ael
-    new_pos = np.array(pos)
-    for v in m.vertices():
-        p = pos[v]
-        g = distance_gradient(mesh_dist, p, eps)
-        n = m.vertex_normal(v)
-        k = max(0.0, min(1.0, n@g))
-        d = max(-k*max_dist, min(k*max_dist, mesh_dist.signed_distance(p)))
-        new_pos[v] = pos[v] - d * n
-    pos[:] = new_pos
-
-
-def barycentrics(p, p0, p1, p2):
-    """ Compute the barycentric coordinates of point p with respect to the triangle p0, p1, p2. """
-    v0 = p1 - p0
-    v1 = p2 - p1
-    v2 = p0 - p2
-
-    # Project p onto the plane of the triangle
-    normal = np.cross(v0, -v2)
-    normal /= np.linalg.norm(normal)
-    p_proj = p - np.dot(p - p0, normal) * normal
-    
-    # Compute barycentric coordinates
-    u = normal@np.cross(v1, p_proj-p1)
-    v = normal@np.cross(v2, p_proj-p2)
-    w = normal@np.cross(v0, p_proj-p0)
-    s = u+v+w
-    return np.array([u/s, v/s, w/s])
-
-
-def inv_map(m, ref, ref_orig):
-    """ Finds position of vertices from mesh m in faces of ref. Then maps those
-    positions to the corresponding triangles of ref_orig using barycentric coordinates. """
-    pos_m = m.positions()
-    pos_ref = ref.positions()
-    pos_ref_orig = ref_orig.positions()
-    
-    T = KDTree(pos_ref)
-    dists, closest_ref_verts = T.query(pos_m)
-    for v in m.vertices():
-        p = pos_m[v]
-        v_ref = closest_ref_verts[v]
-        pos_m[v] = pos_ref_orig[v_ref]
-    
-def fit_mesh_mmh(m, ref_mesh, iterations=10):
-    """ Fits a mesh m to ref_mesh by iteratively moving m towards ref_mesh and vice versa."""
-    mrc = Manifold(ref_mesh)
-    triangulate(mrc, clip_ear=False)
-    print("Triangulated. Now fitting")
-    taubin_smooth(mrc, iter=30)
-    obj_save(f"mrc.obj", mrc)
-    mesh_dist = MeshDistance(mrc)
-    for _ in range(iterations):
-        print("Inflate mc")
-        cc_smooth(m,1)
-        inflate_mesh(m, mesh_dist=mesh_dist)
-        obj_save(f"mc.obj", m)
-    # print("")
-    # print("Doing the MMH map")
-    # inv_map(m,mrc,ref_mesh)
-    
-    
-def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wts = None, lap_wt = 0.3):
-    """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
-    v_pos = m.positions()
-    ref_pos = ref_mesh.positions()
-    A_list = []
-    b_list = []
-    N = len(m.vertices())
-    for vid in m.vertices():
-        row_a = np.zeros(N)
-        row_a[vid] = dist_wts[vid]
-        A_list.append(row_a)
-        b_list.append(ref_pos[vid]*dist_wts[vid])
-    Ai, bi = csc_matrix(np.array(A_list)), np.array(b_list)
-    lap_matrix = laplacian_matrix(m)
-    lap_b = lap_matrix @ v_pos
-    final_A = vstack([lap_wt*lap_matrix, Ai])
-    final_b = np.vstack([0*lap_b, bi])
-    opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
-    opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
-    opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
-    v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
-
-def stable_marriage_registration(m, m_ref):
-    lib_py_gel.stable_marriage_registration(m.obj, m_ref.obj)
-
-
 
 
 class MeshDistance:
@@ -887,3 +696,205 @@ class MeshDistance:
         if r:
             return t.value, p0, dir
         return None
+
+
+def skeleton_to_feq(g: Graph, node_radii = None, symmetrize=True):
+    """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node.
+    If symmetrize is True (default) the graph is made symmetrical. If node_radii are supplied then they
+    are used in the reconstruction. Otherwise, the radii are obtained from the skeleton. They are stored in 
+    the green channel of the vertex color during skeletonization, so for a skeletonized shape that is how the
+    radius of each node is obtained. This is a questionable design decision and will probably change 
+    in the future. """
+    m = Manifold()
+    if node_radii is None:
+        node_radii = [0.0] * len(g.nodes())
+        use_graph_radii = True
+    else:
+        use_graph_radii = False
+        if isinstance(node_radii, (int, float)):
+            if node_radii <= 0.0:
+                node_radii = 0.25 * g.average_edge_length()
+            node_radii = [node_radii] * len(g.nodes())
+
+    node_rs_flat = np.asarray(node_radii, dtype=np.float64)
+    lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat, symmetrize, use_graph_radii)
+    return m
+
+# def non_rigid_registration(m, ref_mesh):
+#     """ Perform non-rigid registration of m to ref_mesh. """
+#     lib_py_gel.non_rigid_registration(m.obj, ref_mesh.obj)
+
+def laplacian_matrix(m: Manifold):
+    num_verts = m.no_allocated_vertices()
+    laplacian = np.full((num_verts,num_verts), 0.0)
+    for i in m.vertices():
+        neighbors = m.circulate_vertex(i)
+        deg = len(neighbors)
+        laplacian[i][i] = 1.0
+        for v in neighbors:
+            laplacian[i][v] = -1/deg
+    return csc_matrix(laplacian)
+
+
+def inv_correspondence_leqs(m: Manifold, ref_mesh: Manifold):
+    m_pos = m.positions()
+    ref_pos = ref_mesh.positions()
+    m_tree = KDTree(m_pos)
+    m_target_pos = np.zeros(m.positions().shape)
+    m_cnt = np.zeros(m.no_allocated_vertices())
+    _, m_indices = m_tree.query(ref_pos[ref_mesh.vertices()])
+    for r_id, m_id in enumerate(m_indices):
+        r_norm = ref_mesh.vertex_normal(r_id)
+        m_norm = m.vertex_normal(m_id)
+        dot_prod = m_norm @ r_norm
+        if (dot_prod > 0.5):
+            v = ref_pos[r_id] - m_pos[m_id]
+            wgt = dot_prod-0.5
+            m_target_pos[m_id] += wgt*ref_pos[r_id]
+            m_cnt[m_id] += wgt
+
+    N = m.no_allocated_vertices()
+    A_list = []
+    b_list = []
+    for vid in m.vertices():
+        if (m_cnt[vid] > 0.0):
+            row_a = np.zeros(N)
+            row_a[vid] = 1.0
+            A_list.append(row_a)
+            b_list.append(m_target_pos[vid]/m_cnt[vid])
+    return csc_matrix(np.array(A_list)), np.array(b_list)
+    
+def distance_gradient(mesh_dist: MeshDistance, p, eps=1e-3):
+    """Compute the gradient of the distance field given by mesh_dist at point p"""
+    grad = np.zeros(3)
+    for i in range(3):
+        p1 = np.copy(p)
+        p2 = np.copy(p)
+        p1[i] += eps
+        p2[i] -= eps
+        d1 = mesh_dist.signed_distance(p1) 
+        d2 = mesh_dist.signed_distance(p2)
+        grad[i] = (d1-d2) / (2 * eps)
+        if grad[i] > 1.0:
+            print("diff issue: ", d1, d2, p, i)
+    return grad
+
+# def inflate_mesh(m: Manifold, mesh_dist):
+#     pos = m.positions()
+#     ael = average_edge_length(m)
+#     max_dist = ael
+#     eps = 0.05*ael
+#     disp = np.zeros((m.no_allocated_faces(), 3))
+#     for f in m.faces():
+#         p = m.centre(f)
+#         g = distance_gradient(mesh_dist, p, eps)
+#         n = m.face_normal(f)
+#         k = (n@g)
+#         d = max(-max_dist, min(max_dist, mesh_dist.signed_distance(p)))
+#         disp[f] = - abs(k) * d * n
+#     for v in m.vertices():
+#         disp_v = np.zeros(3)
+#         C_f = m.circulate_vertex(v, mode='f')
+#         for f in C_f:
+#             disp_v += disp[f]
+#         pos[v] += disp_v / len(C_f)
+
+def inflate_mesh(m: Manifold, mesh_dist: MeshDistance):
+    pos = m.positions()
+    ael = average_edge_length(m)
+    max_dist = ael
+    eps = 0.05*ael
+    new_pos = np.array(pos)
+    for v in m.vertices():
+        p = pos[v]
+        g = distance_gradient(mesh_dist, p, eps)
+        n = m.vertex_normal(v)
+        k = max(0.0, min(1.0, n@g))
+        d = max(-k*max_dist, min(k*max_dist, mesh_dist.signed_distance(p)))
+        new_pos[v] = pos[v] - d * n
+    pos[:] = new_pos
+
+
+def barycentrics(p, p0, p1, p2):
+    """ Compute the barycentric coordinates of point p with respect to the triangle p0, p1, p2. """
+    v0 = p1 - p0
+    v1 = p2 - p1
+    v2 = p0 - p2
+
+    # Project p onto the plane of the triangle
+    normal = np.cross(v0, -v2)
+    normal /= np.linalg.norm(normal)
+    p_proj = p - np.dot(p - p0, normal) * normal
+    
+    # Compute barycentric coordinates
+    u = normal@np.cross(v1, p_proj-p1)
+    v = normal@np.cross(v2, p_proj-p2)
+    w = normal@np.cross(v0, p_proj-p0)
+    s = u+v+w
+    return np.array([u/s, v/s, w/s])
+
+
+def inv_map(m: Manifold, ref, ref_orig):
+    """ Finds position of vertices from mesh m in faces of ref. Then maps those
+    positions to the corresponding triangles of ref_orig using barycentric coordinates. """
+    pos_m = m.positions()
+    pos_ref = ref.positions()
+    pos_ref_orig = ref_orig.positions()
+    
+    T = KDTree(pos_ref)
+    dists, closest_ref_verts = T.query(pos_m)
+    for v in m.vertices():
+        p = pos_m[v]
+        v_ref = closest_ref_verts[v]
+        pos_m[v] = pos_ref_orig[v_ref]
+    
+def fit_mesh_mmh(m: Manifold, ref_mesh: Manifold, iterations=10):
+    """ Fits a mesh m to ref_mesh by iteratively moving m towards ref_mesh and vice versa."""
+    mrc = Manifold(ref_mesh)
+    triangulate(mrc, clip_ear=False)
+    print("Triangulated. Now fitting")
+    taubin_smooth(mrc, iter=30)
+    obj_save(f"mrc.obj", mrc)
+    mesh_dist = MeshDistance(mrc)
+    for _ in range(iterations):
+        print("Inflate mc")
+        cc_smooth(m,1)
+        inflate_mesh(m, mesh_dist=mesh_dist)
+        obj_save(f"mc.obj", m)
+    # print("")
+    # print("Doing the MMH map")
+    # inv_map(m,mrc,ref_mesh)
+    
+    
+def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wts = None, lap_wt = 0.3):
+    """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
+    v_pos = m.positions()
+    ref_pos = ref_mesh.positions()
+    A_list = []
+    b_list = []
+    N = len(m.vertices())
+    for vid in m.vertices():
+        row_a = np.zeros(N)
+        row_a[vid] = dist_wts[vid]
+        A_list.append(row_a)
+        b_list.append(ref_pos[vid]*dist_wts[vid])
+    Ai, bi = csc_matrix(np.array(A_list)), np.array(b_list)
+    lap_matrix = laplacian_matrix(m)
+    lap_b = lap_matrix @ v_pos
+    final_A = vstack([lap_wt*lap_matrix, Ai])
+    final_b = np.vstack([0*lap_b, bi])
+    opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
+    opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
+    opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
+    v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
+
+def stable_marriage_registration(m, m_ref):
+    lib_py_gel.stable_marriage_registration(m.obj, m_ref.obj)
+
+def rsr_recon(fn):
+    """ RsR Reconstruction """
+    m = Manifold()
+    s = ct.c_char_p(fn.encode('utf-8'))
+    lib_py_gel.rsr_recon(s, m.obj)
+    return m
+

@@ -285,7 +285,7 @@ namespace Geometry
         }
         short od=0;
         KeyType ave_v = vmax-vmin;
-        for(unsigned i=1;i<KeyType::get_dim();i++)
+        for(short i=1;i<KeyType::get_dim();i++)
             if(ave_v[i]>ave_v[od]) od = i;
         return od;
     }

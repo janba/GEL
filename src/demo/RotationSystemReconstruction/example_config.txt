@@ -1,0 +1,13 @@
+root ../../../data/PointClouds
+model_name owl-little.obj
+out_root .
+out_name owl-out.obj
+isEuclidean false
+isGTNormal false
+isNoiseExp false
+genus 0
+k 70
+r 20
+// theta in degrees
+theta 60
+n 50
