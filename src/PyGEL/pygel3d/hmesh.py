@@ -7,9 +7,7 @@ allows us to turn a skeleton graph into a Face Extrusion Quad Mesh.
 """
 import ctypes as ct
 import numpy as np
-from math import sqrt
 from numpy import ndarray
-from numpy.linalg import norm
 from pygel3d import lib_py_gel, IntVector
 from pygel3d.graph import Graph
 from scipy.sparse import csc_matrix, vstack
@@ -103,12 +101,12 @@ class Manifold:
     def faces(self):
         """ Returns an iterable containing all face indices"""
         faces = IntVector()
-        n = lib_py_gel.Manifold_faces(self.obj, faces.obj)
+        lib_py_gel.Manifold_faces(self.obj, faces.obj)
         return faces
     def halfedges(self):
         """ Returns an iterable containing all halfedge indices"""
         hedges = IntVector()
-        n = lib_py_gel.Manifold_halfedges(self.obj, hedges.obj)
+        lib_py_gel.Manifold_halfedges(self.obj, hedges.obj)
         return hedges
     def circulate_vertex(self, vid, mode='v'):
         """ Circulate a vertex. Passed a vertex index, vid, and second argument,
@@ -117,7 +115,7 @@ class Manifold:
         incident halfedges (outgoing) are returned, and for mode = 'v', all
         neighboring vertices are returned. """
         nbrs = IntVector()
-        n = lib_py_gel.Manifold_circulate_vertex(self.obj, vid, ct.c_char(mode.encode('ascii')), nbrs.obj)
+        lib_py_gel.Manifold_circulate_vertex(self.obj, vid, ct.c_char(mode.encode('ascii')), nbrs.obj)
         return nbrs
     def circulate_face(self, fid, mode='v'):
         """ Circulate a face. Passed a face index, fid, and second argument,
@@ -126,7 +124,7 @@ class Manifold:
         mode='h', the halfedges themselves are returned. For mode='v', the
         incident vertices of the face are returned. """
         nbrs = IntVector()
-        n = lib_py_gel.Manifold_circulate_face(self.obj, fid, ct.c_char(mode.encode('ascii')), nbrs.obj)
+        lib_py_gel.Manifold_circulate_face(self.obj, fid, ct.c_char(mode.encode('ascii')), nbrs.obj)
         return nbrs
     def next_halfedge(self,hid):
         """ Returns next halfedge to hid. """
@@ -397,7 +395,7 @@ from os.path import splitext
 def load(fn):
     """ Load a Manifold from an X3D/OBJ/OFF/PLY file. Return the
     loaded Manifold. Returns None if loading failed."""
-    name, extension = splitext(fn)
+    _, extension = splitext(fn)
     if extension.lower() == ".x3d":
         return x3d_load(fn)
     if extension.lower() == ".obj":

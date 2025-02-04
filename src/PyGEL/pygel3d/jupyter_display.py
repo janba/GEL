@@ -6,8 +6,6 @@ from pygel3d.graph import Graph
 from numpy import array
 import plotly.graph_objs as go
 import plotly.offline as py
-import plotly.express as px
-
 
 EXPORT_MODE = False
 

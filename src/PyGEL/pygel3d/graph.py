@@ -1,9 +1,11 @@
 """ This module provides a Graph class and functionality for skeletonization using graphs. """
+from __future__ import annotations
+from typing import TYPE_CHECKING
+
 import ctypes as ct
 import numpy as np
-from pygel3d import lib_py_gel, IntVector
-from pygel3d.hmesh import Manifold
 from random import shuffle
+from pygel3d import lib_py_gel, IntVector
 
 class Graph:
     """ This class is for representing graphs embedded in 3D. The class does not in
@@ -131,7 +133,7 @@ def edge_contract(g: Graph, dist_thresh):
     until no more contractions are possible. Returns total number of contractions. """
     return lib_py_gel.graph_edge_contract(g.obj, dist_thresh)
 
-def prune(g; Graph):
+def prune(g: Graph):
     """ Prune leaves of a graph. The graph, g, is passed as the argument. This function
         removes leaf nodes (valency 1) whose only neighbour has valency > 2. In practice
         such isolated leaves are frequently spurious if the graph is a skeleton. Does not
@@ -241,7 +243,6 @@ def combined_skeleton_and_map(g: Graph, colors, intervals=100):
     colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
     print("N_col:", N_col)
-    pos = g.positions()
     lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel, mapping
 
@@ -259,7 +260,6 @@ def combined_skeleton(g: Graph, colors, intervals=100):
     colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
     print("N_col:", N_col)
-    pos = g.positions()
     lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel
 

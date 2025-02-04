@@ -1,7 +1,7 @@
 from math import cos, sin
-from numpy import array, zeros, ndindex, ceil, clip
+from numpy import array
 import numpy as np
-from pygel3d import hmesh, graph, gl_display as gl
+from pygel3d import hmesh, gl_display as gl
 
 v = gl.Viewer()
 
