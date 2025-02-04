@@ -443,10 +443,10 @@ namespace HMesh
 
     /// Compute the barycenter of all vertices of mesh
     Manifold::Vec barycenter(const Manifold& m);
+    /// Compute the total surface area
+    double area(const Manifold& m);
 
-
-    /** Compute the mesh volume. Could be slightly inaccurate since it does not take
-     non-flat faces into account */
+    /// Compute the total volume
     double volume(const Manifold& m);
 
     /*******************************************************************

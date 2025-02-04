@@ -95,6 +95,9 @@ extern "C" {
     DLLEXPORT double one_ring_area(const Manifold_ptr m_ptr, size_t _v);
     DLLEXPORT double perimeter(const Manifold_ptr m_ptr, size_t _f);
     DLLEXPORT void centre(const Manifold_ptr m_ptr, size_t _f, double*);
+
+    DLLEXPORT double total_area(const Manifold_ptr);
+    DLLEXPORT double volume(const Manifold_ptr);
     
     DLLEXPORT extern size_t InvalidIndex;
 
