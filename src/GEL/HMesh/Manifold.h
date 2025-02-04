@@ -438,7 +438,11 @@ namespace HMesh
         return 0.5 * (m.pos(w.vertex()) + m.pos(w.opp().vertex()));
     }
 
+    /// Compute the total surface area
+    double area(const Manifold& m);
 
+    /// Compute the total volume
+    double volume(const Manifold& m);
 
     /*******************************************************************
     * Manifold code

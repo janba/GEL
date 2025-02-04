@@ -13,6 +13,7 @@
 #include <GEL/Geometry/bounding_sphere.h>
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/HMesh/cleanup.h>
+#include <GEL/HMesh/triangulate.h>
 
 namespace HMesh
 {
@@ -1602,6 +1603,31 @@ namespace HMesh
     {
         Walker w = m.walker(h);
         return (m.pos(w.vertex()) - m.pos(w.opp().vertex())).length();
+    }
+
+    double area(const Manifold& m) {
+        double a = 0;
+        for (auto f: m.faces())
+            a += area(m, f);
+        return a;
+    }
+
+
+    double volume(const Manifold& _m) {
+        Manifold m = Manifold(_m);
+        triangulate(m);
+        Vec3d c;
+        float r;
+        bsphere(m, c, r);
+        double vol = 0;
+        for (auto f: m.faces()) {
+            Vec3d p[3];
+            int i=0;
+            for(auto v: m.incident_vertices(f))
+                p[i++] = m.pos(v);
+            vol += determinant(Mat3x3d(p[0]-c, p[1]-c, p[2]-c));
+        }
+        return vol / 6.0;
     }
 
 }

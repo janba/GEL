@@ -344,4 +344,14 @@ void centre(const Manifold_ptr _m_ptr, size_t _f, double* _c) {
     c = centre(*m_ptr,FaceID(_f));
 }
 
+double total_area(const Manifold_ptr _m_ptr) {
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    return area(*m_ptr);
+}
+double volume(const Manifold_ptr _m_ptr){
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    return volume(*m_ptr);
+}
+
+
 size_t InvalidIndex = InvalidVertexID.get_index();

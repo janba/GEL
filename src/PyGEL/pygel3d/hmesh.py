@@ -312,7 +312,15 @@ def valid(m):
     to catch all problems so far. The function returns true if the mesh is valid
     and false otherwise. """
     return lib_py_gel.valid(m.obj)
-
+    
+def area(m: Manifold):
+    """ This function computes the sum of all the face's areas """
+    return lib_py_gel.total_area(m.obj)
+    
+def volume(m: Manifold):
+    """ Computes the volume of a mesh. Presupposes that the mesh is closed. """
+    return lib_py_gel.volume(m.obj)
+    
 def closed(m):
     """ Returns true if m is closed, i.e. has no boundary."""
     return lib_py_gel.closed(m.obj)
