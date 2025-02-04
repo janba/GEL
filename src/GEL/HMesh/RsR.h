@@ -15,7 +15,6 @@
 #include <GEL/Geometry/etf.h>
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/Geometry/normal.h>
-#include <GEL/Geometry/obj_load.h>
 
 using namespace CGLA;
 using namespace Geometry;
@@ -233,7 +232,8 @@ typedef Geometry::KDTree<Point, NodeID> Tree;
 typedef Geometry::KDTreeRecord<Point, NodeID> Record;
 
 void kNN_search(const Point&, const Tree&, int,
-    std::vector<NodeID>&, std::vector<double>&, bool isContain = true);
+    std::vector<NodeID>&, std::vector<double>&,
+    double last_dist = INFINITY, bool isContain = true);
 
 void NN_search(const Point&, const Tree&, double,
     std::vector<NodeID>&, std::vector<double>&, bool isContain = true);
@@ -342,22 +342,6 @@ public:
     }
 };
 
-
-// PC + IO
-
-struct PointCloud {
-    std::vector<Point> vertices;
-    std::vector<Vector> normals;
-};
-
-void read_obj(std::string file_path, PointCloud& pc);
-void read_ply(std::string file_path, PointCloud& pc);
-void export_graph(RSGraph& g, std::string out_path);
-void export_obj(std::vector<Point>& in_vertices, RSGraph& g,
-    std::string out_path, std::vector<std::vector<NodeID>>& faces);
-void export_edges(RSGraph& g, std::vector<NodeID>& roots, std::string out_path);
-void read_config(std::string config_path);
-
 // Face Loop
 
 void init_face_loop_label(RSGraph& g);
@@ -398,6 +382,8 @@ bool isIntersecting(RSGraph& mst, NodeID v1,
 
 bool routine_check(RSGraph& mst, std::vector<NodeID>& triangle);
 
-void reconstruct_single(HMesh::Manifold& output);
+void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertices,
+    std::vector<Vector>& org_normals, bool in_isEuclidean = false, int in_genus = 0,
+    int in_k = 70, int in_r = 20, int in_theta = 60, int in_n = 50);
 
 #endif

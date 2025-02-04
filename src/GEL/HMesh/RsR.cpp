@@ -1,5 +1,5 @@
 #include "RsR.h"
-static bool isGTNormal = false;
+static bool isGTNormal = true;
 static bool isEuclidean = true;
 static bool isFaceLoop = true;
 static bool isDebug = false;
@@ -12,8 +12,6 @@ static int exp_genus = -1;
 static std::string model_path;
 static std::string root_path;
 static std::string model_name;
-static std::string out_root_path;
-static std::string out_name;
 static std::string mode;
 static RsR_Timer recon_timer;
 static int bettiNum_1 = 0;
@@ -41,89 +39,6 @@ inline bool face_comparator(const m_face_pair& l, const m_face_pair& r) {
 }
 inline bool neighbor_comparator(const m_neighbor_pair& l, const m_neighbor_pair& r) {
     return l.first > r.first;
-}
-
-/**
-    * @brief Read the input config file and initialize
-    *
-    * @param config_path: Path to the config file
-    * @return None
-    */
-void read_config(std::string config_path) {
-    std::ifstream config(config_path);
-
-    if (!config.is_open()) {
-        throw std::runtime_error("Error opening config file!");
-    }
-
-    std::string line;
-    std::vector<std::string> tokens;
-    while (std::getline(config, line)) {
-        std::size_t pos = 0, found;
-        while (true) {
-            found = line.find(' ', pos);
-            if (found != std::string::npos) {
-                std::string token = line.substr(pos, found - pos);
-                tokens.push_back(token);
-                pos = found + 1;
-            }
-            else {
-                found = line.find('\n', pos);
-                std::string token = line.substr(pos, found - pos);
-                tokens.push_back(token);
-                break;
-            }
-        }
-        std::string instruct = tokens[0];
-        tokens[1].erase(tokens[1].find_last_not_of("\n") + 1);
-        if (instruct == "root") {
-            root_path = tokens[1];
-        }
-        if (instruct == "model_name") {
-            if (tokens[1] == "all") {
-                model_name = tokens[1];
-                model_path = root_path;
-            }
-            else {
-                model_name = tokens[1];
-                model_path = root_path + "/" + tokens[1];
-            }
-        }
-        if (instruct == "out_root") {
-            out_root_path = tokens[1];
-        }
-        if (instruct == "out_name") {
-            out_name = tokens[1];
-        }
-        if (instruct == "isEuclidean") {
-            isEuclidean = (tokens[1] == "true");
-        }
-        if (instruct == "isGTNormal") {
-            isGTNormal = (tokens[1] == "true");
-        }
-        if (instruct == "isDebug") {
-            isDebug = (tokens[1] == "true");
-        }
-        if (instruct == "isNoiseExp") {
-            isNoiseExperiment = (tokens[1] == "true");
-        }
-        if (instruct == "k") {
-            k = (std::stoi(tokens[1]));
-        }
-        if (instruct == "genus") {
-            exp_genus = (std::stoi(tokens[1]));
-        }
-        if (instruct == "r") {
-            r = (std::stof(tokens[1]));
-        }
-        if (instruct == "theta") {
-            theta = (std::stof(tokens[1]));
-        }
-        if (instruct == "n") {
-            step_thresh = (std::stoi(tokens[1]));
-        }
-        tokens.clear();
-    }
 }
 
 /**
@@ -250,9 +165,10 @@ void build_KDTree(Tree& kdTree, std::vector<Point> vertices, std::vector<NodeID>
     *
     * @return None
     */
+// TODO: We can cache search result for every point after smoothing
 void kNN_search(const Point& query, const Tree& kdTree,
     int num, std::vector<NodeID>& neighbors,
-    std::vector<double>& neighbor_distance, bool isContain) {
+    std::vector<double>& neighbor_distance, double last_dist, bool isContain) {
     if (!isContain)
         num -= 1;
     std::vector<Record> records;
@@ -346,6 +262,8 @@ float find_components(std::vector<Point>& vertices,
 
     NodeID this_idx = 0;
     std::set<NodeID> dup_remove;
+    double last_dist = INFINITY;
+    Point last_v(0., 0., 0.);
     // Construct graph
     for (auto& vertex : smoothed_v) {
         if (dup_remove.find(this_idx) != dup_remove.end()) {
@@ -355,7 +273,10 @@ float find_components(std::vector<Point>& vertices,
 
         std::vector<NodeID> neighbors;
         std::vector<double> neighbor_distance;
-        kNN_search(vertex, kdTree, k, neighbors, neighbor_distance);
+        last_dist += (vertex - last_v).length();
+        kNN_search(vertex, kdTree, k, neighbors, neighbor_distance, last_dist, true);
+        last_dist = neighbor_distance[neighbor_distance.size() - 1];
+        last_v = vertex;
 
         // Filter out cross connection
         {
@@ -519,13 +440,18 @@ void init_graph(const std::vector<Point>& vertices, const std::vector<Point>& sm
         dist_graph.add_node();
     }
 
+    Point last_v(0., 0., 0.);
+    double last_distance = INFINITY;
     NodeID i = 0;
     for (auto& vertex : vertices) {
         Vector this_normal = normals[i];
 
         std::vector<NodeID> neighbors;
         std::vector<double> dists;
-        kNN_search(smoothed_v[i], kdTree, k, neighbors, dists);
+        last_distance += (vertex - last_v).length();
+        kNN_search(smoothed_v[i], kdTree, k, neighbors, dists, last_distance, true);
+        last_distance = dists[dists.size() - 1];
+        last_v = vertex;
         pre_max_length[i] = dists[int(k * 2. / 3.)];
 
         // Filter out cross connection
@@ -658,14 +584,19 @@ void weighted_smooth(const std::vector<Point>& vertices,
     std::vector<Point>& smoothed_v, const std::vector<Vector>& normals,
     const Tree& kdTree, float diagonal_length) {
     int idx = 0;
+    double last_dist = INFINITY;
+    Point last_v(0., 0., 0.);
     for (auto& vertex : vertices) {
         std::vector<NodeID> neighbors;
         std::vector<double> neighbor_dist;
         Vector normal = normals[idx];
 
         int neighbor_num = 192;
+        last_dist += (vertex - last_v).length();
         kNN_search(vertex, kdTree, neighbor_num,
-            neighbors, neighbor_dist);
+            neighbors, neighbor_dist, last_dist, true);
+        last_dist = neighbor_dist[neighbor_dist.size() - 1];
+        last_v = vertex;
 
         double weight_sum = 0.;
         double amp_sum = 0.;
@@ -727,6 +658,8 @@ void estimate_normal(const std::vector<Point>& vertices,
         max{ -INFINITY, -INFINITY, -INFINITY };
     NodeID idx = 0;
 
+    double last_dist = INFINITY;
+    Point last_v(0., 0., 0.);
     for (auto& point : vertices) {
         if (isGTNormal) {
             Vector normal = normals[idx];
@@ -740,7 +673,11 @@ void estimate_normal(const std::vector<Point>& vertices,
         else {
             std::vector<NodeID> neighbors;
             std::vector<double> neighbor_dist;
-            kNN_search(point, kdTree, neighbor_num, neighbors, neighbor_dist);
+            last_dist += (point - last_v).length();
+            kNN_search(point, kdTree, neighbor_num, neighbors, neighbor_dist, last_dist, true);
+            last_dist = neighbor_dist[neighbor_dist.size() - 1];
+            last_v = point;
+
             std::vector<Point> neighbor_coords;
             for (auto idx : neighbors) {
                 neighbor_coords.push_back(vertices[idx]);
@@ -770,200 +707,6 @@ void estimate_normal(const std::vector<Point>& vertices,
     Point min_p(min[0], min[1], min[2]), max_p(max[0], max[1], max[2]);
     diagonal_length = (max_p - min_p).length();
 
-    return;
-}
-
-// PC IO
-
-void read_obj(std::string file_path, PointCloud& pc) {
-    std::ifstream file(file_path);
-    std::string line;
-    if (!file.is_open()) {
-        throw std::runtime_error("Error: Unable to open file " + file_path);
-    }
-    while (std::getline(file, line))
-    {
-        std::vector<std::string> info;
-        int pos = 0;
-        while ((pos = line.find(" ")) != std::string::npos) {
-            info.push_back(line.substr(0, pos));
-            line.erase(0, pos + 1);
-        }
-        info.push_back(line);
-        if (info.size() == 0) {
-            continue;
-        }
-        if (info.at(0) == "v") {
-            Point vertex(std::stof(info.at(1)),
-                std::stof(info.at(2)), std::stof(info.at(3)));
-            pc.vertices.push_back(vertex);
-        }
-        if (info.at(0) == "vn") {
-            Vector normal(std::stof(info.at(1)),
-                std::stof(info.at(2)), std::stof(info.at(3)));
-            pc.normals.push_back(normal);
-        }
-    }
-    file.close();
-    return;
-}
-
-void read_ply(std::string file_path, PointCloud& pc) {
-    std::ifstream file(file_path, std::ios::binary);
-
-    if (!file.is_open()) {
-        throw std::runtime_error("Error: Unable to open file " + file_path);
-    }
-
-    std::string line;
-    bool headerEnded = false;
-    size_t vertexCount = 0;
-    bool hasNormals = false;
-    bool isBinary = false;
-
-    // Read the header
-    while (std::getline(file, line)) {
-        if (line.find("format ascii") != std::string::npos) {
-            isBinary = false;
-        }
-        else if (line.find("format binary_little_endian") != std::string::npos) {
-            isBinary = true;
-        }
-        else if (line.find("format binary_big_endian") != std::string::npos) {
-            throw std::runtime_error("Error: Big-endian format not supported.");
-        }
-        else if (line.find("element vertex") != std::string::npos) {
-            std::istringstream iss(line);
-            std::string element, vertex;
-            iss >> element >> vertex >> vertexCount;
-        }
-        else if (line.find("property float nx") != std::string::npos) {
-            hasNormals = true;
-        }
-        else if (line == "end_header") {
-            headerEnded = true;
-            break;
-        }
-    }
-
-    if (!headerEnded) {
-        throw std::runtime_error("Error: PLY file does not have a valid header.");
-    }
-
-    // Read the body
-    if (isBinary) {
-        // Binary PLY reading
-        for (size_t i = 0; i < vertexCount; ++i) {
-            float x, y, z, nx = 0, ny = 0, nz = 0;
-
-            // Read vertex coordinates
-            file.read(reinterpret_cast<char*>(&x), sizeof(float));
-            file.read(reinterpret_cast<char*>(&y), sizeof(float));
-            file.read(reinterpret_cast<char*>(&z), sizeof(float));
-            pc.vertices.push_back({ x, y, z });
-
-            // Read normals if present
-            if (hasNormals) {
-                file.read(reinterpret_cast<char*>(&nx), sizeof(float));
-                file.read(reinterpret_cast<char*>(&ny), sizeof(float));
-                file.read(reinterpret_cast<char*>(&nz), sizeof(float));
-                pc.normals.push_back({ nx, ny, nz });
-            }
-        }
-    }
-    else {
-        // ASCII PLY reading
-        size_t count = 0;
-        while (std::getline(file, line) && count < vertexCount) {
-            std::istringstream iss(line);
-            float x, y, z, nx = 0, ny = 0, nz = 0;
-
-            iss >> x >> y >> z;
-            pc.vertices.push_back({ x, y, z });
-
-            if (hasNormals) {
-                iss >> nx >> ny >> nz;
-                pc.normals.push_back({ nx, ny, nz });
-            }
-
-            ++count;
-        }
-    }
-
-    file.close();
-    return;
-}
-
-void export_obj(std::vector<Point>& vertices,
-    std::vector<Vector>& normals, std::string out_path) {
-    std::ofstream file(out_path);
-    // Write vertices
-    file << "# List of geometric vertices" << std::endl;
-    for (int i = 0; i < vertices.size(); i++) {
-        file << "v " << std::to_string(vertices.at(i)[0])
-            << " " << std::to_string(vertices.at(i)[1])
-            << " " << std::to_string(vertices.at(i)[2]) << std::endl;
-    }
-
-    // Write vertex normal
-    file << std::endl;
-    file << "# List of vertex normals" << std::endl;
-    for (int i = 0; i < normals.size(); i++) {
-        file << "vn " << std::to_string(normals.at(i)[0])
-            << " " << std::to_string(normals.at(i)[1])
-            << " " << std::to_string(normals.at(i)[2]) << std::endl;
-    }
-
-    file.close();
-    return;
-}
-
-void export_graph(RSGraph& g, std::string out_path) {
-    std::ofstream file(out_path);
-    // Write vertices
-    file << "# List of geometric vertices" << std::endl;
-    for (NodeID i : g.node_ids()) {
-        Point this_coords = g.m_vertices[i].coords;
-        file << "v " << std::to_string(this_coords[0])
-            << " " << std::to_string(this_coords[1])
-            << " " << std::to_string(this_coords[2]) << std::endl;
-    }
-
-    // Write lines
-    file << std::endl;
-    file << "# Line element" << std::endl;
-    for (NodeID node : g.node_ids()) {
-        for (NodeID node_neighbor : g.neighbors(node)) {
-            file << "l " << std::to_string(node + 1)
-                << " " << std::to_string(node_neighbor + 1) << std::endl;
-        }
-    }
-    file.close();
-    return;
-}
-
-void export_graph(RSGraph& g, std::string out_path, std::vector<Point>& vertices) {
-    std::ofstream file(out_path);
-    // Write vertices
-    file << "# List of geometric vertices" << std::endl;
-    for (int i = 0; i < vertices.size(); i++) {
-        Point this_coords = vertices[i];
-        file << "v " << std::to_string(this_coords[0])
-            << " " << std::to_string(this_coords[1])
-            << " " << std::to_string(this_coords[2]) << std::endl;
-    }
-
-    // Write lines
-    file << std::endl;
-    file << "# Line element" << std::endl;
-    //std::cout << boost::num_edges(g.graph) << std::endl;
-    for (NodeID node : g.node_ids()) {
-        for (NodeID node_neighbor : g.neighbors(node)) {
-            file << "l " << std::to_string(node + 1)
-                << " " << std::to_string(node_neighbor + 1) << std::endl;
-        }
-    }
-    file.close();
     return;
 }
 
@@ -1718,6 +1461,9 @@ void connect_handle(const std::vector<Point>& smoothed_v, Tree& KDTree,
     std::vector<NodeID> to_connect_p;
     std::vector<uint> tree_id;
     std::vector<uint> to_tree_id;
+
+    double last_dist = INFINITY;
+    Point last_v(0., 0., 0.);
     for (auto& this_v : imp_node) {
         Point query = mst.m_vertices[this_v].coords;
         Vector query_normal = mst.m_vertices[this_v].normal;
@@ -1728,7 +1474,11 @@ void connect_handle(const std::vector<Point>& smoothed_v, Tree& KDTree,
         uint tree, to_tree;
         int validIdx = -1;
 
-        kNN_search(smoothed_v[int(this_v)], KDTree, k, neighbors, dists);
+        last_dist += (smoothed_v[int(this_v)] - last_v).length();
+        kNN_search(smoothed_v[int(this_v)], KDTree, k, neighbors, dists, last_dist, true);
+        last_dist = dists[dists.size() - 1];
+        last_v = smoothed_v[int(this_v)];
+
         for (int i = 0; i < neighbors.size(); i++) {
             int neighbor = neighbors[i];
             m_Edge candidate(this_v, neighbor);
@@ -2326,7 +2076,16 @@ void build_mst(SimpGraph& g, NodeID root,
     *
     * @return None
     */
-void reconstruct_single(HMesh::Manifold& output) {
+void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertices,
+    std::vector<Vector>& org_normals, bool in_isEuclidean, int in_genus, 
+    int in_k, int in_r, int in_theta, int in_n) {
+
+    isEuclidean = in_isEuclidean;
+    exp_genus = in_genus;
+    k = in_k;
+    r = in_r;
+    theta = in_theta;
+    step_thresh = in_n;
 
     recon_timer.create("Whole process");
     recon_timer.create("Initialization");
@@ -2337,58 +2096,24 @@ void reconstruct_single(HMesh::Manifold& output) {
     recon_timer.create("algorithm");
 
     recon_timer.start("Initialization");
-    // Init
-    PointCloud in_pc;
-
-    // Read input
-    {
-        recon_timer.start("Import pc");
-        std::string file_path = root_path + "/" + model_name;
-        size_t pos = model_name.rfind('.');
-        std::string file_end;
-        if (pos != std::string::npos) {
-            file_end = model_name.substr(pos + 1);
-        }
-        else {
-            std::cout << "No file extension provided" << std::endl;
-            return;
-        }
-
-        if (file_end == "obj") {
-            read_obj(file_path, in_pc);
-        }
-        else if (file_end == "ply") {
-            read_ply(file_path, in_pc);
-        }
-        else {
-            std::cout << "Error file type" << std::endl;
-            return;
-        }
-
-        if (k >= in_pc.vertices.size())
-            k = in_pc.vertices.size() - 1;
-
-        recon_timer.end("Import pc");
-    }
 
     // Estimate normals & orientation & weighted smoothing
     recon_timer.start("Estimate normals");
     std::vector<Point> in_smoothed_v;
     {
-        std::vector<NodeID> indices(in_pc.vertices.size());
+        std::vector<NodeID> indices(org_vertices.size());
         std::iota(indices.begin(), indices.end(), 0);
         // Insert number_of_data_points in the tree
         Tree kdTree;
-        build_KDTree(kdTree, in_pc.vertices, indices);
+        build_KDTree(kdTree, org_vertices, indices);
         float diagonal_length;
 
-        if (isGTNormal && in_pc.normals.size() == 0) {
-            std::cout << "No normal can be used!" << std::endl;
+        if (org_normals.size() == 0) {
             isGTNormal = false;
         }
 
         std::vector<NodeID> zero_normal_id;
-        estimate_normal(in_pc.vertices, kdTree, in_pc.normals, zero_normal_id, diagonal_length);
+        estimate_normal(org_vertices, kdTree, org_normals, zero_normal_id, diagonal_length);
 
         // Fix zero normal
         if (zero_normal_id.size() > 0) {
@@ -2398,17 +2123,15 @@ void reconstruct_single(HMesh::Manifold& output) {
         if (true) {
             std::cout << "Start first round smoothing ..." << std::endl;
             if (!isEuclidean)
-                weighted_smooth(in_pc.vertices, in_smoothed_v, in_pc.normals, kdTree, diagonal_length);
+                weighted_smooth(org_vertices, in_smoothed_v, org_normals, kdTree, diagonal_length);
             else
-                in_smoothed_v = in_pc.vertices;
+                in_smoothed_v = org_vertices;
 
             Tree temp_tree1;
             build_KDTree(temp_tree1, in_smoothed_v, indices);
 
-            estimate_normal(in_smoothed_v, temp_tree1, in_pc.normals,
+            estimate_normal(in_smoothed_v, temp_tree1, org_normals,
                 zero_normal_id, diagonal_length);
-            if (isDebug)
-                export_obj(in_smoothed_v, in_pc.normals, out_root_path + "/" + (out_name + "_smoothed_v.obj"));
 
             // Another round of smoothing
             if (true) {
@@ -2416,26 +2139,18 @@ void reconstruct_single(HMesh::Manifold& output) {
                     std::cout << "Start second round smoothing ..." << std::endl;
                     std::vector<Point> temp(in_smoothed_v.begin(), in_smoothed_v.end());
                     in_smoothed_v.clear();
-                    weighted_smooth(temp, in_smoothed_v, in_pc.normals, temp_tree1, diagonal_length);
+                    weighted_smooth(temp, in_smoothed_v, org_normals, temp_tree1, diagonal_length);
 
                     Tree temp_tree2;
                     build_KDTree(temp_tree2, in_smoothed_v, indices);
 
-                    estimate_normal(in_smoothed_v, temp_tree2, in_pc.normals,
+                    estimate_normal(in_smoothed_v, temp_tree2, org_normals,
                         zero_normal_id, diagonal_length);
-                    if (isDebug)
-                        export_obj(in_smoothed_v, in_pc.normals, out_root_path + "/" + (out_name + "_smoothed_v2.obj"));
                 }
             }
         }
         else {
-            in_smoothed_v = in_pc.vertices;
-        }
-
-        // Add normal noise
-        if (false) {
-            float angle = 25. / 180. * M_PI;
-            add_normal_noise(angle, in_pc.normals);
+            in_smoothed_v = org_vertices;
         }
     }
     recon_timer.end("Estimate normals");
@@ -2470,17 +2185,23 @@ void reconstruct_single(HMesh::Manifold& output) {
             }
 
             // Init angle based graph
+            double last_dist = INFINITY;
+            Point last_v(0., 0., 0.);
             for (int i = 0; i < in_smoothed_v.size(); i++) {
                 Point vertex = in_smoothed_v[i];
-                Vector this_normal = in_pc.normals[i];
+                Vector this_normal = org_normals[i];
 
                 std::vector<NodeID> neighbors;
                 std::vector<double> dists;
-                kNN_search(vertex, kdTree, k, neighbors, dists);
+                last_dist += (vertex - last_v).length();
+                kNN_search(vertex, kdTree, k, neighbors, dists, last_dist, true);
+                last_dist = dists[dists.size() - 1];
+                last_v = vertex;
+
                 for (int j = 0; j < neighbors.size(); j++) {
                     if (g_angle.find_edge(i, neighbors[j]) != AMGraph::InvalidEdgeID)
                         continue;
-                    Vector neighbor_normal = in_pc.normals[neighbors[j]];
+                    Vector neighbor_normal = org_normals[neighbors[j]];
 
                     float angle_weight = cal_angle_based_weight(this_normal, neighbor_normal);
                     if (i == neighbors[j]) {
@@ -2500,7 +2221,7 @@ void reconstruct_single(HMesh::Manifold& output) {
                     //g_angle.add_edge(i, neighbors[j], angle_weight);
                 }
             }
-            std::vector<int> component_id(in_pc.vertices.size());
+            std::vector<int> component_id(org_vertices.size());
 
             std::vector<AMGraph::NodeSet> components_vec;
 
@@ -2512,15 +2233,13 @@ void reconstruct_single(HMesh::Manifold& output) {
             SimpGraph mst_angle;
             minimum_spanning_tree(g_angle, 0, mst_angle);
 
-            correct_normal_orientation(mst_angle, in_pc.normals);
+            correct_normal_orientation(mst_angle, org_normals);
         }
 
-        find_components(in_pc.vertices, component_vertices, in_smoothed_v,
-            component_smoothed_v, in_pc.normals, component_normals, kdTree,
+        find_components(org_vertices, component_vertices, in_smoothed_v,
+            component_smoothed_v, org_normals, component_normals, kdTree,
             theta, r);
 
-        in_pc.vertices.clear();
-        in_pc.normals.clear();
         in_smoothed_v.clear();
     }
 
@@ -2533,8 +2252,6 @@ void reconstruct_single(HMesh::Manifold& output) {
         std::vector<Point> vertices = component_vertices[component_id];
         std::vector<Vector> normals = component_normals[component_id];
         std::vector<Point> smoothed_v = component_smoothed_v[component_id];
-        std::string out_component_name = out_name +
-            "_component_" + std::to_string(component_id);
 
         std::vector<NodeID> indices(smoothed_v.size());
         std::iota(indices.begin(), indices.end(), 0);
@@ -2585,12 +2302,6 @@ void reconstruct_single(HMesh::Manifold& output) {
 
         recon_timer.end("Build MST");
 
-        // Export MST
-        if (isDebug) {
-            std::string out_path = out_root_path + "/" + ("MST_" + out_component_name + "_C.obj");
-            export_graph(mst, out_path);
-        }
-
         // Initialize face loop label
         mst.etf.reserve(6 * vertices.size() - 11);
         init_face_loop_label(mst);
@@ -2626,15 +2337,6 @@ void reconstruct_single(HMesh::Manifold& output) {
             }
             showProgressBar(1.0);
             std::cout << std::endl;
-            //std::cout << inserted_edge << std::endl;
-
-            // Output
-            if (exp_genus != 0 && isDebug) {
-                std::string out_path = out_root_path + "/" + ("Beforehandle_" + out_component_name + ".obj");
-                export_obj(vertices, mst, out_path, faces);
-                out_path = out_root_path + "/" + ("Graph_beforehandle_" + out_component_name + ".obj");
-                export_graph(mst, out_path);
-            }
         }
 
         // Create handles & Triangulation
@@ -2642,33 +2344,18 @@ void reconstruct_single(HMesh::Manifold& output) {
             mst.isFinal = true;
             std::vector<NodeID> connected_handle_root;
             connect_handle(smoothed_v, kdTree, mst, connected_handle_root, betti_1);
-            if (isDebug) {
-                std::string out_path = out_root_path + "/" + ("handle_" + out_component_name + ".obj");
-                export_edges(mst, connected_handle_root, out_path);
-            }
             isFaceLoop = false;
             triangulate(faces, mst, kdTree, isFaceLoop, isEuclidean, connection_max_length, connected_handle_root, betti_1);
         }
 
         betti_1.push_back(bettiNum_1);
-
-        // Export betti_1 : Interesting experiment with betti number.
-        //IO.export_betti(betti_1, out_root_path / ("betti_" + out_component_name + ".txt"));
-
-        // Output
-        std::string out_path = out_root_path + "/" + (out_component_name + ".obj");
-        export_obj(vertices, mst, out_path, faces);
-        if (isDebug) {
-            out_path = out_root_path + "/" + ("Graph_" + out_component_name + ".obj");
-            export_graph(mst, out_path, vertices);
-        }
         HMesh::Manifold res;
         // Extract vertex position
         std::vector<double> pos;
         for (int i = 0; i < mst.no_nodes(); i++) {
-            pos.push_back(mst.m_vertices[i].coords[0]);
-            pos.push_back(mst.m_vertices[i].coords[1]);
-            pos.push_back(mst.m_vertices[i].coords[2]);
+            pos.push_back(vertices[i][0]);
+            pos.push_back(vertices[i][1]);
+            pos.push_back(vertices[i][2]);
         }
 
         std::vector<int> mesh_faces(faces.size(), 3);
