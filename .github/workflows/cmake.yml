@@ -66,10 +66,5 @@ jobs:
     - name: Packaging
       uses: actions/upload-artifact@v4
       with:
-<<<<<<< HEAD
-        name: build_${{matrix.os}}
-        path: ${{github.workspace}}/build_${{matrix.os}}
-=======
         name: build-products-${{ matrix.os }}
         path: ${{github.workspace}}/build/
->>>>>>> origin/master
