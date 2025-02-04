@@ -645,7 +645,7 @@ class MeshDistance:
     """ This class allows you to compute the distance from any point in space to
     a Manifold (which must be triangulated). The constructor creates an instance
     based on a specific mesh, and the signed_distance function computes the actual distance. """
-    def __init__(self,m):
+    def __init__(self,m: Manifold):
         self.obj = lib_py_gel.MeshDistance_new(m.obj)
     def __del__(self):
         lib_py_gel.MeshDistance_delete(self.obj)

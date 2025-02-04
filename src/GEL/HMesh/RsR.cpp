@@ -1,3 +1,4 @@
+#include <sstream>
 #include "RsR.h"
 static bool isGTNormal = false;
 static bool isEuclidean = true;
@@ -17,6 +18,7 @@ static std::string out_name;
 static std::string mode;
 static RsR_Timer recon_timer;
 static int bettiNum_1 = 0;
+
 
 struct m_cmp {
     bool operator()(const std::pair<std::vector<NodeID>, float>& left,
@@ -687,7 +689,7 @@ void weighted_smooth(const std::vector<Point>& vertices,
             double tangential_dist = 0.;
             if (tangential_square > 0.)
                 tangential_dist = std::sqrt(tangential_square);
-            if (!isfinite(tangential_dist)) {
+            if (!std::isfinite(tangential_dist)) {
                 std::cout << n_dist << " " << vertical << std::endl;
                 std::cout << "error" << std::endl;
             }
@@ -707,7 +709,7 @@ void weighted_smooth(const std::vector<Point>& vertices,
         if (weight_sum == 0.)
             weight_sum = 1.;
         amp_sum /= weight_sum;
-        if (!isfinite(amp_sum))
+        if (!std::isfinite(amp_sum))
             std::cout << "error" << std::endl;
         Vector move = amp_sum * normal;
         smoothed_v.push_back(vertex + move);
@@ -746,7 +748,7 @@ void estimate_normal(const std::vector<Point>& vertices,
                 neighbor_coords.push_back(vertices[idx]);
             }
             Vector normal = estimateNormal(neighbor_coords);
-            if (isnan(normal.length())) {
+            if (std::isnan(normal.length())) {
                 std::cout << neighbors.size() << std::endl;
                 std::cout << "error" << std::endl;
             }

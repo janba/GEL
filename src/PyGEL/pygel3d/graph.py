@@ -1,7 +1,8 @@
 """ This module provides a Graph class and functionality for skeletonization using graphs. """
 import ctypes as ct
 import numpy as np
-from pygel3d import hmesh, lib_py_gel, IntVector
+from pygel3d import lib_py_gel, IntVector
+from pygel3d.hmesh import Manifold
 from random import shuffle
 
 class Graph:
@@ -70,7 +71,7 @@ class Graph:
         lib_py_gel.Graph_merge_nodes(self.obj, n0, n1, avg_pos)
 
 
-def from_mesh(m):
+def from_mesh(m: Manifold):
     """ Creates a graph from a mesh. The argument, m, is the input mesh,
     and the function returns a graph with the same vertices and edges
     as m."""
@@ -88,31 +89,31 @@ def load(fn):
         return g
     return None
 
-def save(fn, g):
+def save(fn, g: Graph):
     """ Save graph to a file. The first argument, fn, is the file name,
     and g is the graph. This function returns True if saving happened and
     False otherwise. """
     s = ct.c_char_p(fn.encode('utf-8'))
     return lib_py_gel.graph_save(g.obj, s)
 
-def to_mesh_cyl(g, fudge=0.0):
+def to_mesh_cyl(g: Graph, fudge=0.0):
     """ Creates a Manifold mesh from the graph. The first argument, g, is the
     graph we want converted, and fudge is a constant that is used to increase the radius
     of every node. This is useful if the radii are 0. """
-    m = hmesh.Manifold()
+    m = Manifold()
     lib_py_gel.graph_to_mesh_cyl(g.obj, m.obj, fudge)
     return m
 
-def to_mesh_iso(g, fudge=0.0, res=256):
+def to_mesh_iso(g: Graph, fudge=0.0, res=256):
     """ Creates a Manifold mesh from the graph. The first argument, g, is the
     graph we want converted, and fudge is a constant that is used to increase the radius
     of every node. This is useful if the radii are 0. """
-    m = hmesh.Manifold()
+    m = Manifold()
     lib_py_gel.graph_to_mesh_iso(g.obj, m.obj, fudge, res)
     return m
 
 
-def smooth(g, iter=1, alpha=1.0):
+def smooth(g: Graph, iter=1, alpha=1.0):
     """ Simple Laplacian smoothing of a graph. The first argument is the Graph, g, iter
     is the number of iterations, and alpha is the weight. If the weight is high,
     each iteration causes a lot of smoothing, and a high number of iterations
@@ -120,7 +121,7 @@ def smooth(g, iter=1, alpha=1.0):
     effect is more global than local. """
     lib_py_gel.graph_smooth(g.obj, iter, alpha)
 
-def edge_contract(g, dist_thresh):
+def edge_contract(g: Graph, dist_thresh):
     """ Simplifies a graph by contracting edges. The first argument, g, is the graph,
     and only edges shorter than dist_thresh are contracted. When an edge is contracted
     the merged vertices are moved to the average of their former positions. Thus,
@@ -130,14 +131,14 @@ def edge_contract(g, dist_thresh):
     until no more contractions are possible. Returns total number of contractions. """
     return lib_py_gel.graph_edge_contract(g.obj, dist_thresh)
 
-def prune(g):
+def prune(g; Graph):
     """ Prune leaves of a graph. The graph, g, is passed as the argument. This function
         removes leaf nodes (valency 1) whose only neighbour has valency > 2. In practice
         such isolated leaves are frequently spurious if the graph is a skeleton. Does not
         return a value. """
     lib_py_gel.graph_prune(g.obj)
     
-def saturate(g, hops=2, dist_frac=1.001, rad=1e300):
+def saturate(g: Graph, hops=2, dist_frac=1.001, rad=1e300):
     """ Saturate the graph with edges. This is not a complete saturation. Edges are
     introduced between a vertex and other vertices that are reachable in hops steps, i.e.
     hops-order neighbors. dist_frac and rad are parameters used to govern the precise
@@ -147,7 +148,7 @@ def saturate(g, hops=2, dist_frac=1.001, rad=1e300):
     two parameters make no difference. """
     lib_py_gel.graph_saturate(g.obj, hops, dist_frac, rad)
     
-def LS_skeleton(g, sampling=True):
+def LS_skeleton(g: Graph, sampling=True):
     """ Skeletonize a graph using the local separators approach. The first argument,
         g, is the graph, and, sampling indicates whether we try to use all vertices
         (False) as starting points for finding separators or just a sampling (True).
@@ -157,7 +158,7 @@ def LS_skeleton(g, sampling=True):
     lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, mapping.obj, sampling)
     return skel
     
-def LS_skeleton_and_map(g, sampling=True):
+def LS_skeleton_and_map(g: Graph, sampling=True):
     """ Skeletonize a graph using the local separators approach. The first argument,
         g, is the graph, and, sampling indicates whether we try to use all vertices
         (False) as starting points for finding separators or just a sampling (True).
@@ -168,7 +169,7 @@ def LS_skeleton_and_map(g, sampling=True):
     lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, mapping.obj, sampling)
     return skel, mapping
 
-def MSLS_skeleton(g, grow_thresh=64):
+def MSLS_skeleton(g: Graph, grow_thresh=64):
     """ Skeletonize a graph using the multi-scale local separators approach. The first argument,
         g, is the graph, and, sampling indicates whether we try to use all vertices
         (False) as starting points for finding separators or just a sampling (True).
@@ -178,7 +179,7 @@ def MSLS_skeleton(g, grow_thresh=64):
     lib_py_gel.graph_MSLS_skeleton(g.obj, skel.obj, mapping.obj, grow_thresh)
     return skel
     
-def MSLS_skeleton_and_map(g, grow_thresh=64):
+def MSLS_skeleton_and_map(g: Graph, grow_thresh=64):
     """ Skeletonize a graph using the multi-scale local separators approach. The first argument,
         g, is the graph, and, sampling indicates whether we try to use all vertices
         (False) as starting points for finding separators or just a sampling (True).
@@ -190,7 +191,7 @@ def MSLS_skeleton_and_map(g, grow_thresh=64):
     return skel, mapping
 
 
-def front_skeleton_and_map(g, colors, intervals=100):
+def front_skeleton_and_map(g: Graph, colors, intervals=100):
     """ Skeletonize a graph using the front separators approach. The first argument,
         g, is the graph, and, colors is an nD array where each column contains a sequence
         of floating point values - one for each node. We can have as many columns as needed
@@ -208,7 +209,7 @@ def front_skeleton_and_map(g, colors, intervals=100):
     lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel, mapping
 
-def front_skeleton(g, colors, intervals=100):
+def front_skeleton(g: Graph, colors, intervals=100):
     """ Skeletonize a graph using the front separators approach. The first argument,
         g, is the graph, and, colors is a nD array where each column contains a sequence
         of floating point values - one for each node. We can have as many columns as needed
@@ -226,7 +227,7 @@ def front_skeleton(g, colors, intervals=100):
     lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel
 
-def combined_skeleton_and_map(g, colors, intervals=100):
+def combined_skeleton_and_map(g: Graph, colors, intervals=100):
     """ Skeletonize a graph using both the front separators approach and the multi scale local separators.
         The first argument, g, is the graph, and, colors is an nD array where each column contains a sequence
         of floating point values - one for each node. We can have as many columns as needed
@@ -244,7 +245,7 @@ def combined_skeleton_and_map(g, colors, intervals=100):
     lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel, mapping
 
-def combined_skeleton(g, colors, intervals=100):
+def combined_skeleton(g: Graph, colors, intervals=100):
     """ Skeletonize a graph using both the front separators approach and the multi scale local separators.
         The first argument, g, is the graph, and, colors is an nD array where each column contains a sequence
         of floating point values - one for each node. We can have as many columns as needed
@@ -262,7 +263,7 @@ def combined_skeleton(g, colors, intervals=100):
     lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel
 
-def minimum_spanning_tree(g, root_node=0):
+def minimum_spanning_tree(g: Graph, root_node=0):
     """ Compute the minimum spanning tree of g using Prim's algorithm.
     The second argument is the root node to start from. The spanning tree
     of the connected component containing the root node is returned. """
@@ -270,8 +271,15 @@ def minimum_spanning_tree(g, root_node=0):
     lib_py_gel.graph_minimum_spanning_tree(g.obj, mst.obj, root_node)
     return mst
 
-def close_chordless_cycles(g, node=None, hops=5, rad=None):
-    """ This function closes chordless cycles. A chordless cycle is a cycle in a graph such that two nodes that belong to the cycle are not connected unless they are adjacent in the cycle. The first argument is the graph, g, the second argument is the starting node. If none is provided, the procedure is executed for all nodes. hops indicates how far from the starting node we venture in the search for cycles. Finally, rad (if provided) indicates how far away the farthest node in the cycle is allowed to be."""
+def close_chordless_cycles(g: Graph, node=None, hops=5, rad=None):
+    """ This function closes chordless cycles. A chordless cycle is a 
+    cycle in a graph such that two nodes that belong to the cycle are 
+    not connected unless they are adjacent in the cycle. The first 
+    argument is the graph, g, the second argument is the starting node. 
+    If none is provided, the procedure is executed for all nodes. hops 
+    indicates how far from the starting node we venture in the search 
+    for cycles. Finally, rad (if provided) indicates how far away the 
+    farthest node in the cycle is allowed to be."""
     if rad is None:
         rad = g.average_edge_length()
     if node is None:

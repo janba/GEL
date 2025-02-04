@@ -1,5 +1,7 @@
 """ This modules provides an OpenGL based viewer for graphs and meshes """
-from pygel3d import hmesh, graph, lib_py_gel
+from pygel3d import lib_py_gel
+from pygel3d.hmesh import Manifold
+from pygel3d.graph import Graph
 import ctypes as ct
 import numpy as np
 from os import getcwd, chdir
@@ -25,7 +27,7 @@ try:
             chdir(current_directory) # Necessary because init_glfw changes cwd
         def __del__(self):
             lib_py_gel.GLManifoldViewer_delete(self.obj)
-        def display(self, m, g=None, mode='w', smooth=True, bg_col=[0.3,0.3,0.3], data=None, reset_view=False, once=False):
+        def display(self, m: Manifold, g: Graph=None, mode='w', smooth=True, bg_col=[0.3,0.3,0.3], data=None, reset_view=False, once=False):
             """ Display a mesh
 
             Args:
@@ -66,14 +68,14 @@ try:
             data_a = data_ct.data_as(ct.POINTER(ct.c_double))
             bg_col_ct = np.array(bg_col,dtype=ct.c_float).ctypes
             bg_col_a = bg_col_ct.data_as(ct.POINTER(ct.c_float*3))
-            if isinstance(m,graph.Graph):
+            if isinstance(m, Graph):
                 g = m
                 m = None
-            if isinstance(m,hmesh.Manifold) and isinstance(g,graph.Graph):
+            if isinstance(m,Manifold) and isinstance(g, Graph):
                 lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, g.obj, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
-            elif isinstance(m,hmesh.Manifold):
+            elif isinstance(m,Manifold):
                 lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, 0, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
-            elif isinstance(g,graph.Graph):
+            elif isinstance(g,Graph):
                 lib_py_gel.GLManifoldViewer_display(self.obj, 0, g.obj, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
                 
         def annotation_points(self):
