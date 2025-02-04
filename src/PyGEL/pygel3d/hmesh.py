@@ -14,6 +14,7 @@ from pygel3d import lib_py_gel, IntVector, Vec3dVector, spatial
 from scipy.sparse import csc_matrix, vstack
 from scipy.sparse.linalg import lsqr
 from collections import defaultdict
+from scipy.spatial import KDTree
 
 
 class Manifold:
@@ -409,7 +410,7 @@ def load(fn):
 
 def save(fn, m):
     """ Save a Manifold, m, to an X3D/OBJ/OFF file. """
-    name, extension = splitext(fn)
+    _, extension = splitext(fn)
     if extension.lower() == ".x3d":
         x3d_save(fn, m)
     elif extension.lower() == ".obj":
@@ -530,10 +531,11 @@ def butterfly_subdivide(m):
     """ Butterfly subidiviosn on m. An interpolatory scheme. Creates the same connectivity as Loop. """
     lib_py_gel.butterfly_subdivide(m.obj)
 
-def cc_smooth(m):
+def cc_smooth(m,iter=1):
     """ If called after cc_split, this function completes a step of Catmull-Clark
     subdivision of m."""
-    lib_py_gel.cc_smooth(m.obj)
+    for _ in range(iter):
+        lib_py_gel.cc_smooth(m.obj)
 
 def cc_subdivide(m):
     """ Perform a full Catmull-Clark subdivision step on mesh m. """
@@ -618,6 +620,21 @@ def triangulate(m, clip_ear=True):
         lib_py_gel.ear_clip_triangulate(m.obj)
     else:
         lib_py_gel.shortest_edge_triangulate(m.obj)
+        
+def extrude_faces(m, fset):
+    fvec = np.asarray(list(fset), dtype=ct.c_int)
+    face_loop_out = IntVector()
+    lib_py_gel.extrude_faces(m.obj,fvec,len(fvec), face_loop_out.obj)
+    fset_out = set(face_loop_out)
+    del face_loop_out
+    return fset_out
+    
+def kill_face_loop(m):
+    lib_py_gel.kill_face_loop(m.obj)
+    
+def kill_degenerate_face_loops(m, thresh=0.01):
+    lib_py_gel.kill_degenerate_face_loops(m.obj, thresh)
+
 
 def skeleton_to_feq(g, node_radii = None, symmetrize=True):
     """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node.
@@ -667,55 +684,160 @@ def laplacian_matrix(m):
 def inv_correspondence_leqs(m, ref_mesh):
     m_pos = m.positions()
     ref_pos = ref_mesh.positions()
-
-    m_tree = spatial.I3DTree()
-    for v in m.vertices():
-        m_tree.insert(m_pos[v],v)
-    m_tree.build()
-
+    m_tree = KDTree(m_pos)
     m_target_pos = np.zeros(m.positions().shape)
     m_cnt = np.zeros(m.no_allocated_vertices())
-    for r_id in ref_mesh.vertices():
-        query_pt = ref_pos[r_id]
-        closest_pt_obj = m_tree.closest_point(query_pt,1e32)
-        if closest_pt_obj is not None:
-            key,m_id = closest_pt_obj
-            r_norm = ref_mesh.vertex_normal(r_id)
-            m_norm = m.vertex_normal(m_id)
-            dot_prod = m_norm @ r_norm
-            if dot_prod > 0.5:
-                v = query_pt - m_pos[m_id]
-                wgt = dot_prod - 0.5
-                m_target_pos[m_id] += wgt*query_pt
-                m_cnt[m_id] += wgt
-                
+    _, m_indices = m_tree.query(ref_pos[ref_mesh.vertices()])
+    for r_id, m_id in enumerate(m_indices):
+        r_norm = ref_mesh.vertex_normal(r_id)
+        m_norm = m.vertex_normal(m_id)
+        dot_prod = m_norm @ r_norm
+        if (dot_prod > 0.5):
+            v = ref_pos[r_id] - m_pos[m_id]
+            wgt = dot_prod-0.5
+            m_target_pos[m_id] += wgt*ref_pos[r_id]
+            m_cnt[m_id] += wgt
+
     N = m.no_allocated_vertices()
     A_list = []
     b_list = []
     for vid in m.vertices():
-        if m_cnt[vid] > 0.0:
+        if (m_cnt[vid] > 0.0):
             row_a = np.zeros(N)
             row_a[vid] = 1.0
             A_list.append(row_a)
             b_list.append(m_target_pos[vid]/m_cnt[vid])
     return csc_matrix(np.array(A_list)), np.array(b_list)
+    
+def distance_gradient(mesh_dist, p, eps=1e-3):
+    """Compute the gradient of the distance field given by mesh_dist at point p"""
+    grad = np.zeros(3)
+    for i in range(3):
+        p1 = np.copy(p)
+        p2 = np.copy(p)
+        p1[i] += eps
+        p2[i] -= eps
+        d1 = mesh_dist.signed_distance(p1) 
+        d2 = mesh_dist.signed_distance(p2)
+        grad[i] = (d1-d2) / (2 * eps)
+        if grad[i] > 1.0:
+            print("diff issue: ", d1, d2, p, i)
+    return grad
 
-def fit_mesh_to_ref(m, ref_mesh, iter = 10, dist_wt = 1.0, lap_wt = 0.3):
+# def inflate_mesh(m: Manifold, mesh_dist):
+#     pos = m.positions()
+#     ael = average_edge_length(m)
+#     max_dist = ael
+#     eps = 0.05*ael
+#     disp = np.zeros((m.no_allocated_faces(), 3))
+#     for f in m.faces():
+#         p = m.centre(f)
+#         g = distance_gradient(mesh_dist, p, eps)
+#         n = m.face_normal(f)
+#         k = (n@g)
+#         d = max(-max_dist, min(max_dist, mesh_dist.signed_distance(p)))
+#         disp[f] = - abs(k) * d * n
+#     for v in m.vertices():
+#         disp_v = np.zeros(3)
+#         C_f = m.circulate_vertex(v, mode='f')
+#         for f in C_f:
+#             disp_v += disp[f]
+#         pos[v] += disp_v / len(C_f)
+
+def inflate_mesh(m: Manifold, mesh_dist):
+    pos = m.positions()
+    ael = average_edge_length(m)
+    max_dist = ael
+    eps = 0.05*ael
+    new_pos = np.array(pos)
+    for v in m.vertices():
+        p = pos[v]
+        g = distance_gradient(mesh_dist, p, eps)
+        n = m.vertex_normal(v)
+        k = max(0.0, min(1.0, n@g))
+        d = max(-k*max_dist, min(k*max_dist, mesh_dist.signed_distance(p)))
+        new_pos[v] = pos[v] - d * n
+    pos[:] = new_pos
+
+
+def barycentrics(p, p0, p1, p2):
+    """ Compute the barycentric coordinates of point p with respect to the triangle p0, p1, p2. """
+    v0 = p1 - p0
+    v1 = p2 - p1
+    v2 = p0 - p2
+
+    # Project p onto the plane of the triangle
+    normal = np.cross(v0, -v2)
+    normal /= np.linalg.norm(normal)
+    p_proj = p - np.dot(p - p0, normal) * normal
+    
+    # Compute barycentric coordinates
+    u = normal@np.cross(v1, p_proj-p1)
+    v = normal@np.cross(v2, p_proj-p2)
+    w = normal@np.cross(v0, p_proj-p0)
+    s = u+v+w
+    return np.array([u/s, v/s, w/s])
+
+
+def inv_map(m, ref, ref_orig):
+    """ Finds position of vertices from mesh m in faces of ref. Then maps those
+    positions to the corresponding triangles of ref_orig using barycentric coordinates. """
+    pos_m = m.positions()
+    pos_ref = ref.positions()
+    pos_ref_orig = ref_orig.positions()
+    
+    T = KDTree(pos_ref)
+    dists, closest_ref_verts = T.query(pos_m)
+    for v in m.vertices():
+        p = pos_m[v]
+        v_ref = closest_ref_verts[v]
+        pos_m[v] = pos_ref_orig[v_ref]
+    
+def fit_mesh_mmh(m, ref_mesh, iterations=10):
+    """ Fits a mesh m to ref_mesh by iteratively moving m towards ref_mesh and vice versa."""
+    mrc = Manifold(ref_mesh)
+    triangulate(mrc, clip_ear=False)
+    print("Triangulated. Now fitting")
+    taubin_smooth(mrc, iter=30)
+    obj_save(f"mrc.obj", mrc)
+    mesh_dist = MeshDistance(mrc)
+    for _ in range(iterations):
+        print("Inflate mc")
+        cc_smooth(m,1)
+        inflate_mesh(m, mesh_dist=mesh_dist)
+        obj_save(f"mc.obj", m)
+    # print("")
+    # print("Doing the MMH map")
+    # inv_map(m,mrc,ref_mesh)
+    
+    
+def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wts = None, lap_wt = 0.3):
     """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
-
     v_pos = m.positions()
-    for i in range(iter):
-        Ai, bi = inv_correspondence_leqs(m, ref_mesh)
-        lap_matrix = laplacian_matrix(m)
-        lap_b = lap_matrix @ v_pos
-        final_A = vstack([lap_wt*lap_matrix, dist_wt*Ai])
-        final_b = np.vstack([lap_wt*lap_b, dist_wt*bi])
-        opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
-        opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
-        opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
-        v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
-        regularize_quads(m, w=0.5, shrink=0.8, iter=3)
-    return m
+    ref_pos = ref_mesh.positions()
+    A_list = []
+    b_list = []
+    N = len(m.vertices())
+    for vid in m.vertices():
+        row_a = np.zeros(N)
+        row_a[vid] = dist_wts[vid]
+        A_list.append(row_a)
+        b_list.append(ref_pos[vid]*dist_wts[vid])
+    Ai, bi = csc_matrix(np.array(A_list)), np.array(b_list)
+    lap_matrix = laplacian_matrix(m)
+    lap_b = lap_matrix @ v_pos
+    final_A = vstack([lap_wt*lap_matrix, Ai])
+    final_b = np.vstack([0*lap_b, bi])
+    opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
+    opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
+    opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
+    v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
+
+def stable_marriage_registration(m, m_ref):
+    lib_py_gel.stable_marriage_registration(m.obj, m_ref.obj)
+
+
+
 
 class MeshDistance:
     """ This class allows you to compute the distance from any point in space to

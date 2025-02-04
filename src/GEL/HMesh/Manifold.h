@@ -38,10 +38,14 @@ namespace HMesh
     
     class Manifold
     {
+        ConnectivityKernel kernel;
+
     public:
-        
         /// Vector type used for positions of vertices.
         typedef CGLA::Vec3d Vec;
+        
+        /// The vector of positions
+        VertexAttributeVector<Vec> positions;
         
         /// Default constructor
         Manifold();
@@ -107,11 +111,11 @@ namespace HMesh
         }
         
         /// Iterator to first VertexID, optional argument defines if unused items should be skipped
-        VertexIDIterator vertices_begin(bool skip = true) const { return kernel.vertices_begin();}
+        VertexIDIterator vertices_begin(bool skip = true) const { return kernel.vertices_begin(skip);}
         /// Iterator to first FaceID, optional argument defines if unused items should be skipped
-        FaceIDIterator faces_begin(bool skip = true) const { return kernel.faces_begin();}
+        FaceIDIterator faces_begin(bool skip = true) const { return kernel.faces_begin(skip);}
         /// Iterator to first HalfEdgeID, optional argument defines if unused items should be skipped
-        HalfEdgeIDIterator halfedges_begin(bool skip = true) const { return kernel.halfedges_begin();}
+        HalfEdgeIDIterator halfedges_begin(bool skip = true) const { return kernel.halfedges_begin(skip);}
         
         /// Iterator to past the end VertexID
         VertexIDIterator vertices_end() const { return kernel.vertices_end();}
@@ -218,7 +222,7 @@ namespace HMesh
         /// Return reference to position given by VertexID
         Vec& pos(VertexID id);
         /// Return const reference to position given by VertexID
-        const Vec& pos(VertexID id) const;
+        Vec pos(VertexID id) const;
         
         /// Return a reference to the entire positions attribute vector
         VertexAttributeVector<Vec>& positions_attribute_vector();
@@ -275,10 +279,6 @@ namespace HMesh
 
     private:
         
-        ConnectivityKernel kernel;
-        
-        VertexAttributeVector<Vec> positions;
-
         // private template for building the manifold from various types
         template<typename size_type, typename float_type, typename int_type>
         VertexAttributeVector<int_type> build_template(size_type no_vertices,
@@ -421,6 +421,9 @@ namespace HMesh
     /// Compute the area of a face. 
     double area(const Manifold& m, FaceID f);
 
+    /// Compute the area of all faces that are incident on the vertex v
+    double one_ring_area(const Manifold& m, VertexID v);
+
     /// Compute the perimeter of a face. 
     double perimeter(const Manifold& m, FaceID f);
 
@@ -438,7 +441,13 @@ namespace HMesh
         return 0.5 * (m.pos(w.vertex()) + m.pos(w.opp().vertex()));
     }
 
+    /// Compute the barycenter of all vertices of mesh
+    Manifold::Vec barycenter(const Manifold& m);
 
+
+    /** Compute the mesh volume. Could be slightly inaccurate since it does not take
+     non-flat faces into account */
+    double volume(const Manifold& m);
 
     /*******************************************************************
     * Manifold code
@@ -448,7 +457,7 @@ namespace HMesh
 
     inline Manifold::Vec& Manifold::pos(VertexID id)
     { return positions[id]; }
-    inline const Manifold::Vec& Manifold::pos(VertexID id) const
+    inline Manifold::Vec Manifold::pos(VertexID id) const
     { return positions[id]; }
     
     inline VertexAttributeVector<Manifold::Vec>& Manifold::positions_attribute_vector()

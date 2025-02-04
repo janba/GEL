@@ -66,7 +66,7 @@ class Triangle
 
 	const float area() const 
 		{
-			return 0.5 * (cross(edge[0],-edge[2])).length();
+			return 0.5f * (cross(edge[0],-edge[2])).length();
 		}
 
 	const CGLA::Vec3f get_centre() const 

@@ -26,7 +26,7 @@ namespace HMesh
     /** \brief Remove needles from a manifold consisting of only triangles.
     A needle is a triangle with a single very short edge. It is moved by collapsing the short edge. 
     The thresh parameter sets the length threshold as a fraction of the average edge length.		 */
-    void remove_needles(Manifold& m, float thresh=0.1, bool averagePositions = true);
+    void remove_needles(Manifold& m, float thresh=0.1f, bool averagePositions = true);
     
     /** \brief Stitch together edges whose endpoints coincide geometrically. 
      This function allows you to create a mesh as a bunch of faces and then stitch these together

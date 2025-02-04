@@ -1055,20 +1055,8 @@ namespace GLGraphics {
                 return;
             }
         
-        Vec3d c;
-        float r;
-        bsphere(m, c, r);
-
-        double V = 0.0;
-        for(auto f: m.faces()) {
-            double A = area(m, f);
-            Vec3d n = normal(m, f);
-            Vec3d p = m.pos(m.walker(f).vertex());
-            double h = dot(n, p-c);
-            V += A*h;
-        }
-        V /= 3.0;
-        me->printf("Volume = %f", V);
+        double vol = volume(m);
+        me->printf("Volume = %f", vol);
     }
     
 

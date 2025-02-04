@@ -766,8 +766,9 @@ namespace HMesh
             return InvalidVertexID;
         
         // Slitting always creates a new vertex.
+
         VertexID v_new = kernel.add_vertex();
-        pos(v_new) = pos(v);
+        pos(v_new) = Vec3d(pos(v));
         
         // Go counter clockwise from h_out to h_in. Set all
         // halfedges that used to point to v to point to v_new
@@ -1568,6 +1569,15 @@ namespace HMesh
             area += 0.5 * dot(norm,cross(vertices[i]-vertices[0], vertices[(i+1 )]-vertices[0]));
         return area;
     }
+
+    double one_ring_area(const Manifold& m, VertexID v) {
+        double a=0;
+        for(auto f: m.incident_faces(v)) {
+            a += area(m, f);
+        }
+        return a;
+    }
+
     
     Manifold::Vec centre(const Manifold& m, FaceID f)
     {
@@ -1602,6 +1612,30 @@ namespace HMesh
     {
         Walker w = m.walker(h);
         return (m.pos(w.vertex()) - m.pos(w.opp().vertex())).length();
+    }
+
+    Manifold::Vec barycenter(const Manifold& m) {
+        Manifold::Vec c(0);
+        for (auto v: m.vertices()) {
+            c += m.pos(v);
+        }
+        return c/m.no_vertices();
+    }
+
+    double volume(const Manifold& m) {
+        Vec3d c;
+        float r;
+        bsphere(m, c, r);
+
+        double vol = 0.0;
+        for(auto f: m.faces()) {
+            double A = area(m, f);
+            Vec3d n = normal(m, f);
+            Vec3d p = m.pos(m.walker(f).vertex());
+            double h = dot(n, p-c);
+            vol += A*h/3.0;
+        }
+        return vol;
     }
 
 }

@@ -14,7 +14,7 @@ namespace HMesh {
 
     using namespace std;
     
-    DijkstraOutput Dijkstra(const Manifold& m, VertexID v, const VertexSet region)
+    DijkstraOutput Dijkstra(const Manifold& m, VertexID v0, const VertexSet region)
     {
         DijkstraOutput d_out(m.allocated_vertices());
         
@@ -22,13 +22,14 @@ namespace HMesh {
 
         auto& dist = d_out.dist;
         auto& predecessor = d_out.pred;
+        auto& pred_edge = d_out.pred_edge;
         auto& leaves = d_out.leaves;
         
         VertexAttributeVector<int> frozen(m.allocated_vertices(), 0);
-        if(in_region(v)) {
-            dist[v]=0;
+        if(in_region(v0)) {
+            dist[v0]=0;
             priority_queue<pair<double,VertexID>> pq;
-            pq.push(make_pair(-dist[v], v));
+            pq.push(make_pair(-dist[v0], v0));
             double max_dist;
             while(!pq.empty())
             {
@@ -40,7 +41,8 @@ namespace HMesh {
                     frozen[v]=1;
                     
                     bool is_leaf = true;
-                    circulate_vertex_ccw(m,v,[&](VertexID vc) {
+                    circulate_vertex_ccw(m,v,[&](Walker& w) {
+                        auto vc = w.vertex();
                         auto p_vc = m.pos(vc);
                         if(in_region(vc) && !frozen[vc]) {
                             double d = dist[v] + length(p_vc - p_v);
@@ -48,6 +50,7 @@ namespace HMesh {
                                 dist[vc] = d;
                                 pq.push(make_pair(-d, vc));
                                 predecessor[vc] = v;
+                                pred_edge[vc] = w.halfedge();
                                 is_leaf = false;
                             }
                         }

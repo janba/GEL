@@ -17,7 +17,8 @@
 
 #include <stdbool.h>
 
-typedef  char* Manifold_ptr;
+typedef char* Manifold_ptr;
+typedef char* IntVector_ptr;
 typedef char* Graph_ptr;
 
 
@@ -111,6 +112,16 @@ extern "C" {
     DLLEXPORT void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
 
     DLLEXPORT void rsr_recon(const char* path, Manifold_ptr m_ptr);
+
+    DLLEXPORT void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr);
+
+    DLLEXPORT void kill_face_loop(Manifold_ptr _m_ptr);
+
+    DLLEXPORT void kill_degenerate_face_loops(Manifold_ptr _m_ptr, double thresh);
+
+    DLLEXPORT void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
+
+
 #ifdef __cplusplus
 }
 #endif

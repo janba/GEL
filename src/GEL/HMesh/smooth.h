@@ -32,6 +32,11 @@ namespace HMesh
 
     CGLA::Vec3d cot_laplacian(const Manifold& m, VertexID v);
     
+    /// Given a field of normals, fits the faces back to them.
+    void refit_faces_to_normals(HMesh::Manifold& m,
+           const HMesh::FaceAttributeVector<CGLA::Vec3d>& filtered_norms,
+           int iter=1);
+    
     /// Simple laplacian smoothing with an optional weight.
     void laplacian_smooth(HMesh::Manifold& m, float t=1.0f, int iter=1);
 
