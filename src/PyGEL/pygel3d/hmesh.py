@@ -898,9 +898,19 @@ def stable_marriage_registration(m, m_ref):
     """ Register m to m_ref using Gale Shapley """
     lib_py_gel.stable_marriage_registration(m.obj, m_ref.obj)
 
-def rsr_recon(verts, normals, isEuclidean=False, genus=0, k=70,
+def rsr_recon(verts, normals=[], use_Euclidean_distance=False, genus=-1, k=70,
               r=20, theta=60, n=50):
-    """ RsR Reconstruction """
+    """ RsR Reconstruction. The first argument, verts, is the point cloud. The next argument,
+        normals, are the normals associated with the vertices or empty list (default) if normals 
+        need to be estimated during reconstruction. use_Euclidean_distance should be true if we 
+        can use the Euclidean rather than projected distance. Set to true only for noise free 
+        point clouds. genus is used to constrain the genus of the reconstructed object. genus 
+        defaults to -1, meaning unknown genus. k is the number of nearest neighbors for each point,
+        r is the maximum distance to farthest neighbor measured in multiples of average distance, 
+        theta is the threshold on angles between normals: two points are only connected if the angle
+        between their normals is less than theta. Finally, n is the threshold on the distance between 
+        vertices that are connected by handle edges (check paper). For large n, it is harder for 
+        the algorithm to add handles. """
     m = Manifold()
     verts_data = np.asarray(verts, dtype=ct.c_double, order='F')
     n_verts = len(verts)
@@ -909,5 +919,5 @@ def rsr_recon(verts, normals, isEuclidean=False, genus=0, k=70,
         normals = [[]]
     normal_data = np.asarray(normals, dtype=ct.c_double, order='F')
 
-    lib_py_gel.rsr_recon(m.obj, verts_data,normal_data, n_verts, n_normal, isEuclidean,genus,k,r,theta,n)
+    lib_py_gel.rsr_recon(m.obj, verts_data,normal_data, n_verts, n_normal, use_Euclidean_distance,genus,k,r,theta,n)
     return m
