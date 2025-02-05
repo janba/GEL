@@ -10,7 +10,7 @@ import numpy as np
 from math import sqrt
 from numpy import ndarray
 from numpy.linalg import norm
-from pygel3d import lib_py_gel, IntVector
+from pygel3d import lib_py_gel, IntVector, Vec3dVector
 from pygel3d.graph import Graph
 from scipy.sparse import csc_matrix, vstack
 from scipy.sparse.linalg import lsqr
@@ -891,10 +891,17 @@ def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wts = None, lap_wt = 0
 def stable_marriage_registration(m, m_ref):
     lib_py_gel.stable_marriage_registration(m.obj, m_ref.obj)
 
-def rsr_recon(fn):
+def rsr_recon(verts, normals, isEuclidean=False, genus=0, k=70,
+              r=20, theta=60, n=50):
     """ RsR Reconstruction """
     m = Manifold()
-    s = ct.c_char_p(fn.encode('utf-8'))
-    lib_py_gel.rsr_recon(s, m.obj)
+    verts_data = np.asarray(verts, dtype=ct.c_double, order='F')
+    n_verts = len(verts)
+    n_normal = len(normals)
+    if(n_normal==0):
+        normals = [[]]
+    normal_data = np.asarray(normals, dtype=ct.c_double, order='F')
+
+    lib_py_gel.rsr_recon(m.obj, verts_data,normal_data, n_verts, n_normal, isEuclidean,genus,k,r,theta,n)
     return m
 

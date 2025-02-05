@@ -41,6 +41,53 @@ inline bool neighbor_comparator(const m_neighbor_pair& l, const m_neighbor_pair&
     return l.first > r.first;
 }
 
+void remove_duplicate_vertices(std::vector<Point>& vertices,
+    std::vector<Vector>& normals, Tree& kdTree) {
+    std::vector<Point> new_vertices;
+    std::vector<Vector> new_normals;
+    double last_dist = INFINITY;
+    Point last_v(0., 0., 0.);
+    int this_idx = 0;
+    int removed = 0;
+    for (auto& vertex : vertices) {
+        std::vector<NodeID> neighbors;
+        std::vector<double> neighbor_distance;
+        last_dist += (vertex - last_v).length();
+        kNN_search(vertex, kdTree, k, neighbors, neighbor_distance, last_dist, true);
+        last_dist = neighbor_distance[neighbor_distance.size() - 1];
+        last_v = vertex;
+
+        bool isInsert = true;
+        for (int i = 0; i < neighbors.size(); i++) {
+            NodeID idx = neighbors[i];
+            double length = neighbor_distance[i];
+
+            if (this_idx == idx)
+                continue;
+
+            // Remove duplicate vertices
+            if (length < 1e-8 && this_idx != idx) {
+                isInsert = false;
+                removed++;
+                break;
+            }
+            else {
+                break;
+            }
+        }
+        
+        if (isInsert) {
+            new_vertices.push_back(vertex);
+            if (normals.size() != 0)
+                new_normals.push_back(normals[this_idx]);
+        }
+        this_idx++;
+    }
+    std::cout << removed << " duplicate vertices removed." << std::endl;
+    vertices = new_vertices;
+    normals = new_normals;
+    return;
+}
 /**
     * @brief Clamp the value between the upper and lower bound
     *
@@ -846,28 +893,86 @@ void minimum_spanning_tree(const SimpGraph& g, NodeID root, SimpGraph& gn) {
     *
     * @return None
     */
-void correct_normal_orientation(SimpGraph& G_angle, std::vector<Vector>& normals) {
-    std::vector<bool> visited_vertex(G_angle.no_nodes(), false);
+void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
+    Tree& kdTree, std::vector<Vector>& normals) {
+    SimpGraph g_angle;
+    AMGraph::NodeSet sets;
+    //RSGraph g_angle;
+    //g_angle.init(in_pc.vertices);
+    for (int i = 0; i < in_smoothed_v.size(); i++) {
+        sets.insert(g_angle.add_node());
+    }
 
-    // Start from vertex 0
-    std::queue<int> to_visit;
-    to_visit.push(0);
-    while (!to_visit.empty()) {
-        NodeID node_id = to_visit.front();
-        to_visit.pop();
-        visited_vertex[node_id] = true;
-        Vector this_normal = normals[node_id];
-        auto neighbours = G_angle.neighbors(node_id);
-        for (auto vd : neighbours) {
-            if (!visited_vertex[int(vd)]) {
-                to_visit.push(int(vd));
-                Vector neighbor_normal = normals[int(vd)];
-                if (CGLA::dot(this_normal, neighbor_normal) < 0) {
-                    normals[int(vd)] = -normals[int(vd)];
+    // Init angle based graph
+    double last_dist = INFINITY;
+    Point last_v(0., 0., 0.);
+    for (int i = 0; i < in_smoothed_v.size(); i++) {
+        Point vertex = in_smoothed_v[i];
+        Vector this_normal = normals[i];
+
+        std::vector<NodeID> neighbors;
+        std::vector<double> dists;
+        last_dist += (vertex - last_v).length();
+        kNN_search(vertex, kdTree, k, neighbors, dists, last_dist, false);
+        last_dist = dists[dists.size() - 1];
+        last_v = vertex;
+
+        for (int j = 0; j < neighbors.size(); j++) {
+            if (g_angle.find_edge(i, neighbors[j]) != AMGraph::InvalidEdgeID)
+                continue;
+            Vector neighbor_normal = normals[neighbors[j]];
+
+            float angle_weight = cal_angle_based_weight(this_normal, neighbor_normal);
+            if (i == neighbors[j] && j != 0) {
+                std::cout << i << std::endl;
+                std::cout << j << std::endl;
+                int test = 0;
+                for (auto neighbor : neighbors) {
+                    std::cout << neighbor << std::endl;
+                    std::cout << dists[test] << std::endl;
+                    test++;
+                }
+                std::cout << "error" << std::endl;
+            }
+            if (angle_weight < 0)
+                std::cout << "error" << std::endl;
+            g_angle.connect_nodes(i, neighbors[j], angle_weight);
+            //g_angle.add_edge(i, neighbors[j], angle_weight);
+        }
+    }
+
+    std::vector<AMGraph::NodeSet> components_vec;
+
+    components_vec = connected_components(g_angle, sets);
+
+    for (int i = 0; i < components_vec.size(); i++) {
+        SimpGraph mst_angle;
+        NodeID root = *components_vec[i].begin();
+        minimum_spanning_tree(g_angle, root, mst_angle);
+
+        std::vector<bool> visited_vertex(g_angle.no_nodes(), false);
+
+        // Start from root
+        std::queue<int> to_visit;
+        to_visit.push(root);
+        while (!to_visit.empty()) {
+            NodeID node_id = to_visit.front();
+            to_visit.pop();
+            visited_vertex[node_id] = true;
+            Vector this_normal = normals[node_id];
+            auto neighbours = mst_angle.neighbors(node_id);
+            for (auto vd : neighbours) {
+                if (!visited_vertex[int(vd)]) {
+                    to_visit.push(int(vd));
+                    Vector neighbor_normal = normals[int(vd)];
+                    if (CGLA::dot(this_normal, neighbor_normal) < 0) {
+                        normals[int(vd)] = -normals[int(vd)];
+                    }
                 }
             }
         }
     }
+    return;
 }
 
 /**
@@ -2079,13 +2184,18 @@ void build_mst(SimpGraph& g, NodeID root,
 void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertices,
     std::vector<Vector>& org_normals, bool in_isEuclidean, int in_genus, 
     int in_k, int in_r, int in_theta, int in_n) {
-
     isEuclidean = in_isEuclidean;
     exp_genus = in_genus;
     k = in_k;
     r = in_r;
     theta = in_theta;
     step_thresh = in_n;
+    //std::cout << exp_genus << std::endl;
+    //std::cout << k << std::endl;
+    //std::cout << r << std::endl;
+    //std::cout << theta << std::endl;
+    //std::cout << step_thresh << std::endl;
+    //std::cout << org_vertices[0] << std::endl;
 
     recon_timer.create("Whole process");
     recon_timer.create("Initialization");
@@ -2096,7 +2206,6 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
     recon_timer.create("algorithm");
 
     recon_timer.start("Initialization");
-
     // Estimate normals & orientation & weighted smoothing
     recon_timer.start("Estimate normals");
     std::vector<Point> in_smoothed_v;
@@ -2104,8 +2213,17 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
         std::vector<NodeID> indices(org_vertices.size());
         std::iota(indices.begin(), indices.end(), 0);
         // Insert number_of_data_points in the tree
-        Tree kdTree;
+        Tree kdTree, tree_before_remove;
+        build_KDTree(tree_before_remove, org_vertices, indices);
+
+        remove_duplicate_vertices(org_vertices, org_normals, tree_before_remove);
+
+        indices.clear();
+        indices = std::vector<NodeID>(org_vertices.size());
+        std::iota(indices.begin(), indices.end(), 0);
         build_KDTree(kdTree, org_vertices, indices);
+
+
         float diagonal_length;
 
         if (org_normals.size() == 0) {
@@ -2157,7 +2275,6 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
     recon_timer.end("Initialization");
 
     recon_timer.start("algorithm");
-    std::cout << "find components" << std::endl;
     // Find components
     std::vector<std::vector<Point>> component_vertices;
     std::vector<std::vector<Point>> component_smoothed_v;
@@ -2175,66 +2292,13 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
         // 
         // TODO: Seems not considerring the number of connected components when correct orientation!!!
 
+        std::cout << "correct normal orientation" << std::endl;
+
         if (!isGTNormal) {
-            SimpGraph g_angle;
-            AMGraph::NodeSet sets;
-            //RSGraph g_angle;
-            //g_angle.init(in_pc.vertices);
-            for (int i = 0; i < in_smoothed_v.size(); i++) {
-                sets.insert(g_angle.add_node());
-            }
-
-            // Init angle based graph
-            double last_dist = INFINITY;
-            Point last_v(0., 0., 0.);
-            for (int i = 0; i < in_smoothed_v.size(); i++) {
-                Point vertex = in_smoothed_v[i];
-                Vector this_normal = org_normals[i];
-
-                std::vector<NodeID> neighbors;
-                std::vector<double> dists;
-                last_dist += (vertex - last_v).length();
-                kNN_search(vertex, kdTree, k, neighbors, dists, last_dist, true);
-                last_dist = dists[dists.size() - 1];
-                last_v = vertex;
-
-                for (int j = 0; j < neighbors.size(); j++) {
-                    if (g_angle.find_edge(i, neighbors[j]) != AMGraph::InvalidEdgeID)
-                        continue;
-                    Vector neighbor_normal = org_normals[neighbors[j]];
-
-                    float angle_weight = cal_angle_based_weight(this_normal, neighbor_normal);
-                    if (i == neighbors[j]) {
-                        std::cout << i << std::endl;
-                        std::cout << j << std::endl;
-                        int test = 0;
-                        for (auto neighbor : neighbors) {
-                            std::cout << neighbor << std::endl;
-                            std::cout << dists[test] << std::endl;
-                            test++;
-                        }
-                        std::cout << "error" << std::endl;
-                    }
-                    if (angle_weight < 0)
-                        std::cout << "error" << std::endl;
-                    g_angle.connect_nodes(i, neighbors[j], angle_weight);
-                    //g_angle.add_edge(i, neighbors[j], angle_weight);
-                }
-            }
-            std::vector<int> component_id(org_vertices.size());
-
-            std::vector<AMGraph::NodeSet> components_vec;
-
-            components_vec = connected_components(g_angle, sets);
-
-            int num = components_vec.size();
-
-            //std::cout << num << std::endl;
-            SimpGraph mst_angle;
-            minimum_spanning_tree(g_angle, 0, mst_angle);
-
-            correct_normal_orientation(mst_angle, org_normals);
+            correct_normal_orientation(in_smoothed_v, kdTree, org_normals);
         }
+
+        std::cout << "find components" << std::endl;
 
         find_components(org_vertices, component_vertices, in_smoothed_v,
             component_smoothed_v, org_normals, component_normals, kdTree,

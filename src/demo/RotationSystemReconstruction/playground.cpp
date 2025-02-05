@@ -1,4 +1,5 @@
 #include "GEL/HMesh/RsR.h"
+#include "GEL/HMesh/obj_save.h"
 
 struct PointCloud {
     std::vector<Point> vertices;
@@ -128,9 +129,10 @@ int main() {
     PointCloud input;
     std::vector<Vector> normal;
     std::vector<Point> vertices;
-    read_obj("../../data/bunny.obj", input);
+    read_obj("../data/PointClouds/owl-lines.obj", input);
 	HMesh::Manifold output;
 	reconstruct_single(output, input.vertices,
-        input.normals, true);
+        input.normals, false);
+    HMesh::obj_save("some/path/on/your/computer", output);
 	return 0;
 }

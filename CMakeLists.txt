@@ -119,6 +119,6 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/GEL
 # included in the wheel package.
 
 # add the executable
-add_executable(GEL_TEST src/GEL/playground.cpp)
+add_executable(GEL_TEST src/demo/RotationSystemReconstruction/playground.cpp)
 target_link_libraries(GEL_TEST PRIVATE GEL Threads::Threads)
 target_include_directories(GEL_TEST PRIVATE ./src)

@@ -17,6 +17,8 @@
 
 #include <stdbool.h>
 
+#include "Vec3dVector.h"
+
 typedef char* Manifold_ptr;
 typedef char* IntVector_ptr;
 typedef char* Graph_ptr;
@@ -111,7 +113,9 @@ extern "C" {
 
     DLLEXPORT void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
 
-    DLLEXPORT void rsr_recon(const char* path, Manifold_ptr m_ptr);
+    DLLEXPORT void rsr_recon(Manifold_ptr m_ptr, double* verts,
+        double* normals, int v_num, int n_num, bool isEuclidean = false, int genus = 0,
+        int k = 70, int r = 20, int theta = 60, int n = 50);
 
     DLLEXPORT void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr);
 

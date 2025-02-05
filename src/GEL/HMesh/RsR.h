@@ -263,7 +263,8 @@ void minimum_spanning_tree(const SimpGraph& g, NodeID root,
 
 void minimum_spanning_tree(const SimpGraph& g, NodeID root, SimpGraph& gn);
 
-void correct_normal_orientation(SimpGraph& G_angle, std::vector<Vector>& normals);
+void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
+    Tree& kdTree, std::vector<Vector>& normals);
 
 bool register_face(RSGraph& mst, NodeID v1, NodeID v2, std::vector<std::vector<int>>& faces,
     Tree& KDTree, float edge_length);
