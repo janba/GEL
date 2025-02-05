@@ -1,12 +1,11 @@
 """ This is a module with a function, display, that provides functionality for displaying a
     Manifold or a Graph as an interactive 3D model in a Jupyter Notebook. It is based on 
     plotly. """
-from pygel3d import hmesh, graph
+from pygel3d.hmesh import Manifold, triangulate
+from pygel3d.graph import Graph
 from numpy import array
 import plotly.graph_objs as go
 import plotly.offline as py
-import plotly.express as px
-
 
 EXPORT_MODE = False
 
@@ -35,10 +34,10 @@ def display(m,wireframe=True,smooth=True,data=None):
         m can also be a Graph. In that case the display function just draws the edges as
         black lines. """
     mesh_data = []
-    if isinstance(m,hmesh.Manifold):
+    if isinstance(m, Manifold):
         xyz = array([ p for p in m.positions()])
-        m_tri = hmesh.Manifold(m)
-        hmesh.triangulate(m_tri, clip_ear=False)
+        m_tri = Manifold(m)
+        triangulate(m_tri, clip_ear=False)
         ijk = array([[ idx for idx in m_tri.circulate_face(f,'v')] for f in m_tri.faces()])
         mesh = go.Mesh3d(x=xyz[:,0],y=xyz[:,1],z=xyz[:,2],
                 i=ijk[:,0],j=ijk[:,1],k=ijk[:,2],color='#dddddd',flatshading=not smooth)
@@ -62,7 +61,7 @@ def display(m,wireframe=True,smooth=True,data=None):
                        line=dict(color='rgb(125,0,0)', width=1),
                        hoverinfo='none')
             mesh_data += [trace1]
-    elif isinstance(m,graph.Graph):
+    elif isinstance(m, Graph):
         pos = m.positions()
         xyze = []
         for v in m.nodes():

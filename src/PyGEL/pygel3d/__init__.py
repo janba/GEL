@@ -136,6 +136,7 @@ lib_py_gel.Manifold_merge_faces.argtypes = (ct.c_void_p, ct.c_size_t,ct.c_size_t
 lib_py_gel.Manifold_close_hole.argtypes = (ct.c_void_p,ct.c_size_t)
 lib_py_gel.Manifold_cleanup.argtypes = (ct.c_void_p,)
 
+
 # Walker is a helper class assisting us in navigating a mesh.
 # Not directly expose in PyGEL3D
 lib_py_gel.Walker_next_halfedge.restype = ct.c_size_t
@@ -170,6 +171,10 @@ lib_py_gel.area.restype = ct.c_double
 lib_py_gel.area.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.one_ring_area.restype = ct.c_double
 lib_py_gel.one_ring_area.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.total_area.restype = ct.c_double
+lib_py_gel.total_area.argtypes = (ct.c_void_p,)
+lib_py_gel.volume.restype = ct.c_double
+lib_py_gel.volume.argtypes = (ct.c_void_p,)
 lib_py_gel.perimeter.restype = ct.c_double
 lib_py_gel.perimeter.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.centre.argtypes = (ct.c_void_p, ct.c_size_t, ndpointer(dtype=np.float64, shape=(3,)))
