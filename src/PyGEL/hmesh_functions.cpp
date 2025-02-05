@@ -240,14 +240,23 @@ void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
     non_rigid_registration(*m_ptr, *m_ref_ptr);
 }
 
+void rsr_recon(Manifold_ptr m_ptr, double* verts, double* normals, int v_num, int n_num,
+    bool isEuclidean, int genus, int k, int r, int theta, int n) {
 
-void rsr_recon(const char* path, Manifold_ptr m_ptr) {
-    std::cout << string(path) << std::endl;
-    read_config(string(path));
-    std::cout << "end_config" << std::endl;
+    vector<Vec3d> vertices;
+    vector<Vec3d> norm;
+    vertices.reserve(v_num);
+    norm.reserve(n_num);
+    for (int i = 0; i < v_num; i++) {
+        vertices.emplace_back(verts[i], verts[i + v_num], verts[i + 2 * v_num]);
+    }
 
-    reconstruct_single(*(reinterpret_cast<Manifold*>(m_ptr)));
-    std::cout << "end_recon" << std::endl;
+    for (int i = 0; i < n_num; i++) {
+        norm.emplace_back(normals[i], normals[i + n_num], normals[i + 2 * n_num]);
+    }
+
+    reconstruct_single(*(reinterpret_cast<Manifold*>(m_ptr)), vertices, norm, 
+        isEuclidean, genus, k, r, theta, n);
 
     return; 
 }
