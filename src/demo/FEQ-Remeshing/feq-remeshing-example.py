@@ -51,8 +51,8 @@ for o_file in obj_files:
         for i in range(12):
             print('.',end='',flush=True)
             hmesh.inflate_mesh(fit_mesh, mesh_dist=mesh_dist)
-            hmesh.volume_preserving_cc_smooth(fit_mesh, iter=5)
-            hmesh.kill_degenerate_face_loops(fit_mesh, thresh=0.25)
+            hmesh.volume_preserving_cc_smooth(fit_mesh, iter=25)
+            hmesh.kill_degenerate_face_loops(fit_mesh, thresh=0.1)
             hmesh.volume_preserving_cc_smooth(fit_mesh, iter=5)
         out_file = base_name + "-" + mode + "-out.obj"
         hmesh.save(out_file, fit_mesh)

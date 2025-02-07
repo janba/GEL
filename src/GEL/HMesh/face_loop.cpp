@@ -689,9 +689,9 @@ void kill_degenerate_face_loops(Manifold& m, double thresh) {
         did_work = false;
         auto loops = find_face_loops(m);
         sort(begin(loops), end(loops), [](const FaceLoop& f1, const FaceLoop& f2) {
-            return f1.mean_aspect<f2.mean_aspect;
+            return f1.min_len<f2.min_len;
         });
-        if (loops[0].mean_aspect < thresh) {
+        if (loops[0].min_len < thresh*avg_edge_len) {
             bool allowable = true;
             for (auto h: loops[0].hvec) {
                 auto w = m.walker(h);
