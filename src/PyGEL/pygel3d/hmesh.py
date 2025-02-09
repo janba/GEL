@@ -7,10 +7,8 @@ allows us to turn a skeleton graph into a Face Extrusion Quad Mesh.
 """
 import ctypes as ct
 import numpy as np
-from math import sqrt
 from numpy import ndarray
-from numpy.linalg import norm
-from pygel3d import lib_py_gel, IntVector, Vec3dVector
+from pygel3d import lib_py_gel, IntVector
 from pygel3d.graph import Graph
 from scipy.sparse import csc_matrix, vstack
 from scipy.sparse.linalg import lsqr
@@ -103,12 +101,12 @@ class Manifold:
     def faces(self):
         """ Returns an iterable containing all face indices"""
         faces = IntVector()
-        n = lib_py_gel.Manifold_faces(self.obj, faces.obj)
+        lib_py_gel.Manifold_faces(self.obj, faces.obj)
         return faces
     def halfedges(self):
         """ Returns an iterable containing all halfedge indices"""
         hedges = IntVector()
-        n = lib_py_gel.Manifold_halfedges(self.obj, hedges.obj)
+        lib_py_gel.Manifold_halfedges(self.obj, hedges.obj)
         return hedges
     def circulate_vertex(self, vid, mode='v'):
         """ Circulate a vertex. Passed a vertex index, vid, and second argument,
@@ -117,7 +115,7 @@ class Manifold:
         incident halfedges (outgoing) are returned, and for mode = 'v', all
         neighboring vertices are returned. """
         nbrs = IntVector()
-        n = lib_py_gel.Manifold_circulate_vertex(self.obj, vid, ct.c_char(mode.encode('ascii')), nbrs.obj)
+        lib_py_gel.Manifold_circulate_vertex(self.obj, vid, ct.c_char(mode.encode('ascii')), nbrs.obj)
         return nbrs
     def circulate_face(self, fid, mode='v'):
         """ Circulate a face. Passed a face index, fid, and second argument,
@@ -126,7 +124,7 @@ class Manifold:
         mode='h', the halfedges themselves are returned. For mode='v', the
         incident vertices of the face are returned. """
         nbrs = IntVector()
-        n = lib_py_gel.Manifold_circulate_face(self.obj, fid, ct.c_char(mode.encode('ascii')), nbrs.obj)
+        lib_py_gel.Manifold_circulate_face(self.obj, fid, ct.c_char(mode.encode('ascii')), nbrs.obj)
         return nbrs
     def next_halfedge(self,hid):
         """ Returns next halfedge to hid. """
@@ -317,7 +315,15 @@ def valid(m: Manifold):
 def closed(m: Manifold):
     """ Returns true if m is closed, i.e. has no boundary."""
     return lib_py_gel.closed(m.obj)
-
+    
+def area(m: Manifold):
+    """ This function computes the sum of all the faces' areas """
+    return lib_py_gel.total_area(m.obj)
+    
+def volume(m: Manifold):
+    """ Computes the volume of a mesh. Presupposes that the mesh is closed. """
+    return lib_py_gel.volume(m.obj)
+    
 def bbox(m: Manifold):
     """ Returns the min and max corners of the bounding box of Manifold m. """
     pmin = ndarray(3,dtype=np.float64)
@@ -397,7 +403,7 @@ from os.path import splitext
 def load(fn):
     """ Load a Manifold from an X3D/OBJ/OFF/PLY file. Return the
     loaded Manifold. Returns None if loading failed."""
-    name, extension = splitext(fn)
+    _, extension = splitext(fn)
     if extension.lower() == ".x3d":
         return x3d_load(fn)
     if extension.lower() == ".obj":
@@ -645,7 +651,7 @@ class MeshDistance:
     """ This class allows you to compute the distance from any point in space to
     a Manifold (which must be triangulated). The constructor creates an instance
     based on a specific mesh, and the signed_distance function computes the actual distance. """
-    def __init__(self,m):
+    def __init__(self,m: Manifold):
         self.obj = lib_py_gel.MeshDistance_new(m.obj)
     def __del__(self):
         lib_py_gel.MeshDistance_delete(self.obj)
@@ -889,6 +895,7 @@ def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wts = None, lap_wt = 0
     v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
 
 def stable_marriage_registration(m, m_ref):
+    """ Register m to m_ref using Gale Shapley """
     lib_py_gel.stable_marriage_registration(m.obj, m_ref.obj)
 
 def rsr_recon(verts, normals, isEuclidean=False, genus=0, k=70,
@@ -904,4 +911,3 @@ def rsr_recon(verts, normals, isEuclidean=False, genus=0, k=70,
 
     lib_py_gel.rsr_recon(m.obj, verts_data,normal_data, n_verts, n_normal, isEuclidean,genus,k,r,theta,n)
     return m
-
