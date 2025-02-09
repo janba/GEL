@@ -1,3 +1,4 @@
+#include <sstream>
 #include "GEL/HMesh/RsR.h"
 #include "GEL/HMesh/obj_save.h"
 
