@@ -1065,7 +1065,7 @@ void showProgressBar(float progress) {
 Vector projected_vector(Vector& input, Vector& normal) {
     Vector normal_normed = normal;
     normal_normed.normalize();
-    return input - input * normal_normed * normal_normed;
+    return input - CGLA::dot(input, normal_normed) * normal_normed;
 }
 
 /**
@@ -1093,6 +1093,9 @@ bool isIntersecting(RSGraph& mst, NodeID v1, NodeID v2, NodeID v3, NodeID v4) {
     Vector n4 = mst.m_vertices[v4].normal;
     Point midpoint_34 = p3 + (p4 - p3) / 2.;
     Vector normal_34 = (n3 + n4) / 2.;
+
+    //if (v3 == 1626 && v4 == 426)
+    //    std::cout << "debug" << std::endl;
 
     // On the plane of edge 12
     {
@@ -1246,9 +1249,17 @@ bool geometry_check(RSGraph& mst, m_Edge& candidate, Tree& kdTree) {
                 }
             }
             else {
+                //if ((rejection_neighbor == 61 && rej_neighbor_neighbor.v == 345) ||
+                //    (rejection_neighbor == 345 && rej_neighbor_neighbor.v == 61)) {
+                //    std::cout << isIntersecting(mst, v1, v2, rejection_neighbor, rej_neighbor_neighbor.v) << std::endl;
+                //    std::cout << isIntersecting(mst, v1, v2, rej_neighbor_neighbor.v, rejection_neighbor) << std::endl;
+                //}
                 bool result = isIntersecting(mst, v1, v2, rejection_neighbor, rej_neighbor_neighbor.v);
-                if (result)
+                if (result) {
+                    //std::cout << rej_neighbor_neighbor.v << std::endl;
+                    //std::cout << rejection_neighbor << std::endl;
                     return false;
+                }
             }
         }
         rejection_neighbor_set.erase(neighbors[i]);
@@ -1645,7 +1656,7 @@ void connect_handle(const std::vector<Point>& smoothed_v, Tree& KDTree,
             connected_neighbor = to_connect_p[idx];
             std::vector<NodeID> path;
             int steps = find_shortest_path(mst, this_v, connected_neighbor, step_thresh, path);
-            if (steps < 0) {
+            if (steps > step_thresh) {
                 //if(steps >= 9){
                     //std::cout << "This is connected" << std::endl;
                 isFind = true;
@@ -1738,7 +1749,7 @@ bool explore(RSGraph& G, int i, m_priority_queue& queue,
         bool isLargerThanPi = angle < M_PI;
         std::vector<NodeID> face_vector{ v_i, v_u, v_w };
         if (v_u != v_w && isLargerThanPi) {
-            if (G.find_edge(v_u, v_w) != AMGraph::InvalidEdgeID) {
+            if (G.find_edge(v_u, v_w) == AMGraph::InvalidEdgeID) {
                 float score = (G.m_vertices[v_u].coords - G.m_vertices[v_w].coords).length();
                 if (!G.isEuclidean) {
                     score = cal_proj_dist(G.m_vertices[v_u].coords - G.m_vertices[v_w].coords,
@@ -1910,8 +1921,10 @@ bool check_validity(RSGraph& G, std::pair<std::vector<NodeID>, float>& item,
 
     if (!isFinalize) {
         // Check rotation system's validity of branch nodes
-        if (!check_branch_validity(G, v_i, v_u, v_w))
+        if (!check_branch_validity(G, v_i, v_u, v_w)) {
+            //std::cout << v_i << std::endl;
             return false;
+        }
     }
 
     // Check face overlap
@@ -1984,6 +1997,7 @@ void triangulate(std::vector<std::vector<NodeID>>& faces, RSGraph& G,
     m_priority_queue queue;
 
     float avg_edge_length = G.total_edge_length / G.no_edges();
+    //std::cout << G.no_edges() << std::endl;
 
     // Init priority queue
     for (int i = 0; i < G.no_nodes(); i++) {
@@ -2004,6 +2018,11 @@ void triangulate(std::vector<std::vector<NodeID>>& faces, RSGraph& G,
             loop_time += 1;
             std::pair<std::vector<NodeID>, float> item = queue.top();
             queue.pop();
+
+            //std::cout << item.first[1] << " " << item.first[2] << std::endl;
+            //std::cout << item.second << std::endl;
+            //if (item.first[1] == 345 && item.first[2] == 426)
+            //    std::cout << item.second << std::endl;
 
             if (item.second >= 0) {
                 // Validity check
@@ -2029,7 +2048,7 @@ void triangulate(std::vector<std::vector<NodeID>>& faces, RSGraph& G,
             float projection_dist = cal_proj_dist(edge,
                 G.m_vertices[v_u].normal, G.m_vertices[v_w].normal);
 
-            if (G.find_edge(v_u, v_w) != AMGraph::InvalidEdgeID) {
+            if (G.find_edge(v_u, v_w) == AMGraph::InvalidEdgeID) {
                 Edge added_edge;
                 if (isEuclidean)
                     G.add_edge(v_u, v_w, Euclidean_dist);
@@ -2167,7 +2186,21 @@ void build_mst(SimpGraph& g, NodeID root,
         out_mst.add_node(temp.m_vertices[i].coords, temp.m_vertices[i].normal);
     }
     for (int i = 0; i < temp.m_edges.size(); i++) {
-        out_mst.add_edge(temp.m_edges[i].source, temp.m_edges[i].target);
+        Vector edge = out_mst.m_vertices[temp.m_edges[i].source].coords -
+            out_mst.m_vertices[temp.m_edges[i].target].coords;
+        float Euclidean_dist = edge.length();
+        float projection_dist = cal_proj_dist(edge,
+            out_mst.m_vertices[temp.m_edges[i].source].normal,
+            out_mst.m_vertices[temp.m_edges[i].target].normal);
+        if (std::isnan(projection_dist) || std::isnan(Euclidean_dist))
+            std::cout << "debug" << std::endl;
+
+        if(isEuclidean)
+            out_mst.add_edge(temp.m_edges[i].source,
+                temp.m_edges[i].target, Euclidean_dist);
+        else
+            out_mst.add_edge(temp.m_edges[i].source,
+                temp.m_edges[i].target, projection_dist);
     }
     return;
 }
@@ -2351,7 +2384,13 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
                 for (NodeID node : g.node_ids()) {
                     for (NodeID node_neighbor : g.neighbors(node)) {
                         if (node < node_neighbor) {
-                            double len = (smoothed_v[node]- smoothed_v[node_neighbor]).length();
+                            Vector edge = smoothed_v[node] - smoothed_v[node_neighbor];
+                            double len = edge.length();
+
+                            if (!isEuclidean) {
+                                len = cal_proj_dist(edge, normals[node], normals[node_neighbor]);
+                            }
+
                             if (len > pre_max_length[node] ||
                                 len > pre_max_length[node_neighbor])
                                 continue;
@@ -2363,7 +2402,6 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
                 std::sort(edge_length.begin(), edge_length.end(), edge_comparator);
             }
         }
-
         recon_timer.end("Build MST");
 
         // Initialize face loop label
@@ -2388,6 +2426,9 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
                 unsigned int edge_idx = edge_length[i].second;
                 m_Edge this_edge = full_edges[edge_idx];
 
+                //if ((this_edge.first == 997 && this_edge.second == 1626) ||
+                //    (this_edge.first == 1626 && this_edge.second == 733))
+                //    std::cout << mst.find_edge(733, 2114) << std::endl;
                 if (mst.find_edge(this_edge.first, this_edge.second) != AMGraph::InvalidEdgeID)
                     continue;
 
@@ -2402,7 +2443,9 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
             showProgressBar(1.0);
             std::cout << std::endl;
         }
+        //std::cout << mst.total_edge_length << std::endl;
 
+        //std::vector<std::vector<NodeID>> mesh_before = faces;
         // Create handles & Triangulation
         if (exp_genus != 0) {
             mst.isFinal = true;

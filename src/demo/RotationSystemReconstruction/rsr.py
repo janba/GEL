@@ -20,8 +20,14 @@ def obj_load(file_path):
 
     return vertices, normals
 
-vertices, normals = obj_load('../../../data/PointClouds/owl-lines.obj')
+# vertices, normals = obj_load('../../../data/PointClouds/owl-lines.obj')
+#
+# m = rsr_recon(vertices,normals,False)
+# viewer = gl.Viewer()
+# viewer.display(m)
 
-m = rsr_recon(vertices,normals,False)
+vertices, normals = obj_load('../../../data/PointClouds/Capital_A.obj')
+
+m = rsr_recon(vertices,normals,True, k=30, genus=-1, n=40)
 viewer = gl.Viewer()
 viewer.display(m)
