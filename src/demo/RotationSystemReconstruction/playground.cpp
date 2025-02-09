@@ -130,10 +130,19 @@ int main() {
     PointCloud input;
     std::vector<Vector> normal;
     std::vector<Point> vertices;
-    read_obj("../data/PointClouds/owl-lines.obj", input);
+    // Test on genus-0 shape
+    read_obj("../data/PointClouds/owl-little.obj", input);
+    HMesh::Manifold output;
+    reconstruct_single(output, input.vertices,
+        input.normals, false);
+    //HMesh::obj_save("some/path/on/your/computer", output);
+    HMesh::obj_save("/some/path/on/your/computer", output);
+
+    // Test on high-genus shape
+    read_obj("../data/PointClouds/capital_A.obj", input);
 	HMesh::Manifold output;
 	reconstruct_single(output, input.vertices,
-        input.normals, false);
+        input.normals, true, -1, 30, 20, 60, 40);
     HMesh::obj_save("some/path/on/your/computer", output);
 	return 0;
 }
