@@ -107,7 +107,7 @@ namespace HMesh
             
             VertexID v1 = kernel.vert(h);
             if (f_ho_invalid || f_hno_invalid) {
-                if (valency(*this, v1) > 2) {
+                if (valency(v1) > 2) {
                     HalfEdgeID h_v1in = f_ho_invalid ? kernel.prev(ho) : h;
                     HalfEdgeID h_v1out = f_hno_invalid ? kernel.next(hno) : hn;
                     link(h_v1in, h_v1out);
@@ -216,7 +216,7 @@ namespace HMesh
         assert(v0 != v1);
         assert(f != InvalidFaceID);
 
-		if(connected(*this, v0, v1))
+		if(connected(v0, v1))
             return InvalidFaceID;
         		
         // Find the edge along f that emanates from v0
@@ -443,13 +443,13 @@ namespace HMesh
             }
 
             //If the vertices are already connected, welding them together will be awkward.
-            if(connected(*this, v0a, v0b) ||
-               connected(*this, v1a, v1b)) {
+            if(connected(v0a, v0b) ||
+               connected(v1a, v1b)) {
 //                cout << "Stupid, end points are connected!" << endl;
                 return false;
             }
             if((v0a != v0b && v1a != v1b) &&
-               (connected(*this, v0a, v1b) || connected(*this, v1a, v0b))) {
+               (connected(v0a, v1b) || connected(v1a, v0b))) {
 //                cout << "Stupid, end points are distinct and cross connected!" << endl;
                 return false;
             }
@@ -587,7 +587,7 @@ namespace HMesh
     {
         // If the vertex is either not in use or has just
         // one incident edge (or less), bail out.
-        int val = valency(*this,v);
+        int val = valency(v);
         if(!in_use(v) || val<2)
             return InvalidFaceID;
         
@@ -595,7 +595,7 @@ namespace HMesh
         // first face visited is not the invalid face outside the boundary. If the boundary
         // vertex is adjacent to only one vertex, there is little to do and we bail out.
         bool vertex_is_boundary = false;
-        HalfEdgeID h = boundary_edge(*this, v);
+        HalfEdgeID h = boundary_edge(v);
         Walker hew = walker(v);
         if(h != InvalidHalfEdgeID)
         {
@@ -711,7 +711,7 @@ namespace HMesh
         VertexID v = kernel.vert(h);
         VertexID vo = kernel.vert(ho);
         
-        if(valency(*this, v) < 3 || valency(*this, vo) < 3)
+        if(valency(v) < 3 || valency(vo) < 3)
             return false;
         
         link(hop, hn);
@@ -1282,16 +1282,16 @@ namespace HMesh
         return find_invalid_entities(m, vs, hs, fs);
     }
     
-    void bbox(const Manifold& m, Manifold::Vec& pmin, Manifold::Vec& pmax)
-    {
+    void bbox(const Manifold& m, Manifold::Vec& pmin, Manifold::Vec& pmax) {
         if(m.no_vertices()==0)
             return;
-        VertexIDIterator v = m.vertices_begin();
-        pmin = pmax = m.pos(*v);
-        ++v;
-        for(; v != m.vertices_end(); ++v){
-            pmin = v_min(m.pos(*v), pmin);
-            pmax = v_max(m.pos(*v), pmax);
+        
+        pmin = Vec3d(DBL_MAX);
+        pmax = Vec3d(-DBL_MAX);
+        
+        for (auto v: m.vertices()) {
+            pmin = v_min(m.pos(v), pmin);
+            pmax = v_max(m.pos(v), pmax);
         }
     }
     
@@ -1306,9 +1306,9 @@ namespace HMesh
     
     
     
-    bool precond_collapse_edge(const Manifold& m, HalfEdgeID h)
+    bool Manifold::precond_collapse_edge(HalfEdgeID h) const
     {
-        Walker hew = m.walker(h);
+        Walker hew = walker(h);
         HalfEdgeID ho = hew.opp().halfedge();
         VertexID v0 = hew.opp().vertex();
         VertexID v1 = hew.vertex();
@@ -1317,12 +1317,12 @@ namespace HMesh
         vector<VertexID> link0;
         vector<FaceID> faces0;
         int k = 0;
-        for(Walker vj = m.walker(h);
+        for(Walker vj = walker(h);
             !vj.full_circle(); vj = vj.circulate_vertex_ccw()){
             link0.push_back(vj.vertex());
             if(vj.halfedge() != h)
                 faces0.push_back(vj.face());
-            if(++k>m.no_vertices())
+            if(++k>no_vertices())
             {
                 cout << "precond_collapse failed: mesh is corrupted" << endl;
                 return false;
@@ -1337,12 +1337,12 @@ namespace HMesh
         vector<VertexID> link1;
         vector<FaceID> faces1;
         k=0;
-        for(Walker vj = m.walker(ho);
+        for(Walker vj = walker(ho);
             !vj.full_circle(); vj = vj.circulate_vertex_ccw()){
             link1.push_back(vj.vertex());
             if(vj.halfedge() != ho)
                 faces1.push_back(vj.face());
-            if(++k>m.no_vertices())
+            if(++k>no_vertices())
             {
                 cout << "precond_collapse failed: mesh is corrupted" << endl;
                 return false;
@@ -1385,7 +1385,7 @@ namespace HMesh
             VertexID v = hew.next().vertex();
             
             // valency test (see 5)
-            if(valency(m, v) < 3)
+            if(valency(v) < 3)
             {
 //                cout << "precond_collapse failed: left vertex in triangle has val<3" << endl;
                 return false;
@@ -1405,7 +1405,7 @@ namespace HMesh
             VertexID v = hew.opp().next().vertex();
             
             // valency test (see 5)
-            if(valency(m, v) < 3)
+            if(valency(v) < 3)
             {
 //                cout << "precond_collapse failed: right vertex in triangle has val<3" << endl;
                 return false;
@@ -1435,7 +1435,7 @@ namespace HMesh
 //        }
         
         // test that we do not merge holes (see 6)
-        if(boundary(m, v0) && boundary(m, v1) && !boundary(m, h))
+        if(boundary(v0) && boundary(v1) && !boundary(h))
         {
 //            cout << "precond_collapse failed: would merge holes" << endl;
             return false;
@@ -1443,10 +1443,11 @@ namespace HMesh
         
         return true;
     }
+
     
-    bool precond_flip_edge(const Manifold& m, HalfEdgeID h)
+    bool Manifold::precond_flip_edge(HalfEdgeID h) const 
     {
-        Walker j = m.walker(h);
+        Walker j = walker(h);
         
         FaceID hf = j.face();
         FaceID hof = j.opp().face();
@@ -1457,54 +1458,35 @@ namespace HMesh
         
         
         // We can only flip an edge if both incident polygons are triangles.
-        if(no_edges(m, hf) != 3 || no_edges(m, hof) !=3)
+        if(no_edges(hf) != 3 || no_edges(hof) !=3)
             return false;
         
 
         // non boundary vertices with a valency of less than 4(less than 3 after operation) degenerates mesh.
         VertexID hv = j.vertex();
         VertexID hov = j.opp().vertex();
-        if((valency(m, hv) < 4 && !boundary(m, hv)) || (valency(m, hov) < 4 && !boundary(m, hov))){
+        if((valency(hv) < 4 && !boundary(hv)) || (valency(hov) < 4 && !boundary(hov))){
             return false;
         }
         
         // Disallow flip if vertices being connected already are.
         VertexID hnv = j.next().vertex();
         VertexID honv = j.opp().next().vertex();
-        if(connected(m, hnv, honv)){
+        if(connected(hnv, honv)){
            return false;
         }
         
         return true;
     }
-    
-    HalfEdgeID boundary_edge(const Manifold& m, VertexID v)
-    {
-        for (Walker w= m.walker(v); !w.full_circle(); w = w.circulate_vertex_ccw())
-            if(w.face()==InvalidFaceID)
-                return w.halfedge();
-        return InvalidHalfEdgeID;
-    }
-    
-    bool boundary(const Manifold& m, VertexID v)
-    {
-        return boundary_edge(m, v) != InvalidHalfEdgeID;
-        
-    }
 
-    int valency(const Manifold& m, VertexID v)
+    Manifold::Vec Manifold::normal(VertexID v) const
     {
-        return circulate_vertex_ccw(m,v, static_cast<std::function<void(Walker&)>>([](Walker&){}));
-    }
-    
-    Manifold::Vec normal(const Manifold& m, VertexID v)
-    {
-        Manifold::Vec p0 = m.pos(v);
+        Manifold::Vec p0 = positions[v];
         Manifold::Vec n(0);
-        circulate_vertex_ccw(m, v, [&](Walker& w) {
+        circulate_vertex_ccw(*this, v, [&](Walker& w) {
             if(w.face() != InvalidFaceID) {
-                Manifold::Vec e0 = cond_normalize(m.pos(w.prev().opp().vertex()) - p0);
-                Manifold::Vec e1 = cond_normalize(m.pos(w.vertex()) - p0);
+                Manifold::Vec e0 = cond_normalize(positions[w.prev().opp().vertex()] - p0);
+                Manifold::Vec e1 = cond_normalize(positions[w.vertex()] - p0);
                 Manifold::Vec n_face = cond_normalize(cross(e1, e0));
                 n += acos(max(-1.0, min(1.0, dot(e0, e1)))) * n_face;
             }
@@ -1512,32 +1494,12 @@ namespace HMesh
         return cond_normalize(n);
     }
     
-    
-    bool connected(const Manifold& m, VertexID v0, VertexID v1)
+    Manifold::Vec Manifold::area_normal(FaceID f) const
     {
-        int k=0;
-        for(VertexID v: m.incident_vertices(v0)) {
-            if (v==v1)
-                return true;
-            if(++k == m.no_vertices())
-                return false;
-        }
-        return false;
-    }
-
-    
-    int no_edges(const Manifold& m, FaceID f)
-    {
-        return circulate_face_ccw(m, f, static_cast<std::function<void(Walker&)>>([](Walker& w){}));
-    }
-    
-    Manifold::Vec area_normal(const Manifold& m, FaceID f)
-    {
-        using Vec = Manifold::Vec;
         vector<Vec> v;
         Vec c(0.0);
-        int k= circulate_face_ccw(m, f, static_cast<std::function<void(VertexID)>>([&](VertexID vid) {
-            Vec p = m.pos(vid);
+        int k= circulate_face_ccw(*this, f, static_cast<std::function<void(VertexID)>>([&](VertexID vid) {
+            Vec p = positions[vid];
             c += p;
             v.push_back(p);
         }));
@@ -1548,71 +1510,28 @@ namespace HMesh
         return 0.5 * norm;
     }
     
-    Manifold::Vec normal(const Manifold& m, FaceID f)
-    {
-        return cond_normalize(area_normal(m, f));
-    }
-
-    
-    
-    double area(const Manifold& m, FaceID fid)
+    double Manifold::area(FaceID fid) const
     {
         // Get all projected vertices
         vector<Manifold::Vec> vertices;
-        int N = circulate_face_ccw(m, fid, static_cast<std::function<void(VertexID)>>([&](VertexID vid) {
-            vertices.push_back(m.pos(vid));
+        int N = circulate_face_ccw(*this, fid, static_cast<std::function<void(VertexID)>>([&](VertexID vid) {
+            vertices.push_back(positions[vid]);
         }));
-
         
         double area = 0;
-        Manifold::Vec norm = normal(m,fid);
+        Manifold::Vec norm = normal(fid);
         for(int i = 1; i < N-1; ++i)
             area += 0.5 * dot(norm,cross(vertices[i]-vertices[0], vertices[(i+1 )]-vertices[0]));
         return area;
     }
 
-    double one_ring_area(const Manifold& m, VertexID v) {
-        double a=0;
-        for(auto f: m.incident_faces(v)) {
-            a += area(m, f);
-        }
-        return a;
-    }
 
-    
-    Manifold::Vec centre(const Manifold& m, FaceID f)
-    {
-        Manifold::Vec c(0);
-        int n = circulate_face_ccw(m, f, static_cast<std::function<void(VertexID)>>([&](VertexID v) {c+=m.pos(v);}));
-        return c / n;
-    }
-    
-    double perimeter(const Manifold& m, FaceID f)
-    {
-        double l=0.0;
-        circulate_face_ccw(m, f, static_cast<std::function<void(HalfEdgeID)>>([&](HalfEdgeID h) { l+= length(m, h);}));
-        return l;
-    }
-    
-    bool boundary(const Manifold& m, HalfEdgeID h)
-    {
-        Walker w = m.walker(h);
-        return w.face() == InvalidFaceID || w.opp().face() == InvalidFaceID;
-    }
-    
     bool closed(const Manifold& m)
     {
         for(auto h: m.halfedges())
             if(m.walker(h).face() == InvalidFaceID)
                 return false;
         return true;
-    }
-
-    
-    double length(const Manifold& m, HalfEdgeID h)
-    {
-        Walker w = m.walker(h);
-        return (m.pos(w.vertex()) - m.pos(w.opp().vertex())).length();
     }
 
     Manifold::Vec barycenter(const Manifold& m) {

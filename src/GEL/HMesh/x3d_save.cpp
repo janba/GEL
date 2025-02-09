@@ -57,17 +57,17 @@ namespace HMesh
         VertexAttributeVector<int> vmap(m.allocated_vertices());
 
         int k = 0;
-        for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){
-            Vec3d p = m.pos(*v);
+        for(auto v: m.vertices()){
+            Vec3d p = m.pos(v);
             os << p[0] << " " << p[1] << " " << p[2] << "\n";
-            vmap[*v] = k++;
+            vmap[v] = k++;
         }
         os << "\"/>" << "\n";
 
         os << "<IndexedFaceSet coordIndex=\"" << endl;
-        for(FaceIDIterator f =  m.faces_begin(); f != m.faces_end(); ++f){
+        for(auto f: m.faces()){
             vector<int> verts;
-            for(Walker w = m.walker(*f); !w.full_circle(); w = w.circulate_face_ccw()){
+            for(Walker w = m.walker(f); !w.full_circle(); w = w.circulate_face_ccw()){
                 int idx = vmap[w.vertex()];
                 assert(static_cast<size_t>(idx) < m.no_vertices());
                 verts.push_back(idx);

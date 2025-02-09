@@ -46,18 +46,38 @@ namespace HMesh
         
         /// The vector of positions
         VertexAttributeVector<Vec> positions;
+
+        /// Return a reference to the entire positions attribute vector (not recommended)
+        VertexAttributeVector<Vec>& positions_attribute_vector();
+        /// Return a const reference to the entire positions attribute vector (not recommended)
+        const VertexAttributeVector<Vec>& positions_attribute_vector() const;
         
-        /// Default constructor
+        // Constructor, housekeeping --------------------------------------------------
+
+        /// Default constructor (copy constructor is created automatically)
         Manifold();
+
+        /// Serialize the Manifold
+        void serialize(Util::Serialization& ser) const;
+        /// Deserialize the Manifold
+        void deserialize(Util::Serialization& ser);
 
         /// Merge present Manifold with argument.
         void merge(const Manifold& m2);
+        /// Clear the mesh. Remove all faces, halfedges, and vertices.
+        void clear();
 
-        
+        /** Remove unused items from Mesh, map argument is to be used for attribute vector 
+            cleanups in order to maintain sync. */
+        void cleanup(IDRemap& map);
+        /// Remove unused items from Mesh
+        void cleanup();
+
+        // Mesh construction functions --------------------------------------------------
+
         /** Add a face to the Manifold.
          This function is provided a vector of points in space and produces a single
-         polygonal face.
-         */
+         polygonal face. */
         FaceID add_face(const std::vector<Manifold::Vec>& points);
 
         /** Removes a face from the Manifold. If it is an interior face it is simply replaces
@@ -78,6 +98,8 @@ namespace HMesh
          This function merges all faces around the vertex into one and then removes 
          this resulting face. */
         bool remove_vertex(VertexID vid);
+
+        // Mesh information queries --------------------------------------------------
         
         /// number of  vertices
         size_t no_vertices() const { return kernel.no_vertices();}
@@ -86,11 +108,11 @@ namespace HMesh
         /// number of active halfedges
         size_t no_halfedges() const { return kernel.no_halfedges();}
         
-        /// number of total vertices in kernel
+        /// number of total slots for vertices in kernel (includes deleted vertices)
         size_t allocated_vertices() const { return kernel.allocated_vertices();}
-        /// number of total faces in kernel
+        /// number of total slots for faces in kernel (includes deleted faces)
         size_t allocated_faces() const { return kernel.allocated_faces();}
-        /// number of total halfedges in kernel
+        /// number of total slots for halfedges in kernel (includes deleted halfedges)
         size_t allocated_halfedges() const { return kernel.allocated_halfedges();}
         
         /// check if ID of vertex is in use
@@ -100,16 +122,8 @@ namespace HMesh
         /// check if ID of halfedge is in use
         bool in_use(HalfEdgeID id) const { return kernel.in_use(id);}
         
-        IteratorPair<IDIterator<Vertex>> vertices() const {
-            return IteratorPair<IDIterator<Vertex>>(kernel.vertices_begin(), kernel.vertices_end());
-        }
-        IteratorPair<IDIterator<Face>> faces() const {
-            return IteratorPair<IDIterator<Face>>(kernel.faces_begin(), kernel.faces_end());
-        }
-        IteratorPair<IDIterator<HalfEdge>> halfedges() const {
-            return IteratorPair<IDIterator<HalfEdge>>(kernel.halfedges_begin(), kernel.halfedges_end());
-        }
-        
+        // Mesh traversal functions -----------------------------------
+
         /// Iterator to first VertexID, optional argument defines if unused items should be skipped
         VertexIDIterator vertices_begin(bool skip = true) const { return kernel.vertices_begin(skip);}
         /// Iterator to first FaceID, optional argument defines if unused items should be skipped
@@ -122,10 +136,114 @@ namespace HMesh
         /// Iterator topast the end FaceID
         FaceIDIterator faces_end() const { return kernel.faces_end();}
         /// Iterator to past the end HalfEdgeID
-        HalfEdgeIDIterator halfedges_end() const {return kernel.halfedges_end(); }  
+        HalfEdgeIDIterator halfedges_end() const {return kernel.halfedges_end(); }
 
-		
-		/** \brief Bridge f0 and f1 by connecting the vertex pairs given in pairs.
+        /// Return a pair of iterators to the vertices.
+        IteratorPair<IDIterator<Vertex>> vertices() const;
+        /// Return a pair of iterators to the faces.
+        IteratorPair<IDIterator<Face>> faces() const;
+        /// Return a pair of iterators to the halfedges
+        IteratorPair<IDIterator<HalfEdge>> halfedges() const;
+        
+        /// Returns a Walker to the out halfedge of vertex given by VertexID
+        Walker walker(VertexID id) const;
+        /// Returns a Walker to the last halfedge of face given by FaceID
+        Walker walker(FaceID id) const;
+        /// Returns a Walker to the halfedge given by HalfEdgeID
+        Walker walker(HalfEdgeID id) const;
+        
+        /** Returns a begin, end pair of iterators to the circular list of vertices in the 1-ring of the vertex passed as argument.
+         This function allows range based for loops over the vertices incident on a given vertex.*/
+        IteratorPair<VertexCirculator<Vertex>> incident_vertices(VertexID id) const;
+        /** Returns a begin, end pair of iterators to the circular list of halfedges in the 1-ring of the vertex passed as argument.
+         This function allows range based for loops over the halfedges incident on a given vertex.*/
+        IteratorPair<VertexCirculator<HalfEdge>> incident_halfedges(VertexID id) const;
+        /** Returns a begin, end pair of iterators to the circular list of faces in the 1-ring of the vertex passed as argument.
+         This function allows range based for loops over the faces incident on a given vertex.*/
+        IteratorPair<VertexCirculator<Face>> incident_faces(VertexID id) const;
+        
+        /** Returns a begin, end pair of iterators to the circular list of vertices belonging to the face passed as argument.
+         This function allows range based for loops over the vertices incident on a given face.*/
+        IteratorPair<FaceCirculator<Vertex>> incident_vertices(FaceID id) const;
+        /** Returns a begin, end pair of iterators to the circular list of vertices belonging to the face passed as argument.
+         This function allows range based for loops over the halfedges incident on a given face.*/
+        IteratorPair<FaceCirculator<HalfEdge>> incident_halfedges(FaceID id) const;
+        /** Returns a begin, end pair of iterators to the circular list of vertices belonging to the face passed as argument.
+         This function allows range based for loops over the faces adjacent to a given face.*/
+        IteratorPair<FaceCirculator<Face>> incident_faces(FaceID id) const;
+
+        // Mesh queries (of a combinatorial (non-geometric nature) -----------------------------------
+        
+        /** The (fairly involved)  test for legality of half edge collapse. In some cases you may want
+         to perform the test regardless, hence this test is not part of the collapse itself. */
+        bool precond_collapse_edge(HalfEdgeID h) const;
+
+        /** \brief Test fpr legal edge flip.
+        Returns false if flipping cannot be performed. This is due to one of following:
+        1.  one of the two adjacent faces is not a triangle.
+        2.  Either end point has valency three.
+        3.  The vertices that will be connected already are. */
+        bool precond_flip_edge(HalfEdgeID h) const;
+
+        /// Returns true if the halfedge is a boundary halfedge.
+        bool boundary(HalfEdgeID h) const;
+
+        /// Returns the id of the boundary edge or InvalidHalfEdgeID if the vertex is not on the boundary
+        HalfEdgeID boundary_edge(VertexID v) const;
+        
+        /// Returns true if the vertex is a boundary vertex.
+        bool boundary(VertexID v) const;
+        
+        /// Returns true if the two argument vertices are in each other's one-rings.
+        bool connected(VertexID v0, VertexID v1) const;
+
+        /// Compute valency, i.e. number of incident edges.
+        int valency(VertexID v) const;
+
+        /// Compute the number of edges of a face
+        int no_edges(FaceID f) const;
+
+        // Geometric queries -------------------------------------
+
+        /// Return reference to position given by VertexID
+        Vec& pos(VertexID id);
+        /// Return const reference to position given by VertexID
+        Vec pos(VertexID id) const;
+        
+
+        /// Return the geometric length of a halfedge.
+        double length(HalfEdgeID h) const;
+
+        /// Compute the vertex normal. This function computes the angle weighted sum of incident face normals.
+        Manifold::Vec normal(VertexID v) const;
+
+        /// Compute the vertex normal but multiplied by the area of the face. This is more efficient if both area and normal are needed.
+        Manifold::Vec area_normal(FaceID f) const;
+
+        /** Compute the normal of a face. If the face is not a triangle,
+        the normal is not defined, but computed using the first three
+        vertices of the face. */
+        Manifold::Vec normal(FaceID f) const;
+
+        /// Compute the area of a face.
+        double area(FaceID f) const;
+
+        /// Compute the area of all faces that are incident on the vertex v
+        double one_ring_area(VertexID v) const;
+
+        /// Compute the perimeter of a face.
+        double perimeter(FaceID f) const;
+
+        /// Compute the barycenter of a face (with American spelling).
+        Manifold::Vec barycenter(FaceID f) const; 
+
+        /// Compute the barycenter of an halfedge (with American spelling).
+        Manifold::Vec barycenter(HalfEdgeID h) const;
+
+
+        // Mesh modification functions ----------------------------
+
+   		/** \brief Bridge f0 and f1 by connecting the vertex pairs given in pairs.
 		 This function creates a cylindrical connection between f0 and f1. f0 and f1 are removed and the vertices 
 		 given in pairs are connected by edges. The result is a cylindrical connection that changes the genus of the object.
 		 
@@ -219,66 +337,8 @@ namespace HMesh
         /// \brief Flip an edge h. 
         void flip_edge(HalfEdgeID h);
 
-        /// Return reference to position given by VertexID
-        Vec& pos(VertexID id);
-        /// Return const reference to position given by VertexID
-        Vec pos(VertexID id) const;
-        
-        /// Return a reference to the entire positions attribute vector
-        VertexAttributeVector<Vec>& positions_attribute_vector();
-
-        /// Return a const reference to the entire positions attribute vector
-        const VertexAttributeVector<Vec>& positions_attribute_vector() const;
-        
-        /// Clear the mesh. Remove all faces, halfedges, and vertices.
-        void clear();
-
-        /// Remove unused items from Mesh, map argument is to be used for attribute vector cleanups in order to maintain sync.
-        void cleanup(IDRemap& map);
-        /// Remove unused items from Mesh
-        void cleanup();
-        
-        /// Returns a Walker to the out halfedge of vertex given by VertexID
-        Walker walker(VertexID id) const;
-        /// Returns a Walker to the last halfedge of face given by FaceID
-        Walker walker(FaceID id) const;
-        /// Returns a Walker to the halfedge given by HalfEdgeID
-        Walker walker(HalfEdgeID id) const;
-        
-        /** Returns a begin, end pair of iterators to the circular list of vertices in the 1-ring of the vertex passed as argument.
-         This function allows range based for loops over the vertices incident on a given vertex.*/
-        IteratorPair<VertexCirculator<Vertex>> incident_vertices(VertexID id) const;
-        /** Returns a begin, end pair of iterators to the circular list of halfedges in the 1-ring of the vertex passed as argument.
-         This function allows range based for loops over the halfedges incident on a given vertex.*/
-        IteratorPair<VertexCirculator<HalfEdge>> incident_halfedges(VertexID id) const;
-        /** Returns a begin, end pair of iterators to the circular list of faces in the 1-ring of the vertex passed as argument.
-         This function allows range based for loops over the faces incident on a given vertex.*/
-        IteratorPair<VertexCirculator<Face>> incident_faces(VertexID id) const;
-        
-        /** Returns a begin, end pair of iterators to the circular list of vertices belonging to the face passed as argument.
-         This function allows range based for loops over the vertices incident on a given face.*/
-        IteratorPair<FaceCirculator<Vertex>> incident_vertices(FaceID id) const;
-        /** Returns a begin, end pair of iterators to the circular list of vertices belonging to the face passed as argument.
-         This function allows range based for loops over the halfedges incident on a given face.*/
-        IteratorPair<FaceCirculator<HalfEdge>> incident_halfedges(FaceID id) const;
-        /** Returns a begin, end pair of iterators to the circular list of vertices belonging to the face passed as argument.
-         This function allows range based for loops over the faces adjacent to a given face.*/
-        IteratorPair<FaceCirculator<Face>> incident_faces(FaceID id) const;
-
-
-        void serialize(Util::Serialization& ser) const {
-            kernel.serialize(ser);
-            positions.serialize(ser);
-        }
-        
-        void deserialize(Util::Serialization& ser) {
-            kernel.deserialize(ser);
-            positions.deserialize(ser);
-        }
-
-
     private:
-        
+                
         // private template for building the manifold from various types
         template<typename size_type, typename float_type, typename int_type>
         VertexAttributeVector<int_type> build_template(size_type no_vertices,
@@ -296,162 +356,9 @@ namespace HMesh
         /// Auxiliary function called from collapse
         void remove_face_if_degenerate(HalfEdgeID h);
     };
-    
-    /** \brief Build a manifold.
-     The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
-     the number of faces (no_faces), a pointer to an array of float values (vert_vec) and an array
-     of indices (indices). The build function returns an attribute vector containing a mapping from
-     vertex ids to the original point indices.
-     Note that each vertex is three floating point numbers. The indices vector is one long list of
-     all vertex indices. Note also that this function call assumes that the mesh is manifold. Failing
-     that the results are undefined but usually a crash due to a failed assertion.
-     Finally, we should consider the option to build a manifold with single precision floating point
-     values deprecated. Hence, safe_build exists only as double precision.
-     */
-    VertexAttributeVector<int> build(Manifold& m, size_t no_vertices,
-               const float* vertvec,
-               size_t no_faces,
-               const int* facevec,
-               const int* indices);
-    
-    /** \brief Build a manifold.
-     The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
-     the number of faces (no_faces), a pointer to an array of double values (vert_vec) and an array
-     of indices (indices). The build function returns an attribute vector containing a mapping from
-     vertex ids to the original point indices.
-
-     Note that each vertex is three double precision floating point numbers.
-     The indices vector is one long list of all vertex indices. Note also that this function
-     assumes that the mesh is manifold. Failing that the results are undefined but usually a
-     crash due to a failed assertion. */
-    VertexAttributeVector<int> build(Manifold& m, size_t no_vertices,
-               const double* vertvec,
-               size_t no_faces,
-               const int* facevec,
-               const int* indices);
-    
-    /// Build a manifold from a TriMesh
-    VertexAttributeVector<int> build(Manifold& m, const Geometry::TriMesh& mesh);
 
 
-    /** \brief Verify Manifold Integrity
-    Performs a series of tests to check that this is a valid manifold.
-    This function is not rigorously constructed but seems to catch all problems so far. 
-    The function returns true if the mesh is valid and false otherwise. */
-    bool find_invalid_entities(const Manifold& m, VertexSet& vs, HalfEdgeSet& hs, FaceSet& fs);
-
-    bool valid(const Manifold& m);
-
-    /// Calculate the bounding box of the manifold
-    void bbox(const Manifold& m, Manifold::Vec& pmin, Manifold::Vec& pmax);
-
-    /// Calculate the bounding sphere of the manifold
-    void bsphere(const Manifold& m, Manifold::Vec& c, float& r);
-
-    /** \brief Test for legal edge collapse.
-    The argument h is the halfedge we want to collapse. 
-    If this function does not return true, it is illegal to collapse h. 
-    The reason is that the collapse would violate the manifold property of the mesh.
-    The test is as follows:
-    1.  For the two vertices adjacent to the edge, we generate a list of all their neighbouring vertices. 
-    We then generate a  list of the vertices that occur in both these lists. 
-    That is, we find all vertices connected by edges to both endpoints of the edge and store these in a list.
-    2.  For both faces incident on the edge, check whether they are triangular.
-    If this is the case, the face will be removed, and it is ok that the the third vertex is connected to both endpoints. 
-    Thus the third vertex in such a face is removed from the list generated in 1.
-    3.  If the list is now empty, all is well. 
-    Otherwise, there would be a vertex in the new mesh with two edges connecting it to the same vertex. Return false.
-    4.  TETRAHEDRON TEST:
-    If the valency of both vertices is three, and the incident faces are triangles, we also disallow the operation. 
-    Reason: A vertex valency of two and two triangles incident on the adjacent vertices makes the construction collapse.
-    5.  VALENCY 4 TEST:
-    If a triangle is adjacent to the edge being collapsed, it disappears.
-    This means the valency of the remaining edge vertex is decreased by one.
-    A valency two vertex reduced to a valency one vertex is considered illegal.
-    6.  PREVENT MERGING HOLES:
-    Collapsing an edge with boundary endpoints and valid faces results in the creation where two holes meet.
-    A non manifold situation. We could relax this...
-	7. New test: if the same face is in the one-ring of both vertices but not adjacent to the common edge,
-	then the result of a collapse would be a one ring where the same face occurs twice. This is disallowed as the resulting
-	 face would be non-simple.	*/
-    bool precond_collapse_edge(const Manifold& m, HalfEdgeID h);
-
-    /** \brief Test fpr legal edge flip. 
-    Returns false if flipping cannot be performed. This is due to one of following: 
-    1.  one of the two adjacent faces is not a triangle. 
-    2.  Either end point has valency three.
-    3.  The vertices that will be connected already are. */
-    bool precond_flip_edge(const Manifold& m, HalfEdgeID h);
-
-    /// Returns true if the halfedge is a boundary halfedge.
-    bool boundary(const Manifold& m, HalfEdgeID h);
-
-    /// Returns true if the mesh is closed, i.e. has no boundary.
-    bool closed(const Manifold& m);
-
-    /// Return the geometric length of a halfedge.
-    double length(const Manifold& m, HalfEdgeID h);
-
-    /// Returns the id of the boundary edge or InvalidHalfEdgeID if the vertex is not on the boundary
-    HalfEdgeID boundary_edge(const Manifold& m, VertexID v);
-    
-    /// Returns true if the vertex is a boundary vertex.
-    bool boundary(const Manifold& m, VertexID v);
-
-    /// Compute valency, i.e. number of incident edges.
-    int valency(const Manifold& m, VertexID v);
-
-    /// Compute the vertex normal. This function computes the angle weighted sum of incident face normals.
-    Manifold::Vec normal(const Manifold& m, VertexID v);
-
-    /// Compute the vertex normal but multiplied by the area of the face. This is more efficient if both area and normal are needed.
-    Manifold::Vec area_normal(const Manifold& m, FaceID f);
-
-    /// Returns true if the two argument vertices are in each other's one-rings.
-    bool connected(const Manifold& m, VertexID v0, VertexID v1);
-
-    /// Compute the number of edges of a face
-    int no_edges(const Manifold& m, FaceID f);
-
-    /** Compute the normal of a face. If the face is not a triangle,
-    the normal is not defined, but computed using the first three
-    vertices of the face. */
-    Manifold::Vec normal(const Manifold& m, FaceID f);
-
-    /// Compute the area of a face. 
-    double area(const Manifold& m, FaceID f);
-
-    /// Compute the area of all faces that are incident on the vertex v
-    double one_ring_area(const Manifold& m, VertexID v);
-
-    /// Compute the perimeter of a face. 
-    double perimeter(const Manifold& m, FaceID f);
-
-    /// Compute the centre of a face
-    Manifold::Vec centre(const Manifold& m, FaceID f);
-
-    /// Compute the barycenter of a face (with American spelling).
-    inline Manifold::Vec barycenter(const Manifold& m, FaceID f) {
-        return centre(m,f);
-    }
-
-    /// Compute the barycenter of an halfedge (with American spelling).
-    inline Manifold::Vec barycenter(const Manifold& m, HalfEdgeID h) {
-        Walker w = m.walker(h);
-        return 0.5 * (m.pos(w.vertex()) + m.pos(w.opp().vertex()));
-    }
-
-    /// Compute the barycenter of all vertices of mesh
-    Manifold::Vec barycenter(const Manifold& m);
-    /// Compute the total surface area
-    double area(const Manifold& m);
-
-    /// Compute the total volume
-    double volume(const Manifold& m);
-
-    /*******************************************************************
-    * Manifold code
-    *******************************************************************/
+    // Inline functions -----------------------------------------
 
     inline Manifold::Manifold(){}
 
@@ -469,12 +376,40 @@ namespace HMesh
     {
         return positions;    
     }
+    
+    inline void Manifold::serialize(Util::Serialization& ser) const {
+        kernel.serialize(ser);
+        positions.serialize(ser);
+    }
+    
+    /// Deserialize the Manifold
+    inline void Manifold::deserialize(Util::Serialization& ser) {
+        kernel.deserialize(ser);
+        positions.deserialize(ser);
+    }
 
     inline void Manifold::clear()
     { 
         kernel.clear();
         positions.clear();
     }
+
+
+    /// Return a pair of iterators to the vertices.
+    inline IteratorPair<IDIterator<Vertex>> Manifold::vertices() const {
+        return IteratorPair<IDIterator<Vertex>>(kernel.vertices_begin(), kernel.vertices_end());
+    }
+
+    /// Return a pair of iterators to the faces.
+    inline IteratorPair<IDIterator<Face>> Manifold::faces() const {
+        return IteratorPair<IDIterator<Face>>(kernel.faces_begin(), kernel.faces_end());
+    }
+
+    /// Return a pair of iterators to the halfedges.
+    inline IteratorPair<IDIterator<HalfEdge>> Manifold::halfedges() const {
+        return IteratorPair<IDIterator<HalfEdge>>(kernel.halfedges_begin(), kernel.halfedges_end());
+    }
+
 
     inline Walker Manifold::walker(VertexID id) const
     { return Walker(kernel, kernel.out(id)); }
@@ -518,6 +453,93 @@ namespace HMesh
         HalfEdgeID he = kernel.last(f);
         return IteratorPair<FCType>(FCType(kernel, he), FCType(kernel, he, true));
     }
+    
+    inline bool Manifold::connected(VertexID v0, VertexID v1) const
+    {
+        for(VertexID v: incident_vertices(v0)) {
+            if (v==v1)
+                return true;
+        }
+        return false;
+    }
+
+    inline bool Manifold::boundary(HalfEdgeID h) const
+    {
+        Walker w = walker(h);
+        return w.face() == InvalidFaceID || w.opp().face() == InvalidFaceID;
+    }
+
+    inline int Manifold::valency(VertexID v) const
+    {
+        int k=0;
+        for (auto _: incident_vertices(v))
+            ++k;
+        return k;
+    }
+
+    inline int Manifold::no_edges(FaceID f) const
+    {
+        int k=0;
+        for (auto _: incident_halfedges(f))
+            ++k;
+        return k;
+    }
+
+    inline Manifold::Vec Manifold::normal(FaceID f) const {
+        return cond_normalize(area_normal(f));
+    }
+
+    inline Manifold::Vec Manifold::barycenter(FaceID f) const
+    {
+        Manifold::Vec c(0);
+        int n = 0;
+        for (auto v: incident_vertices(f)) {
+            c += positions[v];
+            ++n;
+        }
+        return c / n;
+    }
+
+    /// Compute the barycenter of an halfedge (with American spelling).
+    inline Manifold::Vec Manifold::barycenter(HalfEdgeID h) const {
+        Walker w = walker(h);
+        return 0.5 * (positions[w.vertex()] + positions[w.opp().vertex()]);
+    }
+
+   inline double Manifold::length(HalfEdgeID h) const {
+        Walker w = walker(h);
+        return CGLA::length(positions[w.vertex()] - positions[w.opp().vertex()]);
+    }
+
+    inline double Manifold::perimeter(FaceID f) const
+    {
+        double l=0.0;
+        for (auto h: incident_halfedges(f))
+            l+= length(h);
+        return l;
+    }
+
+    inline double Manifold::one_ring_area(VertexID v) const {
+        double a=0;
+        for(auto f: incident_faces(v)) {
+            a += area(f);
+        }
+        return a;
+    }
+
+
+    inline HalfEdgeID Manifold::boundary_edge(VertexID v) const
+    {
+        for (Walker w= walker(v); !w.full_circle(); w = w.circulate_vertex_ccw())
+            if(w.face()==InvalidFaceID)
+                return w.halfedge();
+        return InvalidHalfEdgeID;
+    }
+
+
+    inline bool Manifold::boundary(VertexID v) const {
+        return boundary_edge(v) != InvalidHalfEdgeID;
+    }
 
     inline void Manifold::cleanup(IDRemap& map)
     {   
@@ -530,6 +552,196 @@ namespace HMesh
         IDRemap map;
         Manifold::cleanup(map);
     }
+
+    // End of inline functions ---------------------------------
+    
+    /** \brief Build a manifold.
+     The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
+     the number of faces (no_faces), a pointer to an array of float values (vert_vec) and an array
+     of indices (indices). The build function returns an attribute vector containing a mapping from
+     vertex ids to the original point indices.
+     Note that each vertex is three floating point numbers. The indices vector is one long list of
+     all vertex indices. Note also that this function call assumes that the mesh is manifold. Failing
+     that the results are undefined but usually a crash due to a failed assertion.
+     Finally, we should consider the option to build a manifold with single precision floating point
+     values deprecated. Hence, safe_build exists only as double precision.
+     */
+    VertexAttributeVector<int> build(Manifold& m, size_t no_vertices,
+               const float* vertvec,
+               size_t no_faces,
+               const int* facevec,
+               const int* indices);
+    
+    /** \brief Build a manifold.
+     The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
+     the number of faces (no_faces), a pointer to an array of double values (vert_vec) and an array
+     of indices (indices). The build function returns an attribute vector containing a mapping from
+     vertex ids to the original point indices.
+
+     Note that each vertex is three double precision floating point numbers.
+     The indices vector is one long list of all vertex indices. Note also that this function
+     assumes that the mesh is manifold. Failing that the results are undefined but usually a
+     crash due to a failed assertion. */
+    VertexAttributeVector<int> build(Manifold& m, size_t no_vertices,
+               const double* vertvec,
+               size_t no_faces,
+               const int* facevec,
+               const int* indices);
+    
+    /// Build a manifold from a TriMesh
+    VertexAttributeVector<int> build(Manifold& m, const Geometry::TriMesh& mesh);
+
+    /** \brief Verify Manifold Integrity
+    Performs a series of tests to check that this is a valid manifold.
+    This function is not rigorously constructed but seems to catch all problems so far. 
+    The function returns true if the mesh is valid and false otherwise. */
+    bool find_invalid_entities(const Manifold& m, VertexSet& vs, HalfEdgeSet& hs, FaceSet& fs);
+
+    bool valid(const Manifold& m);
+
+    /// Calculate the bounding box of the manifold
+    void bbox(const Manifold& m, Manifold::Vec& pmin, Manifold::Vec& pmax);
+
+    /// Calculate the bounding sphere of the manifold
+    void bsphere(const Manifold& m, Manifold::Vec& c, float& r);
+
+    /** \brief Test for legal edge collapse.
+    The argument h is the halfedge we want to collapse. 
+    If this function does not return true, it is illegal to collapse h. 
+    The reason is that the collapse would violate the manifold property of the mesh.
+    The test is as follows:
+    1.  For the two vertices adjacent to the edge, we generate a list of all their neighbouring vertices. 
+    We then generate a  list of the vertices that occur in both these lists. 
+    That is, we find all vertices connected by edges to both endpoints of the edge and store these in a list.
+    2.  For both faces incident on the edge, check whether they are triangular.
+    If this is the case, the face will be removed, and it is ok that the the third vertex is connected to both endpoints. 
+    Thus the third vertex in such a face is removed from the list generated in 1.
+    3.  If the list is now empty, all is well. 
+    Otherwise, there would be a vertex in the new mesh with two edges connecting it to the same vertex. Return false.
+    4.  TETRAHEDRON TEST:
+    If the valency of both vertices is three, and the incident faces are triangles, we also disallow the operation. 
+    Reason: A vertex valency of two and two triangles incident on the adjacent vertices makes the construction collapse.
+    5.  VALENCY 4 TEST:
+    If a triangle is adjacent to the edge being collapsed, it disappears.
+    This means the valency of the remaining edge vertex is decreased by one.
+    A valency two vertex reduced to a valency one vertex is considered illegal.
+    6.  PREVENT MERGING HOLES:
+    Collapsing an edge with boundary endpoints and valid faces results in the creation where two holes meet.
+    A non manifold situation. We could relax this...
+	7. New test: if the same face is in the one-ring of both vertices but not adjacent to the common edge,
+	then the result of a collapse would be a one ring where the same face occurs twice. This is disallowed as the resulting
+	 face would be non-simple.	*/
+    inline bool precond_collapse_edge(const Manifold& m, HalfEdgeID h) {
+        return m.precond_collapse_edge(h);
+    }
+
+    /** \brief Test for legal edge flip. 
+    Returns false if flipping cannot be performed. This is due to one of following: 
+    1.  one of the two adjacent faces is not a triangle. 
+    2.  Either end point has valency three.
+    3.  The vertices that will be connected already are. */
+    inline bool precond_flip_edge(const Manifold& m, HalfEdgeID h) {
+        return m.precond_flip_edge(h);
+    }
+
+    /// Returns true if the halfedge is a boundary halfedge.
+    inline bool boundary(const Manifold& m, HalfEdgeID h) {
+        return m.boundary(h);
+    }
+
+    /// Returns true if the vertex is a boundary vertex.
+    inline bool boundary(const Manifold& m, VertexID v) {
+        return m.boundary(v);
+    }
+    
+
+    /// Returns true if the mesh is closed, i.e. has no boundary.
+    bool closed(const Manifold& m);
+
+    /// Return the geometric length of a halfedge.
+    inline double length(const Manifold& m, HalfEdgeID h) {
+        return m.length(h);
+    }
+
+    /// Returns the id of the boundary edge or InvalidHalfEdgeID if the vertex is not on the boundary
+    inline HalfEdgeID boundary_edge(const Manifold& m, VertexID v) {
+        return m.boundary_edge(v);
+    }
+    
+
+    /// Compute valency, i.e. number of incident edges.
+    inline int valency(const Manifold& m, VertexID v) {
+        return m.valency(v);
+    }
+
+        /** Compute the normal of a face. If the face is not a triangle,
+    the normal is not defined, but computed using the first three
+    vertices of the face. */
+    inline Manifold::Vec normal(const Manifold& m, FaceID f) {
+        return m.normal(f);
+    }
+
+
+
+    /// Compute the vertex normal. This function computes the angle weighted sum of incident face normals.
+    inline Manifold::Vec normal(const Manifold& m, VertexID v) {
+        return m.normal(v);
+    }
+
+    /// Compute the vertex normal but multiplied by the area of the face. This is more efficient if both area and normal are needed.
+    inline Manifold::Vec area_normal(const Manifold& m, FaceID f) {
+        return m.area_normal(f);
+    }
+
+    /// Returns true if the two argument vertices are in each other's one-rings.
+    inline bool connected(const Manifold& m, VertexID v0, VertexID v1) {
+        return m.connected(v0, v1);
+    }
+
+    /// Compute the number of edges of a face
+    inline int no_edges(const Manifold& m, FaceID f) {
+        return m.no_edges(f);
+    }
+
+    /// Compute the area of a face. 
+    inline double area(const Manifold& m, FaceID f) {
+        return m.area(f);
+    }
+
+    /// Compute the area of all faces that are incident on the vertex v
+    inline double one_ring_area(const Manifold& m, VertexID v) {
+        return m.one_ring_area(v);
+    }
+
+    /// Compute the perimeter of a face. 
+    inline double perimeter(const Manifold& m, FaceID f) {
+        return m.perimeter(f);
+    }
+
+    /// Compute the centre of a face
+    inline Manifold::Vec centre(const Manifold& m, FaceID f) {
+        return m.barycenter(f);
+    }
+
+    /// Compute the barycenter of a face (with American spelling).
+    inline Manifold::Vec barycenter(const Manifold& m, FaceID f) {
+        return centre(m,f);
+    }
+
+    /// Compute the barycenter of an halfedge (with American spelling).
+    inline Manifold::Vec barycenter(const Manifold& m, HalfEdgeID h) {
+        Walker w = m.walker(h);
+        return 0.5 * (m.pos(w.vertex()) + m.pos(w.opp().vertex()));
+    }
+
+    /// Compute the barycenter of all vertices of mesh
+    Manifold::Vec barycenter(const Manifold& m);
+    /// Compute the total surface area
+    double area(const Manifold& m);
+
+    /// Compute the total volume
+    double volume(const Manifold& m);
+
     
     inline int circulate_vertex_ccw(const Manifold& m, VertexID v, std::function<void(Walker&)> f)
     {
@@ -606,5 +818,7 @@ namespace HMesh
     {
         return circulate_face_cw(m, f, static_cast<std::function<void(Walker&)>>([&](Walker& w){g(w.halfedge());}));
     }
+
+
 
 }

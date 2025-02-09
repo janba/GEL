@@ -67,14 +67,14 @@ namespace HMesh
     
     void remove_caps(Manifold& m, float thresh)
     {
-        for(FaceIDIterator f = m.faces_begin(); f != m.faces_end(); ++f){
+        for(auto f: m.faces()){
             Vec3d p[3];
             HalfEdgeID he[3];
             VertexID vh[3];
             
             // store ids of vertices and halfedges and vertex positions of face
             size_t n = 0;
-            for(Walker fj = m.walker(*f); !fj.full_circle(); fj = fj.circulate_face_cw(), ++n){
+            for(Walker fj = m.walker(f); !fj.full_circle(); fj = fj.circulate_face_cw(), ++n){
                 vh[n] = fj.vertex();
                 p[n] = Vec3d(m.pos(vh[n]));
                 
@@ -88,7 +88,7 @@ namespace HMesh
             Vec3d edges[3];
             for(size_t i = 0; i < 3; ++i){
                 edges[i] = p[(i+1)%3] - p[i];
-                float l = length(edges[i]);
+                double l = length(edges[i]);
                 if(l < 1e-20)
                     is_collapsed = true;
                 else
@@ -100,7 +100,7 @@ namespace HMesh
                 continue;
             
             for(size_t i = 0; i < 3; ++i){
-                float ang = acos(max(-1.0, min(1.0, dot(-edges[(i+2)%3], edges[i]))));
+                double ang = acos(max(-1.0, min(1.0, dot(-edges[(i+2)%3], edges[i]))));
                 
                 // flip long edge of current face if angle exceeds cap threshold and result is better than current cap
                 if(ang > thresh){
@@ -128,7 +128,7 @@ namespace HMesh
                         if(precond_flip_edge(m, he[iplus1]))
                             m.flip_edge(he[iplus1]);
                         else if(boundary(m, he[iplus1]))
-                            m.remove_face(*f);
+                            m.remove_face(f);
                         break;
                     }
                 }
@@ -358,9 +358,9 @@ struct Corner {
         {
             unstitched = stitch_mesh(mani, rad);
             vector<HalfEdgeID> hvec;
-            for(HalfEdgeIDIterator h = mani.halfedges_begin(); h != mani.halfedges_end();++h)
-                if(mani.walker(*h).face() == InvalidFaceID)
-                    hvec.push_back(*h);
+            for(auto h: mani.halfedges())
+                if(mani.walker(h).face() == InvalidFaceID)
+                    hvec.push_back(h);
             for(size_t i=0;i<hvec.size(); ++i)
                 mani.split_edge(hvec[i]);
             

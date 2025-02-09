@@ -24,13 +24,13 @@ def obj_load(file_path):
 vertices, normals = obj_load('../../../data/PointClouds/owl-little.obj')
 m = rsr_recon(vertices)
 
-# larger point cloud.
-vertices, normals = obj_load('../../../data/PointClouds/owl-lines.obj')
-m = rsr_recon(vertices,normals,False)
+# # larger point cloud.
+# vertices, normals = obj_load('../../../data/PointClouds/owl-lines.obj')
+# m = rsr_recon(vertices,normals,False)
 
-# Object with non-zero genus
-vertices, normals = obj_load('../../../data/PointClouds/Capital_A.obj')
-m = rsr_recon(vertices,normals,True, k=30, genus=-1, n=40)
+# # Object with non-zero genus
+# vertices, normals = obj_load('../../../data/PointClouds/Capital_A.obj')
+# m = rsr_recon(vertices,normals,True, k=30, genus=-1, n=40)
 
 viewer = gl.Viewer()
 viewer.display(m)
