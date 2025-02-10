@@ -205,19 +205,23 @@ namespace HMesh
 
         // Geometric queries -------------------------------------
 
-        /// Return reference to position given by VertexID
+        /** Return reference to position given by VertexID. It is not recommended that you use 
+            this function. The positions attribute vector is public and can be accessed directly.
+            The pos funcion adds a layer that is not necessarily helpful. */
         Vec& pos(VertexID id);
-        /// Return const reference to position given by VertexID
-        Vec pos(VertexID id) const;
-        
 
-        /// Return the geometric length of a halfedge.
+        /** Return const reference to position given by VertexID. It is not recommended that you use 
+            this function. The positions attribute vector is public and can be accessed directly.
+            The pos funcion adds a layer that is not necessarily helpful. */
+        Vec pos(VertexID id) const;
+
+        /// Return the length of a halfedge.
         double length(HalfEdgeID h) const;
 
         /// Compute the vertex normal. This function computes the angle weighted sum of incident face normals.
         Manifold::Vec normal(VertexID v) const;
 
-        /// Compute the vertex normal but multiplied by the area of the face. This is more efficient if both area and normal are needed.
+        /// Compute the face normal multiplied by the area of the face. This is more efficient if both area and normal are needed.
         Manifold::Vec area_normal(FaceID f) const;
 
         /** Compute the normal of a face. If the face is not a triangle,
@@ -334,7 +338,10 @@ namespace HMesh
          can be connected by more than one sequence (or a self intersecting sequence) of edges. */
         HalfEdgeID slit_edges(HMesh::VertexSet& selection);
 
-        /// \brief Flip an edge h. 
+        /** \brief Flip an edge h. 
+            This method assumes both the incident faces exist and are triangles. 
+            there is a precond_flip_edge method which should be called before flipping
+            to ensure the flip is permissible.  */
         void flip_edge(HalfEdgeID h);
 
     private:
@@ -521,15 +528,13 @@ namespace HMesh
 
     inline double Manifold::one_ring_area(VertexID v) const {
         double a=0;
-        for(auto f: incident_faces(v)) {
+        for(auto f: incident_faces(v))
             a += area(f);
-        }
         return a;
     }
 
 
-    inline HalfEdgeID Manifold::boundary_edge(VertexID v) const
-    {
+    inline HalfEdgeID Manifold::boundary_edge(VertexID v) const {
         for (Walker w= walker(v); !w.full_circle(); w = w.circulate_vertex_ccw())
             if(w.face()==InvalidFaceID)
                 return w.halfedge();
@@ -541,14 +546,12 @@ namespace HMesh
         return boundary_edge(v) != InvalidHalfEdgeID;
     }
 
-    inline void Manifold::cleanup(IDRemap& map)
-    {   
+    inline void Manifold::cleanup(IDRemap& map) {   
         kernel.cleanup(map);
         positions.cleanup(map.vmap);
     }
     
-    inline void Manifold::cleanup()
-    {
+    inline void Manifold::cleanup() {
         IDRemap map;
         Manifold::cleanup(map);
     }
@@ -653,7 +656,6 @@ namespace HMesh
     inline bool boundary(const Manifold& m, VertexID v) {
         return m.boundary(v);
     }
-    
 
     /// Returns true if the mesh is closed, i.e. has no boundary.
     bool closed(const Manifold& m);
@@ -667,21 +669,18 @@ namespace HMesh
     inline HalfEdgeID boundary_edge(const Manifold& m, VertexID v) {
         return m.boundary_edge(v);
     }
-    
 
     /// Compute valency, i.e. number of incident edges.
     inline int valency(const Manifold& m, VertexID v) {
         return m.valency(v);
     }
 
-        /** Compute the normal of a face. If the face is not a triangle,
-    the normal is not defined, but computed using the first three
-    vertices of the face. */
+    /** Compute the normal of a face. If the face is not a triangle,
+        the normal is not defined, but computed using the first three
+        vertices of the face. */
     inline Manifold::Vec normal(const Manifold& m, FaceID f) {
         return m.normal(f);
     }
-
-
 
     /// Compute the vertex normal. This function computes the angle weighted sum of incident face normals.
     inline Manifold::Vec normal(const Manifold& m, VertexID v) {
@@ -725,23 +724,22 @@ namespace HMesh
 
     /// Compute the barycenter of a face (with American spelling).
     inline Manifold::Vec barycenter(const Manifold& m, FaceID f) {
-        return centre(m,f);
+        return m.barycenter(f);
     }
 
     /// Compute the barycenter of an halfedge (with American spelling).
     inline Manifold::Vec barycenter(const Manifold& m, HalfEdgeID h) {
-        Walker w = m.walker(h);
-        return 0.5 * (m.pos(w.vertex()) + m.pos(w.opp().vertex()));
+        return m.barycenter(h);
     }
 
     /// Compute the barycenter of all vertices of mesh
     Manifold::Vec barycenter(const Manifold& m);
+
     /// Compute the total surface area
     double area(const Manifold& m);
 
     /// Compute the total volume
     double volume(const Manifold& m);
-
     
     inline int circulate_vertex_ccw(const Manifold& m, VertexID v, std::function<void(Walker&)> f)
     {
@@ -749,6 +747,7 @@ namespace HMesh
         for(; !w.full_circle(); w = w.circulate_vertex_ccw()) f(w);
         return w.no_steps();
     }
+    
     inline int circulate_vertex_ccw(const Manifold& m, VertexID v, std::function<void(VertexID)> f)
     {
         return circulate_vertex_ccw(m, v, static_cast<std::function<void(Walker&)>>([&](Walker& w){f(w.vertex());}));
@@ -818,7 +817,4 @@ namespace HMesh
     {
         return circulate_face_cw(m, f, static_cast<std::function<void(Walker&)>>([&](Walker& w){g(w.halfedge());}));
     }
-
-
-
 }

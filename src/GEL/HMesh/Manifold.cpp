@@ -984,7 +984,7 @@ namespace HMesh
 
     void Manifold::remove_face_if_degenerate(HalfEdgeID h)
     {
-        // face is degenerate if there is only two halfedges in face loop
+        // face is degenerate if there are only two halfedges in face loop
         if(kernel.next(kernel.next(h)) == h)
         {
             HalfEdgeID hn = kernel.next(h);
