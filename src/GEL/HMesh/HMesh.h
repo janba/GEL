@@ -25,4 +25,5 @@
 #include <GEL/HMesh/x3d_save.h>
 #include <GEL/HMesh/graph_algorithm.h>
 #include <GEL/HMesh/skeleton_to_FEQ.h>
+#include <GEL/HMesh/stable_marriage_registration.h>
 #endif
