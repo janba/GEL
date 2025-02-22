@@ -32,12 +32,12 @@ namespace HMesh
         {
             for(int iter=0;iter<smooth_steps;++iter){
                 VertexAttributeVector<T> new_vec(m.allocated_vertices());
-                for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){
-                    new_vec[*v] = vec[*v];
-                    for(Walker w = m.walker(*v); !w.full_circle(); w = w.circulate_vertex_cw()){
-                        new_vec[*v] += vec[w.vertex()];
+                for(auto v: m.vertices()){
+                    new_vec[v] = vec[v];
+                    for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()){
+                        new_vec[v] += vec[w.vertex()];
                     }
-                    new_vec[*v] /= (valency(m, *v) + 1.0);
+                    new_vec[v] /= (valency(m, v) + 1.0);
                 }
                 swap(vec,new_vec);
             }		
@@ -145,10 +145,10 @@ namespace HMesh
     double sum_curvatures(const Manifold& m, VertexAttributeVector<double>& curvature)
     {
         double sum = 0;
-        for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){
-            if(boundary(m, *v))
+        for(auto v: m.vertices()){
+            if(boundary(m, v))
                 continue;	
-            sum += curvature[*v] * mixed_area(m, *v);
+            sum += curvature[v] * mixed_area(m, v);
         }
         return sum;
     }
@@ -274,8 +274,8 @@ namespace HMesh
 
     void curvature_tensors_from_edges(const Manifold& m, VertexAttributeVector<Mat3x3d>& curvature_tensors)
     {
-        for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v)
-            curvature_tensors[*v] = curvature_tensor_from_edges(m, *v);
+        for(auto v: m.vertices())
+            curvature_tensors[v] = curvature_tensor_from_edges(m, v);
     }
 
     void smooth_curvature_tensors(const Manifold& m, VertexAttributeVector<Mat3x3d>& curvature_tensors)
@@ -284,19 +284,19 @@ namespace HMesh
         VertexAttributeVector<Mat3x3d> tmp_curvature_tensors;
         double tmp_area;
 
-        for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){
-            if(boundary(m, *v))
+        for(auto v: m.vertices()){
+            if(boundary(m, v))
                 continue;
-            double a = mixed_area(m, *v);
-            tmp_curvature_tensors[*v] = curvature_tensors[*v] * a;
+            double a = mixed_area(m, v);
+            tmp_curvature_tensors[v] = curvature_tensors[v] * a;
             tmp_area = a;
-            for(Walker w = m.walker(*v); !w.full_circle(); w = w.circulate_vertex_cw()){
+            for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()){
                 if(!boundary(m, w.vertex())){
                     double a = mixed_area(m, w.vertex());
-                    tmp_curvature_tensors[*v] += curvature_tensors[w.vertex()]*a;
+                    tmp_curvature_tensors[v] += curvature_tensors[w.vertex()]*a;
                     tmp_area += a;
                 }
-                tmp_curvature_tensors[*v] /= tmp_area;
+                tmp_curvature_tensors[v] /= tmp_area;
             }
         }
         curvature_tensors = std::move(tmp_curvature_tensors);
@@ -304,19 +304,19 @@ namespace HMesh
 
     void gaussian_curvature_angle_defects(const Manifold& m, VertexAttributeVector<double>& curvature, int smooth_steps)
     {
-        for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v)
-            curvature[*v] = gaussian_curvature_angle_defect(m, *v);
+        for(auto v: m.vertices())
+            curvature[v] = gaussian_curvature_angle_defect(m, v);
 
         smooth_something_on_mesh(m, curvature, smooth_steps);
     }
 
     void mean_curvatures(const Manifold& m, VertexAttributeVector<double>& curvature, int smooth_steps)
     {
-        for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v)
-			if(!boundary(m,*v))
+        for(auto v: m.vertices())
+			if(!boundary(m,v))
 			{
-				Vec3d N = -mean_curvature_normal(m, *v);
-				curvature[*v] = length(N) * sign(dot(N,Vec3d(normal(m, *v))));
+				Vec3d N = -mean_curvature_normal(m, v);
+				curvature[v] = length(N) * sign(dot(N,Vec3d(normal(m, v))));
 			}	
         smooth_something_on_mesh(m, curvature, smooth_steps);	
     }
@@ -328,10 +328,10 @@ namespace HMesh
                                 VertexAttributeVector<Vec2d>& curvature)
     {
 
-        for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){
+        for(auto v: m.vertices()){
             Mat2x2d tensor;
             Mat3x3d frame;
-            curvature_tensor_paraboloid(m, *v, tensor, frame);
+            curvature_tensor_paraboloid(m, v, tensor, frame);
 
             Mat2x2d Q,L;
             int s = power_eigensolution(tensor, Q, L);
@@ -346,12 +346,12 @@ namespace HMesh
 
             Mat3x3d frame_t = transpose(frame);
 
-            max_curv_direction[*v] = cond_normalize(frame_t * Vec3d(Q[max_idx][0], Q[max_idx][1], 0));
+            max_curv_direction[v] = cond_normalize(frame_t * Vec3d(Q[max_idx][0], Q[max_idx][1], 0));
 
-            min_curv_direction[*v] = cond_normalize(frame_t * Vec3d(Q[min_idx][0], Q[min_idx][1], 0));
+            min_curv_direction[v] = cond_normalize(frame_t * Vec3d(Q[min_idx][0], Q[min_idx][1], 0));
 
-            curvature[*v][0] = L[min_idx][min_idx];
-            curvature[*v][1] = L[max_idx][max_idx];
+            curvature[v][0] = L[min_idx][min_idx];
+            curvature[v][1] = L[max_idx][max_idx];
         }
     }
 
@@ -365,24 +365,24 @@ namespace HMesh
         assert(curvature_tensors.size() == m.allocated_vertices());
 
         double max_val = -1e30;
-        for(VertexIDIterator v = m.vertices_begin(); v != m.vertices_end(); ++v){
+        for(auto v: m.vertices()){
             Mat3x3d C,Q,L;
-            C = curvature_tensors[*v];
+            C = curvature_tensors[v];
             int s = power_eigensolution(C, Q, L);
             Vec3d dmin, dmax;
             if(s == 0)
             {
-                Vec3d n(normal(m, *v));
+                Vec3d n(normal(m, v));
                 orthogonal(n, dmin, dmax);
-                curvature[*v] = Vec2d(0);
+                curvature[v] = Vec2d(0);
                 cout << " rank 0 " << endl;
             }
             else if(s == 1)
             {
-                Vec3d n(normal(m, *v));
+                Vec3d n(normal(m, v));
                 dmin = normalize(Q[0]);
                 dmax = cross(n, dmin);
-                curvature[*v] = Vec2d(0);
+                curvature[v] = Vec2d(0);
                 cout << " rank 1 " << endl;
             }
             else
@@ -399,13 +399,13 @@ namespace HMesh
                 dmin = normalize(Q[max_idx]);
                 dmax = normalize(Q[min_idx]);
 
-                curvature[*v][0] = L[min_idx][min_idx];
-                curvature[*v][1] = L[max_idx][max_idx];
+                curvature[v][0] = L[min_idx][min_idx];
+                curvature[v][1] = L[max_idx][max_idx];
 
             }
-            min_curv_direction[*v] = dmin;
-            max_curv_direction[*v] = dmax;
-            max_val = max(fabs(curvature[*v][1]), max_val);
+            min_curv_direction[v] = dmin;
+            max_curv_direction[v] = dmax;
+            max_val = max(fabs(curvature[v][1]), max_val);
 
         }
         //scal = 1.0/max_val;
