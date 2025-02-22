@@ -66,7 +66,7 @@ int main()
   // TODO: The following should be done for all constructors in the remainder of the file
 #ifndef NDEBUG
     Vec2d x1;
-    success += CGLA::isnan(x1[0]) && CGLA::isnan(x1[1]);
+    success += isnan(x1[0]) && isnan(x1[1]);
 #else
     success += 1;
 #endif
@@ -375,7 +375,7 @@ int main()
 
   {
     Vec2f x1;
-    success += CGLA::isnan(x1[0]) && CGLA::isnan(x1[1]);
+    success += isnan(x1[0]) && isnan(x1[1]);
 
     float xi1 = my_random(), xi2 = my_random();
     Vec2f x2(xi1, xi2);
@@ -683,7 +683,7 @@ int main()
 /* Vec2i default initialization ?
  *
     Vec2i x1;
-    success += CGLA::isnan(x1[0]) && CGLA::isnan(x1[1]);
+    success += isnan(x1[0]) && isnan(x1[1]);
 */
 
     int xi1 = gel_rand(), xi2 = gel_rand();
@@ -956,7 +956,7 @@ int main()
 /* Vec3i default initialization ?
  *
     Vec3i x1;
-    success += CGLA::isnan(x1[0]) && CGLA::isnan(x1[1]) && CGLA::isnan(x1[2]);
+    success += isnan(x1[0]) && isnan(x1[1]) && isnan(x1[2]);
 */
 
     int xi1 = gel_rand(), xi2 = gel_rand(), xi3 = gel_rand();
@@ -1249,7 +1249,7 @@ int main()
 
   {
     Vec3f x1;
-    success += CGLA::isnan(x1[0]) && CGLA::isnan(x1[1]) && CGLA::isnan(x1[2]);
+    success += isnan(x1[0]) && isnan(x1[1]) && isnan(x1[2]);
 
     float xi1 = my_random(), xi2 = my_random(), xi3 = my_random();
     Vec3f x2(xi1, xi2, xi3);
@@ -1568,7 +1568,7 @@ int main()
 
   {
     Vec3d x1;
-    success += CGLA::isnan(x1[0]) && CGLA::isnan(x1[1]) && CGLA::isnan(x1[2]);
+    success += isnan(x1[0]) && isnan(x1[1]) && isnan(x1[2]);
 
     double xi1 = my_random(), xi2 = my_random(), xi3 = my_random();
     Vec3d x2(xi1, xi2, xi3);
