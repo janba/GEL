@@ -64,7 +64,7 @@ void Manifold_delete(Manifold_ptr _self)
 size_t Manifold_positions(Manifold_ptr _self, double** pos) {
     Manifold* self = reinterpret_cast<Manifold*>(_self);
     auto N = self->positions_attribute_vector().size();
-    *pos = reinterpret_cast<double*>(&(self->positions_attribute_vector().get(VertexID(0))));
+    *pos = reinterpret_cast<double*>(self->positions.data());
     return N;
 }
 
@@ -333,6 +333,10 @@ void face_normal(const Manifold_ptr _m_ptr, size_t _f, double* _n) {
 double area(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return area(*m_ptr,FaceID(_f));
+}
+double one_ring_area(const Manifold_ptr _m_ptr, size_t _v) {
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    return one_ring_area(*m_ptr,VertexID(_v));
 }
 double perimeter(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
