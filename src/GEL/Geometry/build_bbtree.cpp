@@ -31,15 +31,15 @@ namespace Geometry
 {
 
     template<class BBTree>
-    void build_tree_robust(Manifold& m, BBTree& tree)
+    void build_tree_robust(const Manifold& m, BBTree& tree)
     {
         vector<Triangle> triangle_vec;
 
-        for(FaceIDIterator fi=m.faces_begin(); fi != m.faces_end();++fi)
+        for(auto fi: m.faces())
         {
-            Vec3d face_normal = normal(m, *fi);
+            Vec3d face_normal = normal(m, fi);
             
-            Walker w = m.walker(*fi);
+            Walker w = m.walker(fi);
 
             Vec3f v0,v1,v2;
             Vec3f vn0,vn1,vn2;
@@ -85,12 +85,12 @@ namespace Geometry
         tree.build(triangle_vec);
     }
 
-    void build_OBBTree(HMesh::Manifold& m, OBBTree& tree)
+    void build_OBBTree(const HMesh::Manifold& m, OBBTree& tree)
     {
         build_tree_robust<OBBTree>(m, tree);
     }
 
-    void build_AABBTree(HMesh::Manifold& m, AABBTree& tree)
+    void build_AABBTree(const HMesh::Manifold& m, AABBTree& tree)
     {
         build_tree_robust<AABBTree>(m, tree);
     }
