@@ -9,14 +9,16 @@
 #include "hmesh_functions.h"
 #include <string>
 #include <GEL/HMesh/HMesh.h>
+#include <GEL/HMesh/face_loop.h>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/graph_io.h>
 #include <GEL/Geometry/graph_skeletonize.h>
 #include <GEL/Geometry/graph_util.h>
 #include <GEL/Geometry/GridAlgorithm.h>
+#include <GEL/HMesh/RsR.h>
 #include "Graph.h"
 #include "Manifold.h"
-
+#include "IntVector.h"
 
 
 using namespace std;
@@ -237,5 +239,59 @@ void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
 
     non_rigid_registration(*m_ptr, *m_ref_ptr);
 }
+
+void rsr_recon(Manifold_ptr m_ptr, double* verts, double* normals, int v_num, int n_num,
+    bool isEuclidean, int genus, int k, int r, int theta, int n) {
+
+    vector<Vec3d> vertices;
+    vector<Vec3d> norm;
+    vertices.reserve(v_num);
+    norm.reserve(n_num);
+    for (int i = 0; i < v_num; i++) {
+        vertices.emplace_back(verts[i], verts[i + v_num], verts[i + 2 * v_num]);
+    }
+
+    for (int i = 0; i < n_num; i++) {
+        norm.emplace_back(normals[i], normals[i + n_num], normals[i + 2 * n_num]);
+    }
+
+    reconstruct_single(*(reinterpret_cast<Manifold*>(m_ptr)), vertices, norm, 
+        isEuclidean, genus, k, r, theta, n);
+
+    return; 
+}
+
+using IntVector = vector<size_t>;
+
+void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr) {
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    IntVector* fidx_ptr = reinterpret_cast<IntVector*>(_fidx_ptr);
+
+    FaceSet fset;
+    for (int i=0;i<no_faces; ++i) 
+        fset.insert(FaceID(faces[i]));
+
+    FaceSet floop = extrude_face_set(*m_ptr, fset);
+    for (auto f: floop)
+        fidx_ptr->push_back(f.index);
+}
+
+void kill_face_loop(Manifold_ptr _m_ptr) {
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    kill_face_loop(*m_ptr);
+}
+
+void kill_degenerate_face_loops(Manifold_ptr _m_ptr, double thresh) {
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    kill_degenerate_face_loops(*m_ptr, thresh);
+}
+
+
+void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    Manifold* m_ref_ptr = reinterpret_cast<Manifold*>(_m_ref_ptr);
+    stable_marriage_registration(*m_ptr, *m_ref_ptr);
+}
+
 
 
