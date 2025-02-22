@@ -331,84 +331,84 @@ int main(int argc, char* argv[])
     metal silver(Vec3f(0.9f, 0.9f, 0.9f), 22.f, 0.177f, 3.638f);
 
     //setup cornell box 1mx1mx1m
-    mesh floor("../../data/cornell_box/floor.obj");
+    mesh floor("../../../data/cornell_box/floor.obj");
     floor.set_material(&glossy_white);
     current->insert(&floor);
 
-    mesh ceiling("../../data/cornell_box/ceiling.obj");
+    mesh ceiling("../../../data/cornell_box/ceiling.obj");
     ceiling.set_material(&dull_gray);
     current->insert(&ceiling);
 
-    mesh back("../../data/cornell_box/back.obj");
+    mesh back("../../../data/cornell_box/back.obj");
     back.set_material(&silver);
     current->insert(&back);
 
-    mesh left("../../data/cornell_box/left.obj");
+    mesh left("../../../data/cornell_box/left.obj");
     left.set_material(&dull_red);
     current->insert(&left);
 
-    mesh right("../../data/cornell_box/right.obj");
+    mesh right("../../../data/cornell_box/right.obj");
     right.set_material(&dull_blue);
     current->insert(&right);
 
     //add some objects to the box
     Mat4x4f tmp;
 
-    mesh box1("../../data/cornell_box/box1.obj");
+    mesh box1("../../../data/cornell_box/box1.obj");
     tmp = rotation_Mat4x4f(YAXIS, -float(M_PI)/8.f);
     tmp = translation_Mat4x4f(Vec3f(-0.3f,0.f,-0.05f)) * tmp;
     box1.set_transform(tmp);
     box1.set_material(&dull_green);
     current->insert(&box1);
 
-    mesh box2("../../data/cornell_box/box2.obj");
+    mesh box2("../../../data/cornell_box/box2.obj");
     tmp = translation_Mat4x4f(Vec3f(0.25f,0.f, -0.05f));
     box2.set_transform(tmp);
     box2.set_material(&glossy_purple);
     current->insert(&box2);
 
-    mesh teapot("../../data/cornell_box/teapot1.obj");
+    mesh teapot("../../../data/cornell_box/teapot1.obj");
     tmp = rotation_Mat4x4f(YAXIS, float(M_PI/4.f));
     tmp = translation_Mat4x4f(Vec3f(-0.25f,0.25f, -0.05)) * tmp;
     teapot.set_transform(tmp);
     teapot.set_material(&silver);
     current->insert(&teapot);
 
-    mesh sphere1("../../data/cornell_box/sphere2.obj");
+    mesh sphere1("../../../data/cornell_box/sphere2.obj");
     tmp = translation_Mat4x4f(Vec3f(0.25f,0.45f,-0.05f));
     sphere1.set_transform(tmp);
     sphere1.set_material(&clear);
     current->insert(&sphere1);
 
-    mesh sphere2("../../data/cornell_box/sphere2.obj");
+    mesh sphere2("../../../data/cornell_box/sphere2.obj");
     tmp = translation_Mat4x4f(Vec3f(0.22f,0.15f,0.25f));
     sphere2.set_transform(tmp);
     sphere2.set_material(&glossy_yellow);
     //current->insert(&sphere2);
 
     //light sources
-    mesh quad_light("../../data/cornell_box/quad.obj");
+    mesh quad_light("../../../data/cornell_box/quad.obj");
     tmp = rotation_Mat4x4f(XAXIS, float(M_PI));
     tmp = translation_Mat4x4f(Vec3f(0.f,0.99f,0.2f)) * tmp;
     quad_light.set_transform(tmp);
     quad_light.set_exitance(Vec3f(300,300,300));
     current->insert(&quad_light);
 
-    mesh quad_light1("../../data/cornell_box/quad.obj");
+    mesh quad_light1("../../../data/cornell_box/quad.obj");
     tmp = rotation_Mat4x4f(XAXIS, float(M_PI));
     tmp = translation_Mat4x4f(Vec3f(0.f,0.99f,0.2f)) * tmp;
     quad_light1.set_transform(tmp);
     quad_light1.set_exitance(Vec3f(0,400,0));
 //  current->insert(&quad_light1);
 
-    mesh quad_light2("../../data/cornell_box/quad.obj");
+    mesh quad_light2("../../../data/cornell_box/quad.obj");
     tmp = rotation_Mat4x4f(XAXIS, float(M_PI));
     tmp = translation_Mat4x4f(Vec3f(-0.2f,0.99f,0.2f)) * tmp;
     quad_light2.set_transform(tmp);
     quad_light2.set_exitance(Vec3f(400,0,0));
 //  current->insert(&quad_light2);
 
-    mesh quad_light3("../../data/cornell_box/quad.obj");
+    mesh quad_light3("../../../data/cornell_box/quad.obj");
     tmp = rotation_Mat4x4f(XAXIS, float(M_PI));
     tmp = translation_Mat4x4f(Vec3f(0.2f,0.99f,0.2f)) * tmp;
     quad_light3.set_transform(tmp);
@@ -419,7 +419,7 @@ int main(int argc, char* argv[])
     omni_light.set_transform(translation_Mat4x4f(Vec3f(0.0f,0.95f,0.0f)));
     //current->insert(&omni_light);
 
-    mesh sphere_light("../../data/cornell_box/small_sphere.obj");
+    mesh sphere_light("../../../data/cornell_box/small_sphere.obj");
     sphere_light.set_transform(translation_Mat4x4f(Vec3f(0.f,0.95f,0.f)));
     sphere_light.set_exitance(Vec3f(30.f/(4.f*float(M_PI)*0.01f*0.01f)));
     //current->insert(&sphere_light);

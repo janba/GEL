@@ -132,7 +132,7 @@ int main() {
     std::vector<Point> vertices;
     {    
         // Test on genus-0 shape
-        read_obj("../data/PointClouds/owl-little.obj", input);
+        read_obj("../../../data/PointClouds/owl-little.obj", input);
         HMesh::Manifold output;
         reconstruct_single(output, input.vertices,
         input.normals, false);
@@ -141,7 +141,7 @@ int main() {
 
     {
         // Test on high-genus shape
-        read_obj("../data/PointClouds/capital_A.obj", input);
+        read_obj("../../../data/PointClouds/capital_A.obj", input);
         HMesh::Manifold output;
         reconstruct_single(output, input.vertices,
             input.normals, true, -1, 30, 20, 60, 40);

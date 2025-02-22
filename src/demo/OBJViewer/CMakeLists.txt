@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.30)
-project(MeshEditGlutGEL)
+project(OBJViewerGEL)
 set(CMAKE_CXX_STANDARD 20)
 include_directories(../..)
 
@@ -9,5 +9,5 @@ find_package (OpenGL REQUIRED)
 find_package (GLUT REQUIRED)
 find_package (Threads REQUIRED)
 
-add_executable(glut_main glut_main.cpp)
-target_link_libraries(glut_main ${GEL_LIB} OpenGL::GL OpenGL::GLU GLUT::GLUT Threads::Threads)
+add_executable(objviewer objviewer.cpp)
+target_link_libraries(objviewer ${GEL_LIB} OpenGL::GL OpenGL::GLU GLUT::GLUT Threads::Threads)

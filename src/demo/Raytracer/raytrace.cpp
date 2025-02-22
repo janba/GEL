@@ -504,7 +504,7 @@ int main(int argc, char** argv)
     }
     else
     {
-        obj_load("../../data/dolphins.obj", mesh);
+        obj_load("../../../data/dolphins.obj", mesh);
         
         cout << "Computing normals" << endl;
         mesh.compute_normals();

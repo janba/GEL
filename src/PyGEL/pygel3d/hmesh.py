@@ -870,33 +870,38 @@ def fit_mesh_mmh(m: Manifold, ref_mesh: Manifold, iterations=10):
     # print("")
     # print("Doing the MMH map")
     # inv_map(m,mrc,ref_mesh)
-    
-    
-def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wts = None, lap_wt = 0.3):
-    """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
-    v_pos = m.positions()
-    ref_pos = ref_mesh.positions()
-    A_list = []
-    b_list = []
-    N = len(m.vertices())
-    for vid in m.vertices():
-        row_a = np.zeros(N)
-        row_a[vid] = dist_wts[vid]
-        A_list.append(row_a)
-        b_list.append(ref_pos[vid]*dist_wts[vid])
-    Ai, bi = csc_matrix(np.array(A_list)), np.array(b_list)
-    lap_matrix = laplacian_matrix(m)
-    lap_b = lap_matrix @ v_pos
-    final_A = vstack([lap_wt*lap_matrix, Ai])
-    final_b = np.vstack([0*lap_b, bi])
-    opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
-    opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
-    opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
-    v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
 
 def stable_marriage_registration(m, m_ref):
     """ Register m to m_ref using Gale Shapley """
     lib_py_gel.stable_marriage_registration(m.obj, m_ref.obj)
+
+    
+def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wt = 0.5, lap_wt = 1.0, iter=10):
+    """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
+    v_pos = m.positions()
+    # ref_mesh = Manifold(m)
+    # stable_marriage_registration(ref_mesh, _ref_mesh)
+    # ref_pos = ref_mesh.positions()
+    # A_list = []
+    # b_list = []
+    # N = len(m.vertices())
+    # for vid in m.vertices():
+    #     row_a = np.zeros(N)
+    #     row_a[vid] = dist_wt
+    #     A_list.append(row_a)
+    #     b_list.append(ref_pos[vid]*dist_wt)
+    # Ai, bi = csc_matrix(np.array(A_list)), np.array(b_list)
+    for _ in range(iter):
+        Ai, bi = inv_correspondence_leqs(m, ref_mesh)
+        lap_matrix = laplacian_matrix(m)
+        lap_b = lap_matrix @ v_pos
+        final_A = vstack([lap_wt*lap_matrix, Ai])
+        final_b = np.vstack([0*lap_b, bi])
+        opt_x, _, _, _ = lsqr(final_A, final_b[:,0])[:4]
+        opt_y, _, _, _ = lsqr(final_A, final_b[:,1])[:4]
+        opt_z, _, _, _ = lsqr(final_A, final_b[:,2])[:4]
+        v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
+
 
 def rsr_recon(verts, normals=[], use_Euclidean_distance=False, genus=-1, k=70,
               r=20, theta=60, n=50):

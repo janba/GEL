@@ -307,7 +307,7 @@ int main(int argc, char** argv)
     if(arg_no>1)
         fn = ae.get_last_arg();
     else
-        fn = "../../data/head.obj";
+        fn = "../../../data/head.obj";
 	
 	load(fn, mesh);
 	load_textures(mesh);

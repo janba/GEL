@@ -9,5 +9,7 @@ find_package (OpenGL REQUIRED)
 find_package (GLUT REQUIRED)
 find_package (Threads REQUIRED)
 
-add_executable(glut_main glut_main.cpp)
-target_link_libraries(glut_main ${GEL_LIB} OpenGL::GL OpenGL::GLU GLUT::GLUT Threads::Threads)
+# Add all .cpp files in the directory to the executable
+file(GLOB SOURCES "*.cpp")
+add_executable(raytracer ${SOURCES})
+target_link_libraries(raytracer ${GEL_LIB} OpenGL::GL OpenGL::GLU GLUT::GLUT Threads::Threads)
