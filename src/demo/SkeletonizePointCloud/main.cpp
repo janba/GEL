@@ -21,14 +21,39 @@ using namespace Geometry;
 using namespace HMesh;
 using namespace std;
 
+<<<<<<< HEAD
+=======
 
 /** This function filters the radii of the nodes of g using median filtering for the number of iterations given by
  iter. This is sometimes needed if the radii are noisy.*/
+>>>>>>> origin/master
 void median_filter_node_radii(AMGraph3D& g, int iter, vector<double>& radii) {
     
     for (NodeID node0: g.node_ids()) {
         NodeSet ns = {node0};
         for(int _=0;_<iter;++_) {
+<<<<<<< HEAD
+            for (NodeID nn: ns) {
+                auto nbors = g.neighbors(nn);
+                if (nbors.size()<3 || nn==node0)    
+                    for(NodeID nnn: nbors)
+                        if (g.neighbors(nnn).size()<3) // If node is a branch node, we ignore children
+                            ns.insert(nnn);
+            }
+        }
+        vector<double> widths;
+        for(NodeID nn: ns)
+            widths.push_back(radii[nn]);
+        sort(widths.begin(),widths.end());
+        auto N = widths.size();
+        if (N%2==1)
+            radii[node0] = widths[N/2];
+        else
+            radii[node0] = 0.5*(widths[(N-1)/2]+widths[N/2]);
+    }
+}
+
+=======
             NodeSet ns_new = ns;
             for (NodeID nn: ns) {
                 auto nbors = g.neighbors(nn);
@@ -73,6 +98,7 @@ void refine_graph_edges(AMGraph3D& g, double thresh) {
     }
 
 
+>>>>>>> origin/master
 int main(int argc, char** argv) {
     // Load the points, use a kD tree to connect nearest points.
     // First argument is radius, second is max number of neighbors.
@@ -84,20 +110,31 @@ int main(int argc, char** argv) {
     // Compute the skeleton from the separators.
     AMGraph3D s = skeleton_from_node_set_vec(g, separators).first;
     
+<<<<<<< HEAD
+    // And reconstruct a mesh from the skeleton.
+    srand(0);
+=======
     // Refine the skeleton by subdividing edges longer than 4.0
     for(int iter=0;iter<3;++iter)
         refine_graph_edges(s, 4.0*4.0);
 
     // Now, we compute random radii for each node.
+>>>>>>> origin/master
     vector<double> radii(s.no_nodes());
     srand(0);
     for (auto n: s.node_ids())
+<<<<<<< HEAD
+        radii[n] = s.node_color[n][1];
+        // radii[n] *= (double(rand())/RAND_MAX+0.5);
+    median_filter_node_radii(s, 2, radii);
+=======
         radii[n] = rand()%7;
     
     // and filter the radii to make them less random.
     median_filter_node_radii(s, 3, radii);
     
     // And reconstruct a mesh from the skeleton.
+>>>>>>> origin/master
     Manifold m = graph_to_FEQ(s, radii);
     obj_save("data/armadillo_recon.obj", m);
     return 0;
