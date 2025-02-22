@@ -10,12 +10,14 @@
 #include <map>
 #include <queue>
 #include <GEL/Geometry/Graph.h>
+#include <GEL/Util/AttribVec.h>
 
 namespace Geometry {
     
     using namespace CGLA;
     using namespace std;
-    
+    using namespace Util;
+
     AMGraph3D::NodeID AMGraph3D::merge_nodes(NodeID n0, NodeID n1, bool avg_pos) {
         if (n0 == n1) {
             edge_map[n1].erase(n1);
@@ -229,6 +231,8 @@ bool BreadthFirstSearch::Prim_step() {
     
     AMGraph3D minimum_spanning_tree(const AMGraph3D& g, AMGraph::NodeID root)
     {
+        using NodeID = AMGraph3D::NodeID;
+        using QElem = tuple<double, NodeID, NodeID>;
         if(root == AMGraph::InvalidNodeID)
             root = 0;
         
@@ -236,15 +240,137 @@ bool BreadthFirstSearch::Prim_step() {
         for(auto n: g.node_ids())
             gn.add_node(g.pos[n]);
 
-        BreadthFirstSearch bfs(g);
-        bfs.add_init_node(root);
-        while(bfs.Prim_step()) {
-            auto last = bfs.get_last();
-            gn.connect_nodes(last, bfs.pred[last]);
+        AttribVec<NodeID, unsigned char> in_tree(gn.no_nodes(), false);
+
+        priority_queue<QElem> Q;
+        for (auto n: g.neighbors(root)) {
+            auto d = sqr_length(g.pos[n]-g.pos[root]);
+            Q.push(make_tuple(-d, root, n));
         }
-        
+
+        while(!Q.empty()) {
+            auto [d,n,m] = Q.top();
+            Q.pop();
+            
+            if (!in_tree[m]) {
+                in_tree[m] = true;
+                gn.connect_nodes(n, m);
+                for (auto nn: g.neighbors(m)) {
+                    auto d_nn_m = sqr_length(g.pos[nn]-g.pos[m]);
+                    Q.push(make_tuple(-d_nn_m, m, nn));
+                }
+            }
+            
+        }
+            
         return gn;
     }
+
+void close_chordless_cycles(AMGraph3D& g, AMGraph::NodeID root, int hops, double rad)
+{
+    g.node_color[root] = Vec3f(1,0,0);
+    
+    double sq_rad = rad*rad;
+    
+    using NodeID = AMGraph3D::NodeID;
+    using QElem = tuple<double, NodeID, NodeID>;
+    if(root == AMGraph::InvalidNodeID)
+        root = 0;
+    
+    AttribVec<NodeID, int> cnt(g.no_nodes(), -1);
+    AttribVec<NodeID, double> dist(g.no_nodes(), 1e32);
+    AttribVec<NodeID, NodeID> parent(g.no_nodes(), AMGraph::InvalidNodeID);
+    cnt[root] = 0;
+    dist[root] = 0;
+    parent[root] = root;
+    priority_queue<QElem> Q;
+    for (auto n: g.neighbors(root)) {
+        auto sq_dist = sqr_length(g.pos[n]-g.pos[root]);
+        if (sq_dist < sq_rad) {
+            double d = sqrt(sq_dist);
+            Q.push(make_tuple(-d, root, n));
+            dist[n] = d;
+        }
+    }
+    
+    vector<NodeID> bridge_nodes;
+    while(!Q.empty()) {
+        auto [d,n,m] = Q.top();
+        Q.pop();
+        
+        if (-d == dist[m]) {
+            int c = cnt[n]+1;
+            parent[m] = n;
+            cnt[m] = c;
+            bridge_nodes.push_back(m);
+            if (c<hops)
+                for (auto nn: g.neighbors(m)) {
+                    auto sq_dist = sqr_length(g.pos[nn]-g.pos[root]);
+                    auto d_nn = length(g.pos[nn]-g.pos[m]) + dist[m];
+                    if (sq_dist < sq_rad && d_nn < dist[nn]) {
+                        Q.push(make_tuple(-d_nn, m, nn));
+                        dist[nn] = d_nn;
+                    }
+                }
+        }
+    }
+    
+    vector<pair<NodeID, NodeID>> loop_pairs;
+    for (auto n: bridge_nodes) {
+        for (auto m: g.neighbors(n))
+            if(parent[m] != AMGraph3D::InvalidNodeID)
+                if(n < m && parent[m] != n && parent[n] != m)
+                    loop_pairs.push_back(make_pair(n, m));
+    }
+
+
+    auto trace_back = [&](NodeID n) {
+        vector<NodeID> path;
+        while(n != root) {
+            path.push_back(n);
+            n = parent[n];
+        }
+        return path;
+    };
+//    cout << "Root node: "<< root << endl;
+//    cout << "number of loop pairs " << loop_pairs.size() << endl;
+    for (auto [n,m]: loop_pairs) {
+        auto p0 = trace_back(n);
+        auto p1 = trace_back(m);
+        if (p0.size()>0 && p1.size()>0 && p0.back()==p1.back())
+            continue;
+        if (p0.size()+p1.size()+1>3) {
+                p0.push_back(root);
+                p0.insert(p0.end(), p1.rbegin(), p1.rend());
+                bool found_chord = false;
+//                cout << "Path len: " << p0.size() << endl;
+                for (int i=0; i<p0.size() && !found_chord;++i)
+                    for (int j=2; j<p0.size()-1 && !found_chord;++j)
+                        {
+                            int k=(i+j)%p0.size();
+                            if(g.find_edge(p0[i], p0[k]) != AMGraph3D::InvalidEdgeID) {
+                                found_chord = true;
+//                                cout << "chord " << p0[i] << ", " << p0[k] << " ::: " << i << ", " << j << ", " << k << endl;
+//                                for (int ii=0; ii < p0.size() ; ++ii)
+//                                    cout << p0[ii] << " ";
+//                                cout << endl;
+                            }
+                        }
+//                cout << "Found chord: " << found_chord << endl;
+                
+                if (!found_chord) {
+                    int i = 0;
+                    for (int j=2; j<p0.size()-1;++j) {
+//                        cout << "Adding chord " << p0.size() << " " << p0[i] << ", " << p0[j] << endl;
+                        auto eid = g.connect_nodes(p0[i], p0[j]);
+                        g.edge_color[eid] = Vec3f(0,1,0);
+                    }
+                }
+                    
+            }
+    }
+}
+
     
  
     std::vector<AMGraph::NodeSet> connected_components(const AMGraph& g, const AMGraph::NodeSet& s) {
