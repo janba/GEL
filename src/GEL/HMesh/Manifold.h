@@ -365,22 +365,23 @@ namespace HMesh
     };
 
 
-    // Inline functions -----------------------------------------
+    // Inline functions for the Manifold class -----------------------------------------
 
     inline Manifold::Manifold(){}
 
-    inline Manifold::Vec& Manifold::pos(VertexID id)
-    { return positions[id]; }
-    inline Manifold::Vec Manifold::pos(VertexID id) const
-    { return positions[id]; }
+    inline Manifold::Vec& Manifold::pos(VertexID id) { 
+        return positions[id]; 
+    }
     
-    inline VertexAttributeVector<Manifold::Vec>& Manifold::positions_attribute_vector()
-    {
+    inline Manifold::Vec Manifold::pos(VertexID id) const { 
+        return positions[id]; 
+    }
+    
+    inline VertexAttributeVector<Manifold::Vec>& Manifold::positions_attribute_vector() {
         return positions;
     }
     
-    inline const VertexAttributeVector<Manifold::Vec>& Manifold::positions_attribute_vector() const
-    {
+    inline const VertexAttributeVector<Manifold::Vec>& Manifold::positions_attribute_vector() const {
         return positions;    
     }
     
@@ -389,41 +390,39 @@ namespace HMesh
         positions.serialize(ser);
     }
     
-    /// Deserialize the Manifold
     inline void Manifold::deserialize(Util::Serialization& ser) {
         kernel.deserialize(ser);
         positions.deserialize(ser);
     }
 
-    inline void Manifold::clear()
-    { 
+    inline void Manifold::clear() { 
         kernel.clear();
         positions.clear();
     }
 
-
-    /// Return a pair of iterators to the vertices.
     inline IteratorPair<IDIterator<Vertex>> Manifold::vertices() const {
         return IteratorPair<IDIterator<Vertex>>(kernel.vertices_begin(), kernel.vertices_end());
     }
 
-    /// Return a pair of iterators to the faces.
     inline IteratorPair<IDIterator<Face>> Manifold::faces() const {
         return IteratorPair<IDIterator<Face>>(kernel.faces_begin(), kernel.faces_end());
     }
 
-    /// Return a pair of iterators to the halfedges.
     inline IteratorPair<IDIterator<HalfEdge>> Manifold::halfedges() const {
         return IteratorPair<IDIterator<HalfEdge>>(kernel.halfedges_begin(), kernel.halfedges_end());
     }
 
+    inline Walker Manifold::walker(VertexID id) const { 
+        return Walker(kernel, kernel.out(id)); 
+    }
 
-    inline Walker Manifold::walker(VertexID id) const
-    { return Walker(kernel, kernel.out(id)); }
-    inline Walker Manifold::walker(FaceID id) const
-    { return Walker(kernel, kernel.last(id)); }
-    inline Walker Manifold::walker(HalfEdgeID id) const
-    { return Walker(kernel, id); }
+    inline Walker Manifold::walker(FaceID id) const { 
+        return Walker(kernel, kernel.last(id)); 
+    }
+
+    inline Walker Manifold::walker(HalfEdgeID id) const { 
+        return Walker(kernel, id); 
+    }
 
     inline IteratorPair<VertexCirculator<Vertex>> Manifold::incident_vertices(VertexID v) const {
         using VCType = VertexCirculator<Vertex>;
@@ -461,8 +460,7 @@ namespace HMesh
         return IteratorPair<FCType>(FCType(kernel, he), FCType(kernel, he, true));
     }
     
-    inline bool Manifold::connected(VertexID v0, VertexID v1) const
-    {
+    inline bool Manifold::connected(VertexID v0, VertexID v1) const {
         for(VertexID v: incident_vertices(v0)) {
             if (v==v1)
                 return true;
@@ -470,22 +468,19 @@ namespace HMesh
         return false;
     }
 
-    inline bool Manifold::boundary(HalfEdgeID h) const
-    {
+    inline bool Manifold::boundary(HalfEdgeID h) const {
         Walker w = walker(h);
         return w.face() == InvalidFaceID || w.opp().face() == InvalidFaceID;
     }
 
-    inline int Manifold::valency(VertexID v) const
-    {
+    inline int Manifold::valency(VertexID v) const {
         int k=0;
         for (auto _: incident_vertices(v))
             ++k;
         return k;
     }
 
-    inline int Manifold::no_edges(FaceID f) const
-    {
+    inline int Manifold::no_edges(FaceID f) const {
         int k=0;
         for (auto _: incident_halfedges(f))
             ++k;
@@ -496,8 +491,7 @@ namespace HMesh
         return cond_normalize(area_normal(f));
     }
 
-    inline Manifold::Vec Manifold::barycenter(FaceID f) const
-    {
+    inline Manifold::Vec Manifold::barycenter(FaceID f) const {
         Manifold::Vec c(0);
         int n = 0;
         for (auto v: incident_vertices(f)) {
@@ -507,7 +501,6 @@ namespace HMesh
         return c / n;
     }
 
-    /// Compute the barycenter of an halfedge (with American spelling).
     inline Manifold::Vec Manifold::barycenter(HalfEdgeID h) const {
         Walker w = walker(h);
         return 0.5 * (positions[w.vertex()] + positions[w.opp().vertex()]);
@@ -518,8 +511,7 @@ namespace HMesh
         return CGLA::length(positions[w.vertex()] - positions[w.opp().vertex()]);
     }
 
-    inline double Manifold::perimeter(FaceID f) const
-    {
+    inline double Manifold::perimeter(FaceID f) const {
         double l=0.0;
         for (auto h: incident_halfedges(f))
             l+= length(h);
@@ -533,14 +525,12 @@ namespace HMesh
         return a;
     }
 
-
     inline HalfEdgeID Manifold::boundary_edge(VertexID v) const {
         for (Walker w= walker(v); !w.full_circle(); w = w.circulate_vertex_ccw())
             if(w.face()==InvalidFaceID)
                 return w.halfedge();
         return InvalidHalfEdgeID;
     }
-
 
     inline bool Manifold::boundary(VertexID v) const {
         return boundary_edge(v) != InvalidHalfEdgeID;
@@ -556,7 +546,7 @@ namespace HMesh
         Manifold::cleanup(map);
     }
 
-    // End of inline functions ---------------------------------
+    // End of inline functions for the Manifold class  ---------------------------------
     
     /** \brief Build a manifold.
      The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
@@ -741,80 +731,156 @@ namespace HMesh
     /// Compute the total volume
     double volume(const Manifold& m);
     
-    inline int circulate_vertex_ccw(const Manifold& m, VertexID v, std::function<void(Walker&)> f)
-    {
+    /// @brief Circulate around a vertex in counter clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param v is the vertex to circulate around.
+    /// @param f is a function that takes a Walker as argument. Called once for each outgoing edge from v
+    /// @return number of steps taken.
+    inline int circulate_vertex_ccw(const Manifold& m, VertexID v, std::function<void(Walker&)> f) {
         Walker w = m.walker(v);
         for(; !w.full_circle(); w = w.circulate_vertex_ccw()) f(w);
         return w.no_steps();
     }
     
-    inline int circulate_vertex_ccw(const Manifold& m, VertexID v, std::function<void(VertexID)> f)
-    {
+    /// @brief Circulate around a vertex in counter clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param v is the vertex to circulate around.
+    /// @param f is a function that takes a VertexID as argument. Called once for each outgoing edge from v
+    /// @return number of steps taken.
+    inline int circulate_vertex_ccw(const Manifold& m, VertexID v, std::function<void(VertexID)> f) {
         return circulate_vertex_ccw(m, v, static_cast<std::function<void(Walker&)>>([&](Walker& w){f(w.vertex());}));
     }
-    inline int circulate_vertex_ccw(const Manifold& m, VertexID v, std::function<void(FaceID)> f)
-    {
+
+    /// @brief Circulate around a vertex in counter clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param v is the vertex to circulate around.
+    /// @param f is a function that takes a FaceID as argument. Called once for each outgoing edge from v
+    /// @return number of steps taken.
+    inline int circulate_vertex_ccw(const Manifold& m, VertexID v, std::function<void(FaceID)> f) {
         return circulate_vertex_ccw(m, v, static_cast<std::function<void(Walker&)>>([&](Walker& w){f(w.face());}));
     }
-    inline int circulate_vertex_ccw(const Manifold& m, VertexID v, std::function<void(HalfEdgeID)> f)
-    {
+
+    /// @brief Circulate around a vertex in counter clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param v is the vertex to circulate around.
+    /// @param f is a function that takes a HalfEdgeID as argument. Called once for each outgoing edge from v
+    /// @return number of steps taken.
+    inline int circulate_vertex_ccw(const Manifold& m, VertexID v, std::function<void(HalfEdgeID)> f) {
         return circulate_vertex_ccw(m, v, static_cast<std::function<void(Walker&)>>([&](Walker& w){f(w.halfedge());}));
     }
     
-    inline int circulate_vertex_cw(const Manifold& m, VertexID v, std::function<void(Walker&)> f)
-    {
+    /// @brief Circulate around a vertex in clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param v is the vertex to circulate around.
+    /// @param f is a function that takes a Walker as argument. Called once for each outgoing edge from v
+    /// @return number of steps taken.
+    inline int circulate_vertex_cw(const Manifold& m, VertexID v, std::function<void(Walker&)> f) {
         Walker w = m.walker(v);
         for(; !w.full_circle(); w = w.circulate_vertex_cw()) f(w);
         return w.no_steps();
     }
-    inline int circulate_vertex_cw(const Manifold& m, VertexID v, std::function<void(VertexID)> f)
-    {
+
+    /// @brief Circulate around a vertex in clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param v is the vertex to circulate around.
+    /// @param f is a function that takes a VertexID as argument. Called once for each outgoing edge from v
+    /// @return number of steps taken.
+    inline int circulate_vertex_cw(const Manifold& m, VertexID v, std::function<void(VertexID)> f) {
         return circulate_vertex_cw(m, v, static_cast<std::function<void(Walker&)>>([&](Walker& w){f(w.vertex());}));
     }
-    inline int circulate_vertex_cw(const Manifold& m, VertexID v, std::function<void(FaceID)> f)
-    {
+
+    /// @brief Circulate around a vertex in clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param v is the vertex to circulate around.
+    /// @param f is a function that takes a FaceID as argument. Called once for each outgoing edge from v
+    /// @return number of steps taken.
+    inline int circulate_vertex_cw(const Manifold& m, VertexID v, std::function<void(FaceID)> f) {
         return circulate_vertex_cw(m, v, static_cast<std::function<void(Walker&)>>([&](Walker& w){f(w.face());}));
     }
-    inline int circulate_vertex_cw(const Manifold& m, VertexID v, std::function<void(HalfEdgeID)> f)
-    {
+
+
+    /// @brief Circulate around a vertex in clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param v is the vertex to circulate around.
+    /// @param f is a function that takes a HalfEdgeID as argument. Called once for each outgoing edge from v
+    /// @return number of steps taken.
+    inline int circulate_vertex_cw(const Manifold& m, VertexID v, std::function<void(HalfEdgeID)> f) {
         return circulate_vertex_cw(m, v, static_cast<std::function<void(Walker&)>>([&](Walker& w){f(w.halfedge());}));
     }
     
-    inline int circulate_face_ccw(const Manifold& m, FaceID f, std::function<void(Walker&)> g)
-    {
+    /// @brief Circulate a face in counter clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param f is the face to circulate around.
+    /// @param g is a function that takes a Walker as argument. Called once for each edge of f
+    /// @return number of steps taken.
+    inline int circulate_face_ccw(const Manifold& m, FaceID f, std::function<void(Walker&)> g) {
         Walker w = m.walker(f);
         for(; !w.full_circle(); w = w.circulate_face_ccw()) g(w);
         return w.no_steps();
     }
-    inline int circulate_face_ccw(const Manifold& m, FaceID f, std::function<void(VertexID)> g)
-    {
+
+    /// @brief Circulate a face in counter clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param f is the face to circulate around.
+    /// @param g is a function that takes a VertexID as argument. Called once for each edge of f
+    /// @return number of steps taken.
+    inline int circulate_face_ccw(const Manifold& m, FaceID f, std::function<void(VertexID)> g) {
         return circulate_face_ccw(m, f, static_cast<std::function<void(Walker&)>>([&](Walker& w){g(w.vertex());}));
     }
-    inline int circulate_face_ccw(const Manifold& m, FaceID f, std::function<void(FaceID)> g)
-    {
+
+    /// @brief Circulate a face in counter clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param f is the face to circulate around.
+    /// @param g is a function that takes a FaceID as argument. Called once for each edge of f
+    /// @return number of steps taken.
+    inline int circulate_face_ccw(const Manifold& m, FaceID f, std::function<void(FaceID)> g) {
         return circulate_face_ccw(m, f, static_cast<std::function<void(Walker&)>>([&](Walker& w){g(w.opp().face());}));
     }
-    inline int circulate_face_ccw(const Manifold& m, FaceID f, std::function<void(HalfEdgeID)> g)
-    {
+
+    /// @brief Circulate a face in counter clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param f is the face to circulate around.
+    /// @param g is a function that takes a HalfEdgeID as argument. Called once for each edge of f
+    /// @return number of steps taken.
+    inline int circulate_face_ccw(const Manifold& m, FaceID f, std::function<void(HalfEdgeID)> g) {
         return circulate_face_ccw(m, f, static_cast<std::function<void(Walker&)>>([&](Walker& w){g(w.halfedge());}));
     }
     
-    inline int circulate_face_cw(const Manifold& m, FaceID f, std::function<void(Walker&)> g)
-    {
+    /// @brief Circulate a face in clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param f is the face to circulate around.
+    /// @param g is a function that takes a Walker as argument. Called once for each edge of f
+    /// @return number of steps taken.
+    inline int circulate_face_cw(const Manifold& m, FaceID f, std::function<void(Walker&)> g) {
         Walker w = m.walker(f);
         for(; !w.full_circle(); w = w.circulate_face_cw()) g(w);
         return w.no_steps();
     }
-    inline int circulate_face_cw(const Manifold& m, FaceID f, std::function<void(VertexID)> g)
-    {
+
+    /// @brief Circulate a face in clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param f is the face to circulate around.
+    /// @param g is a function that takes a VertexID as argument. Called once for each edge of f
+    /// @return number of steps taken.
+    inline int circulate_face_cw(const Manifold& m, FaceID f, std::function<void(VertexID)> g) {
         return circulate_face_cw(m, f, static_cast<std::function<void(Walker&)>>([&](Walker& w){g(w.vertex());}));
     }
-    inline int circulate_face_cw(const Manifold& m, FaceID f, std::function<void(FaceID)> g)
-    {
+
+     /// @brief Circulate a face in clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param f is the face to circulate around.
+    /// @param g is a function that takes a FaceID as argument. Called once for each edge of f
+    /// @return number of steps taken.   
+    inline int circulate_face_cw(const Manifold& m, FaceID f, std::function<void(FaceID)> g) {
         return circulate_face_cw(m, f, static_cast<std::function<void(Walker&)>>([&](Walker& w){g(w.opp().face());}));
     }
-    inline int circulate_face_cw(const Manifold& m, FaceID f, std::function<void(HalfEdgeID)> g)
-    {
+
+    /// @brief Circulate a face in clockwise order.
+    /// @param m is the manifold to circulate in.
+    /// @param f is the face to circulate around.
+    /// @param g is a function that takes a HalfEdgeID as argument. Called once for each edge of f
+    /// @return number of steps taken.
+    inline int circulate_face_cw(const Manifold& m, FaceID f, std::function<void(HalfEdgeID)> g) {
         return circulate_face_cw(m, f, static_cast<std::function<void(Walker&)>>([&](Walker& w){g(w.halfedge());}));
     }
 }

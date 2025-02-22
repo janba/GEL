@@ -1,4 +1,4 @@
-    /* ----------------------------------------------------------------------- *
+ /* ----------------------------------------------------------------------- *
  * This file is part of GEL, http://www.imm.dtu.dk/GEL
  * Copyright (C) the authors and DTU Informatics
  * For license and list of authors, see ../../doc/intro.pdf
@@ -17,11 +17,9 @@
 
 namespace HMesh
 {
-	
     using namespace std;
     using namespace Geometry;
     using namespace CGLA;
-	
 
     /*********************************************
 	 * Public functions
@@ -126,7 +124,6 @@ namespace HMesh
         kernel.remove_face(fid);
         return true;
     }
-    
 
     bool Manifold::remove_edge(HalfEdgeID hid)
     {
@@ -142,8 +139,6 @@ namespace HMesh
         return true;
     }
 
-    
-    
     bool Manifold::remove_vertex(VertexID vid)
     {
         if(!in_use(vid))
@@ -160,8 +155,6 @@ namespace HMesh
         return true;
     }
 
-
-	
     void Manifold::collapse_edge(HalfEdgeID h, bool avg_vertices)
     {
         HalfEdgeID ho = kernel.opp(h);
@@ -346,6 +339,7 @@ namespace HMesh
 		
         return v;
     }
+
     VertexID Manifold::split_edge(HalfEdgeID h)
     {
         HalfEdgeID ho = kernel.opp(h);
@@ -579,9 +573,6 @@ namespace HMesh
         }
         return false;
     }
-
-    
-    
     
     FaceID Manifold::merge_one_ring(VertexID v)
     {
@@ -1548,7 +1539,6 @@ namespace HMesh
             a += area(m, f);
         return a;
     }
-
 
     double volume(const Manifold& _m) {
         Manifold m = Manifold(_m);
