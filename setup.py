@@ -1,7 +1,6 @@
 import setuptools
 from glob import glob
 from shutil import copyfile, copytree
-from setuptools import setup
 from os import path,makedirs
 
 with open("README.md", "r") as fh:
