@@ -169,6 +169,8 @@ lib_py_gel.no_edges.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.face_normal.argtypes = (ct.c_void_p, ct.c_size_t, ndpointer(dtype=np.float64, shape=(3,)))
 lib_py_gel.area.restype = ct.c_double
 lib_py_gel.area.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.one_ring_area.restype = ct.c_double
+lib_py_gel.one_ring_area.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.total_area.restype = ct.c_double
 lib_py_gel.total_area.argtypes = (ct.c_void_p,)
 lib_py_gel.volume.restype = ct.c_double
@@ -191,6 +193,7 @@ lib_py_gel.obj_load.argtypes = (ct.c_char_p, ct.c_void_p)
 lib_py_gel.off_load.argtypes = (ct.c_char_p, ct.c_void_p)
 lib_py_gel.ply_load.argtypes = (ct.c_char_p, ct.c_void_p)
 lib_py_gel.x3d_load.argtypes = (ct.c_char_p, ct.c_void_p)
+lib_py_gel.rsr_recon.argtypes = (ct.c_void_p, ndpointer(ndim=2, dtype=ct.c_double,flags='F'), ndpointer(ndim=2, dtype=ct.c_double,flags='F'), ct.c_int, ct.c_int, ct.c_bool, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int)
 lib_py_gel.remove_caps.argtypes = (ct.c_void_p, ct.c_float)
 lib_py_gel.remove_needles.argtypes = (ct.c_void_p, ct.c_float, ct.c_bool)
 lib_py_gel.close_holes.argtypes = (ct.c_void_p,ct.c_int)
@@ -226,6 +229,12 @@ lib_py_gel.taubin_smooth.argtypes = (ct.c_void_p, ct.c_int)
 lib_py_gel.laplacian_smooth.argtypes = (ct.c_void_p, ct.c_float, ct.c_int)
 lib_py_gel.anisotropic_smooth.argtypes = (ct.c_void_p, ct.c_float, ct.c_int)
 lib_py_gel.volumetric_isocontour.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_int, ndpointer(ndim=3, dtype=ct.c_float,flags='F'), ndpointer(dtype=ct.c_double,shape=(3,)), ndpointer(dtype=ct.c_double,shape=(3,)), ct.c_float, ct.c_bool, ct.c_bool, ct.c_bool )
+lib_py_gel.extrude_faces.argtypes = (ct.c_void_p, ndpointer(dtype=ct.c_int, ndim=1), ct.c_int, ct.c_void_p)
+lib_py_gel.kill_face_loop.argtypes = (ct.c_void_p,)
+lib_py_gel.kill_degenerate_face_loops.argtypes = (ct.c_void_p,ct.c_double)
+lib_py_gel.stable_marriage_registration.argtypes = (ct.c_void_p,ct.c_void_p)
+lib_py_gel.stable_marriage_registration.restype = ct.c_int
+
 
 
 # MeshDistance allows us to compute the signed distance to a mesh
@@ -280,13 +289,15 @@ lib_py_gel.graph_LS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, 
 lib_py_gel.graph_MSLS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int)
 lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,flags='C'), ct.c_int)
 lib_py_gel.graph_combined_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,flags='C'), ct.c_int)
+lib_py_gel.graph_minimum_spanning_tree.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_int)
+lib_py_gel.graph_close_chordless_cycles.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_double)
 
 class IntVector:
     """ Vector of integer values.
     This is a simple class that implements iteration and index based
     retrieval. Allocation happens in a call to libPyGEL. Since memory
     is managed by the PyGEL library, the vector can be resized by library
-    functions. Generally not used directly by PyGEL3D users."""
+    functions. Not used directly by PyGEL3D users."""
     def __init__(self):
         self.obj = lib_py_gel.IntVector_new(0)
     def __del__(self):
@@ -305,7 +316,7 @@ class Vec3dVector:
     This is a simple class that implements iteration and index based
     retrieval. Allocation happens in a call to libPyGEL. Since memory
     is managed by the PyGEL library, the vector can be resized by library
-    functions. nerally not used directly by PyGEL3D users."""
+    functions. Not used directly by PyGEL3D users."""
     def __init__(self):
         self.obj = lib_py_gel.Vec3dVector_new(0)
     def __del__(self):
