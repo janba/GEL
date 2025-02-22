@@ -1,4 +1,4 @@
-""" This module provides a kD-tree implementation but specialized to 3D """
+""" DEPRECATED!!!! This module provides a kD-tree implementation but specialized to 3D. The reason why it is deprecated is that scipy.spatial contains a very flexible KDTree class that is much more generic and obviates the need for GEL's KDTree. Going forward, the KDTree may be removed from PyGEL but not from the C++ GEL API. """
 
 from pygel3d import lib_py_gel, Vec3dVector, IntVector
 import ctypes as ct
