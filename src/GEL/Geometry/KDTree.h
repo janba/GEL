@@ -25,47 +25,48 @@
 #endif
 
 namespace {
-    /** NQueue is a simple adapter for priority_queue which makes it simple to create an n-element
-     list of items of arbitrary class. There must be acomparison operator for T */
-    template<class T>
-    class NQueue {
-        std::priority_queue<T> q;
-        const size_t max_sz;
-        
-    public:
-        /// Create an NQueue of specified size
-        NQueue(size_t sz): max_sz(sz) {}
-        
-        /// Push an item onto an NQueue
-        void push(const T& item) {
-            q.push(item);
-            if(q.size() > max_sz)
-                q.pop();
+
+
+/** NQueue is a simple adapter for priority_queue which makes it simple to create an n-element
+ list of items of arbitrary class. There must be acomparison operator for T */
+template<class T>
+class NQueue {
+    std::vector<T> q;
+    const size_t max_sz;
+    
+public:
+    /// Create an NQueue of specified size
+    NQueue(size_t sz): max_sz(sz) {}
+    
+    /// Push an item onto an NQueue
+    void push(const T& item) {
+        q.push_back(item);
+        push_heap(q.begin(), q.end());
+        if(q.size() > max_sz) {
+            pop_heap(q.begin(), q.end());
+            q.pop_back();
         }
-        
-        size_t size() const {
-            return q.size();
-        }
-        
-        bool at_capacity() {
-            return q.size() == max_sz;
-        }
-        
-        /// Get the biggest NQueue element
-        const T& top() const {
-            return q.top();
-        }
-        
-        /// Convert to vector. Note that this also empties the NQueue
-        void to_vector(std::vector<T>& vec) {
-            const size_t N = q.size();
-            vec.resize(N);
-            for(unsigned i=0;i<N;++i) {
-                vec[N-1-i] = q.top();
-                q.pop();
-            }
-        }
-    };
+    }
+    
+    size_t size() const {
+        return q.size();
+    }
+    
+    bool at_capacity() {
+        return q.size() == max_sz;
+    }
+    
+    /// Get the biggest NQueue element
+    const T& top() const {
+        return q.front();
+    }
+    
+    /// Convert to vector. Note that this also empties the NQueue
+    void to_vector(std::vector<T>& vec) {
+        swap(vec, q);
+    }
+};
+
     
 }
 
@@ -84,6 +85,20 @@ namespace Geometry
     template<class KeyT, class ValT>
     bool operator < (const KDTreeRecord<KeyT, ValT>& a, const KDTreeRecord<KeyT, ValT>& b) {
         return a.d < b.d;
+    }
+
+    template<typename KeyType>
+    inline unsigned int comp(int dsc, const KeyType& k0, const KeyType& k1) {
+        constexpr unsigned dim=KeyType::get_dim();
+        for(unsigned i=0;i<dim;i++)
+        {
+            unsigned j=(dsc+i)%dim;
+            if(k0[j]<k1[j])
+                return 0;
+            if(k0[j]>k1[j])
+                return 1;
+        }
+        return 1;
     }
     
     
@@ -104,12 +119,12 @@ namespace Geometry
         {
             KeyT key;
             ValT val;
-            short dsc;
+            short dsc = -1;
             
-            KDNode(): dsc(0) {}
+            KDNode() {}
             
             KDNode(const KeyT& _key, const ValT& _val):
-            key(_key), val(_val), dsc(-1) {}
+            key(_key), val(_val) {}
             
             ScalarType dist(const KeyType& p) const
             {
@@ -127,34 +142,6 @@ namespace Geometry
         bool is_built;
         NodeVecType init_nodes;
         NodeVecType nodes;
-        
-        /** Comp is a class used for comparing two keys. Comp is constructed
-         with the discriminator - i.e. the coordinate of the key that is used
-         for comparing keys - Comp objects are passed to the sort algorithm.*/
-        class Comp
-        {
-            const short dsc;
-        public:
-            Comp(short _dsc): dsc(_dsc) {}
-            bool operator()(const KeyType& k0, const KeyType& k1) const
-            {
-                unsigned dim=KeyType::get_dim();
-                for(unsigned i=0;i<dim;i++)
-                {
-                    unsigned j=(dsc+i)%dim;
-                    if(k0[j]<k1[j])
-                        return true;
-                    if(k0[j]>k1[j])
-                        return false;
-                }
-                return false;
-            }
-            
-            bool operator()(const KDNode& k0, const KDNode& k1) const
-            {
-                return (*this)(k0.key,k1.key);
-            }
-        };
         
         
         /** Passed a vector of keys, this function will construct an optimal tree.
@@ -283,7 +270,6 @@ namespace Geometry
             }
             return nv;
         }
-        
     };
     
     template<class KeyT, class ValT>
@@ -299,7 +285,7 @@ namespace Geometry
         }
         short od=0;
         KeyType ave_v = vmax-vmin;
-        for(unsigned i=1;i<KeyType::get_dim();i++)
+        for(short i=1;i<KeyType::get_dim();i++)
             if(ave_v[i]>ave_v[od]) od = i;
         return od;
     }
@@ -308,7 +294,7 @@ namespace Geometry
     void KDTree<KeyT,ValT>::optimize(unsigned cur,
                                      unsigned kvec_beg,
                                      unsigned kvec_end)
-    {
+{
         // Assert that we are not inserting beyond capacity.
         assert(cur < nodes.size());
         
@@ -346,11 +332,12 @@ namespace Geometry
         // a sorting algorithm. All elements to the left of the median
         // will be smaller than or equal the median. All elements to the right
         // will be greater than or equal to the median.
-        const Comp comp(disc);
+        
+        auto compare_func = [disc](const KDNode& a, const KDNode& b) { return comp(disc, a.key, b.key)==0;};
         KDNode* data = &init_nodes[0];
         std::nth_element(data+kvec_beg,
                          data+median,
-                         data+kvec_end, comp);
+                         data+kvec_end, compare_func);
         
         // Insert the node in the final data structure.
         nodes[cur] = init_nodes[median];
@@ -378,23 +365,20 @@ namespace Geometry
         }
         if(nodes[n].dsc != -1)
         {
-            short dsc         = nodes[n].dsc;
+            short dsc = nodes[n].dsc;
             ScalarType dsc_dist  = CGLA::sqr(nodes[n].key[dsc]-p[dsc]);
-            bool left_son   = Comp(dsc)(p,nodes[n].key);
-            
-            if(left_son||dsc_dist<dist)
-            {
-                unsigned left_child = 2*n;
-                if(left_child < nodes.size())
-                    if(unsigned nl=closest_point_priv(left_child, p, dist))
+            unsigned first_branch = comp(dsc, p, nodes[n].key);
+
+            unsigned child_node = 2*n + first_branch;
+            if(child_node < nodes.size())
+                if(unsigned nl=closest_point_priv(child_node, p, dist))
+                    ret_node = nl;
+
+            if (dsc_dist<dist) {
+                child_node = 2*n + 1 - first_branch;
+                if(child_node < nodes.size())
+                    if(unsigned nl=closest_point_priv(child_node, p, dist))
                         ret_node = nl;
-            }
-            if(!left_son||dsc_dist<dist)
-            {
-                unsigned right_child = 2*n+1;
-                if(right_child < nodes.size())
-                    if(unsigned nr = closest_point_priv(right_child, p, dist))
-                        ret_node = nr;
             }
         }
         return ret_node;
@@ -415,15 +399,15 @@ namespace Geometry
             const short dsc = nodes[n].dsc;
             const ScalarType dsc_dist = CGLA::sqr(nodes[n].key[dsc]-p[dsc]);
             
-            bool left_son = Comp(dsc)(p,nodes[n].key);
+            unsigned int first_branch = comp(dsc, p, nodes[n].key);
             
-            if(left_son||dsc_dist<dist)
+            if(first_branch==0||dsc_dist<dist)
             {
                 unsigned left_child = 2*n;
                 if(left_child < nodes.size())
                     in_sphere_priv(left_child, p, dist, records);
             }
-            if(!left_son||dsc_dist<dist)
+            if(first_branch==1||dsc_dist<dist)
             {
                 unsigned right_child = 2*n+1;
                 if(right_child < nodes.size())
@@ -440,30 +424,25 @@ namespace Geometry
     {
         ScalarType dist = nodes[n].dist(p);
         assert(n<nodes.size());
-        if(dist<max_dist)
-        {
+        if(dist<max_dist) {
             nq.push(KDTreeRecord<KeyT, ValT>(dist,nodes[n].key,nodes[n].val));
             if(nq.at_capacity())
                 max_dist = std::min(max_dist, nq.top().d);
         }
-        if(nodes[n].dsc != -1)
-        {
+        if(nodes[n].dsc != -1) {
             const short dsc = nodes[n].dsc;
             const ScalarType dsc_dist  = CGLA::sqr(nodes[n].key[dsc]-p[dsc]);
             
-            bool left_son = Comp(dsc)(p,nodes[n].key);
+            unsigned int first_branch = comp(dsc, p, nodes[n].key);
             
-            if(left_son||dsc_dist<max_dist)
-            {
-                unsigned left_child = 2*n;
-                if(left_child < nodes.size())
-                    m_closest_priv(left_child, p, max_dist, nq);
-            }
-            if(!left_son||dsc_dist<max_dist)
-            {
-                unsigned right_child = 2*n+1;
-                if(right_child < nodes.size())
-                    m_closest_priv(right_child, p, max_dist, nq);
+            unsigned child_node = 2 * n + first_branch;
+            if (child_node < nodes.size())
+                m_closest_priv(child_node, p, max_dist, nq);
+
+            if (dsc_dist < max_dist) {
+                child_node = 2 * n + 1 - first_branch;
+                if (child_node < nodes.size())
+                    m_closest_priv(child_node, p, max_dist, nq);
             }
         }
     }
