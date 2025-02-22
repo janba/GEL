@@ -102,10 +102,10 @@ namespace CGLA
     public:
         
         /// Get vertical dimension of matrix
-        static unsigned int get_v_dim() {return VVT::get_dim();}
+        static constexpr unsigned int get_v_dim() {return VVT::get_dim();}
         
         /// Get horizontal dimension of matrix
-        static unsigned int get_h_dim() {return HVT::get_dim();}
+        static constexpr unsigned int get_h_dim() {return HVT::get_dim();}
         
         
         /** Get const pointer to data array.
