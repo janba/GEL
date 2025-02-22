@@ -316,6 +316,9 @@ namespace Geometry {
     AMGraph3D minimum_spanning_tree(const AMGraph3D&,
                                     AMGraph::NodeID root = AMGraph::InvalidNodeID);
 
+    void close_chordless_cycles(AMGraph3D& g, AMGraph::NodeID root, int hops, double rad);
+
+
     /** Given a NodeSet s, split s into connected components and return those in a vector */
     std::vector<AMGraph::NodeSet> connected_components(const AMGraph& g, const AMGraph::NodeSet& s);
     
