@@ -1,5 +1,9 @@
-cmake_minimum_required(VERSION 3.11)
+cmake_minimum_required(VERSION 3.25) 
 project(GEL)
+option(BUILD_TESTS "Build the tests" OFF)
+option(BUILD_DEMOS "Build the demos" OFF)
+
+
 find_package(Threads)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
@@ -9,17 +13,14 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-#  set(CMAKE_CXX_FLAGS "-std=c++1z")
-  add_definitions(-DGLEW_STATIC)
+    add_definitions(-DGLEW_STATIC)
 endif ()
-
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     include_directories(./src/GEL)
     add_definitions(-DGLEW_STATIC)
 endif ()
-
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64")
+    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for MacOS" FORCE)
 endif ()
 
 option(Use_GLGraphics "Compile the OpenGL Viewer" ON)
@@ -34,12 +35,10 @@ if (Use_GLGraphics)
     FetchContent_GetProperties(glfw)
     if(NOT glfw_POPULATED)
         FetchContent_Populate(glfw)
-
         set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "Build the GLFW example programs")
         set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "Build the GLFW test programs")
         set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "Build the GLFW documentation")
         set(GLFW_INSTALL OFF CACHE INTERNAL "Generate installation target")
-
         add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
     endif()
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
@@ -47,52 +46,115 @@ if (Use_GLGraphics)
         add_compile_definitions(GL_SILENCE_DEPRECATION)
         include_directories(./src/)
         SET(CMAKE_INSTALL_RPATH "@loader_path/")
-        SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
+        # SET(CMAKE_BUILD_WITH_INSTALL_RPATH TRUE)
     endif ()
 endif ()
 
-aux_source_directory(./src/GEL/CGLA CGLA_SRC_LIST)
-aux_source_directory(./src/GEL/Geometry GEO_SRC_LIST)
-aux_source_directory(./src/GEL/HMesh MSH_SRC_LIST)
-aux_source_directory(./src/GEL/Util UTL_SRC_LIST)
+# Define the GEL library
+add_library(GEL STATIC)
 
+# Add include directories for GEL
+target_include_directories(GEL PRIVATE ./src)
+
+# Define source lists for GEL library
+file(GLOB_RECURSE CGLA_SRC_LIST_CPP ./src/GEL/CGLA/*.cpp)
+file(GLOB_RECURSE CGLA_SRC_LIST_C ./src/GEL/CGLA/*.c)
+list(APPEND CGLA_SRC_LIST ${CGLA_SRC_LIST_CPP} ${CGLA_SRC_LIST_C})
+
+file(GLOB_RECURSE GEO_SRC_LIST_CPP ./src/GEL/Geometry/*.cpp)
+file(GLOB_RECURSE GEO_SRC_LIST_C ./src/GEL/Geometry/*.c)
+list(APPEND GEO_SRC_LIST ${GEO_SRC_LIST_CPP} ${GEO_SRC_LIST_C})
+
+file(GLOB_RECURSE MESH_SRC_LIST_CPP ./src/GEL/HMesh/*.cpp)
+file(GLOB_RECURSE MESH_SRC_LIST_C ./src/GEL/HMesh/*.c)
+list(APPEND MESH_SRC_LIST ${MESH_SRC_LIST_CPP} ${MESH_SRC_LIST_C})
+
+file(GLOB_RECURSE UTIL_SRC_LIST_CPP ./src/GEL/Util/*.cpp)
+file(GLOB_RECURSE UTIL_SRC_LIST_C ./src/GEL/Util/*.c)
+list(APPEND UTIL_SRC_LIST ${UTIL_SRC_LIST_CPP} ${UTIL_SRC_LIST_C})
+
+
+# Add source files to GEL library (depending on use of GLGraphics)
 if (Use_GLGraphics)
-    include_directories(./src/GEL/GL/include)
-    aux_source_directory(./src/GEL/GL GL_SRC_LIST)
-    aux_source_directory(./src/GEL/GLGraphics GLG_SRC_LIST)
-    add_library(GEL STATIC ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MSH_SRC_LIST} ${UTL_SRC_LIST} ${GL_SRC_LIST} ${GLG_SRC_LIST})
-    target_link_libraries(GEL Threads::Threads OpenGL::GLU OpenGL::GL ${COCOA_LIBRARY})
-    # not right now ...
-    # add_subdirectory(./src/demo)
+    file(GLOB_RECURSE GL_SRC_LIST_CPP ./src/GEL/GL/*.cpp)
+    file(GLOB_RECURSE GL_SRC_LIST_C ./src/GEL/GL/*.c)
+    list(APPEND GL_SRC_LIST ${GL_SRC_LIST_CPP} ${GL_SRC_LIST_C})
+
+    file(GLOB_RECURSE GLG_SRC_LIST_CPP ./src/GEL/GLGraphics/*.cpp)
+    file(GLOB_RECURSE GLG_SRC_LIST_C ./src/GEL/GLGraphics/*.c)
+    list(APPEND GLG_SRC_LIST ${GLG_SRC_LIST_CPP} ${GLG_SRC_LIST_C})
+    target_sources(GEL PRIVATE ${GL_SRC_LIST} ${GLG_SRC_LIST} ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MESH_SRC_LIST} ${UTIL_SRC_LIST})
+    target_include_directories(GEL PRIVATE ./src/GEL/GL/include)
+    target_link_libraries(GEL PRIVATE Threads::Threads OpenGL::GLU OpenGL::GL ${COCOA_LIBRARY})
 else ()
-    add_library(GEL STATIC ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MSH_SRC_LIST} ${UTL_SRC_LIST})
-    target_link_libraries(GEL Threads::Threads)
+    target_sources(GEL PRIVATE ${CGLA_SRC_LIST} ${GEO_SRC_LIST} ${MESH_SRC_LIST} ${UTIL_SRC_LIST})
+    target_link_libraries(GEL PRIVATE Threads::Threads)
 endif ()
 
+# Locate the sources for PyGEL
+file(GLOB_RECURSE PYG_SRC_LIST ./src/PyGEL/*.cpp)
 
-include_directories(./src)
-aux_source_directory(./src/PyGEL PYG_SRC_LIST)
-
+# Define the PyGEL library. Again two versions depending on use of GLGraphics
 if (Use_GLGraphics)
     add_library(PyGEL SHARED ${PYG_SRC_LIST})
+    target_include_directories(PyGEL PRIVATE ./src)
     if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
         target_include_directories(PyGEL PRIVATE ${glfw_SOURCE_DIR}/include)
     endif ()
-    target_link_libraries(PyGEL GEL glfw ${GLFW_LIBRARIES})
+    target_link_libraries(PyGEL PRIVATE GEL glfw ${GLFW_LIBRARIES})
 else ()
     list(REMOVE_ITEM PYG_SRC_LIST "./src/PyGEL/Viewer.cpp")
     add_library(PyGEL SHARED ${PYG_SRC_LIST})
-    target_link_libraries(PyGEL GEL)
+    target_include_directories(PyGEL PRIVATE ./src)
+    target_link_libraries(PyGEL PRIVATE GEL)
 endif ()
 
-install(TARGETS GEL)
-
-install(TARGETS PyGEL GEL
-        LIBRARY DESTINATION PyGEL
-        ARCHIVE DESTINATION PyGEL)
+# Install GEL library
+install(TARGETS GEL LIBRARY DESTINATION lib)
 
 # Install Header Files
 install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/GEL
     DESTINATION include
     FILES_MATCHING PATTERN "*.h"
     )
+
+
+# No install instructions for PyGEL. It is left in the build directory and
+# included in the wheel package.
+
+if(BUILD_TESTS)
+    add_executable(CGLA_covariance src/test/CGLA-covariance/covariance_test.cpp)
+    target_link_libraries(CGLA_covariance PRIVATE GEL)
+    target_include_directories(CGLA_covariance PRIVATE ./src/GEL)
+
+    add_executable(CGLA_mat src/test/CGLA-mat/mat_test.cpp)
+    target_link_libraries(CGLA_mat PRIVATE GEL)
+    target_include_directories(CGLA_mat PRIVATE ./src/GEL)
+
+    # add_executable(CGLA_ogl src/test/CGLA-ogl/ogl_test.cpp)
+    # target_link_libraries(CGLA_ogl PRIVATE GEL)
+    # target_include_directories(CGLA_ogl PRIVATE ./src/GEL)
+
+    add_executable(CGLA_simple src/test/CGLA-simple/simple_test.cpp)
+    target_link_libraries(CGLA_simple PRIVATE GEL)
+    target_include_directories(CGLA_simple PRIVATE ./src/GEL)
+
+    add_executable(CGLA_vec src/test/CGLA-vec/vec_test.cpp)
+    target_link_libraries(CGLA_vec PRIVATE GEL)
+    target_include_directories(CGLA_vec PRIVATE ./src/GEL)
+
+    # add_executable(GLGraphics_console src/test/GLGraphics-console/console_test.cpp)
+    # target_link_libraries(GLGraphics_console PRIVATE GEL)
+    # target_include_directories(GLGraphics_console PRIVATE ./src/GEL)
+
+    add_executable(Geometry_kdtree src/test/Geometry-kdtree/kdtree-test.cpp)
+    target_link_libraries(Geometry_kdtree PRIVATE GEL)
+    target_include_directories(Geometry_kdtree PRIVATE ./src/GEL)
+endif()
+
+# Optionally build demos 
+if(BUILD_DEMOS)
+    add_executable(rsr_demo src/demo/RotationSystemReconstruction/rsr.cpp)
+    target_link_libraries(rsr_demo PRIVATE GEL Threads::Threads)
+    target_include_directories(rsr_demo PRIVATE ./src)
+endif()
