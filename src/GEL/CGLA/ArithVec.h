@@ -102,7 +102,7 @@ namespace CGLA
         typedef V VectorType;
         
         /// Return dimension of vector
-        static unsigned int get_dim() {return N;}
+        static constexpr unsigned int get_dim() {return N;}
         
         /// Set all coordinates of a 2D vector.
         void set(T _a, T _b)
