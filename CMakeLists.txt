@@ -1,8 +1,5 @@
 cmake_minimum_required(VERSION 3.25) 
 project(GEL)
-option(BUILD_TESTS "Build the tests" OFF)
-option(BUILD_DEMOS "Build the demos" OFF)
-
 
 find_package(Threads)
 set(CMAKE_CXX_STANDARD 20)
@@ -32,15 +29,7 @@ if (Use_GLGraphics)
         GIT_REPOSITORY https://github.com/glfw/glfw.git
         GIT_TAG 3.3.2
     )
-    FetchContent_GetProperties(glfw)
-    if(NOT glfw_POPULATED)
-        FetchContent_Populate(glfw)
-        set(GLFW_BUILD_EXAMPLES OFF CACHE INTERNAL "Build the GLFW example programs")
-        set(GLFW_BUILD_TESTS OFF CACHE INTERNAL "Build the GLFW test programs")
-        set(GLFW_BUILD_DOCS OFF CACHE INTERNAL "Build the GLFW documentation")
-        set(GLFW_INSTALL OFF CACHE INTERNAL "Generate installation target")
-        add_subdirectory(${glfw_SOURCE_DIR} ${glfw_BINARY_DIR})
-    endif()
+    FetchContent_MakeAvailable(glfw)
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
         FIND_LIBRARY(COCOA_LIBRARY Cocoa)
         add_compile_definitions(GL_SILENCE_DEPRECATION)
@@ -121,40 +110,3 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/GEL
 
 # No install instructions for PyGEL. It is left in the build directory and
 # included in the wheel package.
-
-if(BUILD_TESTS)
-    add_executable(CGLA_covariance src/test/CGLA-covariance/covariance_test.cpp)
-    target_link_libraries(CGLA_covariance PRIVATE GEL)
-    target_include_directories(CGLA_covariance PRIVATE ./src/GEL)
-
-    add_executable(CGLA_mat src/test/CGLA-mat/mat_test.cpp)
-    target_link_libraries(CGLA_mat PRIVATE GEL)
-    target_include_directories(CGLA_mat PRIVATE ./src/GEL)
-
-    # add_executable(CGLA_ogl src/test/CGLA-ogl/ogl_test.cpp)
-    # target_link_libraries(CGLA_ogl PRIVATE GEL)
-    # target_include_directories(CGLA_ogl PRIVATE ./src/GEL)
-
-    add_executable(CGLA_simple src/test/CGLA-simple/simple_test.cpp)
-    target_link_libraries(CGLA_simple PRIVATE GEL)
-    target_include_directories(CGLA_simple PRIVATE ./src/GEL)
-
-    add_executable(CGLA_vec src/test/CGLA-vec/vec_test.cpp)
-    target_link_libraries(CGLA_vec PRIVATE GEL)
-    target_include_directories(CGLA_vec PRIVATE ./src/GEL)
-
-    # add_executable(GLGraphics_console src/test/GLGraphics-console/console_test.cpp)
-    # target_link_libraries(GLGraphics_console PRIVATE GEL)
-    # target_include_directories(GLGraphics_console PRIVATE ./src/GEL)
-
-    add_executable(Geometry_kdtree src/test/Geometry-kdtree/kdtree-test.cpp)
-    target_link_libraries(Geometry_kdtree PRIVATE GEL)
-    target_include_directories(Geometry_kdtree PRIVATE ./src/GEL)
-endif()
-
-# Optionally build demos 
-if(BUILD_DEMOS)
-    add_executable(rsr_demo src/demo/RotationSystemReconstruction/rsr.cpp)
-    target_link_libraries(rsr_demo PRIVATE GEL Threads::Threads)
-    target_include_directories(rsr_demo PRIVATE ./src)
-endif()
