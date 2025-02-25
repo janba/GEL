@@ -1,16 +1,20 @@
-## INTRODUCTION
-GEL is a C++ library of geometry processing tools mostly intended for computer graphics applications. In particular, GEL contains 
-- a fairly mature half-edge based polygonal mesh data structure which includes functions for traversing a mesh and rich library of methods for modification.
-- a graph data structure which is also specialized for spatial graphs.  
-- voxel grid data structures,
-- spatial data structures for triangles and points: BSP tree, bounding box hierarchy, and a kD-Tree in particular.
+# GEL
+GEL is a C++ library of geometry processing tools mostly intended for computer graphics applications. Python bindings for GEL are found in the included PyGEL library which is also available from PyPI under the package name PyGEL3D.
+
+GEL contains 
+- a fairly mature half-edge based polygonal mesh data structure which includes functions for traversing a mesh and a rich library of methods for modifying meshes, 
+- a graph data structure which is also specialized for spatial graphs,
+- voxel grid data structures, 
+- spatial data structures for triangles and points: BSP tree, bounding box hierarchy, and a kD-Tree in particular, 
+- tools for visualization based on OpenGL and tools based on Plotly for visualization in Jupyter notebooks, and
+- various utilities.
 
 Unique functionality includes
-- Local Separator Skeletonization: our graph-based skeletonization method that works on both meshes, voxel data, and point clouds, although you may need to specify the connectivity for the latter two.
+- Local Separator Skeletonization: our graph-based skeletonization method that works on both meshes, voxel data, and point clouds, although you need to specify the connectivity for the latter two.
 - Inverse skeletonization: Face extrusion quad meshes (FEQ) from graphs.
 - Rotation System Reconstruction: a combinatorial method for reconstruction from point clouds.
 
-There are also several features that you might find elsewhere but which are included in GEL and work well.
+There are several less unique but important features:
 - Garland-Heckbert simplification of triangle meshes, 
 - signed distance field (SDF) computation from triangle meshes, 
 - iso-surface polygonization for regular voxel grids: can produce both dual and primal connectivity, 
@@ -70,7 +74,7 @@ If you run this script the C++ code is compiled and then the PyGEL3D wheel is cr
 
 ## Compilation of Demos and Tests
 
-GEL comes with some test scripts and also demos. You can find these in `GEL/src/test` and `GEL/src/demo`. There are individual CMake files for these tests and demos.
+GEL comes with some test scripts and also demos. You can find these in `GEL/src/test` and `GEL/src/demo`. There are individual CMake files for these tests and demos, and they are not compiled as a part of compiling the main library.
 
 ## Practical Issues
 Compiling both GEL and PyGEL requires that you have OpenGL installed unless you choose not to compile graphics support which you can do by setting `Use_GLGraphics` to `OFF` in the CMake file. GLFW is also needed, but CMake fetches GLFW from github and compiles it along with the GEL code. If you compile in some of the other ways (e.g. using XCode, Visual Studio) there is no simple way to avoid the dependency on graphics libraries. Thus, if you need to avoid the OpenGL requirements, CMake is the way to go.
