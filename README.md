@@ -6,6 +6,7 @@ GEL contains
 - a graph data structure which is also specialized for spatial graphs,
 - voxel grid data structures, 
 - spatial data structures for triangles and points: BSP tree, bounding box hierarchy, and a kD-Tree in particular, 
+- a linear algebra library for small vectors and matrices (2D, 3D, and 4D),
 - tools for visualization based on OpenGL and tools based on Plotly for visualization in Jupyter notebooks, and
 - various utilities.
 
@@ -21,9 +22,7 @@ There are several less unique but important features:
 - edge flipping-based optimization for triangle meshes, 
 - mesh smoothing: we include anisotropic smoothing, Taubin smoohing, and more.
 
-GEL also contains a linear algebra library for small vectors and matrices (2D, 3D, and 4D) as well as tools for visualizing meshes using OpenGL. One could argue that using a library such as Eigen for the former and perhaps PolyScope for that latter would be more appropriate. However, having these things be part of GEL makes the library more self contained. It is easy, in any case, to use GEL with the mentioned libraries.
-
-GEL requires a recent C++ compiler but has very few dependencies. For visualization, OpenGL and GLFW are required, but these dependencies can be omitted if visualization is not needed. This somewhat limits the capabilities of GEL, and most projects that use GEL would also require other libraries (such as a linear algebra library) but by not requiring these to be installed as dependencies of GEL, compilation is simplified and porting to new platforms becomes much easier.
+GEL requires a recent C++ compiler but has very few dependencies. For visualization, OpenGL and GLFW are required, but these dependencies can be omitted if visualization is not needed. The basic philosophy is that GEL should have few dependencies itself since it is better that projects which use GEL can choose for themselves, say, which linear algebra package to use. 
 
 ### PyGEL
 PyGEL is a set of Python bindings for a _subset_ of the features in GEL. In particular, PyGEL covers almost all the mesh features. In addition PyGEL has its own viewer based on OpenGL, and PyGEL can be used from Jupyter notebooks. In this case, it is possible to visualize meshes using a plotly widget. A significant benefit here is that when the notebook is exported to HTML, the 3D view comes along. In fact, this makes PyGEL a useful tool for teaching geometry processing since work can be carried out in a Jupyter notebook and assignments submitted as HTML files. Moreover, PyGEL works in Google [colab](https://colab.research.google.com) notebooks.
