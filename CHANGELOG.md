@@ -1,3 +1,6 @@
+Version 0.6.1
+- Only small changes to the README
+
 Version 0.6.0
 - Added type hints to Python interface
 - Added Rotation System Reconstruction to GEL and PyGEL
