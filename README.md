@@ -59,13 +59,13 @@ mkdir build; cd build; cmake ..; make -j 8 ; sudo make install; cd ..
 ### Creating a PyGEL3D package and installing it
 You can next issue the command
 ```
-python setup.py bdist_wheel
+python -m build -nwx
 ```
 Install using something like
 ```
 pip install dist/PyGEL3D-*.whl
 ```
-For this to work, you need to have wheel and setuptools installed. Also `python` and `pip` should be version 3 variants. There is shell script called `build_pygel.sh` that automates the tasks above. If you want to build PyGEL with a minimum of fuss, type 
+For this to work, you need to have `wheel`, `setuptools`, and `build` installed. Also `python` and `pip` should be version 3 variants. There is shell script called `build_pygel.sh` that automates the tasks above. If you want to build PyGEL with a minimum of fuss, type 
 ```
 sh build_pygel.sh
 ```

@@ -46,12 +46,15 @@ spacing = (phi-plo)/(dim - 1)
 vol = D.signed_distance([array(idx)*spacing + plo for idx in np.ndindex(*dim)])
 vol = vol.reshape(dim)
 m = hmesh.volumetric_isocontour(vol, plo, phi, high_is_inside=False)
-# Simplify the mesh to 5% of its original number of vertices
+d = np.clip(D.signed_distance(m.positions()), -0.001, 0.001)
+v.display(m, mode='s', data=d, reset_view=True, smooth=False)
+
+# Now, simplify the mesh to 5% of its original number of vertices
 hmesh.quadric_simplify(m, 0.05)
 # Improve the mesh quality by minimizing dihedral angles and maximizing minimum angles
 hmesh.minimize_dihedral_angle(m) # Make the mesh geometry better (i.e. reduce curvature)
 hmesh.maximize_min_angle(m, dihedral_thresh=0.98) # improve the triangle quality (i.e. more equilateral)
-v.display(m, mode='w', reset_view=True, smooth=False)
+v.display(m, mode='w')
 
 # Fifth test, downfilter the volume by averaging BSZ^3 blocks of voxels and polygonize the 
 # iso-contour. Then display the mesh with the distance field as a scalar field.
@@ -59,12 +62,5 @@ vol_little = vol.reshape((vol.shape[0]//BSZ, BSZ, vol.shape[1]//BSZ, BSZ, vol.sh
 # Below we downfilter using median, but you can use min, max, mean, etc.
 vol_little = np.median(vol_little, axis=(1,3,5))
 m = hmesh.volumetric_isocontour(vol_little, plo, phi, high_is_inside=False, dual_connectivity=True)
-# Show the distance field as a scalar field on the mesh.
-d = np.clip(D.signed_distance(m.positions()), -0.005, 0.005)
-v.display(m, mode='s', data=d)
+v.display(m, mode='w')
 
-# Sixth test, we redisplay the mesh and polygonize without dual connectivity and display the mesh
-# again. Note that dual connectivity tends to produce better quality triangles.
-v.display(m, mode='w', smooth=False)
-m = hmesh.volumetric_isocontour(vol_little, plo, phi, high_is_inside=False, dual_connectivity=False)
-v.display(m, mode='w', smooth=False)

@@ -415,7 +415,7 @@ namespace HMesh
     {
         // Cannot stitch an edge with itself
         if(h0 == h1) {
-//            cout << "Stupid, you are stitching edge with self!" << endl;
+        //    cout << "Stupid, you are stitching edge with self!" << endl;
             return false;
         }
         // Only stitch a pair of boundary edges.
@@ -432,19 +432,19 @@ namespace HMesh
 
             // We refuse to stitch two boundary edges belonging to the same face.
             if (f0 == f1) {
-//                cout << "Douche it is the same face!" << endl;
+            //    cout << "Douche it is the same face!" << endl;
                 return false;
             }
 
             //If the vertices are already connected, welding them together will be awkward.
             if(connected(v0a, v0b) ||
                connected(v1a, v1b)) {
-//                cout << "Stupid, end points are connected!" << endl;
+            //    cout << "Stupid, end points are connected!" << endl;
                 return false;
             }
             if((v0a != v0b && v1a != v1b) &&
                (connected(v0a, v1b) || connected(v1a, v0b))) {
-//                cout << "Stupid, end points are distinct and cross connected!" << endl;
+            //    cout << "Stupid, end points are distinct and cross connected!" << endl;
                 return false;
             }
             
@@ -452,11 +452,11 @@ namespace HMesh
             // two edges whose opposite edges have the property that second one is the next
             // edge of the first one or vice versa.
             if(v1a == v1b && kernel.next(h0o) == h1o) {
-//                cout << "Silly: would have made val 1" << endl;
+            //    cout << "Silly: would have made val 1" << endl;
                 return false;
             }
             if(v0a == v0b && kernel.next(h1o) == h0o) {
-//                cout << "WE CANT HAVE VALENCE 1!" << endl;
+            //    cout << "WE CANT HAVE VALENCE 1!" << endl;
                 return false;
             }
 
@@ -512,7 +512,7 @@ namespace HMesh
             
             return true;
         }
-//        cout << "Idiot! Those are not both boundary edges" << endl;
+    //    cout << "Idiot! Those are not both boundary edges" << endl;
         return false;
     }
     
@@ -537,11 +537,11 @@ namespace HMesh
         circulate_vertex_ccw(*this, v1, [&](VertexID v){r1.push_back(v); cout  << v << ",";});
 
         if(find(begin(r0),end(r0),v1) != end(r0)) {
-//            cout << "Oops " << v1  << " in 1-ring of " << v0;
+        //    cout << "Oops " << v1  << " in 1-ring of " << v0;
             return false;
         }
         if(find(begin(r1),end(r1),v0) != end(r1)) {
-//            cout << "Oops " << v0  << " in 1-ring of " << v1;
+        //    cout << "Oops " << v0  << " in 1-ring of " << v1;
             return false;
         }
         
@@ -551,7 +551,7 @@ namespace HMesh
         set_intersection(begin(r0), end(r0), begin(r1), end(r1), back_inserter(risect));
         if(!risect.empty())
         {
-//            cout << "One rings overlap" << endl;
+        //    cout << "One rings overlap" << endl;
             return false;
         }
 
@@ -571,6 +571,7 @@ namespace HMesh
 //            cout << "MERGING " << v0 << " and " << v1 << ", halfedge: " << h0i << "," << h0o << "," << h1i << "," << h1o << endl;
             return true;
         }
+        cout << "Cannot merge " << v0 << " and " << v1 << endl;
         return false;
     }
     

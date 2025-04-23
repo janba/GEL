@@ -76,7 +76,7 @@ namespace HMesh
             double a1 = acos(dot(v2-v1, v0-v1)/(length(v2-v1)*length(v0-v1)));
             double a2 = acos(dot(v0-v2, v1-v2)/(length(v0-v2)*length(v1-v2)));
 
-            if(a0>(M_PI/2.0) && a1>(M_PI/2.0) && a2>(M_PI/2.0)) // f is non-obtuse
+            if(a0<(M_PI/2.0) && a1<(M_PI/2.0) && a2<(M_PI/2.0)) // f is non-obtuse
             {
                 // Add Voronoi formula (see Section 3.3)
                 area_mixed += (1.0/8) * 
