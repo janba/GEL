@@ -107,6 +107,14 @@ install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/src/GEL
     FILES_MATCHING PATTERN "*.h"
     )
 
+# Add test projects
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME)
+    include(CTest)
+endif()
+if(CMAKE_PROJECT_NAME STREQUAL PROJECT_NAME AND BUILD_TESTING)
+    add_subdirectory(src/test)
+endif()
+
 
 # No install instructions for PyGEL. It is left in the build directory and
 # included in the wheel package.
