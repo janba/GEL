@@ -103,15 +103,25 @@ namespace  HMesh {
         }
         else {
             Manifold mc_mesh;
+            VertexAttributeVector<int> cluster_id(-1);
             for (auto v: mani.vertices()) {
                 vector<Vec3d> points;
+                vector<int> ids;
+                ids.reserve(20);
                 for (auto f: mani.incident_faces(v))
-                    if (mani.in_use(f))
-                        points.push_back(edge_intersections[f.get_index()]);
-                if(points.size()>2)
-                    mc_mesh.add_face(points);
+                    if (mani.in_use(f)) {
+                        auto id = f.get_index();
+                        points.push_back(edge_intersections[id]);
+                        ids.push_back(id);
+                    }
+                if(points.size()>2) {
+                    FaceID f_mc = mc_mesh.add_face(points);
+                    int i = 0;
+                    for (auto v: mc_mesh.incident_vertices(f_mc))
+                        cluster_id[v] = ids[i++];
+                }
             }
-            stitch_mesh(mc_mesh, 1e-10);
+            stitch_mesh(mc_mesh, cluster_id);
             mani = mc_mesh;
         }
         
@@ -119,7 +129,7 @@ namespace  HMesh {
             mani.pos(v) = xform.inverse(mani.pos(v));
         
         if(make_triangles) {
-            triangulate(mani,SHORTEST_EDGE);
+            triangulate(mani, SHORTEST_EDGE);
             remove_needles(mani, 0.1, true);
         }
         
