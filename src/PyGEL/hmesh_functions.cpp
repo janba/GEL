@@ -144,23 +144,23 @@ int refine_edges(Manifold_ptr m_ptr, float t) {
 }
 
 void cc_split(Manifold_ptr m_ptr) {
-    cc_split(*(reinterpret_cast<Manifold*>(m_ptr)), *(reinterpret_cast<Manifold*>(m_ptr)));
+    cc_split(*(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
 void loop_split(Manifold_ptr m_ptr) {
-    loop_split(*(reinterpret_cast<Manifold*>(m_ptr)), *(reinterpret_cast<Manifold*>(m_ptr)));
+    loop_split(*(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
 void root3_subdivide(Manifold_ptr m_ptr) {
-    root3_subdivide(*(reinterpret_cast<Manifold*>(m_ptr)), *(reinterpret_cast<Manifold*>(m_ptr)));
+    root3_subdivide(*(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
 void rootCC_subdivide(Manifold_ptr m_ptr) {
-    rootCC_subdivide(*(reinterpret_cast<Manifold*>(m_ptr)), *(reinterpret_cast<Manifold*>(m_ptr)));
+    rootCC_subdivide(*(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
 void butterfly_subdivide(Manifold_ptr m_ptr) {
-    butterfly_subdivide(*(reinterpret_cast<Manifold*>(m_ptr)), *(reinterpret_cast<Manifold*>(m_ptr)));
+    butterfly_subdivide(*(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
 void cc_smooth(Manifold_ptr m_ptr) {

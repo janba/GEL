@@ -18,10 +18,8 @@ namespace HMesh
     using namespace std;
     using namespace CGLA;
     
-    void loop_split(Manifold& m_in, Manifold& m)
+    void loop_split(Manifold& m)
     {
-        if(&m != &m_in)
-            m = m_in;
         VertexAttributeVector<int> vtouched(m.allocated_vertices(), 0);
         
         vector<HalfEdgeID> hedges;
@@ -59,44 +57,43 @@ namespace HMesh
         }
     }
     
-    void cc_split(Manifold& m, Manifold& m_out)
+    void cc_split(Manifold& m)
     {
-        VertexAttributeVector<int> touched(m.no_vertices(), -1);
-        // Mark all original vertices
-        for (auto v: m.vertices())
-            touched[v] = 1;
-        
-        // Split all of the original edges by inserting
-        // a vertex on them.
-        vector<HalfEdgeID> orig_edges;
-        for (auto h: m.halfedges())
-            if (h == m.walker(h).hmin())
-                orig_edges.push_back(h);
-        for (auto h: orig_edges)
-            m.split_edge(h);
-        
-        // Split all vertices by inserting a vertex in the middle
-        vector fvec(begin(m.faces()), end(m.faces()));
-        for(auto f: fvec) {
-            auto vnew = m.split_face_by_vertex(f);
-            touched[vnew] = 2;
+        vector<FaceID> base_faces;
+        vector<HalfEdgeID> base_edges;
+        vector<HalfEdgeID> new_edges;
+        for(auto f: m.faces())
+            base_faces.push_back(f);
+
+        for(auto h: m.halfedges())
+            if (h < m.walker(h).opp().halfedge())
+                base_edges.push_back(h);
+
+        for(auto f: base_faces) {
+            VertexID center_v = m.split_face_by_vertex(f);
+            for (auto h: m.incident_halfedges(center_v))
+                new_edges.push_back(h);
         }
 
-        // Remove edges from the face points to original vertices.
-        for(auto h: m.halfedges())
-            if (m.in_use(h)) {
-                auto w = m.walker(h);
-                if(touched[w.vertex()] == 1 && touched[w.opp().vertex()] == 2)
-                    m.merge_faces(w.face(), h);
-            }
-        m_out = m;
+        for (auto h: base_edges) {
+            Walker w = m.walker(h);
+            VertexID v1 = w.next().vertex();
+            FaceID f1 = w.face();
+            VertexID v2 = w.opp().next().vertex();
+            FaceID f2 = w.opp().face();
+            VertexID v = m.split_edge(h);
+            m.split_face_by_edge(f1, v1, v);
+            m.split_face_by_edge(f2, v2, v);
+        }
+
+        for (auto h_dissolve: new_edges)
+            if(m.in_use(h_dissolve))
+                m.merge_faces(m.walker(h_dissolve).face(), h_dissolve);
+        return;
     }
     
-    void root3_subdivide(Manifold& m_in, Manifold& m)
+    void root3_subdivide(Manifold& m)
     {
-        if(&m != &m_in)
-            m = m_in;
-        
         VertexAttributeVector<int> vtouched(m.allocated_vertices(), 0);
         VertexAttributeVector<Vec3d> new_pos(m.allocated_vertices(), Vec3d(0));
         
@@ -130,11 +127,8 @@ namespace HMesh
                 m.pos(*vid) = new_pos[*vid];
     }
 
-    void rootCC_subdivide(Manifold& m_in, Manifold& m)
+    void rootCC_subdivide(Manifold& m)
     {
-        if(&m != &m_in)
-            m = m_in;
-        
         VertexAttributeVector<int> vtouched(m.allocated_vertices(), 0);
         VertexAttributeVector<Vec3d> new_pos(m.allocated_vertices(), Vec3d(0));
         
@@ -168,7 +162,7 @@ namespace HMesh
     }
 
     
-    void butterfly_subdivide(Manifold& m_in, Manifold& m)
+    void butterfly_subdivide(Manifold& m)
     {
         const float S[4][6] = {{5.0/12.0, -1.0/12.0, -1.0/12.0, 0, 0, 0},
             {3.0/8.0, 0, -1.0/8.0, 0, 0, 0},
@@ -180,9 +174,6 @@ namespace HMesh
             {0, 1.0f/8, -1.0f/8, 0, -1.0f/8, 1.0f/8}};
 
         
-        if(&m != &m_in)
-            m = m_in;
-
         HalfEdgeAttributeVector<Vec3d> new_vertices_pos(m.allocated_halfedges(), Vec3d(0.0));
         HalfEdgeAttributeVector<int> htouched(m.allocated_halfedges(), 0);
         VertexAttributeVector<int> vtouched(m.allocated_vertices(), 0);
@@ -206,7 +197,7 @@ namespace HMesh
                     htouched[*hid] = 1;
                 }
             }
-        loop_split(m, m);
+        loop_split(m);
 
         for(HalfEdgeIDIterator hid = m.halfedges_begin(); hid != m.halfedges_end(); ++hid)
             if(htouched[*hid])

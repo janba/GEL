@@ -54,7 +54,6 @@ namespace  HMesh {
             
         };
         
-        vector<Vec3d> quad_vertices;
         vector<Vec3d> edge_intersections;
         for(Vec3i pi: Range3D(grid.get_dims()))
             if(is_inside(pi)) {
@@ -69,23 +68,15 @@ namespace  HMesh {
                             t = (tau-va)/(vb - va);
                         }
                         edge_intersections.push_back(p * (1-t) + Vec3d(pni) * t);
+                        vector<Vec3d> quad_vertices(4);
                         for(int n=0;n<4;++n)
-                            quad_vertices.push_back(p + hex_faces[nbr_idx][3-n]);
+                            quad_vertices[n] = p + hex_faces[nbr_idx][3-n];
+                        mani.add_face(quad_vertices);
                         
                     }
                 }
             }
-        
-        vector<int> indices;
-        vector<int> faces(quad_vertices.size()/4,4);
-        for(int i=0;i<quad_vertices.size();++i)
-            indices.push_back(i);
-        build(mani, quad_vertices.size(),
-              quad_vertices[0].get(),
-              faces.size(),
-              &faces[0],
-              &indices[0]);
-        
+                
         stitch_mesh(mani, 1e-10);
         
         if (dual_connectivity) {
@@ -117,8 +108,8 @@ namespace  HMesh {
                 if(points.size()>2) {
                     FaceID f_mc = mc_mesh.add_face(points);
                     int i = 0;
-                    for (auto v: mc_mesh.incident_vertices(f_mc))
-                        cluster_id[v] = ids[i++];
+                    for (auto vv: mc_mesh.incident_vertices(f_mc))
+                        cluster_id[vv] = ids[i++];
                 }
             }
             stitch_mesh(mc_mesh, cluster_id);

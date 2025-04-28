@@ -650,7 +650,7 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
             
-            cc_split(me->active_mesh(),me->active_mesh());
+            cc_split(me->active_mesh());
             cc_smooth(me->active_mesh());
             
             return;
@@ -666,7 +666,7 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
             
-            rootCC_subdivide(me->active_mesh(),me->active_mesh());
+            rootCC_subdivide(me->active_mesh());
             return;
         }
 
@@ -681,7 +681,7 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
             
-            loop_split(me->active_mesh(),me->active_mesh());
+            loop_split(me->active_mesh());
             loop_smooth(me->active_mesh());
             
             return;
@@ -766,8 +766,7 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
             
-            root3_subdivide(me->active_mesh(),me->active_mesh());
-            
+            root3_subdivide(me->active_mesh());
             return;
         }
         
@@ -782,7 +781,7 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
 
-            cc_split(me->active_mesh(),me->active_mesh());
+            cc_split(me->active_mesh());
             dual(me->active_mesh());
 
             return;
@@ -798,7 +797,7 @@ namespace GLGraphics {
             }
             me->save_active_mesh();
             
-            butterfly_subdivide(me->active_mesh(),me->active_mesh());
+            butterfly_subdivide(me->active_mesh());
             
             return;
         }

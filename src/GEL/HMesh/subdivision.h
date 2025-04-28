@@ -18,22 +18,22 @@ namespace HMesh
     /** Perform a Catmull-Clark split, i.e. a split where each face is divided
     into new quadrilateral faces formed by connecting a corner with a
     point on each incident edge and a point at the centre of the face. */
-    void cc_split(Manifold&, Manifold&);
+    void cc_split(Manifold&);
     
 
     /** Perform a loop style split. The input manifold is assumed to be a triangle
      mesh and each face is split into four faces. */
-    void loop_split(Manifold& m_in, Manifold& m);
+    void loop_split(Manifold&);
     
     /** Perform one step of Kobbelt's sqrt-3 subdivision. */
-    void root3_subdivide(Manifold&, Manifold&);
+    void root3_subdivide(Manifold&);
     
     
-    void rootCC_subdivide(Manifold& m_in, Manifold& m);
+    void rootCC_subdivide(Manifold& m);
 
     /** Perform one step of butterfly subdivision, i.e. interpolatory subdivision
      on triangle meshes. */
-    void butterfly_subdivide(Manifold& m_in, Manifold& m);
+    void butterfly_subdivide(Manifold& m);
 
     /** Perform Catmull Clark smoothing. If this function follows cc_split it results
      in Catmull-Clark subdivison implemented in a factored fashion. */

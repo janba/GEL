@@ -58,43 +58,6 @@ vector<NodeID> next_neighbours(const Geometry::AMGraph3D& g, NodeID prev, NodeID
 
 //Mesh util functions
 
-void id_preserving_cc(HMesh::Manifold& m_in) {
-
-    vector<FaceID> base_faces;
-    vector<HalfEdgeID> base_edges;
-    vector<HalfEdgeID> new_edges;
-
-    for(auto f: m_in.faces())
-        base_faces.push_back(f);
-
-    for(auto h: m_in.halfedges())
-        if (h < m_in.walker(h).opp().halfedge())
-            base_edges.push_back(h);
-
-    for(auto f: base_faces) {
-        VertexID center_v = m_in.split_face_by_vertex(f);
-        for (auto h: m_in.incident_halfedges(center_v))
-            new_edges.push_back(h);
-    }
-
-    for (auto h: base_edges) {
-        Walker w = m_in.walker(h);
-        VertexID v1 = w.next().vertex();
-        FaceID f1 = w.face();
-        VertexID v2 = w.opp().next().vertex();
-        FaceID f2 = w.opp().face();
-        VertexID v = m_in.split_edge(h);
-        m_in.split_face_by_edge(f1, v1, v);
-        m_in.split_face_by_edge(f2, v2, v);
-    }
-
-    for (auto h_dissolve: new_edges)
-        if(m_in.in_use(h_dissolve))
-            m_in.merge_faces(m_in.walker(h_dissolve).face(), h_dissolve);
-    return;
-
-}
-
 void quad_mesh_leaves(HMesh::Manifold& m, VertexAttributeVector<NodeID>& vertex2node, Face2VertexMap& one_ring_face_vertex) {
     vector<FaceID> base_faces;
     vector<HalfEdgeID> new_edges;
@@ -551,8 +514,7 @@ construct_bnps(const Geometry::AMGraph3D &g,
                 }
             }
             
-            
-            id_preserving_cc(m);
+            cc_split(m);
 
             for (int i = 0; i < spts.size(); i++)
                 pos_to_branch[m.pos(spts2vertexid[i])] = spts2branch[i];
