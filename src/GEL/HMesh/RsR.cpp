@@ -987,8 +987,8 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
     * @return reference to the next neighbor struct
     */
 const Neighbor& successor(const RSGraph& g, const NodeID& root, const NodeID& branch) {
-    auto& u = g.m_vertices[root];
-    auto& v = g.m_vertices[branch];
+    const auto& u = g.m_vertices.at(root);
+    const auto& v = g.m_vertices.at(branch);
     auto iter = u.ordered_neighbors.upper_bound(Neighbor(u, v, branch));
     if (iter == u.ordered_neighbors.end()) iter = u.ordered_neighbors.begin(); // Wrap around
     return (*iter); // This is honestly not good practice - ONLY modification of tree_id
@@ -1004,8 +1004,8 @@ const Neighbor& successor(const RSGraph& g, const NodeID& root, const NodeID& br
     * @return reference to last neighbor struct
     */
 const Neighbor& predecessor(const RSGraph& g, const NodeID& root, const NodeID& branch) {
-    auto& u = g.m_vertices[root];
-    auto& v = g.m_vertices[branch];
+    const auto& u = g.m_vertices.at(root);
+    const auto& v = g.m_vertices.at(branch);
     auto iter = u.ordered_neighbors.lower_bound({ u,v,static_cast<uint>(branch) });
     if (iter == u.ordered_neighbors.begin()) iter = u.ordered_neighbors.end(); // Wrap around
     return (*(std::prev(iter)));
@@ -1322,8 +1322,8 @@ void find_common_neighbor(NodeID neighbor, NodeID root,
     * @return reference to the neighbor struct
     */
 const Neighbor& get_neighbor_info(const RSGraph& g, const NodeID& root, const NodeID& branch) {
-    auto& u = g.m_vertices[root];
-    auto& v = g.m_vertices[branch];
+    const auto& u = g.m_vertices.at(root);
+    const auto& v = g.m_vertices.at(branch);
     auto iter = u.ordered_neighbors.lower_bound({ u,v,static_cast<uint>(branch) });
     return (*iter);
 }
