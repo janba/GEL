@@ -27,7 +27,7 @@ if (Use_GLGraphics)
     FetchContent_Declare(
         glfw
         GIT_REPOSITORY https://github.com/glfw/glfw.git
-        GIT_TAG 3.3.2
+        GIT_TAG 3.3.10
     )
     FetchContent_MakeAvailable(glfw)
     if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
