@@ -125,6 +125,18 @@ extern "C" {
 
     DLLEXPORT void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
 
+    struct ManifoldComponentVec {
+        Manifold_ptr* meshes;
+        int count; 
+    };
+
+    typedef char* ManifoldComponentVecPtr;
+
+    DLLEXPORT int connected_components(Manifold_ptr _m_ptr, ManifoldComponentVecPtr _comps);
+
+    DLLEXPORT void deallocate_component_vec(ManifoldComponentVec* _comps);
+
+    DLLEXPORT int count_boundary_curves(Manifold_ptr _m_ptr);
 
 #ifdef __cplusplus
 }

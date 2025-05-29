@@ -7,7 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
-#include <iterator>
+#include <stack>
 
 #include <GEL/Geometry/TriMesh.h>
 #include <GEL/Geometry/bounding_sphere.h>
@@ -1557,5 +1557,64 @@ namespace HMesh
         }
         return vol / 6.0;
     }
+
+
+    vector<HMesh::Manifold> connected_components(const HMesh::Manifold& m) {
+        auto visited = FaceAttributeVector<int>(m.allocated_faces(), 0);
+        vector<HMesh::Manifold> components;
+        for (auto face: m.faces()) {
+            if (visited[face] == 0) {
+                stack<FaceID> face_stack;
+                face_stack.push(face);
+                Manifold comp_mesh;
+                VertexAttributeVector<int> orig_id;
+                while(!face_stack.empty()) {
+                    FaceID current_face = face_stack.top();
+                    face_stack.pop();
+                    if (visited[current_face] == 0) {
+                        visited[current_face] = 1;
+                        vector<Vec3d> pts;
+                        vector<int> ids;
+                        for (auto v: m.incident_vertices(current_face)) {
+                            pts.push_back(m.pos(v));
+                            ids.push_back(v.get_index());
+                        }
+                        FaceID f_new = comp_mesh.add_face(pts);
+                        int i=0;
+                        for (auto v: comp_mesh.incident_vertices(f_new))
+                            orig_id[v] = ids[i++];
+                        for (auto neighbor: m.incident_faces(current_face)) {
+                            if (m.in_use(neighbor) and visited[neighbor] == 0) 
+                            face_stack.push(neighbor);
+                        }
+                    }
+                }
+                stitch_mesh(comp_mesh, orig_id);
+                comp_mesh.cleanup();
+                components.push_back(comp_mesh);
+            }
+        }
+        return components;
+    }
+
+
+    int count_boundary_curves(const HMesh::Manifold& m) {
+        int num = 0;
+        HalfEdgeAttributeVector<int> visited(m.allocated_halfedges(), 0);
+        for (auto h0: m.halfedges()) {
+            if (visited[h0] == 1)
+                continue;
+            Walker w = m.walker(h0);
+            if (!m.in_use(w.face())) {
+                num += 1;
+                while (visited[w.halfedge()] == 0) {
+                    visited[w.halfedge()] = 1;
+                    w = w.next();
+                }
+            }
+        }
+        return num;
+    }
+
 
 }

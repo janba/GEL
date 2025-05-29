@@ -32,8 +32,11 @@ namespace HMesh
             if(h == w.hmin())
                 lengths.push_back(sqr_length(m.pos(w.vertex())-m.pos(w.opp().vertex())));
         }
-        nth_element(begin(lengths), begin(lengths)+lengths.size()/2, end(lengths));
-        return sqrt(lengths[lengths.size()/2]);
+        if (lengths.size()>0) {
+            nth_element(begin(lengths), begin(lengths)+lengths.size()/2, end(lengths));
+            return sqrt(lengths[lengths.size()/2]);
+        }
+        return 0;
     }
 
 

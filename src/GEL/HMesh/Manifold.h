@@ -730,7 +730,17 @@ namespace HMesh
 
     /// Compute the total volume
     double volume(const Manifold& m);
-    
+
+    /// @brief Compute the connected components of a mesh
+    /// @param m is the input mesh
+    /// @return a vector of connected components
+    std::vector<HMesh::Manifold> connected_components(const HMesh::Manifold& m);
+
+    /// @brief count the number of boundary curves
+    /// @param m is the input mesh
+    /// @return number of boundary curves
+    int count_boundary_curves(const HMesh::Manifold& m);
+
     /// @brief Circulate around a vertex in counter clockwise order.
     /// @param m is the manifold to circulate in.
     /// @param v is the vertex to circulate around.

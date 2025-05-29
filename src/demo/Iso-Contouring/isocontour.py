@@ -5,9 +5,13 @@ from pygel3d import hmesh, gl_display as gl
 
 v = gl.Viewer()
 
-# First test, create a volume containing a gyroid and display its isocontour
+# Zeroth test, create an empty volume and polygonize the iso-contour
+# (simply checks robustness)
 dim = (40,50,60)
 vol = np.zeros(dim)
+m = hmesh.volumetric_isocontour(vol, high_is_inside=True)
+
+# First test, create a volume containing a gyroid and display its isocontour
 for idx in np.ndindex(dim):
     x,y,z = [ i * 0.25 for i in idx ]
     vol[idx] = sin(x)*cos(y)+sin(y)*cos(z)+sin(z)*cos(x)
