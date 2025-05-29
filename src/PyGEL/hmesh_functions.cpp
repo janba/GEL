@@ -293,26 +293,20 @@ void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) 
     stable_marriage_registration(*m_ptr, *m_ref_ptr);
 }
  
-int connected_components(Manifold_ptr _m_ptr, ManifoldComponentVecPtr _comps) {
+int connected_components(Manifold_ptr _m_ptr, ManifoldComponentVec* comps) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
-    ManifoldComponentVec* comps = new ManifoldComponentVec;
     auto components = connected_components(*m_ptr);
     int N = components.size();
     comps->meshes = new Manifold_ptr[N];
     int i=0;
     comps->count = N;
-    for (auto m: components) {
-        comps->meshes[i++] = new Manifold(m);
-    }
-    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
-    _comps = reinterpret_cast<ManifoldComponentVecPtr>(comps);
+    for (auto m: components)
+        comps->meshes[i++] = reinterpret_cast<Manifold_ptr>(new Manifold(m));
     return N;
 }
 
-void deallocate_component_vec(ManifoldComponentVec* _comps) {
-    ManifoldComponentVec* comps = reinterpret_cast<ManifoldComponentVec*>(_comps);
+void deallocate_component_vec(ManifoldComponentVec* comps) {
     delete [] comps->meshes;
-    delete comps;
 }
 
 int count_boundary_curves(Manifold_ptr _m_ptr) {

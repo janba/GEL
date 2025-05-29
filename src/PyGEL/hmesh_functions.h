@@ -132,7 +132,7 @@ extern "C" {
 
     typedef char* ManifoldComponentVecPtr;
 
-    DLLEXPORT int connected_components(Manifold_ptr _m_ptr, ManifoldComponentVecPtr _comps);
+    DLLEXPORT int connected_components(Manifold_ptr _m_ptr, ManifoldComponentVec* _comps);
 
     DLLEXPORT void deallocate_component_vec(ManifoldComponentVec* _comps);
 

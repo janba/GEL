@@ -8,7 +8,7 @@ allows us to turn a skeleton graph into a Face Extrusion Quad Mesh.
 import ctypes as ct
 import numpy as np
 from numpy import ndarray
-from pygel3d import lib_py_gel, IntVector
+from pygel3d import lib_py_gel, IntVector, struct_ManifoldComponentVec
 from pygel3d.graph import Graph
 from scipy.sparse import csc_matrix, vstack
 from scipy.sparse.linalg import lsqr
@@ -30,8 +30,13 @@ class Manifold:
     def __init__(self,orig=None):
         if orig == None:
             self.obj = lib_py_gel.Manifold_new()
-        else:
+        elif isinstance(orig, Manifold):
             self.obj = lib_py_gel.Manifold_copy(orig.obj)
+        elif isinstance(orig, ct.c_void_p):
+            self.obj = orig
+        else:
+            raise TypeError("Manifold constructor takes either a Manifold or a c_void_p as argument, not %s" % type(orig))  
+        
     @classmethod
     def from_triangles(cls,vertices, faces):
         """ Given a list of vertices and triangles (faces), this function produces
@@ -926,3 +931,13 @@ def rsr_recon(verts, normals=[], use_Euclidean_distance=False, genus=-1, k=70,
 
     lib_py_gel.rsr_recon(m.obj, verts_data,normal_data, n_verts, n_normal, use_Euclidean_distance,genus,k,r,theta,n)
     return m
+
+def connected_components(m: Manifold):
+    """ Returns a list of sets of vertices that form connected components in the mesh m. """
+    comp = struct_ManifoldComponentVec
+    lib_py_gel.connected_components(m.obj, ct.byref(comp))
+    meshes = []
+    for i in range(comp.count):
+        meshes.append(Manifold(comp.meshes[i]))
+    lib_py_gel.deallocate_componet_vec(ct.byref(comp))
+    return meshes
