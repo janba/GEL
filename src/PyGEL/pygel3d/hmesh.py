@@ -8,7 +8,7 @@ allows us to turn a skeleton graph into a Face Extrusion Quad Mesh.
 import ctypes as ct
 import numpy as np
 from numpy import ndarray
-from pygel3d import lib_py_gel, IntVector, struct_ManifoldComponentVec
+from pygel3d import lib_py_gel, IntVector
 from pygel3d.graph import Graph
 from scipy.sparse import csc_matrix, vstack
 from scipy.sparse.linalg import lsqr
@@ -933,11 +933,17 @@ def rsr_recon(verts, normals=[], use_Euclidean_distance=False, genus=-1, k=70,
     return m
 
 def connected_components(m: Manifold):
-    """ Returns a list of sets of vertices that form connected components in the mesh m. """
-    comp = struct_ManifoldComponentVec
-    lib_py_gel.connected_components(m.obj, ct.byref(comp))
+    """ Returns a list of Manifolds that form the connected components of the mesh m. """
+    comp = lib_py_gel.connected_components(m.obj)
+    N = lib_py_gel.mesh_vec_size(comp)
+    if N == 0:
+        return []
     meshes = []
-    for i in range(comp.count):
-        meshes.append(Manifold(comp.meshes[i]))
-    lib_py_gel.deallocate_componet_vec(ct.byref(comp))
+    for i in range(N):
+        meshes.append(Manifold(lib_py_gel.mesh_vec_get(comp, i)))
+    lib_py_gel.mesh_vec_del(comp)
     return meshes
+
+def count_boundary_curves(m: Manifold):
+    """ Returns the number of boundary curves in the mesh m. """
+    return lib_py_gel.count_boundary_edges(m.obj)

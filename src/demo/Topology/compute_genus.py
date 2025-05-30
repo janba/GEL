@@ -57,14 +57,14 @@ if __name__ == "__main__":
     mesh_file = argv[1]
     m = hmesh.load(mesh_file)
 
-    components = connected_components(m)
+    components = hmesh.connected_components(m)
     
     print(f"Number of connected components: {len(components)}")
 
 
     for i,comp in enumerate(components):
         print(f"Component {i+1}:")
-        b = len(boundary_curves(comp))
+        b = len(hmesh.count_boundary_curves(comp))
         V = len(comp.vertices())  # Number of vertices
         E = len(comp.halfedges())//2  # Number of edges
         F = len(comp.faces())  # Number of faces

@@ -234,14 +234,16 @@ lib_py_gel.kill_face_loop.argtypes = (ct.c_void_p,)
 lib_py_gel.kill_degenerate_face_loops.argtypes = (ct.c_void_p,ct.c_double)
 lib_py_gel.stable_marriage_registration.argtypes = (ct.c_void_p,ct.c_void_p)
 lib_py_gel.stable_marriage_registration.restype = ct.c_int
-class struct_ManifoldComponentVec(ct.Structure):
-    """ A structure that holds a vector of Manifold pointers.
-    This is used to return the connected components of a mesh."""
-    _fields_ = [("meshes", ct.POINTER(ct.c_void_p)), ("count", ct.c_int)]
-lib_py_gel.connected_components.argtypes = (ct.c_void_p, ndpointer(dtype=struct_ManifoldComponentVec))
-lib_py_gel.connected_components.restype = ct.c_int
-lib_py_gel.deallocate_componet_vec.argtypes = (ndpointer(dtype=struct_ManifoldComponentVec),)
-lib_py_gel.count_boundary_curves.argtypes = (ct.c_void_p)
+lib_py_gel.connected_components.argtypes = (ct.c_void_p,)
+lib_py_gel.connected_components.restype = ct.c_void_p
+lib_py_gel.mesh_vec_size.argtypes = (ct.c_void_p,)
+lib_py_gel.mesh_vec_size.restype = ct.c_size_t
+lib_py_gel.mesh_vec_get.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.mesh_vec_get.restype = ct.POINTER(ct.c_void_p)
+lib_py_gel.mesh_vec_del.argtypes = (ct.c_void_p,)
+
+
+lib_py_gel.count_boundary_curves.argtypes = (ct.c_void_p,)
 lib_py_gel.count_boundary_curves.restype = ct.c_int
 
 # MeshDistance allows us to compute the signed distance to a mesh
