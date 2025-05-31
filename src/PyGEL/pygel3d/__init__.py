@@ -239,10 +239,8 @@ lib_py_gel.connected_components.restype = ct.c_void_p
 lib_py_gel.mesh_vec_size.argtypes = (ct.c_void_p,)
 lib_py_gel.mesh_vec_size.restype = ct.c_size_t
 lib_py_gel.mesh_vec_get.argtypes = (ct.c_void_p, ct.c_size_t)
-lib_py_gel.mesh_vec_get.restype = ct.POINTER(ct.c_void_p)
+lib_py_gel.mesh_vec_get.restype = ct.c_void_p
 lib_py_gel.mesh_vec_del.argtypes = (ct.c_void_p,)
-
-
 lib_py_gel.count_boundary_curves.argtypes = (ct.c_void_p,)
 lib_py_gel.count_boundary_curves.restype = ct.c_int
 

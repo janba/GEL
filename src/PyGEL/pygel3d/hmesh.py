@@ -940,10 +940,11 @@ def connected_components(m: Manifold):
         return []
     meshes = []
     for i in range(N):
-        meshes.append(Manifold(lib_py_gel.mesh_vec_get(comp, i)))
+        obj = ct.c_void_p(lib_py_gel.mesh_vec_get(comp, i))
+        meshes.append(Manifold(obj))
     lib_py_gel.mesh_vec_del(comp)
     return meshes
 
 def count_boundary_curves(m: Manifold):
     """ Returns the number of boundary curves in the mesh m. """
-    return lib_py_gel.count_boundary_edges(m.obj)
+    return lib_py_gel.count_boundary_curves(m.obj)

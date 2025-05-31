@@ -1566,7 +1566,8 @@ namespace HMesh
             if (visited[face] == 0) {
                 stack<FaceID> face_stack;
                 face_stack.push(face);
-                Manifold comp_mesh;
+                components.push_back(Manifold());
+                Manifold& comp_mesh = components.back();
                 VertexAttributeVector<int> orig_id;
                 while(!face_stack.empty()) {
                     FaceID current_face = face_stack.top();
@@ -1584,14 +1585,14 @@ namespace HMesh
                         for (auto v: comp_mesh.incident_vertices(f_new))
                             orig_id[v] = ids[i++];
                         for (auto neighbor: m.incident_faces(current_face)) {
-                            if (m.in_use(neighbor) and visited[neighbor] == 0) 
-                            face_stack.push(neighbor);
+                            if (m.in_use(neighbor) and visited[neighbor] == 0) {
+                                face_stack.push(neighbor);
+                            }
                         }
                     }
                 }
                 stitch_mesh(comp_mesh, orig_id);
                 comp_mesh.cleanup();
-                components.push_back(comp_mesh);
             }
         }
         return components;

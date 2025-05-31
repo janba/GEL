@@ -1,4 +1,13 @@
 #!/opt/local/bin/python
+#
+# This script computes the set of homology generators for a mesh surface.
+# Subsequently it cuts the mesh along these curves, producing a new mesh that is
+# topologically equivalent to a disk. Note that the script does not handle 
+# large meshes well, so it reduces the mesh using quadric simplification.
+# The script also closes holes in the mesh before computing the homology generators.
+#
+# Usage: python homology_generators.py <mesh_file>
+
 from numpy import zeros, array, argmax
 from numpy.linalg import norm
 from scipy.spatial import KDTree
@@ -128,25 +137,6 @@ def form_loop(m: hmesh.Manifold, htag, i):
     loop += [ h for h in loop1 if not h in loop0 ]
     return loop
 
-# def shorten_loop(m: hmesh.Manifold, loop):
-#     vertex_tags = array([-1]*m.no_allocated_vertices())
-#     i = 0
-#     for h in loop:
-#         v = m.incident_vertex(h)
-#         vertex_tags[v] = i
-#         i += 1
-#     v_max = m.incident_vertex(m.opposite_halfedge(loop[0]))
-#     v = v_max
-#     while True:
-#         hedges = m.circulate_vertex(v, mode='h')
-#         i = argmax([vertex_tags[m.incident_vertex(h)] for h in hedges])
-#         h = hedges[i]
-#         v = m.incident_vertex(h)
-#         loop.append(h) 
-#         if v == v_max:
-#             break
-#     return loop
-
 def loop_to_graph(m: hmesh.Manifold, loop):
     '''Given a mesh and a loop, this function creates a graph with the same
     number of nodes as the number of vertices in the loop. The edges of the graph
@@ -160,8 +150,6 @@ def loop_to_graph(m: hmesh.Manifold, loop):
         if len(g_loop.neighbors(n)) == 0:
             g_loop.remove_node(n)
     return g_loop
-
-
 
 def cut_mesh(m: hmesh.Manifold, loops):
     ''' Given a mesh, m, and a list of loops, this function
@@ -197,7 +185,11 @@ def cut_mesh(m: hmesh.Manifold, loops):
 
 if __name__ == "__main__":
     m = hmesh.load(argv[1])
+    if m is None:
+        print("Failed to load mesh.")
+        exit(1)
     hmesh.quadric_simplify(m,0.25)
+    hmesh.close_holes(m, 100000)
     m.cleanup()
 
     # We now compute the genus directly from the number of vertics, edges
@@ -246,7 +238,7 @@ if __name__ == "__main__":
     print("genus from H1 basis: ", len(inst)//2)
 
     loops = []
-    for i in inst:  
+    for i in inst:
         loop = form_loop(m,htag,i)
         loops.append(loop)
         viewer.display(m, loop_to_graph(m, loop), mode="g", smooth=False)
