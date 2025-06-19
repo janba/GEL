@@ -171,6 +171,15 @@ lib_py_gel.area.restype = ct.c_double
 lib_py_gel.area.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.one_ring_area.restype = ct.c_double
 lib_py_gel.one_ring_area.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.mixed_area.restype = ct.c_double
+lib_py_gel.mixed_area.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.gaussian_curvature.restype = ct.c_double
+lib_py_gel.gaussian_curvature.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.mean_curvature.restype = ct.c_double
+lib_py_gel.mean_curvature.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.principal_curvatures.argtypes = (ct.c_void_p, ct.c_size_t, ndpointer(dtype=np.float64, shape=(8,)))
+
+
 lib_py_gel.total_area.restype = ct.c_double
 lib_py_gel.total_area.argtypes = (ct.c_void_p,)
 lib_py_gel.volume.restype = ct.c_double

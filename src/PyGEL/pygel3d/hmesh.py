@@ -285,6 +285,30 @@ class Manifold:
         n = ndarray(3,dtype=np.float64)
         lib_py_gel.vertex_normal(self.obj, vid, n)
         return n
+    def mixed_area(self, vid):
+        """ Returns the mixed area of vertex vid. The mixed area is the sum of
+        angles at the vertex times the edge lengths divided by 2*pi. """
+        return lib_py_gel.mixed_area(self.obj, vid)
+    def gaussian_curvature(self, vid):
+        """ Returns the Gaussian curvature of vertex vid. The curvature is computed
+        as the sum of angles at the vertex minus 2*pi. """
+        return lib_py_gel.gaussian_curvature(self.obj, vid)
+    def mean_curvature(self, vid):
+        """ Returns the mean curvature of vertex vid. The curvature is computed
+        as the length of the mean curvaure normal obtained with the cotan formula. """
+        return lib_py_gel.mean_curvature(self.obj, vid)
+    def principal_curvatures(self, vid):
+        """ Returns the principal curvatures of vertex vid. The function returns
+        a tuple consiting of four values: min and max principal curvature followed
+        by the corresponding principal directions as 3D vectors"""
+        pc_data = ndarray(8, dtype=np.float64)
+        lib_py_gel.principal_curvatures(self.obj, vid, pc_data)
+        return (
+            pc_data[0],  # min curvature
+            pc_data[1],  # max curvature
+            pc_data[2:5],  # min direction
+            pc_data[5:8]   # max direction
+        )
     def connected(self, v0, v1):
         """ Returns true if the two argument vertices, v0 and v1, are in each other's one-rings."""
         return lib_py_gel.connected(self.obj,v0,v1)

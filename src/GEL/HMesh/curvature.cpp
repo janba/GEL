@@ -77,17 +77,13 @@ namespace HMesh
             double a2 = acos(dot(v0-v2, v1-v2)/(length(v0-v2)*length(v1-v2)));
 
             if(a0<(M_PI/2.0) && a1<(M_PI/2.0) && a2<(M_PI/2.0)) // f is non-obtuse
-            {
-                // Add Voronoi formula (see Section 3.3)
                 area_mixed += (1.0/8) * 
                     ((1.0/tan(a1)) * sqr_length(v2-v0) + 
                     (1.0/tan(a2)) * sqr_length(v1-v0));
-            }
-            else // Voronoi inappropriate
-            {
-                // Add either area(f)/4 or area(f)/2
-                area_mixed += f_area/3;
-            }
+            else if (a0>=(M_PI/2.0)) // a0 is the obtuse angle
+                area_mixed += f_area/2;
+            else
+                area_mixed += f_area/4;
         }
         return area_mixed;
     }
@@ -269,7 +265,33 @@ namespace HMesh
         // Finally compute the shape tensor from the coefficients
         // using the first and second fundamental forms.
         curv_tensor = - Mat2x2d(x[0],x[1],x[1],x[2]);
+    }
 
+    PrincipalCurvatures principal_curvatures( const Manifold& m, VertexID v) {
+
+        Mat2x2d tensor;
+        Mat3x3d frame;
+        curvature_tensor_paraboloid(m, v, tensor, frame);
+        
+        Mat2x2d Q, L;
+        int s = power_eigensolution(tensor, Q, L);
+        
+        int max_idx = 0;
+        int min_idx = 1;
+        
+        if(abs(L[max_idx][max_idx])<abs(L[min_idx][min_idx])) 
+            swap(max_idx, min_idx);
+        
+        Mat3x3d frame_t = transpose(frame);
+        
+        PrincipalCurvatures pc = {
+            cond_normalize(frame_t * Vec3d(Q[min_idx][0], Q[min_idx][1], 0)),
+            cond_normalize(frame_t * Vec3d(Q[max_idx][0], Q[max_idx][1], 0)),
+            L[min_idx][min_idx],
+            L[max_idx][max_idx]
+        };
+
+        return pc;
     }
 
     void curvature_tensors_from_edges(const Manifold& m, VertexAttributeVector<Mat3x3d>& curvature_tensors)
@@ -329,29 +351,7 @@ namespace HMesh
     {
 
         for(auto v: m.vertices()){
-            Mat2x2d tensor;
-            Mat3x3d frame;
-            curvature_tensor_paraboloid(m, v, tensor, frame);
-
-            Mat2x2d Q,L;
-            int s = power_eigensolution(tensor, Q, L);
-
-            if(s < 2)	
-                cout << tensor << Q << L << endl;
-
-            int max_idx = 0;
-            int min_idx = 1;
-
-            if(abs(L[max_idx][max_idx])<abs(L[min_idx][min_idx])) swap(max_idx, min_idx);
-
-            Mat3x3d frame_t = transpose(frame);
-
-            max_curv_direction[v] = cond_normalize(frame_t * Vec3d(Q[max_idx][0], Q[max_idx][1], 0));
-
-            min_curv_direction[v] = cond_normalize(frame_t * Vec3d(Q[min_idx][0], Q[min_idx][1], 0));
-
-            curvature[v][0] = L[min_idx][min_idx];
-            curvature[v][1] = L[max_idx][max_idx];
+           
         }
     }
 

@@ -5,7 +5,7 @@ from random import shuffle
 from typing import TYPE_CHECKING
 # If TYPE_CHECKING is True, we import Manifold from hmesh for type hints.
 if TYPE_CHECKING:
-    from hmesh import Manifold
+    from pygel3d.hmesh import Manifold
 import numpy as np
 from pygel3d import lib_py_gel, IntVector
 
