@@ -101,7 +101,7 @@ class Manifold:
     def vertices(self):
         """ Returns an iterable containing all vertex indices"""
         verts = IntVector()
-        n = lib_py_gel.Manifold_vertices(self.obj, verts.obj)
+        lib_py_gel.Manifold_vertices(self.obj, verts.obj)
         return verts
     def faces(self):
         """ Returns an iterable containing all face indices"""
@@ -443,8 +443,9 @@ def remove_caps(m: Manifold, thresh=2.9):
 def remove_needles(m: Manifold, thresh=0.05, average_positions=False):
     """  Remove needles from a manifold, m, consisting of only triangles. A needle
     is a triangle with a single very short edge. It is moved by collapsing the
-    short edge. The thresh parameter sets the length threshold (in terms of the average edge length
-    in the mesh). If average_positions is true then the collapsed vertex is placed at the average position of the end points."""
+    short edge. The thresh parameter sets the length threshold (in terms of the 
+    average edge length in the mesh). If average_positions is true then the 
+    collapsed vertex is placed at the average position of the end points."""
     abs_thresh = thresh * average_edge_length(m)
     lib_py_gel.remove_needles(m.obj,abs_thresh, average_positions)
 
@@ -466,7 +467,8 @@ def merge_coincident_boundary_vertices(m: Manifold, rad = 1.0e-30):
 
 def minimize_curvature(m: Manifold,anneal=False):
     """ Minimizes mean curvature of m by flipping edges. Hence, no vertices are moved.
-     This is really the same as dihedral angle minimization, except that we weight by edge length. """
+    This is really the same as dihedral angle minimization, except that we weight by 
+    edge length. """
     lib_py_gel.minimize_curvature(m.obj, anneal)
 
 def minimize_dihedral_angle(m: Manifold,max_iter=10000, anneal=False, alpha=False, gamma=4.0):
@@ -480,11 +482,13 @@ def minimize_dihedral_angle(m: Manifold,max_iter=10000, anneal=False, alpha=Fals
 
 
 def maximize_min_angle(m: Manifold,dihedral_thresh=0.95,anneal=False):
-    """ Maximizes the minimum angle of triangles by flipping edges of m. Makes the mesh more Delaunay."""
+    """ Maximizes the minimum angle of triangles by flipping edges of m. Makes the 
+    mesh more Delaunay."""
     lib_py_gel.maximize_min_angle(m.obj,dihedral_thresh,anneal)
 
 def optimize_valency(m: Manifold,anneal=False):
-    """ Tries to achieve valence 6 internally and 4 along edges by flipping edges of m. """
+    """ Tries to achieve valence 6 internally and 4 along edges by flipping edges 
+    of m. """
     lib_py_gel.optimize_valency(m.obj, anneal)
 
 def randomize_mesh(m: Manifold,max_iter=1):
@@ -542,10 +546,10 @@ def butterfly_subdivide(m: Manifold):
     """ Butterfly subidiviosn on m. An interpolatory scheme. Creates the same connectivity as Loop. """
     lib_py_gel.butterfly_subdivide(m.obj)
 
-def cc_smooth(m: Manifold,iter=1):
+def cc_smooth(m: Manifold, no_iters=1):
     """ If called after cc_split, this function completes a step of Catmull-Clark
     subdivision of m."""
-    for _ in range(iter):
+    for _ in range(no_iters):
         lib_py_gel.cc_smooth(m.obj)
 
 def cc_subdivide(m: Manifold):
@@ -558,16 +562,16 @@ def loop_subdivide(m: Manifold):
     lib_py_gel.loop_split(m.obj)
     lib_py_gel.loop_smooth(m.obj)   
 
-def volume_preserving_cc_smooth(m: Manifold, iter):
+def volume_preserving_cc_smooth(m: Manifold, no_iters):
     """ This function does the same type of smoothing as in Catmull-Clark
     subdivision, but to preserve volume it actually performs two steps, and the
     second step is negative as in Taubin smoothing."""
-    lib_py_gel.volume_preserving_cc_smooth(m.obj, iter)
+    lib_py_gel.volume_preserving_cc_smooth(m.obj, no_iters)
 
-def regularize_quads(m: Manifold, w=0.5, shrink=0.0, iter=1):
+def regularize_quads(m: Manifold, w=0.5, shrink=0.0, no_iters=1):
     """ This function smooths a quad mesh by regularizing quads. Essentially,
     regularization just makes them more rectangular. """
-    lib_py_gel.regularize_quads(m.obj, w, shrink, iter)
+    lib_py_gel.regularize_quads(m.obj, w, shrink, no_iters)
 
 
 def loop_smooth(m: Manifold):
@@ -575,17 +579,17 @@ def loop_smooth(m: Manifold):
     subdivision of m. """
     lib_py_gel.loop_smooth(m.obj)
     
-def taubin_smooth(m: Manifold, iter=1):
+def taubin_smooth(m: Manifold, no_iters=1):
     """ This function performs Taubin smoothing on the mesh m for iter number
     of iterations. """
-    lib_py_gel.taubin_smooth(m.obj, iter)
+    lib_py_gel.taubin_smooth(m.obj, no_iters)
 
-def laplacian_smooth(m: Manifold, w=0.5, iter=1):
+def laplacian_smooth(m: Manifold, w=0.5, no_iters=1):
     """ This function performs Laplacian smoothing on the mesh m for iter number
     of iterations. w is the weight applied. """
-    lib_py_gel.laplacian_smooth(m.obj, w, iter)
+    lib_py_gel.laplacian_smooth(m.obj, w, no_iters)
 
-def anisotropic_smooth(m: Manifold, sharpness=0.5, iter=1):
+def anisotropic_smooth(m: Manifold, sharpness=0.5, no_iters=1):
     """ This function performs anisotropic smoothing on the mesh m for iter number
     of iterations. A bilateral filtering controlled by sharpness is performed on 
     the face normals followed by a rotation of the faces to match the new normals.
@@ -594,7 +598,7 @@ def anisotropic_smooth(m: Manifold, sharpness=0.5, iter=1):
     average of the normals of incident faces. For sharpness>0 the weight of the
     neighbouring face normals is a Gaussian function of the angle between the
     face normals. The greater the sharpness, the more the smoothing is anisotropic."""
-    lib_py_gel.anisotropic_smooth(m.obj, sharpness, iter)
+    lib_py_gel.anisotropic_smooth(m.obj, sharpness, no_iters)
     
 def volumetric_isocontour(data, bbox_min = None, bbox_max = None,
                           tau=0.0,
@@ -709,7 +713,7 @@ class MeshDistance:
         return None
 
 
-def skeleton_to_feq(g: Graph, node_radii = None, symmetrize=True):
+def graph_to_feq(g: Graph, node_radii = None, symmetrize=True):
     """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node.
     If symmetrize is True (default) the graph is made symmetrical. If node_radii are supplied then they
     are used in the reconstruction. Otherwise, the radii are obtained from the skeleton. They are stored in 
@@ -729,6 +733,25 @@ def skeleton_to_feq(g: Graph, node_radii = None, symmetrize=True):
 
     node_rs_flat = np.asarray(node_radii, dtype=np.float64)
     lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat, symmetrize, use_graph_radii)
+    return m
+
+# Creating an alias for backward compatibility
+skeleton_to_feq = graph_to_feq
+
+def graph_to_cylinders(g: Graph, fudge=0.0):
+    """ Creates a Manifold mesh from the graph. The first argument, g, is the
+    graph we want converted, and fudge is a constant that is used to increase the radius
+    of every node. This is useful if the radii are 0. """
+    m = Manifold()
+    lib_py_gel.graph_to_mesh_cyl(g.obj, m.obj, fudge)
+    return m
+
+def graph_to_isosurface(g: Graph, fudge=0.0, res=256):
+    """ Creates a Manifold mesh from the graph. The first argument, g, is the
+    graph we want converted, and fudge is a constant that is used to increase the radius
+    of every node. This is useful if the radii are 0. """
+    m = Manifold()
+    lib_py_gel.graph_to_mesh_iso(g.obj, m.obj, fudge, res)
     return m
 
 # def non_rigid_registration(m, ref_mesh):
@@ -759,7 +782,7 @@ def inv_correspondence_leqs(m: Manifold, ref_mesh: Manifold):
         m_norm = m.vertex_normal(m_id)
         dot_prod = m_norm @ r_norm
         if (dot_prod > 0.5):
-            v = ref_pos[r_id] - m_pos[m_id]
+            # v = ref_pos[r_id] - m_pos[m_id]
             wgt = dot_prod-0.5
             m_target_pos[m_id] += wgt*ref_pos[r_id]
             m_cnt[m_id] += wgt
@@ -853,9 +876,9 @@ def inv_map(m: Manifold, ref, ref_orig):
     pos_ref_orig = ref_orig.positions()
     
     T = KDTree(pos_ref)
-    dists, closest_ref_verts = T.query(pos_m)
+    _, closest_ref_verts = T.query(pos_m)
     for v in m.vertices():
-        p = pos_m[v]
+        # p = pos_m[v]
         v_ref = closest_ref_verts[v]
         pos_m[v] = pos_ref_orig[v_ref]
     
@@ -864,14 +887,14 @@ def fit_mesh_mmh(m: Manifold, ref_mesh: Manifold, iterations=10):
     mrc = Manifold(ref_mesh)
     triangulate(mrc, clip_ear=False)
     print("Triangulated. Now fitting")
-    taubin_smooth(mrc, iter=30)
-    obj_save(f"mrc.obj", mrc)
+    taubin_smooth(mrc, no_iters=30)
+    obj_save("mrc.obj", mrc)
     mesh_dist = MeshDistance(mrc)
     for _ in range(iterations):
         print("Inflate mc")
         cc_smooth(m,1)
         inflate_mesh(m, mesh_dist=mesh_dist)
-        obj_save(f"mc.obj", m)
+        obj_save("mc.obj", m)
     # print("")
     # print("Doing the MMH map")
     # inv_map(m,mrc,ref_mesh)
@@ -908,7 +931,7 @@ def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wt = 0.5, lap_wt = 1.0
         v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
 
 
-def rsr_recon(verts, normals=[], use_Euclidean_distance=False, genus=-1, k=70,
+def rsr_recon(verts, normals=None, use_Euclidean_distance=False, genus=-1, k=70,
               r=20, theta=60, n=50):
     """ RsR Reconstruction. The first argument, verts, is the point cloud. The next argument,
         normals, are the normals associated with the vertices or empty list (default) if normals 
@@ -924,12 +947,13 @@ def rsr_recon(verts, normals=[], use_Euclidean_distance=False, genus=-1, k=70,
     m = Manifold()
     verts_data = np.asarray(verts, dtype=ct.c_double, order='F')
     n_verts = len(verts)
-    n_normal = len(normals)
+    n_normal = 0 if normals is None else len(normals)
     if(n_normal==0):
         normals = [[]]
     normal_data = np.asarray(normals, dtype=ct.c_double, order='F')
 
-    lib_py_gel.rsr_recon(m.obj, verts_data,normal_data, n_verts, n_normal, use_Euclidean_distance,genus,k,r,theta,n)
+    lib_py_gel.rsr_recon(m.obj, verts_data, normal_data, n_verts, n_normal, 
+                         use_Euclidean_distance, genus, k, r, theta, n)
     return m
 
 def connected_components(m: Manifold):

@@ -2207,15 +2207,7 @@ void build_mst(SimpGraph& g, NodeID root,
     return;
 }
 
-/**
-    * @brief Reconstruct a single file
-    *
-    * @param noise_type: type of noise added for the noise experiments
-    * @param sigma: the standard deviation of added noise
-    * @param amplitude: the amplitude of added noise
-    *
-    * @return None
-    */
+
 void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertices,
     std::vector<Vector>& org_normals, bool in_isEuclidean, int in_genus, 
     int in_k, int in_r, int in_theta, int in_n) {

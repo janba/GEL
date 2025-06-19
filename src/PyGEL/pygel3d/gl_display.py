@@ -27,7 +27,7 @@ try:
             chdir(current_directory) # Necessary because init_glfw changes cwd
         def __del__(self):
             lib_py_gel.GLManifoldViewer_delete(self.obj)
-        def display(self, m: Manifold, g: Graph=None, mode='w', smooth=True, bg_col=[0.3,0.3,0.3], data=None, reset_view=False, once=False):
+        def display(self, m: Manifold, g: Graph=None, mode='w', smooth=True, bg_col=(0.3,0.3,0.3), data=None, reset_view=False, once=False):
             """ Display a mesh
 
             Args:
