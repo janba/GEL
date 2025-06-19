@@ -2236,12 +2236,12 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
     r = in_r;
     theta = in_theta;
     step_thresh = in_n;
-    //std::cout << exp_genus << std::endl;
-    //std::cout << k << std::endl;
-    //std::cout << r << std::endl;
-    //std::cout << theta << std::endl;
-    //std::cout << step_thresh << std::endl;
-    //std::cout << org_vertices[0] << std::endl;
+    std::cout << exp_genus << std::endl;
+    std::cout << k << std::endl;
+    std::cout << r << std::endl;
+    std::cout << theta << std::endl;
+    std::cout << step_thresh << std::endl;
+    std::cout << org_vertices[0] << std::endl;
 
     recon_timer.create("Whole process");
     recon_timer.create("Initialization");

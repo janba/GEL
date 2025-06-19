@@ -42,6 +42,7 @@ def obj_load(file_path):
 
 # Object with non-zero genus
 vertices, normals = obj_load('../../../data/PointClouds/Capital_A.obj')
+print(len(normals))
 m = rsr_recon(vertices, normals, True, k=30, genus=-1, n=40)
 
 viewer = gl.Viewer()
