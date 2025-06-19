@@ -948,3 +948,19 @@ def connected_components(m: Manifold):
 def count_boundary_curves(m: Manifold):
     """ Returns the number of boundary curves in the mesh m. """
     return lib_py_gel.count_boundary_curves(m.obj)
+
+def analyze_topology(m: Manifold):
+    """ Returns a list of dictionaries with information about the connected components of the mesh m.
+    Each dictionary contains the Manifold ('m'), number of vertices ('V'), edges ('E'), faces ('F'), 
+    boundary curves ('b'), and the genus ('g') of the component. The genus is calculated using the 
+    Euler-Poincaré formula:"""
+    components = connected_components(m)
+    output = []
+    for _,comp in enumerate(components):
+        b = count_boundary_curves(comp)
+        V = len(comp.vertices())  # Number of vertices
+        E = len(comp.halfedges())//2  # Number of edges
+        F = len(comp.faces())  # Number of faces
+        g = -(V - E + F - 2 + b)//2 # Genus calculation
+        output.append({'m': comp, 'V': V, 'E': E, 'F': F, 'b': b, 'g': g})
+    return output
