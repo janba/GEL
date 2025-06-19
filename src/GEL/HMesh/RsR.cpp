@@ -2207,6 +2207,25 @@ void build_mst(SimpGraph& g, NodeID root,
     return;
 }
 
+void reset_static() {
+    isGTNormal = true;
+    isEuclidean = true;
+    isFaceLoop = true;
+    isDebug = false;
+    isNoiseExperiment = false;
+    k = 30;
+    r = 20.;
+    theta = 60.;
+    step_thresh = 50;
+    exp_genus = -1;
+    model_path = "";
+    root_path = "";
+    model_name = "";
+    mode = "";
+    recon_timer = RsR_Timer();
+    bettiNum_1 = 0;
+}
+
 
 void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertices,
     std::vector<Vector>& org_normals, bool in_isEuclidean, int in_genus, 
@@ -2476,6 +2495,7 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
     std::string line(40, '=');
     std::cout << line << std::endl << std::endl;
     recon_timer.show();
+    reset_static();
 
     return;
 }

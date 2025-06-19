@@ -383,6 +383,8 @@ bool isIntersecting(RSGraph& mst, NodeID v1,
 
 bool routine_check(RSGraph& mst, std::vector<NodeID>& triangle);
 
+void reset_static();
+
 /**
  * @brief Reconstructs a single mesh manifold from input points and normals.
  *
