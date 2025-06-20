@@ -5,7 +5,7 @@
  * ----------------------------------------------------------------------- */
 
 #include <GEL/HMesh/curvature.h>
-
+#include <random>
 #include <iostream>
 #include <GEL/CGLA/CGLA.h>
 
@@ -135,7 +135,7 @@ namespace HMesh
         Vec3d curv_normal;
         double w_sum;
         unnormalized_mean_curvature_normal(m, v, curv_normal, w_sum);
-        return curv_normal / (4.0*mixed_area(m, v));
+        return -curv_normal / (4.0*mixed_area(m, v));
     }
 
     double sum_curvatures(const Manifold& m, VertexAttributeVector<double>& curvature)
@@ -237,17 +237,16 @@ namespace HMesh
     
     void curvature_tensor_paraboloid(const Manifold& m, VertexID v, Mat2x2d& curv_tensor, Mat3x3d& frame)
     {
-        if(boundary(m, v))
-            return;
         // First estimate the normal and compute a transformation matrix
         // which takes us into tangent plane coordinates.
         Vec3d Norm = Vec3d(normal(m, v));
-        Vec3d X,Y;
-        orthogonal(Norm,X,Y);
+        Vec3d X(Norm[2]+0.721, Norm[1]+0.163, Norm[0]+0.542);
+        Vec3d Y=normalize(cross(Norm, X));
+        X = normalize(cross(Y, Norm));
         Vec3d centre(m.pos(v));
 
         vector<Vec3d> points;
-        for (auto vn: m.incident_vertices(v))
+        for (auto vn: m.incident_vertices(v)) 
             points.push_back(m.pos(vn));
 
         int N = int(points.size());
@@ -268,8 +267,21 @@ namespace HMesh
         }
         catch (const Mat3x3fSingular& e) {
             cout << "Caught exception" <<endl;
+            cout << "P" << endl;
+            for (auto vn: m.incident_vertices(v))
+                cout << (m.pos(vn)-centre);
+            cout << endl;
+            cout << X << Y << Norm << endl;
+            cout << "A " << endl;
+            for (int i=0; i<N; ++i) {
+                cout << A[i] << endl;
+            }
+            cout << "b" << endl;
+            for (int i=0; i<N; ++i) {
+                cout << b[i] << " ";
+            }
+            cout << endl;
         }
-        curv_tensor = Mat2x2d(0.0);
     }
 
     PrincipalCurvatures principal_curvatures( const Manifold& m, VertexID v) {
