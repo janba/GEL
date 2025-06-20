@@ -244,27 +244,32 @@ namespace HMesh
         Vec3d Norm = Vec3d(normal(m, v));
         Vec3d X,Y;
         orthogonal(Norm,X,Y);
-        frame = Mat3x3d(X,Y,Norm);
         Vec3d centre(m.pos(v));
 
         vector<Vec3d> points;
-        for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()) {
-            points.push_back(Vec3d(m.pos(w.vertex())));
-            points.push_back(m.pos(w.next().opp().next().vertex()));
-        }
+        for (auto vn: m.incident_vertices(v))
+            points.push_back(m.pos(vn));
 
         int N = int(points.size());
         vector<Vec3d> A(N);
         vector<double> b(N);
         for(int n = 0; n < N; ++n){
-            Vec3d p = frame * (points[n]-centre);
-            A[n] = Vec3d(0.5*sqr(p[0]), p[0]*p[1], 0.5*sqr(p[1]));
-            b[n] = p[2];
+            Vec3d p = (points[n]-centre);
+            double x = dot(p,X);
+            double y = dot(p,Y);
+            A[n] = Vec3d(0.5*x*x, x*y, 0.5*y*y);
+            b[n] = dot(p,Norm);
         }
-        Vec3d x = ls_solve(A,b);
-        // Finally compute the shape tensor from the coefficients
-        // using the first and second fundamental forms.
-        curv_tensor = - Mat2x2d(x[0],x[1],x[1],x[2]);
+        try {
+            Vec3d x = ls_solve(A,b);
+            // Finally compute the shape tensor from the coefficients
+            // using the first and second fundamental forms.
+            curv_tensor = - Mat2x2d(x[0],x[1],x[1],x[2]);
+        }
+        catch (const Mat3x3fSingular& e) {
+            cout << "Caught exception" <<endl;
+        }
+        curv_tensor = Mat2x2d(0.0);
     }
 
     PrincipalCurvatures principal_curvatures( const Manifold& m, VertexID v) {

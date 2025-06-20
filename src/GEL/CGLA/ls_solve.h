@@ -29,10 +29,13 @@ namespace CGLA {
     template<class V>
     V ls_solve(const std::vector<V>& A, const std::vector<typename V::ScalarType>& b)
     {
-        typename VecT_to_MatT<V>::MatT ATA(0);
+        using M = typename VecT_to_MatT<V>::MatT;
         V ATb(0);
+        M ATA(0);
         for(int n = 0; n < A.size(); ++n) {
-            ATA += outer_product(A[n], A[n]);
+            for (int i=0; i < ATb.get_dim(); ++i) {
+                ATA[i] += A[n] * A[n][i];
+            }
             ATb += b[n]*A[n];
         }
         return invert(ATA)*ATb;
