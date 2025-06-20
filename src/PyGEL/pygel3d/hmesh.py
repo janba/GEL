@@ -291,7 +291,7 @@ class Manifold:
         return lib_py_gel.mixed_area(self.obj, vid)
     def gaussian_curvature(self, vid):
         """ Returns the Gaussian curvature of vertex vid. The curvature is computed
-        as the sum of angles at the vertex minus 2*pi. """
+        as 2*pi minus the sum of angles at the vertex. """
         return lib_py_gel.gaussian_curvature(self.obj, vid)
     def mean_curvature(self, vid):
         """ Returns the mean curvature of vertex vid. The curvature is computed

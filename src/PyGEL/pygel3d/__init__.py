@@ -1,8 +1,7 @@
-""" PyGEL is a collection of classes and functions that expose features in the
-GEL library. The primary purpose of PyGEL (and GEL) is to be useful for geometry
-processing tasks. Especially tasks that involve 3D polygonal meshes, but there is
-also a graph component useful e.g. for skeletonization. The PyGEL package is called
-pygel3d and it contains five modules:
+""" PyGEL is a collection of classes and functions for geometry processing tasks. 
+Especially tasks that involve 3D polygonal meshes, but there is also a graph component 
+useful e.g. for skeletonization. The PyGEL package is called pygel3d and it contains 
+five modules:
 
 hmesh provides Manifold which is a class that represents polygonal meshes using the
 halfedge representation. hmesh also provides a slew of functions for manipulating
@@ -27,6 +26,9 @@ the interactive 3D graphics in the notebook.
 spatial contains the I3DTree class which is simply a kD-tree specialized for mapping
 3D points to integers - typically indices. Of course, scipy.spatial has a more
 generic class, so this is perhaps not the most important part of PyGEL.
+
+PyGEL is based on the C++ GEL library and provides a Python interface for most but not
+all of the functionality of GEL. 
 """
 __all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial"]
 
