@@ -244,7 +244,7 @@ namespace HMesh
         Vec3d Y=normalize(cross(Norm, X));
         X = normalize(cross(Y, Norm));
         Vec3d centre(m.pos(v));
-
+        frame = Mat3x3d(X,Y,Norm);
         vector<Vec3d> points;
         for (auto vn: m.incident_vertices(v)) 
             points.push_back(m.pos(vn));
@@ -253,35 +253,16 @@ namespace HMesh
         vector<Vec3d> A(N);
         vector<double> b(N);
         for(int n = 0; n < N; ++n){
-            Vec3d p = (points[n]-centre);
-            double x = dot(p,X);
-            double y = dot(p,Y);
+            Vec3d p = frame*(points[n]-centre);
+            double x = p[0];
+            double y = p[1];
             A[n] = Vec3d(0.5*x*x, x*y, 0.5*y*y);
-            b[n] = dot(p,Norm);
+            b[n] = p[2];
         }
-        try {
-            Vec3d x = ls_solve(A,b);
-            // Finally compute the shape tensor from the coefficients
-            // using the first and second fundamental forms.
-            curv_tensor = - Mat2x2d(x[0],x[1],x[1],x[2]);
-        }
-        catch (const Mat3x3fSingular& e) {
-            cout << "Caught exception" <<endl;
-            cout << "P" << endl;
-            for (auto vn: m.incident_vertices(v))
-                cout << (m.pos(vn)-centre);
-            cout << endl;
-            cout << X << Y << Norm << endl;
-            cout << "A " << endl;
-            for (int i=0; i<N; ++i) {
-                cout << A[i] << endl;
-            }
-            cout << "b" << endl;
-            for (int i=0; i<N; ++i) {
-                cout << b[i] << " ";
-            }
-            cout << endl;
-        }
+        Vec3d x = ls_solve(A,b);
+        // Finally compute the shape tensor from the coefficients
+        // using the first and second fundamental forms.
+        curv_tensor = - Mat2x2d(x[0],x[1],x[1],x[2]);
     }
 
     PrincipalCurvatures principal_curvatures( const Manifold& m, VertexID v) {
