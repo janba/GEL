@@ -790,7 +790,7 @@ namespace GLGraphics
         
         VertexAttributeVector<CGLA::Vec3d> lines;
         for(auto v: m.vertices()) {
-            lines[v] = normalize(cross(_lines[v], normal(m,v)));
+            lines[v] = cond_normalize(cross(_lines[v], normal(m,v)));
         }
 
         for(int iter=0;iter<100;++iter) {
@@ -808,7 +808,7 @@ namespace GLGraphics
                             _dir = - dir;
                         }
                         double a = dot(vec, lines[vn]) * 2.0 * M_PI * (0.25/ael) + phi;
-                        wave[vn] += abs(dot_prod)*Vec2d(cos(a), sin(a));
+                        wave[vn] += 0.5*abs(dot_prod)*Vec2d(cos(a), sin(a));
                     }
                 }
             }
