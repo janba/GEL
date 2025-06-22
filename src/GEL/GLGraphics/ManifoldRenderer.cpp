@@ -785,7 +785,7 @@ namespace GLGraphics
         for(auto v: m.vertices()) {
             phase[v] = 2.0*M_PI*(rand()/double(RAND_MAX) - 0.5);
             amp[v] = 1.0;
-            wave[v] = Vec2d(1,0);
+            wave[v] = Vec2d(0,0);
         }
         
         VertexAttributeVector<CGLA::Vec3d> lines;
@@ -795,17 +795,11 @@ namespace GLGraphics
 
         for(int iter=0;iter<100;++iter) {
             for(auto v: m.vertices()) {
-                Vec3d dir = lines[v];
-                if(sqr_length(dir)> 1e-10){
+                if(sqr_length(lines[v])> 1e-10){
                     for(auto h: m.incident_halfedges(v)) {
                         VertexID vn = m.walker(h).vertex();
-                        Vec3d vec = m.pos(vn) - m.pos(v);
-                        double phi = phase[v] + (0.5 * double(rand())/RAND_MAX - 0.25);
-                        double dot_prod = dot(dir, lines[vn]);
-                        if (dot_prod < 0) 
-                            phi = M_PI - phase[v];
-                        double a = dot(vec, lines[vn]) * 2.0 * M_PI * (0.25/ael) + phi;
-                        Vec2d w = abs(dot_prod)*Vec2d(cos(a), sin(a));
+                        double a = phase[v] + dot(m.pos(vn) - m.pos(v), lines[v]) * 2.0 * M_PI * (0.25/ael);
+                        Vec2d w = sqr( dot(lines[v], lines[vn]))*Vec2d(cos(a), sin(a));
                         wave[vn] += w;
                     }
                 }

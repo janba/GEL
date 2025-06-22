@@ -1,18 +1,24 @@
 from pygel3d import hmesh, gl_display as gl
 from sys import argv
 from numpy import array
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
+def normalize(v):
+    """Normalize a vector."""
+    norm = (v @ v) ** 0.5
+    if norm > 0:
+        return v / norm
+    return v
 
 def smooth_vector_field(m: hmesh.Manifold, data, niter=10):
     """Smooth a vector field on the mesh using Laplacian smoothing."""
     for _ in range(niter):
         data_new = data.copy()
         for v in m.vertices():
-            ndata = [ data[n]*(1 if data[n]@data[v] > 0 else -1) for n in m.circulate_vertex(v) ]
+            nbors =  m.circulate_vertex(v)
+            nsign = [ 1 if data[n]@data[v] > 0 else -1 for n in nbors ]
+            ndata = [ data[n]*nsign[i] for i,n in enumerate(nbors) ]
             avg = sum(ndata) / len(ndata)
-            data_new[v] = 0.5 * data[v] + 0.5 * avg
+            data_new[v] = normalize(0.5 * data[v] + 0.5 * avg)
         data = data_new
     return data
 
