@@ -28,6 +28,11 @@ class Manifold:
     vertex index can also be used as an index into, say, a NumPy array without any conversion.
     """
     def __init__(self,orig=None):
+        """ Construct a Manifold object. If orig is None, a new empty Manifold is created. If
+        orig is a Manifold, a copy of it is created. If orig is a c_void_p, it is assumed to be
+        a pointer to a Manifold object created in C++. In this case, the object is not copied,
+        but the pointer is used directly. If orig is anything else, a TypeError is raised.
+        """
         if orig == None:
             self.obj = lib_py_gel.Manifold_new()
         elif isinstance(orig, Manifold):
@@ -280,27 +285,45 @@ class Manifold:
     def valency(self,vid):
         """ Returns valency of vid, i.e. number of incident edges."""
         return lib_py_gel.valency(self.obj,vid)
+    def face_normal(self, fid):
+        """ Compute the normal of a face fid. The normal is the average of the normals
+        of the triangles formed from the centroid of face fix and each edge of the face."""
+        n = ndarray(3, dtype=np.float64)
+        lib_py_gel.face_normal(self.obj, fid, n)
+        return n
     def vertex_normal(self, vid):
-        """ Returns vertex normal (angle weighted) of vertex given by vid """
+        """ Returns the vertex normal of vid. The vertex normal is computed as the
+        angle weighted average of the normals of the incident faces."""
         n = ndarray(3,dtype=np.float64)
         lib_py_gel.vertex_normal(self.obj, vid, n)
         return n
     def mixed_area(self, vid):
-        """ Returns the mixed area of vertex vid. The mixed area is the sum of
-        angles at the vertex times the edge lengths divided by 2*pi. """
+        """ Returns the mixed area of vertex vid. The mixed area is an approximation
+        of the Voronoi area of the vertex, i.e. the area of the mesh that is closer
+        to vid than to any other vertex. For non-obtuse triangles, we can compute the
+        part of the Voronoi area inside the triangle exacxtly, but for obtuse triangles
+        the Voronoi area extends outside the triangle, and we approximate it. """
         return lib_py_gel.mixed_area(self.obj, vid)
     def gaussian_curvature(self, vid):
         """ Returns the Gaussian curvature of vertex vid. The curvature is computed
-        as 2*pi minus the sum of angles at the vertex. """
+        as the ratio of the angle defect and the mixed area of vid.
+        The angle defect is 2*pi minus the sum of angles at the vertex. """
         return lib_py_gel.gaussian_curvature(self.obj, vid)
     def mean_curvature(self, vid):
         """ Returns the mean curvature of vertex vid. The curvature is computed
-        as the length of the mean curvaure normal obtained with the cotan formula. """
+        as the ratio of the length of the mean curvaure normal to the mixed area
+        of vid. The mean curvature normal is obtained with the cotan formula, and 
+        the sign is positive if the mean curvature normal points in the same direction
+        as the vertex normal and negative otherwise. """
         return lib_py_gel.mean_curvature(self.obj, vid)
     def principal_curvatures(self, vid):
-        """ Returns the principal curvatures of vertex vid. The function returns
-        a tuple consiting of four values: min and max principal curvature followed
-        by the corresponding principal directions as 3D vectors"""
+        """ Returns the principal curvatures of vertex vid. The principal curvatures
+        are computed by fitting a quadratic polynomial surface to the vertex and its
+        one-ring neighbours. From the coefficients, we obtain the shape operator and 
+        the principal curvatures are the eigenvalues of the shape operator. The directions
+        are the eigenvectors. The function returns a tuple consiting of four values: 
+        min and max principal curvature followed by the corresponding principal directions 
+        as 3D vectors"""
         pc_data = ndarray(8, dtype=np.float64)
         lib_py_gel.principal_curvatures(self.obj, vid, pc_data)
         return (
@@ -315,13 +338,6 @@ class Manifold:
     def no_edges(self, fid):
         """ Compute the number of edges of a face fid """
         return lib_py_gel.no_edges(self.obj, fid)
-    def face_normal(self, fid):
-        """ Compute the normal of a face fid. If the face is not a triangle,
-        the normal is not defined, but computed using the first three
-        vertices of the face. """
-        n = ndarray(3, dtype=np.float64)
-        lib_py_gel.face_normal(self.obj, fid, n)
-        return n
     def area(self, fid):
         """ Returns the area of a face fid. """
         return lib_py_gel.area(self.obj, fid)

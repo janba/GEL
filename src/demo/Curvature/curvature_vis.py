@@ -4,6 +4,18 @@ from numpy import array
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+
+def smooth_vector_field(m: hmesh.Manifold, data, niter=10):
+    """Smooth a vector field on the mesh using Laplacian smoothing."""
+    for _ in range(niter):
+        data_new = data.copy()
+        for v in m.vertices():
+            ndata = [ data[n]*(1 if data[n]@data[v] > 0 else -1) for n in m.circulate_vertex(v) ]
+            avg = sum(ndata) / len(ndata)
+            data_new[v] = 0.5 * data[v] + 0.5 * avg
+        data = data_new
+    return data
+
 fn = "../../../data/Solids/sphere.obj" if len(argv) < 2 else argv[1]
 m = hmesh.load(fn)
 hmesh.triangulate(m)
@@ -22,12 +34,12 @@ v.display(m, mode='s', data=kmin)
 print("Displaying maximum principal curvature")
 v.display(m, mode='s', data=kmax)
 
-dirmin = array([ pc[v][2] for v in m.vertices()])
+dirmin = smooth_vector_field(m, array([ pc[v][2] for v in m.vertices()]))
 print("Displaying minimum principal curvature direction")
 v.display(m, mode='l', data=dirmin)
 
 print("Displaying maximum principal curvature direction")
-dirmax = array([ pc[v][3] for v in m.vertices()])
+dirmax = smooth_vector_field(m, array([ pc[v][3] for v in m.vertices()]))
 v.display(m, mode='l', data=dirmax)
 
 K2 = kmin * kmax

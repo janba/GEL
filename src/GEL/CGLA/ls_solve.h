@@ -78,7 +78,7 @@ namespace CGLA {
                 ATA[i] += A[n] * A[n][i];
             }
             for (int i=0; i < ATb.get_dim(); ++i) 
-                ATA[i][i] += 1e-12;
+                ATA[i][i] += 1e-10;
             ATb += b[n]*A[n];
         }
         return lin_solve(ATA, ATb);

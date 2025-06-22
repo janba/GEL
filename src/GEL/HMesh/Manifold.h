@@ -221,12 +221,12 @@ namespace HMesh
         /// Compute the vertex normal. This function computes the angle weighted sum of incident face normals.
         Manifold::Vec normal(VertexID v) const;
 
-        /// Compute the face normal multiplied by the area of the face. This is more efficient if both area and normal are needed.
+        /** Compute the face normal multiplied by the area of the face. 
+        This is computed by finding the centroid, c, of the face and summing the area weighted normals
+        of triangles formed by connecting c to each edge */
         Manifold::Vec area_normal(FaceID f) const;
 
-        /** Compute the normal of a face. If the face is not a triangle,
-        the normal is not defined, but computed using the first three
-        vertices of the face. */
+        /** Compute the normal of a face. This is simply the area weighted normal normalized.*/
         Manifold::Vec normal(FaceID f) const;
 
         /// Compute the area of a face.
@@ -677,7 +677,7 @@ namespace HMesh
         return m.normal(v);
     }
 
-    /// Compute the vertex normal but multiplied by the area of the face. This is more efficient if both area and normal are needed.
+    /// Compute the face normal multiplied by the area of the face. This is more efficient if both area and normal are needed.
     inline Manifold::Vec area_normal(const Manifold& m, FaceID f) {
         return m.area_normal(f);
     }

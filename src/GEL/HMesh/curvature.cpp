@@ -277,7 +277,7 @@ namespace HMesh
         int max_idx = 0;
         int min_idx = 1;
         
-        if(abs(L[max_idx][max_idx])<abs(L[min_idx][min_idx])) 
+        if((L[max_idx][max_idx])<(L[min_idx][min_idx])) 
             swap(max_idx, min_idx);
         
         Mat3x3d frame_t = transpose(frame);
