@@ -199,100 +199,20 @@ struct Corner {
     
 };
 
-
-//
-//int stitch_mesh(Manifold& m, const VertexAttributeVector<int>& cluster_id) {
-//    int unstitched = 0;
-//    vector<VertexSet> clusters(m.no_vertices());
-//    int max_id = 0;
-//    for(auto v: m.vertices()) {
-//        int id = cluster_id[v];
-//        max_id = max(id, max_id);
-//        clusters[id].insert(v);
-//    }
-//    clusters.resize(max_id+1);
-//
-//
-//    set<pair<HalfEdgeID, HalfEdgeID>> stitch_pairs;
-//    for (auto vs: clusters)
-//        if (vs.size()>1) {
-////            cout << "cluster size " << vs.size() << endl;
-//            vector<Corner> corners;
-//            for(auto v: vs)
-//                if(m.in_use(v)) {
-//                    auto crnr = Corner(m,v);
-//                    if (crnr.valid)
-//                        corners.push_back(crnr);
-//                }
-//
-//            if (corners.empty())
-//                continue;
-//
-//            multimap<int, int> edges;
-//            for(int i=0;i<corners.size(); ++i)
-//                for(int j=0; j<corners.size(); ++j)
-//                    if(i != j)
-//                        if (corners[i].comes_before(corners[j], cluster_id)) {
-//                            edges.insert({i,j});
-////                            cout << "edge " <<i << " " << j << endl;
-//                        }
-//
-//            vector<int> touched(corners.size(), 0);
-//            for(int i=0; i<corners.size(); ++i)
-//                if (touched[i]==0) {
-//                    priority_queue<pair<int,int>, vector<pair<int,int>>, greater<pair<int,int>>> Q;
-//                    Q.push(make_pair(0,i));
-//                    vector<int> dist(corners.size(), 0);
-//                    vector<int> path;
-//                    bool loop_closed = false;
-//                    while(!Q.empty()) {
-//                        int k = Q.top().second;
-////                        cout << "k=" << k << endl;
-//                        path.push_back(k);
-//                        Q.pop();
-//                        if(i == k && path.size()>1) {
-//                            loop_closed = true;
-////                            cout << "!! " << k << " - " << path.size() << endl;
-//                            break;
-//                        }
-//                        else {
-//                            auto rng = edges.equal_range(k);
-//                            for(auto iter=rng.first; iter!=rng.second; ++iter) {
-//                                int j=iter->second;
-//                                if(dist[j]==0 && touched[j]==0) {
-//                                    dist[j] = dist[k] + 1;
-//                                    Q.push(make_pair(dist[j],j));
-//                                }
-//                            }
-//                        }
-//                    }
-////                    cout << "Path (" << path.size() << ") : ";
-//                    if (loop_closed)
-//                        for (int i=0;i<path.size()-1;++i) {
-//    //                        cout << path[i] << "  ";
-//                            auto h0 = corners[path[i]].h_out;
-//                            auto h1 = corners[path[i+1]].h_in;
-//                            if(!m.stitch_boundary_edges(h0, h1)) {
-//                                ++unstitched;
-//    //                            cout << "bad stitch" << endl;
-//                            }
-//                        }
-//    //                    cout << " end path " << endl;
-//            }
-//        }
-//
-//
-//    return unstitched;
-//}
-
     
     int stitch_mesh(Manifold& m, const VertexAttributeVector<int>& cluster_id)
     {
-        map<int, vector<HalfEdgeID>> clustered_halfedges;
+        int cidv_max = 0;
+        for (auto v: m.vertices()) {
+            cidv_max = max(cidv_max, cluster_id[v]);
+        }        
+        vector<vector<HalfEdgeID>> clustered_halfedges(cidv_max+1);
         for(auto v: m.vertices()) {
             HalfEdgeID h = boundary_edge(m, v);
-            if(cluster_id[v] != -1 && h != InvalidHalfEdgeID)
-                clustered_halfedges[cluster_id[v]].push_back(h);
+            int cidv = cluster_id[v];
+            if( cidv != -1 && h != InvalidHalfEdgeID) {
+                clustered_halfedges[cidv].push_back(h);
+            }
         }
         int unstitched=0;
         for(auto h0 : m.halfedges())
@@ -315,14 +235,9 @@ struct Corner {
                 {
                     HalfEdgeID h1 = stitch_candidates[i];
                     if(m.in_use(h1))
-                    {
-                        Walker w = m.walker(h1);
-                        if(cluster_id[w.vertex()] == cluster_id[v0]) {
+                        if(cluster_id[m.walker(h1).vertex()] == cluster_id[v0])
                             if(m.stitch_boundary_edges(h0,h1))
                                 break;
-                        }
-                    }
-
                 }
                 if(i == stitch_candidates.size())
                     ++unstitched;

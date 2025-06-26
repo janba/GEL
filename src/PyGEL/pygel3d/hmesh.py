@@ -28,10 +28,20 @@ class Manifold:
     vertex index can also be used as an index into, say, a NumPy array without any conversion.
     """
     def __init__(self,orig=None):
+        """ Construct a Manifold object. If orig is None, a new empty Manifold is created. If
+        orig is a Manifold, a copy of it is created. If orig is a c_void_p, it is assumed to be
+        a pointer to a Manifold object created in C++. In this case, the object is not copied,
+        but the pointer is used directly. If orig is anything else, a TypeError is raised.
+        """
         if orig == None:
             self.obj = lib_py_gel.Manifold_new()
-        else:
+        elif isinstance(orig, Manifold):
             self.obj = lib_py_gel.Manifold_copy(orig.obj)
+        elif isinstance(orig, ct.c_void_p):
+            self.obj = orig
+        else:
+            raise TypeError("Manifold constructor takes either a Manifold or a c_void_p as argument, not %s" % type(orig))  
+        
     @classmethod
     def from_triangles(cls,vertices, faces):
         """ Given a list of vertices and triangles (faces), this function produces
@@ -96,7 +106,7 @@ class Manifold:
     def vertices(self):
         """ Returns an iterable containing all vertex indices"""
         verts = IntVector()
-        n = lib_py_gel.Manifold_vertices(self.obj, verts.obj)
+        lib_py_gel.Manifold_vertices(self.obj, verts.obj)
         return verts
     def faces(self):
         """ Returns an iterable containing all face indices"""
@@ -275,24 +285,59 @@ class Manifold:
     def valency(self,vid):
         """ Returns valency of vid, i.e. number of incident edges."""
         return lib_py_gel.valency(self.obj,vid)
+    def face_normal(self, fid):
+        """ Compute the normal of a face fid. The normal is the average of the normals
+        of the triangles formed from the centroid of face fix and each edge of the face."""
+        n = ndarray(3, dtype=np.float64)
+        lib_py_gel.face_normal(self.obj, fid, n)
+        return n
     def vertex_normal(self, vid):
-        """ Returns vertex normal (angle weighted) of vertex given by vid """
+        """ Returns the vertex normal of vid. The vertex normal is computed as the
+        angle weighted average of the normals of the incident faces."""
         n = ndarray(3,dtype=np.float64)
         lib_py_gel.vertex_normal(self.obj, vid, n)
         return n
+    def mixed_area(self, vid):
+        """ Returns the mixed area of vertex vid. The mixed area is an approximation
+        of the Voronoi area of the vertex, i.e. the area of the mesh that is closer
+        to vid than to any other vertex. For non-obtuse triangles, we can compute the
+        part of the Voronoi area inside the triangle exacxtly, but for obtuse triangles
+        the Voronoi area extends outside the triangle, and we approximate it. """
+        return lib_py_gel.mixed_area(self.obj, vid)
+    def gaussian_curvature(self, vid):
+        """ Returns the Gaussian curvature of vertex vid. The curvature is computed
+        as the ratio of the angle defect and the mixed area of vid.
+        The angle defect is 2*pi minus the sum of angles at the vertex. """
+        return lib_py_gel.gaussian_curvature(self.obj, vid)
+    def mean_curvature(self, vid):
+        """ Returns the mean curvature of vertex vid. The curvature is computed
+        as the ratio of the length of the mean curvaure normal to the mixed area
+        of vid. The mean curvature normal is obtained with the cotan formula, and 
+        the sign is positive if the mean curvature normal points in the same direction
+        as the vertex normal and negative otherwise. """
+        return lib_py_gel.mean_curvature(self.obj, vid)
+    def principal_curvatures(self, vid):
+        """ Returns the principal curvatures of vertex vid. The principal curvatures
+        are computed by fitting a quadratic polynomial surface to the vertex and its
+        one-ring neighbours. From the coefficients, we obtain the shape operator and 
+        the principal curvatures are the eigenvalues of the shape operator. The directions
+        are the eigenvectors. The function returns a tuple consiting of four values: 
+        min and max principal curvature followed by the corresponding principal directions 
+        as 3D vectors"""
+        pc_data = ndarray(8, dtype=np.float64)
+        lib_py_gel.principal_curvatures(self.obj, vid, pc_data)
+        return (
+            pc_data[0],  # min curvature
+            pc_data[1],  # max curvature
+            pc_data[2:5],  # min direction
+            pc_data[5:8]   # max direction
+        )
     def connected(self, v0, v1):
         """ Returns true if the two argument vertices, v0 and v1, are in each other's one-rings."""
         return lib_py_gel.connected(self.obj,v0,v1)
     def no_edges(self, fid):
         """ Compute the number of edges of a face fid """
         return lib_py_gel.no_edges(self.obj, fid)
-    def face_normal(self, fid):
-        """ Compute the normal of a face fid. If the face is not a triangle,
-        the normal is not defined, but computed using the first three
-        vertices of the face. """
-        n = ndarray(3, dtype=np.float64)
-        lib_py_gel.face_normal(self.obj, fid, n)
-        return n
     def area(self, fid):
         """ Returns the area of a face fid. """
         return lib_py_gel.area(self.obj, fid)
@@ -438,8 +483,9 @@ def remove_caps(m: Manifold, thresh=2.9):
 def remove_needles(m: Manifold, thresh=0.05, average_positions=False):
     """  Remove needles from a manifold, m, consisting of only triangles. A needle
     is a triangle with a single very short edge. It is moved by collapsing the
-    short edge. The thresh parameter sets the length threshold (in terms of the average edge length
-    in the mesh). If average_positions is true then the collapsed vertex is placed at the average position of the end points."""
+    short edge. The thresh parameter sets the length threshold (in terms of the 
+    average edge length in the mesh). If average_positions is true then the 
+    collapsed vertex is placed at the average position of the end points."""
     abs_thresh = thresh * average_edge_length(m)
     lib_py_gel.remove_needles(m.obj,abs_thresh, average_positions)
 
@@ -461,7 +507,8 @@ def merge_coincident_boundary_vertices(m: Manifold, rad = 1.0e-30):
 
 def minimize_curvature(m: Manifold,anneal=False):
     """ Minimizes mean curvature of m by flipping edges. Hence, no vertices are moved.
-     This is really the same as dihedral angle minimization, except that we weight by edge length. """
+    This is really the same as dihedral angle minimization, except that we weight by 
+    edge length. """
     lib_py_gel.minimize_curvature(m.obj, anneal)
 
 def minimize_dihedral_angle(m: Manifold,max_iter=10000, anneal=False, alpha=False, gamma=4.0):
@@ -475,11 +522,13 @@ def minimize_dihedral_angle(m: Manifold,max_iter=10000, anneal=False, alpha=Fals
 
 
 def maximize_min_angle(m: Manifold,dihedral_thresh=0.95,anneal=False):
-    """ Maximizes the minimum angle of triangles by flipping edges of m. Makes the mesh more Delaunay."""
+    """ Maximizes the minimum angle of triangles by flipping edges of m. Makes the 
+    mesh more Delaunay."""
     lib_py_gel.maximize_min_angle(m.obj,dihedral_thresh,anneal)
 
 def optimize_valency(m: Manifold,anneal=False):
-    """ Tries to achieve valence 6 internally and 4 along edges by flipping edges of m. """
+    """ Tries to achieve valence 6 internally and 4 along edges by flipping edges 
+    of m. """
     lib_py_gel.optimize_valency(m.obj, anneal)
 
 def randomize_mesh(m: Manifold,max_iter=1):
@@ -537,10 +586,10 @@ def butterfly_subdivide(m: Manifold):
     """ Butterfly subidiviosn on m. An interpolatory scheme. Creates the same connectivity as Loop. """
     lib_py_gel.butterfly_subdivide(m.obj)
 
-def cc_smooth(m: Manifold,iter=1):
+def cc_smooth(m: Manifold, no_iters=1):
     """ If called after cc_split, this function completes a step of Catmull-Clark
     subdivision of m."""
-    for _ in range(iter):
+    for _ in range(no_iters):
         lib_py_gel.cc_smooth(m.obj)
 
 def cc_subdivide(m: Manifold):
@@ -553,16 +602,16 @@ def loop_subdivide(m: Manifold):
     lib_py_gel.loop_split(m.obj)
     lib_py_gel.loop_smooth(m.obj)   
 
-def volume_preserving_cc_smooth(m: Manifold, iter):
+def volume_preserving_cc_smooth(m: Manifold, no_iters):
     """ This function does the same type of smoothing as in Catmull-Clark
     subdivision, but to preserve volume it actually performs two steps, and the
     second step is negative as in Taubin smoothing."""
-    lib_py_gel.volume_preserving_cc_smooth(m.obj, iter)
+    lib_py_gel.volume_preserving_cc_smooth(m.obj, no_iters)
 
-def regularize_quads(m: Manifold, w=0.5, shrink=0.0, iter=1):
+def regularize_quads(m: Manifold, w=0.5, shrink=0.0, no_iters=1):
     """ This function smooths a quad mesh by regularizing quads. Essentially,
     regularization just makes them more rectangular. """
-    lib_py_gel.regularize_quads(m.obj, w, shrink, iter)
+    lib_py_gel.regularize_quads(m.obj, w, shrink, no_iters)
 
 
 def loop_smooth(m: Manifold):
@@ -570,17 +619,17 @@ def loop_smooth(m: Manifold):
     subdivision of m. """
     lib_py_gel.loop_smooth(m.obj)
     
-def taubin_smooth(m: Manifold, iter=1):
+def taubin_smooth(m: Manifold, no_iters=1):
     """ This function performs Taubin smoothing on the mesh m for iter number
     of iterations. """
-    lib_py_gel.taubin_smooth(m.obj, iter)
+    lib_py_gel.taubin_smooth(m.obj, no_iters)
 
-def laplacian_smooth(m: Manifold, w=0.5, iter=1):
+def laplacian_smooth(m: Manifold, w=0.5, no_iters=1):
     """ This function performs Laplacian smoothing on the mesh m for iter number
     of iterations. w is the weight applied. """
-    lib_py_gel.laplacian_smooth(m.obj, w, iter)
+    lib_py_gel.laplacian_smooth(m.obj, w, no_iters)
 
-def anisotropic_smooth(m: Manifold, sharpness=0.5, iter=1):
+def anisotropic_smooth(m: Manifold, sharpness=0.5, no_iters=1):
     """ This function performs anisotropic smoothing on the mesh m for iter number
     of iterations. A bilateral filtering controlled by sharpness is performed on 
     the face normals followed by a rotation of the faces to match the new normals.
@@ -589,7 +638,7 @@ def anisotropic_smooth(m: Manifold, sharpness=0.5, iter=1):
     average of the normals of incident faces. For sharpness>0 the weight of the
     neighbouring face normals is a Gaussian function of the angle between the
     face normals. The greater the sharpness, the more the smoothing is anisotropic."""
-    lib_py_gel.anisotropic_smooth(m.obj, sharpness, iter)
+    lib_py_gel.anisotropic_smooth(m.obj, sharpness, no_iters)
     
 def volumetric_isocontour(data, bbox_min = None, bbox_max = None,
                           tau=0.0,
@@ -704,7 +753,7 @@ class MeshDistance:
         return None
 
 
-def skeleton_to_feq(g: Graph, node_radii = None, symmetrize=True):
+def graph_to_feq(g: Graph, node_radii = None, symmetrize=True):
     """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node.
     If symmetrize is True (default) the graph is made symmetrical. If node_radii are supplied then they
     are used in the reconstruction. Otherwise, the radii are obtained from the skeleton. They are stored in 
@@ -724,6 +773,25 @@ def skeleton_to_feq(g: Graph, node_radii = None, symmetrize=True):
 
     node_rs_flat = np.asarray(node_radii, dtype=np.float64)
     lib_py_gel.graph_to_feq(g.obj , m.obj, node_rs_flat, symmetrize, use_graph_radii)
+    return m
+
+# Creating an alias for backward compatibility
+skeleton_to_feq = graph_to_feq
+
+def graph_to_cylinders(g: Graph, fudge=0.0):
+    """ Creates a Manifold mesh from the graph. The first argument, g, is the
+    graph we want converted, and fudge is a constant that is used to increase the radius
+    of every node. This is useful if the radii are 0. """
+    m = Manifold()
+    lib_py_gel.graph_to_mesh_cyl(g.obj, m.obj, fudge)
+    return m
+
+def graph_to_isosurface(g: Graph, fudge=0.0, res=256):
+    """ Creates a Manifold mesh from the graph. The first argument, g, is the
+    graph we want converted, and fudge is a constant that is used to increase the radius
+    of every node. This is useful if the radii are 0. """
+    m = Manifold()
+    lib_py_gel.graph_to_mesh_iso(g.obj, m.obj, fudge, res)
     return m
 
 # def non_rigid_registration(m, ref_mesh):
@@ -754,7 +822,7 @@ def inv_correspondence_leqs(m: Manifold, ref_mesh: Manifold):
         m_norm = m.vertex_normal(m_id)
         dot_prod = m_norm @ r_norm
         if (dot_prod > 0.5):
-            v = ref_pos[r_id] - m_pos[m_id]
+            # v = ref_pos[r_id] - m_pos[m_id]
             wgt = dot_prod-0.5
             m_target_pos[m_id] += wgt*ref_pos[r_id]
             m_cnt[m_id] += wgt
@@ -848,9 +916,9 @@ def inv_map(m: Manifold, ref, ref_orig):
     pos_ref_orig = ref_orig.positions()
     
     T = KDTree(pos_ref)
-    dists, closest_ref_verts = T.query(pos_m)
+    _, closest_ref_verts = T.query(pos_m)
     for v in m.vertices():
-        p = pos_m[v]
+        # p = pos_m[v]
         v_ref = closest_ref_verts[v]
         pos_m[v] = pos_ref_orig[v_ref]
     
@@ -859,14 +927,14 @@ def fit_mesh_mmh(m: Manifold, ref_mesh: Manifold, iterations=10):
     mrc = Manifold(ref_mesh)
     triangulate(mrc, clip_ear=False)
     print("Triangulated. Now fitting")
-    taubin_smooth(mrc, iter=30)
-    obj_save(f"mrc.obj", mrc)
+    taubin_smooth(mrc, no_iters=30)
+    obj_save("mrc.obj", mrc)
     mesh_dist = MeshDistance(mrc)
     for _ in range(iterations):
         print("Inflate mc")
         cc_smooth(m,1)
         inflate_mesh(m, mesh_dist=mesh_dist)
-        obj_save(f"mc.obj", m)
+        obj_save("mc.obj", m)
     # print("")
     # print("Doing the MMH map")
     # inv_map(m,mrc,ref_mesh)
@@ -903,7 +971,7 @@ def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wt = 0.5, lap_wt = 1.0
         v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
 
 
-def rsr_recon(verts, normals=[], use_Euclidean_distance=False, genus=-1, k=70,
+def rsr_recon(verts, normals=None, use_Euclidean_distance=False, genus=-1, k=70,
               r=20, theta=60, n=50):
     """ RsR Reconstruction. The first argument, verts, is the point cloud. The next argument,
         normals, are the normals associated with the vertices or empty list (default) if normals 
@@ -919,10 +987,44 @@ def rsr_recon(verts, normals=[], use_Euclidean_distance=False, genus=-1, k=70,
     m = Manifold()
     verts_data = np.asarray(verts, dtype=ct.c_double, order='F')
     n_verts = len(verts)
-    n_normal = len(normals)
+    n_normal = 0 if normals is None else len(normals)
     if(n_normal==0):
         normals = [[]]
     normal_data = np.asarray(normals, dtype=ct.c_double, order='F')
 
-    lib_py_gel.rsr_recon(m.obj, verts_data,normal_data, n_verts, n_normal, use_Euclidean_distance,genus,k,r,theta,n)
+    lib_py_gel.rsr_recon(m.obj, verts_data, normal_data, n_verts, n_normal, 
+                         use_Euclidean_distance, genus, k, r, theta, n)
     return m
+
+def connected_components(m: Manifold):
+    """ Returns a list of Manifolds that form the connected components of the mesh m. """
+    comp = lib_py_gel.connected_components(m.obj)
+    N = lib_py_gel.mesh_vec_size(comp)
+    if N == 0:
+        return []
+    meshes = []
+    for i in range(N):
+        obj = ct.c_void_p(lib_py_gel.mesh_vec_get(comp, i))
+        meshes.append(Manifold(obj))
+    lib_py_gel.mesh_vec_del(comp)
+    return meshes
+
+def count_boundary_curves(m: Manifold):
+    """ Returns the number of boundary curves in the mesh m. """
+    return lib_py_gel.count_boundary_curves(m.obj)
+
+def analyze_topology(m: Manifold):
+    """ Returns a list of dictionaries with information about the connected components of the mesh m.
+    Each dictionary contains the Manifold ('m'), number of vertices ('V'), edges ('E'), faces ('F'), 
+    boundary curves ('b'), and the genus ('g') of the component. The genus is calculated using the 
+    Euler-Poincaré formula:"""
+    components = connected_components(m)
+    output = []
+    for _,comp in enumerate(components):
+        b = count_boundary_curves(comp)
+        V = len(comp.vertices())  # Number of vertices
+        E = len(comp.halfedges())//2  # Number of edges
+        F = len(comp.faces())  # Number of faces
+        g = -(V - E + F - 2 + b)//2 # Genus calculation
+        output.append({'m': comp, 'V': V, 'E': E, 'F': F, 'b': b, 'g': g})
+    return output

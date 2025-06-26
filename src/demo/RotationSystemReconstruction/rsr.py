@@ -21,28 +21,29 @@ def obj_load(file_path):
 
     return vertices, normals
 
-# Minimal example with small point cloud
-if len(argv) > 1:
-    fn = argv[1]
-else:
-    fn = '../../../data/PointClouds/owl-little.obj'
-vertices, normals = obj_load(fn)
-if len(normals) == 0:
-    print("Reconstructing without normals")
-    m = rsr_recon(vertices)
-else:
-    print("Reconstructing with normals")
-    m = rsr_recon(vertices,normals)
+# # Minimal example with small point cloud
+# if len(argv) > 1:
+#     fn = argv[1]
+# else:
+#     fn = '../../../data/PointClouds/owl-little.obj'
+# vertices, normals = obj_load(fn)
+# if len(normals) == 0:
+#     print("Reconstructing without normals")
+#     m = rsr_recon(vertices)
+# else:
+#     print("Reconstructing with normals")
+#     m = rsr_recon(vertices,normals)
 
-save('out.obj', m)
+# save('out.obj', m)
 
 # # larger point cloud.
 # vertices, normals = obj_load('../../../data/PointClouds/owl-lines.obj')
 # m = rsr_recon(vertices,normals,False)
 
-# # Object with non-zero genus
-# vertices, normals = obj_load('../../../data/PointClouds/Capital_A.obj')
-# m = rsr_recon(vertices,normals,True, k=30, genus=-1, n=40)
+# Object with non-zero genus
+vertices, normals = obj_load('../../../data/PointClouds/Capital_A.obj')
+print(len(normals))
+m = rsr_recon(vertices, normals, True, k=30, genus=-1, n=40)
 
 viewer = gl.Viewer()
-viewer.display(m)
+viewer.display(m, smooth=False, mode='g')

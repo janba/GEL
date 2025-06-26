@@ -383,6 +383,32 @@ bool isIntersecting(RSGraph& mst, NodeID v1,
 
 bool routine_check(RSGraph& mst, std::vector<NodeID>& triangle);
 
+void reset_static();
+
+/**
+ * @brief Reconstructs a single mesh manifold from input points and normals.
+ *
+ * This function performs surface reconstruction on a set of input points and normals,
+ * producing an output HMesh::Manifold. The reconstruction allows control over several algorithmic
+ * parameters such as neighborhood size, radius, angle threshold, and sample count. The difference 
+ * between Euclidean and projected ditance is that the latter is more resilient to noise. For noise-free data,
+ * Euclidean distance is preferred.
+ *
+ * @param[out] output         The resulting reconstructed manifold.
+ * @param[in]  org_vertices   The original input vertices (points) to reconstruct from.
+ * @param[in]  org_normals    The corresponding normals for each input vertex.
+ * @param[in]  in_isEuclidean True means use Euclidean distance rather than projected (default: false).
+ * @param[in]  in_genus       Expected genus of the output surface (default: -1 means auto-detect).
+ * @param[in]  in_k           Neighborhood size parameter (default: 70).
+ * @param[in]  in_r           Radius parameter for local operations (default: 20).
+ * @param[in]  in_theta       Angle threshold parameter in degrees (default: 60).
+ * @param[in]  in_n           Number of samples or iterations (default: 50).
+ *
+ * @note
+ *   - The function modifies the output manifold in place.
+ *   - Input vectors org_vertices and org_normals must be of the same length.
+ *   - Algorithmic parameters may need tuning for different datasets.
+ */
 void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertices,
     std::vector<Vector>& org_normals, bool in_isEuclidean = false, int in_genus = -1,
     int in_k = 70, int in_r = 20, int in_theta = 60, int in_n = 50);

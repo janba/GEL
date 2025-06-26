@@ -1,8 +1,7 @@
-""" PyGEL is a collection of classes and functions that expose features in the
-GEL library. The primary purpose of PyGEL (and GEL) is to be useful for geometry
-processing tasks. Especially tasks that involve 3D polygonal meshes, but there is
-also a graph component useful e.g. for skeletonization. The PyGEL package is called
-pygel3d and it contains five modules:
+""" PyGEL is a collection of classes and functions for geometry processing tasks. 
+Especially tasks that involve 3D polygonal meshes, but there is also a graph component 
+useful e.g. for skeletonization. The PyGEL package is called pygel3d and it contains 
+five modules:
 
 hmesh provides Manifold which is a class that represents polygonal meshes using the
 halfedge representation. hmesh also provides a slew of functions for manipulating
@@ -27,6 +26,9 @@ the interactive 3D graphics in the notebook.
 spatial contains the I3DTree class which is simply a kD-tree specialized for mapping
 3D points to integers - typically indices. Of course, scipy.spatial has a more
 generic class, so this is perhaps not the most important part of PyGEL.
+
+PyGEL is based on the C++ GEL library and provides a Python interface for most but not
+all of the functionality of GEL. 
 """
 __all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial"]
 
@@ -171,6 +173,15 @@ lib_py_gel.area.restype = ct.c_double
 lib_py_gel.area.argtypes = (ct.c_void_p, ct.c_size_t)
 lib_py_gel.one_ring_area.restype = ct.c_double
 lib_py_gel.one_ring_area.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.mixed_area.restype = ct.c_double
+lib_py_gel.mixed_area.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.gaussian_curvature.restype = ct.c_double
+lib_py_gel.gaussian_curvature.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.mean_curvature.restype = ct.c_double
+lib_py_gel.mean_curvature.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.principal_curvatures.argtypes = (ct.c_void_p, ct.c_size_t, ndpointer(dtype=np.float64, shape=(8,)))
+
+
 lib_py_gel.total_area.restype = ct.c_double
 lib_py_gel.total_area.argtypes = (ct.c_void_p,)
 lib_py_gel.volume.restype = ct.c_double
@@ -234,8 +245,15 @@ lib_py_gel.kill_face_loop.argtypes = (ct.c_void_p,)
 lib_py_gel.kill_degenerate_face_loops.argtypes = (ct.c_void_p,ct.c_double)
 lib_py_gel.stable_marriage_registration.argtypes = (ct.c_void_p,ct.c_void_p)
 lib_py_gel.stable_marriage_registration.restype = ct.c_int
-
-
+lib_py_gel.connected_components.argtypes = (ct.c_void_p,)
+lib_py_gel.connected_components.restype = ct.c_void_p
+lib_py_gel.mesh_vec_size.argtypes = (ct.c_void_p,)
+lib_py_gel.mesh_vec_size.restype = ct.c_size_t
+lib_py_gel.mesh_vec_get.argtypes = (ct.c_void_p, ct.c_size_t)
+lib_py_gel.mesh_vec_get.restype = ct.c_void_p
+lib_py_gel.mesh_vec_del.argtypes = (ct.c_void_p,)
+lib_py_gel.count_boundary_curves.argtypes = (ct.c_void_p,)
+lib_py_gel.count_boundary_curves.restype = ct.c_int
 
 # MeshDistance allows us to compute the signed distance to a mesh
 lib_py_gel.MeshDistance_new.restype = ct.c_void_p

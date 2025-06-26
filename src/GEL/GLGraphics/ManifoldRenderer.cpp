@@ -785,57 +785,32 @@ namespace GLGraphics
         for(auto v: m.vertices()) {
             phase[v] = 2.0*M_PI*(rand()/double(RAND_MAX) - 0.5);
             amp[v] = 1.0;
-            wave[v] = Vec2d(1,0);
+            wave[v] = Vec2d(0,0);
         }
         
         VertexAttributeVector<CGLA::Vec3d> lines;
         for(auto v: m.vertices()) {
-            lines[v] = normalize(cross(_lines[v], normal(m,v)));
+            lines[v] = cond_normalize(cross(_lines[v], normal(m,v)));
         }
 
         for(int iter=0;iter<100;++iter) {
             for(auto v: m.vertices()) {
-                Vec3d dir = lines[v];
-                if(sqr_length(dir)> 1e-10){
+                if(sqr_length(lines[v])> 1e-10){
                     for(auto h: m.incident_halfedges(v)) {
                         VertexID vn = m.walker(h).vertex();
-                        Vec3d vec = m.pos(vn) - m.pos(v);
-                        double phi = phase[v];
-                        Vec3d _dir = dir;
-                        double dot_prod = dot(dir, lines[vn]);
-                        if (dot_prod < 0) {
-                            phi = M_PI - phase[v];
-                            _dir = - dir;
-                        }
-                        double a = dot(vec, lines[vn]) * 2.0 * M_PI * (0.25/ael) + phi;
-                        wave[vn] += abs(dot_prod)*Vec2d(cos(a), sin(a));
+                        double a = phase[v] + dot(m.pos(vn) - m.pos(v), lines[v]) * 2.0 * M_PI * (0.25/ael);
+                        Vec2d w = sqr( dot(lines[v], lines[vn]))*Vec2d(cos(a), sin(a));
+                        wave[vn] += w;
                     }
                 }
             }
             
             for(auto v: m.vertices()) {
                 phase[v] = atan2(wave[v][1], wave[v][0]);
-            }
-            
-//            auto newphase = phase;
-//            for(auto v: m.vertices()) {
-//                float wgt= 1.0;
-//                for(auto vn: m.incident_vertices(v)) {
-//                    if(abs(phase[vn]-phase[v]) < M_PI)
-//                        newphase[v] += 0.05*phase[vn];
-//                    wgt += 0.05;
-//                }
-//                newphase[v] /= wgt;
-//            }
-//            phase = newphase;
-            
-            for(auto v: m.vertices()) {
                 wave[v] = Vec2d(cos(phase[v]), sin(phase[v]));
             }
 
         }
-
-        
 
         for(FaceIDIterator f = m.faces_begin(); f != m.faces_end(); ++f){
             if(no_edges(m, *f) == 3)
@@ -871,31 +846,28 @@ namespace GLGraphics
     "attribute vec4 direction;\n"
     "varying vec3 _n;\n"
     "varying vec4 dir_obj;\n"
-    "varying vec3 v_obj;\n"
     "\n"
     "void main(void)\n"
     "{\n"
     "	gl_Position = ftransform();\n"
-    "   v_obj = gl_Vertex.xyz;\n"
     "	dir_obj = direction;\n"
     "	_n = normalize(gl_NormalMatrix * gl_Normal);\n"
     "}\n";
     
     const string LineFieldRenderer::fss =
+    "#version 110\n"
     "uniform sampler3D noise_tex;\n"
     "uniform float line_scale;\n"
     "uniform float noise_scale;\n"
     "varying vec3 _n;\n"
     "varying vec4 dir_obj;\n"
-    "varying vec3 v_obj;\n"
     "\n"
     "void main(void)\n"
     "{\n"
     "    vec3 n = normalize(_n);\n"
     "    float a = atan(dir_obj.y, dir_obj.x);\n"
-    "    gl_FragColor.rgb = vec3(0.5+0.5*smoothstep(-.1,0.1,cos(16.0*a)));\n"
-    "    gl_FragColor.b = dir_obj.z*0.01;\n"
-//    "    gl_FragColor.r *= (0.5 + 0.5*a/3.1415926);\n"
+    "    float l = smoothstep(0.7,0.9,length(dir_obj.xy));"
+    "    gl_FragColor.rgb = vec3(0.5 + 0.25*(sin(20.0*a)+cos(20.0*a)));\n"
     "    gl_FragColor.rgb *= max(0.0,dot(n,vec3(0.0, 0.0, 1.0)));\n"
     "    gl_FragColor.a = 1.0;\n"
     "}\n";

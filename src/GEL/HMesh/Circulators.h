@@ -125,7 +125,7 @@ namespace HMesh {
 
     template<>
     inline FaceCirculator<Face>::value_type FaceCirculator<Face>::operator*() const {
-        return ck->face(he);
+        return ck->face(ck->opp(he));
     }
 
 

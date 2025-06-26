@@ -338,6 +338,38 @@ double one_ring_area(const Manifold_ptr _m_ptr, size_t _v) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return one_ring_area(*m_ptr,VertexID(_v));
 }
+double mixed_area(const Manifold_ptr m_ptr, size_t _v){
+    Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
+    return mixed_area(*m, VertexID(_v));
+}
+double gaussian_curvature(const Manifold_ptr m_ptr, size_t _v){
+    Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
+    return gaussian_curvature_angle_defect(*m, VertexID(_v));
+}
+double mean_curvature(const Manifold_ptr m_ptr, size_t _v){
+    Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
+    Vec3d H = mean_curvature_normal(*m, VertexID(_v));
+    Vec3d n = normal(*m, VertexID(_v));
+    double mean_curvature = H.length();
+    if (dot(H, n) < 0)
+        mean_curvature = -mean_curvature;
+    return mean_curvature;
+}
+void principal_curvatures(const Manifold_ptr m_ptr, size_t _v, double* curv_info){
+    Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
+    PrincipalCurvatures pc = principal_curvatures(*m, VertexID(_v));
+    curv_info[0] = pc.min_curvature;
+    curv_info[1] = pc.max_curvature;
+    curv_info[2] = pc.min_curv_direction[0];
+    curv_info[3] = pc.min_curv_direction[1];
+    curv_info[4] = pc.min_curv_direction[2];
+    curv_info[5] = pc.max_curv_direction[0];
+    curv_info[6] = pc.max_curv_direction[1];
+    curv_info[7] = pc.max_curv_direction[2];
+}
+
+
+
 double perimeter(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return perimeter(*m_ptr,FaceID(_f));

@@ -28,7 +28,7 @@ namespace {
 
 
 /** NQueue is a simple adapter for priority_queue which makes it simple to create an n-element
- list of items of arbitrary class. There must be acomparison operator for T */
+ list of items of arbitrary class. There must be a comparison operator for T */
 template<class T>
 class NQueue {
     std::vector<T> q;
@@ -255,7 +255,7 @@ namespace Geometry
         }
         
         /** Find the m elements closest to p and within a distance dist. This function returns a vector
-         of KDTreeRecords sorted in ascending distance order. This function is often significantly faster than simply
+         of KDTreeRecords in no particular order. This function is likely to be faster than simply
          finding all elements within a given radius using in_sphere and then sorting because once m elements have been
          found, the search radius can be narrowed. */
         std::vector<KDTreeRecord<KeyT, ValT>> m_closest(unsigned m, const KeyType& p, ScalarType dist) const {

@@ -292,6 +292,35 @@ void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) 
     Manifold* m_ref_ptr = reinterpret_cast<Manifold*>(_m_ref_ptr);
     stable_marriage_registration(*m_ptr, *m_ref_ptr);
 }
+ 
+using MeshVec = vector<Manifold*>;
 
+MeshVec_ptr connected_components(Manifold_ptr _m_ptr) {
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    auto mv = connected_components(*m_ptr);
+    MeshVec* mv_ptr = new MeshVec(mv.size());
+    for (int i=0;i<mv.size(); ++i) 
+        mv_ptr->at(i) = new Manifold(mv[i]);
+    return reinterpret_cast<MeshVec_ptr>(mv_ptr);
+}
 
+size_t mesh_vec_size(MeshVec_ptr _mv_ptr) {
+    MeshVec* mv_ptr = reinterpret_cast<MeshVec*>(_mv_ptr);
+    return mv_ptr->size();
+}
+
+Manifold_ptr mesh_vec_get(MeshVec_ptr _mv_ptr, size_t i) {
+    MeshVec* mv_ptr = reinterpret_cast<MeshVec*>(_mv_ptr);
+    return reinterpret_cast<Manifold_ptr>(mv_ptr->at(i));
+}
+
+void mesh_vec_del(MeshVec_ptr _mv_ptr) {
+    MeshVec* mv_ptr = reinterpret_cast<MeshVec*>(_mv_ptr);
+    delete mv_ptr;
+}
+
+int count_boundary_curves(Manifold_ptr _m_ptr) {
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    return count_boundary_curves(*m_ptr);
+}
 

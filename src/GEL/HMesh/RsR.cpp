@@ -2207,15 +2207,26 @@ void build_mst(SimpGraph& g, NodeID root,
     return;
 }
 
-/**
-    * @brief Reconstruct a single file
-    *
-    * @param noise_type: type of noise added for the noise experiments
-    * @param sigma: the standard deviation of added noise
-    * @param amplitude: the amplitude of added noise
-    *
-    * @return None
-    */
+void reset_static() {
+    isGTNormal = true;
+    isEuclidean = true;
+    isFaceLoop = true;
+    isDebug = false;
+    isNoiseExperiment = false;
+    k = 30;
+    r = 20.;
+    theta = 60.;
+    step_thresh = 50;
+    exp_genus = -1;
+    model_path = "";
+    root_path = "";
+    model_name = "";
+    mode = "";
+    recon_timer = RsR_Timer();
+    bettiNum_1 = 0;
+}
+
+
 void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertices,
     std::vector<Vector>& org_normals, bool in_isEuclidean, int in_genus, 
     int in_k, int in_r, int in_theta, int in_n) {
@@ -2225,12 +2236,12 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
     r = in_r;
     theta = in_theta;
     step_thresh = in_n;
-    //std::cout << exp_genus << std::endl;
-    //std::cout << k << std::endl;
-    //std::cout << r << std::endl;
-    //std::cout << theta << std::endl;
-    //std::cout << step_thresh << std::endl;
-    //std::cout << org_vertices[0] << std::endl;
+    // std::cout << exp_genus << std::endl;
+    // std::cout << k << std::endl;
+    // std::cout << r << std::endl;
+    // std::cout << theta << std::endl;
+    // std::cout << step_thresh << std::endl;
+    // std::cout << org_vertices[0] << std::endl;
 
     recon_timer.create("Whole process");
     recon_timer.create("Initialization");
@@ -2484,6 +2495,7 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
     std::string line(40, '=');
     std::cout << line << std::endl << std::endl;
     recon_timer.show();
+    reset_static();
 
     return;
 }

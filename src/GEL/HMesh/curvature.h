@@ -68,6 +68,16 @@ namespace HMesh
                                         CGLA::Mat2x2d& curv_tensor, 
                                         CGLA::Mat3x3d& frame);
 
+    struct PrincipalCurvatures {
+        CGLA::Vec3d min_curv_direction;  ///< Direction of minimum curvature
+        CGLA::Vec3d max_curv_direction;  ///< Direction of maximum curvature
+        double min_curvature;        ///< Minimum curvature
+        double max_curvature;        ///< Maximum curvature
+    };
+
+    PrincipalCurvatures principal_curvatures( const Manifold& m, 
+                                                VertexID v);
+
     void curvature_tensors_from_edges(  const Manifold& m, 
                                         VertexAttributeVector<CGLA::Mat3x3d>& curvature_tensors);
 

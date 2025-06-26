@@ -1,11 +1,14 @@
 """ This module provides a Graph class and functionality for skeletonization using graphs. """
 from __future__ import annotations
-from typing import TYPE_CHECKING
-
 import ctypes as ct
-import numpy as np
 from random import shuffle
+from typing import TYPE_CHECKING
+# If TYPE_CHECKING is True, we import Manifold from hmesh for type hints.
+if TYPE_CHECKING:
+    from pygel3d.hmesh import Manifold
+import numpy as np
 from pygel3d import lib_py_gel, IntVector
+
 
 class Graph:
     """ This class is for representing graphs embedded in 3D. The class does not in
@@ -99,20 +102,10 @@ def save(fn, g: Graph):
     return lib_py_gel.graph_save(g.obj, s)
 
 def to_mesh_cyl(g: Graph, fudge=0.0):
-    """ Creates a Manifold mesh from the graph. The first argument, g, is the
-    graph we want converted, and fudge is a constant that is used to increase the radius
-    of every node. This is useful if the radii are 0. """
-    m = Manifold()
-    lib_py_gel.graph_to_mesh_cyl(g.obj, m.obj, fudge)
-    return m
+    print ("removed due to circular import. The function is now in hmesh.py")
 
 def to_mesh_iso(g: Graph, fudge=0.0, res=256):
-    """ Creates a Manifold mesh from the graph. The first argument, g, is the
-    graph we want converted, and fudge is a constant that is used to increase the radius
-    of every node. This is useful if the radii are 0. """
-    m = Manifold()
-    lib_py_gel.graph_to_mesh_iso(g.obj, m.obj, fudge, res)
-    return m
+    print ("removed due to circular import. The function is now in hmesh.py")
 
 
 def smooth(g: Graph, iter=1, alpha=1.0):
@@ -225,7 +218,6 @@ def front_skeleton(g: Graph, colors, intervals=100):
     colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
     print("N_col:", N_col)
-    pos = g.positions()
     lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel
 

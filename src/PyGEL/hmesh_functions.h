@@ -22,6 +22,7 @@
 typedef char* Manifold_ptr;
 typedef char* IntVector_ptr;
 typedef char* Graph_ptr;
+typedef char* MeshVec_ptr;
 
 
 #ifdef __cplusplus
@@ -125,6 +126,16 @@ extern "C" {
 
     DLLEXPORT void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
 
+    
+    DLLEXPORT MeshVec_ptr connected_components(Manifold_ptr _m_ptr);
+
+    DLLEXPORT size_t mesh_vec_size(MeshVec_ptr _mv_ptr);
+
+    DLLEXPORT Manifold_ptr mesh_vec_get(MeshVec_ptr _mv_ptr, size_t i);
+
+    DLLEXPORT void mesh_vec_del(MeshVec_ptr _mv_ptr);
+
+    DLLEXPORT int count_boundary_curves(Manifold_ptr _m_ptr);
 
 #ifdef __cplusplus
 }

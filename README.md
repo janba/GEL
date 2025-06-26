@@ -21,6 +21,7 @@ There are several less unique but important features:
 - iso-surface polygonization for regular voxel grids: can produce both dual and primal connectivity, 
 - edge flipping-based optimization for triangle meshes, 
 - mesh smoothing: we include anisotropic smoothing, Taubin smoohing, and more.
+- topological analysis: a single (Python) function splits a mesh into components and analyses each.
 
 GEL requires a recent C++ compiler but has very few dependencies. For visualization, OpenGL and GLFW are required, but these dependencies can be omitted if visualization is not needed. The basic philosophy is that GEL should have few dependencies itself since it is better that projects which use GEL can choose for themselves, say, which linear algebra package to use. 
 

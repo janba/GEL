@@ -93,6 +93,11 @@ extern "C" {
     DLLEXPORT void face_normal(const Manifold_ptr m_ptr, size_t _f, double*);
     DLLEXPORT double area(const Manifold_ptr m_ptr, size_t _f);
     DLLEXPORT double one_ring_area(const Manifold_ptr m_ptr, size_t _v);
+    DLLEXPORT double mixed_area(const Manifold_ptr m_ptr, size_t _v);
+    DLLEXPORT double gaussian_curvature(const Manifold_ptr m_ptr, size_t _v);
+    DLLEXPORT double mean_curvature(const Manifold_ptr m_ptr, size_t _v);
+    DLLEXPORT void principal_curvatures(const Manifold_ptr m_ptr, size_t _v, double* curv_info);
+
     DLLEXPORT double perimeter(const Manifold_ptr m_ptr, size_t _f);
     DLLEXPORT void centre(const Manifold_ptr m_ptr, size_t _f, double*);
 
