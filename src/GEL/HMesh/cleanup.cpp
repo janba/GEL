@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include <map>
+#include <vector>
 #include <GEL/HMesh/cleanup.h>
 
 #include <GEL/CGLA/Vec3f.h>
@@ -199,52 +199,55 @@ struct Corner {
     
 };
 
-    
-    int stitch_mesh(Manifold& m, const VertexAttributeVector<int>& cluster_id)
+    template <typename Integral>
+    Integral stitch_mesh(Manifold& m, const VertexAttributeVector<Integral>& cluster_id)
     {
-        int cidv_max = 0;
+        Integral cidv_max = 0;
         for (auto v: m.vertices()) {
             cidv_max = max(cidv_max, cluster_id[v]);
         }        
-        vector<vector<HalfEdgeID>> clustered_halfedges(cidv_max+1);
+        std::vector<std::vector<HalfEdgeID>> clustered_halfedges(cidv_max+1);
         for(auto v: m.vertices()) {
             HalfEdgeID h = boundary_edge(m, v);
-            int cidv = cluster_id[v];
+            const auto cidv = cluster_id[v];
             if( cidv != -1 && h != InvalidHalfEdgeID) {
                 clustered_halfedges[cidv].push_back(h);
             }
         }
-        int unstitched=0;
-        for(auto h0 : m.halfedges())
+        Integral unstitched = 0;
+        for(const auto h0 : m.halfedges())
         {
-            Walker w = m.walker(h0);
-            if(w.face() == InvalidFaceID)
+            if (Walker w = m.walker(h0); w.face() == InvalidFaceID)
             {
                 VertexID v0 = w.opp().vertex();
                 VertexID v1 = w.vertex();
 
-                int cid = cluster_id[v1];
-                int cid0 = cluster_id[v0];
-                if(cid0 == cid) {
-//                    cout << "Warning: edge endpoints in same cluster while stitching, ignoring " << endl;
+                auto cid = cluster_id[v1];
+                auto cid0 = cluster_id[v0];
+                if (cid0 == cid) {
+//                  std::cerr << "Warning: edge endpoints in same cluster while stitching, ignoring " << endl;
                     continue;
                 }
-                vector<HalfEdgeID>& stitch_candidates = clustered_halfedges[cid];
+                std::vector<HalfEdgeID>& stitch_candidates = clustered_halfedges[cid];
                 size_t i=0;
-                for(;i<stitch_candidates.size(); ++i)
+                for (;i<stitch_candidates.size(); ++i)
                 {
                     HalfEdgeID h1 = stitch_candidates[i];
-                    if(m.in_use(h1))
-                        if(cluster_id[m.walker(h1).vertex()] == cluster_id[v0])
-                            if(m.stitch_boundary_edges(h0,h1))
+                    if (m.in_use(h1) &&
+                        cluster_id[m.walker(h1).vertex()] == cluster_id[v0] &&
+                        m.stitch_boundary_edges(h0,h1))
                                 break;
                 }
-                if(i == stitch_candidates.size())
+                if (i == stitch_candidates.size())
                     ++unstitched;
             }
         }
         return unstitched;
     }
+
+    // FIXME: Preferably, we would only have the size_t version, but since various places use int vectors, these exist
+    template int stitch_mesh(Manifold& m, const VertexAttributeVector<int>& cluster_id);
+    template size_t stitch_mesh(Manifold& m, const VertexAttributeVector<size_t>& cluster_id);
 
     void remove_valence_one_vertices(Manifold & m)
     {
