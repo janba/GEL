@@ -11,15 +11,15 @@
 
 #pragma once
 
-#include <set>
-#include <algorithm>
 #include <GEL/CGLA/Vec3d.h>
-
+#include <GEL/HMesh/AttributeVector.h>
+#include <GEL/HMesh/Circulators.h>
 #include <GEL/HMesh/ConnectivityKernel.h>
 #include <GEL/HMesh/Iterators.h>
 #include <GEL/HMesh/Walker.h>
-#include <GEL/HMesh/AttributeVector.h>
-#include <GEL/HMesh/Circulators.h>
+
+#include <ranges>
+#include <span>
 
 namespace Geometry
 {
@@ -75,10 +75,37 @@ namespace HMesh
 
         // Mesh construction functions --------------------------------------------------
 
-        /** Add a face to the Manifold.
-         This function is provided a vector of points in space and produces a single
-         polygonal face. */
-        FaceID add_face(const std::vector<Manifold::Vec>& points);
+        /// @brief Add a face to the Manifold.
+        /// @details This function is provided a range of points in space and produces a single
+        /// polygonal face.
+        /// @code{.cpp}
+        /// // usage with an initializer list
+        /// m.add_face({{0.0, 0.0, 0.0}, {1.0, 1.0, 0.0}, {0.0, 1.0, 0.0}});
+        ///
+        /// // usage with a fixed size array
+        /// std::array<Vec3d, 4> pts = {p1, p2, p3, p4};
+        /// m.add_face(pts);
+        ///
+        /// // usage with an iterator view
+        /// auto pts = std::views::iota(0, num_of_pts)
+        ///     | std::views::transform([&](auto idx){ return points[indices[idx]]; });
+        /// m.add_face(pts);
+        /// @endcode
+        ///
+        /// @tparam Range an input range that yields elements of CGLA::Vec3d
+        template<std::ranges::viewable_range Range> FaceID add_face(Range&& points)
+        requires std::is_same_v<std::ranges::range_value_t<Range>, Manifold::Vec>
+                 && (std::is_trivially_copyable_v<Range> || std::is_lvalue_reference_v<Range>);
+
+        /// @brief initializer list specialization for add_face
+        ///
+        // FIXME: initializer lists do not implement the range concept directly in C++20
+        // FIXME: this can be removed in C++26
+        FaceID add_face(std::initializer_list<Manifold::Vec>&& points)
+        {
+            const std::span s = points;
+            return add_face(s);
+        };
 
         /** Removes a face from the Manifold. If it is an interior face it is simply replaces
          by an InvalidFaceID. If the face contains boundary edges, these are removed. Situations
@@ -544,6 +571,83 @@ namespace HMesh
     inline void Manifold::cleanup() {
         IDRemap map;
         Manifold::cleanup(map);
+    }
+
+    namespace detail {
+        // TODO: move this elsewhere
+        template<std::ranges::range Range, typename U, typename Func>
+        auto fold(Range&& range, U init, Func&& lambda) -> U
+        {
+            auto it_begin = std::ranges::begin(range);
+            auto it_end = std::ranges::end(range);
+            for (; it_begin != it_end; ++it_begin) { init = lambda(*it_begin, init); }
+            return init;
+        }
+    } // namespace detail
+
+    template<std::ranges::viewable_range Range> FaceID Manifold::add_face(Range&& points)
+    requires std::is_same_v<std::ranges::range_value_t<Range>, Manifold::Vec>
+             && (std::is_trivially_copyable_v<Range> || std::is_lvalue_reference_v<Range>)
+    {
+        const FaceID fid = kernel.add_face();
+
+        struct FoldState {
+            HalfEdgeID h0;
+            HalfEdgeID h1;
+            VertexID v0;
+        };
+
+        // add half-edges and vertex to connectivity kernel, sets position of vertex
+        auto create_edge = [this](const Manifold::Vec& point) {
+            const auto temp = FoldState{
+                    .h0 = kernel.add_halfedge(),
+                    .h1 = kernel.add_halfedge(),
+                    .v0 = kernel.add_vertex(),
+            };
+            pos(temp.v0) = point;
+            return temp;
+        };
+
+        // glue half-edges together, sets their faces
+        auto setup_edge = [this, fid](const FoldState& f) {
+            this->glue(f.h0, f.h1);
+
+            kernel.set_face(f.h0, fid);
+            kernel.set_face(f.h1, InvalidFaceID);
+        };
+
+        // link half-edges together, sets their vertices and outgoing half-edges
+        auto link_successive_edges = [this](const FoldState& prev, const FoldState& next) {
+            link(prev.h0, next.h0);
+            link(next.h1, prev.h1);
+
+            kernel.set_vert(prev.h1, prev.v0);
+            kernel.set_vert(prev.h0, next.v0);
+            kernel.set_out(next.v0, prev.h1);
+        };
+
+        // we manually do the work for the first half-edge pair and only fold over points[1..]
+        const FoldState first = create_edge(*std::ranges::begin(points));
+        const auto last = detail::fold(points | std::views::drop(1), first,
+                                       [this, setup_edge, link_successive_edges](const Manifold::Vec& p1,
+                                                                                 const FoldState& state) -> FoldState {
+                                           const auto next = FoldState{
+                                                   .h0 = kernel.add_halfedge(),
+                                                   .h1 = kernel.add_halfedge(),
+                                                   .v0 = kernel.add_vertex(),
+                                           };
+                                           pos(next.v0) = p1;
+
+                                           setup_edge(state);
+                                           link_successive_edges(state, next);
+
+                                           return next;
+                                       });
+        kernel.set_last(fid, last.h0);
+        setup_edge(last);
+        link_successive_edges(last, first);
+
+        return fid;
     }
 
     // End of inline functions for the Manifold class  ---------------------------------

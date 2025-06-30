@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <ranges>
 #include <stack>
 
 #include <GEL/Geometry/TriMesh.h>
@@ -24,54 +25,7 @@ namespace HMesh
     /*********************************************
 	 * Public functions
 	 *********************************************/
-    
-    FaceID Manifold::add_face(const std::vector<Manifold::Vec>& points)
-    {
-        struct Edge
-        {
-            HalfEdgeID h0 = InvalidHalfEdgeID;
-            HalfEdgeID h1 = InvalidHalfEdgeID;
-            int count;
-        };
 
-        int N = points.size();
-        vector<VertexID> vertices(N);
-        for(size_t i=0;i<points.size(); ++i) {
-            vertices[i]=kernel.add_vertex();
-            pos(vertices[i]) = points[i];
-        }
-        vector<Edge> edges(N);
-        for(size_t i=0;i<N; ++i) {
-            VertexID v0 = vertices[i];
-            VertexID v1 = vertices[(i+1)%points.size()];
-
-            Edge& e = edges[i];
-            e.h0 = kernel.add_halfedge();
-            e.h1 = kernel.add_halfedge();
-            e.count = 1;
-            
-            // glue operation: 1 edge = 2 glued halfedges
-            glue(e.h0, e.h1);
-            
-            // update halfedges with the vertices they point to
-            kernel.set_vert(e.h0, v1);
-            kernel.set_vert(e.h1, v0);
-
-            kernel.set_out(vertices[(i+1)%N], edges[i].h1);
-        }
-
-        FaceID fid = kernel.add_face();
-        for(size_t i=0;i<N; ++i) {
-            kernel.set_face(edges[i].h0, fid);
-            kernel.set_face(edges[i].h1, InvalidFaceID);
-            link(edges[i].h0,edges[(i+1)%N].h0);
-            link(edges[(i+1)%N].h1,edges[i].h1);
-        }
-        kernel.set_last(fid, edges[N-1].h0);
-        
-        return fid;
-    }
-    
     bool Manifold::remove_face(FaceID fid)
     {
         if(!in_use(fid))
