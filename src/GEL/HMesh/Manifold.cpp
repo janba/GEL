@@ -99,10 +99,10 @@ namespace HMesh
             return false;
     
         vector<FaceID> faces;
-        circulate_vertex_ccw(*this, vid, static_cast<std::function<void(FaceID)>>([&](FaceID f) {
+        circulate_vertex_ccw(*this, vid, [&](FaceID f) {
             if(in_use(f))
                 faces.push_back(f);
-        }));
+        });
         for(auto f: faces)
             remove_face(f);
 
@@ -341,15 +341,15 @@ namespace HMesh
     {
         // get the one-ring of v0
         vector<VertexID> link0;
-        circulate_vertex_ccw(m, v0, static_cast<std::function<void(VertexID)>>([&](VertexID vn) {
+        circulate_vertex_ccw(m, v0, [&](VertexID vn) {
             link0.emplace_back(vn);
-        }));
+        });
 		
         // get the one-ring of v1
         vector<VertexID> link1;
-        circulate_vertex_ccw(m, v1, static_cast<std::function<void(VertexID)>>([&](VertexID vn) {
+        circulate_vertex_ccw(m, v1, [&](VertexID vn) {
             link1.emplace_back(vn);
-        }));
+        });
 		
         // sort the vertices of the two rings
         sort(link0.begin(), link0.end());
@@ -415,14 +415,14 @@ namespace HMesh
             }
 
             if(v0b != v0a)
-                circulate_vertex_ccw(*this, v0b, static_cast<std::function<void(Walker&)>>([&](Walker& hew) {
+                circulate_vertex_ccw(*this, v0b, [&](Walker& hew) {
                     kernel.set_vert(hew.opp().halfedge(), v0a);
-                }));
+                });
             
             if(v1b != v1a)
-                circulate_vertex_ccw(*this, v1b, static_cast<std::function<void(Walker&)>>([&](Walker& hew) {
+                circulate_vertex_ccw(*this, v1b, [&](Walker& hew) {
                     kernel.set_vert(hew.opp().halfedge(), v1a);
-                }));
+                });
             
             if(v0a != v0b)
             {
@@ -1442,27 +1442,27 @@ namespace HMesh
     
     Manifold::Vec Manifold::area_normal(FaceID f) const
     {
-        vector<Vec> v;
+        std::vector<Manifold::Vec> vertices;
         Vec c(0.0);
-        int k= circulate_face_ccw(*this, f, static_cast<std::function<void(VertexID)>>([&](VertexID vid) {
+        int k = circulate_face_ccw(*this, f, [&](VertexID vid) {
             Vec p = positions[vid];
             c += p;
-            v.push_back(p);
-        }));
+            vertices.push_back(p);
+        });
         c /= k;
         Manifold::Vec norm(0);
         for(int i=0;i<k;++i)
-            norm += cross(v[i]-c,v[(i+1)%k]-c);
+            norm += cross(vertices[i]-c,vertices[(i+1)%k]-c);
         return 0.5 * norm;
     }
     
     double Manifold::area(FaceID fid) const
     {
         // Get all projected vertices
-        vector<Manifold::Vec> vertices;
-        int N = circulate_face_ccw(*this, fid, static_cast<std::function<void(VertexID)>>([&](VertexID vid) {
+        std::vector<Manifold::Vec> vertices;
+        int N = circulate_face_ccw(*this, fid, [&](VertexID vid) {
             vertices.push_back(positions[vid]);
-        }));
+        });
         
         double area = 0;
         Manifold::Vec norm = normal(fid);
