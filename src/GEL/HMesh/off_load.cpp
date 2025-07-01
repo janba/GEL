@@ -13,7 +13,6 @@
 using namespace std;
 using namespace CGLA;
 using namespace HMesh;
-using namespace Geometry;
 
 namespace HMesh
 {

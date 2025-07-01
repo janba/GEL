@@ -46,12 +46,12 @@ D = hmesh.MeshDistance(m_in)
 plo, phi = hmesh.bbox(m_in)
 dim = array([int(x) for x in ceil((phi-plo) / 0.0025)], dtype=int)
 BSZ = 4 # Block size for the distance field 
-dim += BSZ - dim % BSZ  # Make sure the dimensions are multiples of BSZ
+dim = BSZ * (dim // BSZ)  # Make sure the dimensions are multiples of BSZ
 spacing = (phi-plo)/(dim - 1)
 vol = D.signed_distance([array(idx)*spacing + plo for idx in ndindex(*dim)])
 vol = vol.reshape(dim)
-m = hmesh.volumetric_isocontour(vol, plo, phi, high_is_inside=False)
-d = clip(D.signed_distance(m.positions()), -0.001, 0.001)
+m = hmesh.volumetric_isocontour(vol, plo, phi, high_is_inside=False, dual_connectivity=True)
+d = D.signed_distance(m.positions())
 v.display(m, mode='s', data=d, reset_view=True)
 
 # Sixth test: compare a simplified mesh to an iso-contour of a downsampled volume.

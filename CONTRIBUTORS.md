@@ -7,6 +7,7 @@ The following is the list of contributors. It is hopefully complete, but please 
 - Anders Wang Kristensen suggested important improvements to HMesh and wrote the GL Console code.
 - Emil Gæde - added the multilevel LS skeletonization and graph components crucuial for Rotation System Reconstruction. This include tracking of connecting components in a graph when the graph is modified.
 - Ruiqi Cui ported the Rotation System Reconstruction implementation to GEL.
+- Cem Akarsubaşı did significant refactoring and work on the efficiency of RSR.
 - Karran Pandey added the original code for Skeleton to Face Extrusion Quad Meshes.
 - Rasmus Paulsen, Bjarke Jakobsen, Marek Misztal helped with structure and compilation on various platforms with testing and ideas.
 - Henrik Aanæs provided the original LinAlg package, which is a set of simple but very useful Lapack bindings. However, these were later removed. GEL and PyGEL do not require a numerics library, and we now use Eigen in applications that use GEL.

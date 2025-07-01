@@ -28,7 +28,7 @@ fn = "../../../data/Solids/sphere.obj" if len(argv) < 2 else argv[1]
 m = hmesh.load(fn)
 hmesh.triangulate(m)
 
-verts = m.positions()[m.vertices()]
+verts = m.positions()
 faces = [ list(m.circulate_face(f)) for f in m.faces() ]
 ps.register_surface_mesh(fn, verts, faces)
 
