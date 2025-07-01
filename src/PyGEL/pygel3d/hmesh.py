@@ -5,6 +5,21 @@ and editing of vertices, faces, and edges. The volumetric_isocontour function al
 create a polygonal mesh from volumetric data by isocontouring. The skeleton_to_feq function 
 allows us to turn a skeleton graph into a Face Extrusion Quad Mesh.
 """
+
+__all__ = [
+    'Manifold', 'MeshDistance', 'valid', 'closed', 'area', 'volume', 'bbox', 'bsphere', 'stitch',
+    'obj_save', 'off_save', 'x3d_save', 'obj_load', 'off_load', 'ply_load', 'x3d_load', 'load', 'save',
+    'remove_caps', 'remove_needles', 'close_holes', 'flip_orientation', 'merge_coincident_boundary_vertices',
+    'minimize_curvature', 'minimize_dihedral_angle', 'maximize_min_angle', 'optimize_valency',
+    'randomize_mesh', 'quadric_simplify', 'average_edge_length', 'median_edge_length', 'refine_edges',
+    'cc_split', 'loop_split', 'root3_subdivide', 'rootCC_subdivide', 'butterfly_subdivide', 'cc_smooth',
+    'cc_subdivide', 'loop_subdivide', 'volume_preserving_cc_smooth', 'regularize_quads', 'loop_smooth',
+    'taubin_smooth', 'laplacian_smooth', 'anisotropic_smooth', 'volumetric_isocontour', 'triangulate',
+    'extrude_faces', 'kill_face_loop', 'kill_degenerate_face_loops', 'graph_to_feq', 'skeleton_to_feq',
+    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_recon', 'connected_components',
+    'count_boundary_curves', 'analyze_topology'
+]
+
 import ctypes as ct
 import numpy as np
 from numpy import ndarray
@@ -13,6 +28,7 @@ from pygel3d.graph import Graph
 from scipy.sparse import csc_matrix, vstack
 from scipy.sparse.linalg import lsqr
 from scipy.spatial import KDTree
+
 
 
 class Manifold:
@@ -174,20 +190,24 @@ class Manifold:
     def vertex_in_use(self,vid):
         """ check if vertex, vid, is in use. This function returns true if the id corresponds
         to a vertex that is currently in the mesh and false otherwise. vid could
-        be outside the range of used ids and it could also correspond to a vertex
-        which is not active. The function returns false in both cases. """
+        be invalid or it could correspond to a vertex which is not active. The function returns 
+        false in both cases.  It is important to call this function before using a vertex id (vid)
+        which might have been invalidated by a previous operation on the mesh."""
         return lib_py_gel.Manifold_vertex_in_use(self.obj, vid)
     def face_in_use(self,fid):
         """ check if face, fid, is in use. This function returns true if the id corresponds
         to a face that is currently in the mesh and false otherwise. fid could
-        be outside the range of used ids and it could also correspond to a face
-        which is not active. The function returns false in both cases. """
+        be invalid or it could correspond to a face which is not active. The function returns 
+        false in both cases. It is important to call this function before using a face id (fid)
+        which might have been invalidated by a previous operation on the mesh.
+        """
         return lib_py_gel.Manifold_face_in_use(self.obj, fid)
     def halfedge_in_use(self,hid):
         """ check if halfedge hid is in use. This function returns true if the id corresponds
         to a halfedge that is currently in the mesh and false otherwise. hid could
-        be outside the range of used ids and it could also correspond to a halfedge
-        which is not active. The function returns false in both cases. """
+        be invalid or it could correspond to a halfedge which is not active. The function returns 
+        false in both cases.  It is important to call this function before using a halfedge id (hid)
+        which might have been invalidated by a previous operation on the mesh."""
         return lib_py_gel.Manifold_halfedge_in_use(self.obj, hid)
     def flip_edge(self,hid):
         """ Flip the edge, hid, separating two faces. The function first verifies that
@@ -798,7 +818,7 @@ def graph_to_isosurface(g: Graph, fudge=0.0, res=256):
 #     """ Perform non-rigid registration of m to ref_mesh. """
 #     lib_py_gel.non_rigid_registration(m.obj, ref_mesh.obj)
 
-def laplacian_matrix(m: Manifold):
+def _laplacian_matrix(m: Manifold):
     num_verts = m.no_allocated_vertices()
     laplacian = np.full((num_verts,num_verts), 0.0)
     for i in m.vertices():
@@ -810,7 +830,7 @@ def laplacian_matrix(m: Manifold):
     return csc_matrix(laplacian)
 
 
-def inv_correspondence_leqs(m: Manifold, ref_mesh: Manifold):
+def _inv_correspondence_leqs(m: Manifold, ref_mesh: Manifold):
     m_pos = m.positions()
     ref_pos = ref_mesh.positions()
     m_tree = KDTree(m_pos)
@@ -838,7 +858,7 @@ def inv_correspondence_leqs(m: Manifold, ref_mesh: Manifold):
             b_list.append(m_target_pos[vid]/m_cnt[vid])
     return csc_matrix(np.array(A_list)), np.array(b_list)
     
-def distance_gradient(mesh_dist: MeshDistance, p, eps=1e-3):
+def _distance_gradient(mesh_dist: MeshDistance, p, eps=1e-3):
     """Compute the gradient of the distance field given by mesh_dist at point p"""
     grad = np.zeros(3)
     for i in range(3):
@@ -853,27 +873,7 @@ def distance_gradient(mesh_dist: MeshDistance, p, eps=1e-3):
             print("diff issue: ", d1, d2, p, i)
     return grad
 
-# def inflate_mesh(m: Manifold, mesh_dist):
-#     pos = m.positions()
-#     ael = average_edge_length(m)
-#     max_dist = ael
-#     eps = 0.05*ael
-#     disp = np.zeros((m.no_allocated_faces(), 3))
-#     for f in m.faces():
-#         p = m.centre(f)
-#         g = distance_gradient(mesh_dist, p, eps)
-#         n = m.face_normal(f)
-#         k = (n@g)
-#         d = max(-max_dist, min(max_dist, mesh_dist.signed_distance(p)))
-#         disp[f] = - abs(k) * d * n
-#     for v in m.vertices():
-#         disp_v = np.zeros(3)
-#         C_f = m.circulate_vertex(v, mode='f')
-#         for f in C_f:
-#             disp_v += disp[f]
-#         pos[v] += disp_v / len(C_f)
-
-def inflate_mesh(m: Manifold, mesh_dist: MeshDistance):
+def _inflate_mesh(m: Manifold, mesh_dist: MeshDistance):
     pos = m.positions()
     ael = average_edge_length(m)
     max_dist = ael
@@ -881,7 +881,7 @@ def inflate_mesh(m: Manifold, mesh_dist: MeshDistance):
     new_pos = np.array(pos)
     for v in m.vertices():
         p = pos[v]
-        g = distance_gradient(mesh_dist, p, eps)
+        g = _distance_gradient(mesh_dist, p, eps)
         n = m.vertex_normal(v)
         k = max(0.0, min(1.0, n@g))
         d = max(-k*max_dist, min(k*max_dist, mesh_dist.signed_distance(p)))
@@ -889,7 +889,7 @@ def inflate_mesh(m: Manifold, mesh_dist: MeshDistance):
     pos[:] = new_pos
 
 
-def barycentrics(p, p0, p1, p2):
+def _barycentrics(p, p0, p1, p2):
     """ Compute the barycentric coordinates of point p with respect to the triangle p0, p1, p2. """
     v0 = p1 - p0
     v1 = p2 - p1
@@ -908,7 +908,7 @@ def barycentrics(p, p0, p1, p2):
     return np.array([u/s, v/s, w/s])
 
 
-def inv_map(m: Manifold, ref, ref_orig):
+def _inv_map(m: Manifold, ref, ref_orig):
     """ Finds position of vertices from mesh m in faces of ref. Then maps those
     positions to the corresponding triangles of ref_orig using barycentric coordinates. """
     pos_m = m.positions()
@@ -922,7 +922,7 @@ def inv_map(m: Manifold, ref, ref_orig):
         v_ref = closest_ref_verts[v]
         pos_m[v] = pos_ref_orig[v_ref]
     
-def fit_mesh_mmh(m: Manifold, ref_mesh: Manifold, iterations=10):
+def _fit_mesh_mmh(m: Manifold, ref_mesh: Manifold, iterations=10):
     """ Fits a mesh m to ref_mesh by iteratively moving m towards ref_mesh and vice versa."""
     mrc = Manifold(ref_mesh)
     triangulate(mrc, clip_ear=False)
@@ -933,13 +933,13 @@ def fit_mesh_mmh(m: Manifold, ref_mesh: Manifold, iterations=10):
     for _ in range(iterations):
         print("Inflate mc")
         cc_smooth(m,1)
-        inflate_mesh(m, mesh_dist=mesh_dist)
+        _inflate_mesh(m, mesh_dist=mesh_dist)
         obj_save("mc.obj", m)
     # print("")
     # print("Doing the MMH map")
     # inv_map(m,mrc,ref_mesh)
 
-def stable_marriage_registration(m, m_ref):
+def _stable_marriage_registration(m, m_ref):
     """ Register m to m_ref using Gale Shapley """
     lib_py_gel.stable_marriage_registration(m.obj, m_ref.obj)
 
@@ -960,8 +960,8 @@ def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wt = 0.5, lap_wt = 1.0
     #     b_list.append(ref_pos[vid]*dist_wt)
     # Ai, bi = csc_matrix(np.array(A_list)), np.array(b_list)
     for _ in range(iter):
-        Ai, bi = inv_correspondence_leqs(m, ref_mesh)
-        lap_matrix = laplacian_matrix(m)
+        Ai, bi = _inv_correspondence_leqs(m, ref_mesh)
+        lap_matrix = _laplacian_matrix(m)
         lap_b = lap_matrix @ v_pos
         final_A = vstack([lap_wt*lap_matrix, Ai])
         final_b = np.vstack([0*lap_b, bi])

@@ -164,67 +164,6 @@ namespace GLGraphics {
             exit(0);
         }
 
-        void console_ridge_lines(MeshEditor* me, const std::vector<std::string> & args)
-        {
-            if(wantshelp(args)) {
-                me->printf("usage: ridge_lines");
-                return;
-            }
-            
-            me->save_active_mesh();
-            
-            Manifold& mani = me->active_mesh();
-            
-            VertexAttributeVector<Mat3x3d> curvature_tensors;
-            VertexAttributeVector<Vec3d> min_curv_direction;
-            VertexAttributeVector<Vec3d> max_curv_direction;
-            VertexAttributeVector<Vec2d> curvature;
-            
-            curvature_paraboloids(mani,
-                                  min_curv_direction,
-                                  max_curv_direction,
-                                  curvature);
-            
-            for(auto vid : mani.vertices())
-            {
-                Vec3d max_curv_dir = normalize(max_curv_direction[vid]);
-                Vec3d min_curv_dir = normalize(min_curv_direction[vid]);
-                double vid_min_pc = curvature[vid][0];
-                double vid_max_pc = curvature[vid][1];
-                bool ridge = true;
-                bool ravine = true;
-                Walker w = mani.walker(vid);
-                Vec3d r(0);
-                for(; !w.full_circle();w = w.circulate_vertex_ccw())
-                {
-                    Vec3d e = (mani.pos(w.vertex()) - mani.pos(vid));
-                    
-                    if(abs(dot(min_curv_dir,e)) > abs(dot(max_curv_dir,e)))
-                    {
-                        if(curvature[w.vertex()][0]<vid_min_pc+20)
-                            ravine = false;
-                        
-                    }
-                    else
-                    {
-                        if(curvature[w.vertex()][1]>vid_max_pc-20)
-                            ridge = false;
-                    }
-                }
-                DebugRenderer::vertex_colors[vid] = Vec3f(ridge,ravine,0.0);
-            }
-            for(auto fid : mani.faces())
-                DebugRenderer::face_colors[fid] = Vec3f(.3,.3,.6);
-            for(auto hid : mani.halfedges()) {
-                
-                Walker w = mani.walker(hid);
-                Vec3f c0 = DebugRenderer::vertex_colors[w.opp().vertex()];
-                Vec3f c1 = DebugRenderer::vertex_colors[w.vertex()];
-                
-                DebugRenderer::edge_colors[hid] = (c0==c1) ? c0 : Vec3f(0.1,0.1,0.3);
-                
-            }
-        }
 
         void transform_mesh(Manifold& mani, const Mat4x4d& m)
         {
@@ -2025,7 +1964,6 @@ namespace GLGraphics {
 
         register_console_function("help.controls", console_list_controls, "");
         register_console_function("simplify", console_simplify,"");
-        register_console_function("ridge_lines", console_ridge_lines,"");
         
         register_console_function("smooth.laplacian", console_laplacian_smooth,"");
         register_console_function("smooth.taubin", console_taubin_smooth,"");

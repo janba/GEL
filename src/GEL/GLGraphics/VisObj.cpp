@@ -207,11 +207,9 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
     
     else if(short_name == "cur"){
         static Console::variable<string> line_direction("max");
-        static Console::variable<string> method("tensors");
         static Console::variable<int> smoothing_iter(0);
         
         line_direction.reg(cs,"display.curvature_lines.direction", "");
-        method.reg(cs, "display.curvature_lines.method", "");
         smoothing_iter.reg(cs, "display.curvature_lines.smoothing_iter", "");
         
         VertexAttributeVector<Mat3x3d> curvature_tensors;
@@ -221,21 +219,12 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
         VertexAttributeVector<Vec3d>& lines = (_line_direction == "min") ? min_curv_direction : max_curv_direction;
         VertexAttributeVector<Vec2d> curvature;
         
-        if(string(method) == "tensors")
-        {
-            curvature_tensors_from_edges(mani, curvature_tensors);
+        curvature_tensors_from_edges(mani, curvature_tensors);
             
-            curvature_from_tensors(mani, curvature_tensors,
-                                   min_curv_direction,
-                                   max_curv_direction,
-                                   curvature);
-
-        }
-        else
-            curvature_paraboloids(mani,
-                                  min_curv_direction,
-                                  max_curv_direction,
-                                  curvature);
+        curvature_from_tensors(mani, curvature_tensors,
+            min_curv_direction,
+            max_curv_direction,
+            curvature);
 
         smooth_vectors_on_mesh(mani, lines, smoothing_iter);
 
@@ -246,7 +235,7 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
         static Console::variable<float> smoothing(2.0f);
         smoothing.reg(cs, "display.gaussian_curvature_renderer.smoothing", "");
         VertexAttributeVector<double> scalars(mani.allocated_vertices());
-        gaussian_curvature_angle_defects(mani, scalars, smoothing);
+        gaussian_curvature(mani, scalars, smoothing);
         auto stats = attribute_statistics(mani, scalars);
         auto [min_G, max_G] = stats.get_range();
         renderer = new ScalarFieldRenderer();
@@ -258,7 +247,7 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
         smoothing.reg(cs, "display.mean_curvature_renderer.smoothing", "");
         
         VertexAttributeVector<double> scalars(mani.allocated_vertices());
-        mean_curvatures(mani, scalars, smoothing);
+        mean_curvature(mani, scalars, smoothing);
         
         auto stats = attribute_statistics(mani, scalars);
         auto [min_G, max_G] = stats.get_range();
@@ -270,7 +259,7 @@ void VisObj::produce_renderer(const std::string& display_method , Console& cs, b
         smoothing.reg(cs, "display.ambient_occlusion_renderer.smoothing", "");
         
         VertexAttributeVector<double> scalars(mani.allocated_vertices());
-        mean_curvatures(mani, scalars, smoothing);
+        mean_curvature(mani, scalars, smoothing);
         double max_G = 0;
         
         for(VertexIDIterator v = mani.vertices_begin(); v != mani.vertices_end(); ++v)

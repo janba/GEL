@@ -99,54 +99,32 @@ namespace HMesh
         return barea;
     }
 
-    void unnormalized_mean_curvature_normal(const Manifold& m, VertexID v, Vec3d& curv_normal, double& w_sum)
-    {
-        if(boundary(m, v))
-            return;
-
-        Vec3d vertex(m.pos(v));
-        curv_normal = Vec3d(0);
-        w_sum = 0;
-        for(Walker walker = m.walker(v); !walker.full_circle(); walker = walker.circulate_vertex_ccw()){
-            Vec3d nbr(m.pos(walker.vertex()));
-            Vec3d left(m.pos(walker.next().vertex()));
-            Vec3d right(m.pos(walker.opp().next().vertex()));
-
-            double d_left = dot(cond_normalize(nbr-left),cond_normalize(vertex-left));
-            double d_right = dot(cond_normalize(nbr-right),cond_normalize(vertex-right));
-            double a_left  = acos(min(1.0, max(-1.0, d_left)));
-            double a_right = acos(min(1.0, max(-1.0, d_right)));
-
-//            double w = 1.0/(1e-300+tan(a_left));
-//            w += 1.0/(1e-300+tan(a_right));
-            double w = sin(a_left + a_right) / (1e-300 + sin(a_left)*sin(a_right));
-            
-//            double wl = dot(vertex-left, nbr-left)/length(cross(vertex-left, nbr-left));
-//            double wr = dot(vertex-right, nbr-right)/length(cross(vertex-right, nbr-right));
-//            double w = wl + wr;
-            curv_normal += w * (nbr-vertex);
-            w_sum += w;
-        }
-
-    }
 
     Vec3d mean_curvature_normal(const Manifold& m, VertexID v)
     {
-        Vec3d curv_normal;
-        double w_sum;
-        unnormalized_mean_curvature_normal(m, v, curv_normal, w_sum);
+        Vec3d curv_normal(0);
+        if(!boundary(m, v)) {
+            Vec3d vertex(m.pos(v));
+            for(Walker walker = m.walker(v); !walker.full_circle(); walker = walker.circulate_vertex_ccw()){
+                Vec3d nbr(m.pos(walker.vertex()));
+                Vec3d left(m.pos(walker.next().vertex()));
+                Vec3d right(m.pos(walker.opp().next().vertex()));
+                
+                double d_left = dot(cond_normalize(nbr-left),cond_normalize(vertex-left));
+                double d_right = dot(cond_normalize(nbr-right),cond_normalize(vertex-right));
+                double a_left  = acos(min(1.0, max(-1.0, d_left)));
+                double a_right = acos(min(1.0, max(-1.0, d_right)));
+                double w = sin(a_left + a_right) / (1e-300 + sin(a_left)*sin(a_right));
+                curv_normal += w * (nbr-vertex);
+            }
+        }
         return -curv_normal / (4.0*mixed_area(m, v));
     }
 
-    double sum_curvatures(const Manifold& m, VertexAttributeVector<double>& curvature)
+    double mean_curvature(const Manifold& m, VertexID v)
     {
-        double sum = 0;
-        for(auto v: m.vertices()){
-            if(boundary(m, v))
-                continue;	
-            sum += curvature[v] * mixed_area(m, v);
-        }
-        return sum;
+        Vec3d N = mean_curvature_normal(m, v);
+        return length(N) * sign(dot(N,Vec3d(normal(m, v))));
     }
 
     double angle_defect(const Manifold& m, VertexID v)
@@ -168,12 +146,11 @@ namespace HMesh
             std::max(-1.0, std::min(1.0, dot(edges[i],edges[(i+1)%N])));
             angle_sum += acos(dot_prod);
         }
-        return (2*M_PI - angle_sum);
-        
+        return (2*M_PI - angle_sum);        
     }
 
 
-    double gaussian_curvature_angle_defect(const Manifold& m, VertexID v)
+    double gaussian_curvature(const Manifold& m, VertexID v)
     {
         if(boundary(m, v))
             return 0;
@@ -193,7 +170,20 @@ namespace HMesh
             angle_sum += acos(dot_prod);
         }
         return (2*M_PI - angle_sum)/mixed_area(m, v);
+    }
 
+    void gaussian_curvature(const Manifold& m, VertexAttributeVector<double>& curvature, int smooth_steps)
+    {
+        for(auto v: m.vertices())
+            curvature[v] = gaussian_curvature(m, v);
+        smooth_something_on_mesh(m, curvature, smooth_steps);
+    }
+
+    void mean_curvature(const Manifold& m, VertexAttributeVector<double>& curvature, int smooth_steps)
+    {
+        for(auto v: m.vertices())
+            curvature[v] = mean_curvature(m, v);
+        smooth_something_on_mesh(m, curvature, smooth_steps);	
     }
 
     Mat3x3d curvature_tensor(const Manifold& m, HalfEdgeID h)
@@ -226,7 +216,7 @@ namespace HMesh
         if(boundary(m, v))
             return curv_tensor;
 
-        for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw())
+        for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()) 
             curv_tensor += 0.5*curvature_tensor(m, w.halfedge());
 
         curv_tensor /= mixed_area(m, v);
@@ -320,37 +310,6 @@ namespace HMesh
             }
         }
         curvature_tensors = std::move(tmp_curvature_tensors);
-    }
-
-    void gaussian_curvature_angle_defects(const Manifold& m, VertexAttributeVector<double>& curvature, int smooth_steps)
-    {
-        for(auto v: m.vertices())
-            curvature[v] = gaussian_curvature_angle_defect(m, v);
-
-        smooth_something_on_mesh(m, curvature, smooth_steps);
-    }
-
-    void mean_curvatures(const Manifold& m, VertexAttributeVector<double>& curvature, int smooth_steps)
-    {
-        for(auto v: m.vertices())
-			if(!boundary(m,v))
-			{
-				Vec3d N = -mean_curvature_normal(m, v);
-				curvature[v] = length(N) * sign(dot(N,Vec3d(normal(m, v))));
-			}	
-        smooth_something_on_mesh(m, curvature, smooth_steps);	
-    }
-
-
-    void curvature_paraboloids( const Manifold& m, 
-                                VertexAttributeVector<Vec3d>& min_curv_direction, 
-                                VertexAttributeVector<Vec3d>& max_curv_direction,
-                                VertexAttributeVector<Vec2d>& curvature)
-    {
-
-        for(auto v: m.vertices()){
-           
-        }
     }
 
 

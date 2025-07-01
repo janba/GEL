@@ -300,16 +300,19 @@ double length(const Manifold_ptr _m_ptr, size_t _h) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return length(*m_ptr,HalfEdgeID(_h));
 }
+
 bool boundary_edge(const Manifold_ptr _m_ptr, size_t _v, size_t _h) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     HalfEdgeID h = boundary_edge(*m_ptr, VertexID(_v));
     _h = h.get_index();
     return h != InvalidHalfEdgeID;
 }
+
 size_t valency(const Manifold_ptr _m_ptr, size_t _v) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return valency(*m_ptr, VertexID(_v));
 }
+
 void vertex_normal(const Manifold_ptr _m_ptr, size_t _v, double* _n) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     Vec3d& n = *reinterpret_cast<Vec3d*>(_n);
@@ -325,36 +328,38 @@ size_t no_edges(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return no_edges(*m_ptr,FaceID(_f));
 }
+
 void face_normal(const Manifold_ptr _m_ptr, size_t _f, double* _n) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     Vec3d& n = *reinterpret_cast<Vec3d*>(_n);
     n = normal(*m_ptr, FaceID(_f));
 }
+
 double area(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return area(*m_ptr,FaceID(_f));
 }
+
 double one_ring_area(const Manifold_ptr _m_ptr, size_t _v) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return one_ring_area(*m_ptr,VertexID(_v));
 }
+
 double mixed_area(const Manifold_ptr m_ptr, size_t _v){
     Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
     return mixed_area(*m, VertexID(_v));
 }
+
 double gaussian_curvature(const Manifold_ptr m_ptr, size_t _v){
     Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
-    return gaussian_curvature_angle_defect(*m, VertexID(_v));
+    return gaussian_curvature(*m, VertexID(_v));
 }
+
 double mean_curvature(const Manifold_ptr m_ptr, size_t _v){
     Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
-    Vec3d H = mean_curvature_normal(*m, VertexID(_v));
-    Vec3d n = normal(*m, VertexID(_v));
-    double mean_curvature = H.length();
-    if (dot(H, n) < 0)
-        mean_curvature = -mean_curvature;
-    return mean_curvature;
+    return mean_curvature(*m, VertexID(_v));
 }
+
 void principal_curvatures(const Manifold_ptr m_ptr, size_t _v, double* curv_info){
     Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
     PrincipalCurvatures pc = principal_curvatures(*m, VertexID(_v));
@@ -367,8 +372,6 @@ void principal_curvatures(const Manifold_ptr m_ptr, size_t _v, double* curv_info
     curv_info[6] = pc.max_curv_direction[1];
     curv_info[7] = pc.max_curv_direction[2];
 }
-
-
 
 double perimeter(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
