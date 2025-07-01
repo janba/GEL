@@ -18,11 +18,14 @@ namespace HMesh {
 
     template<typename  ITEM>
     class VertexCirculator {
-        const ConnectivityKernel* ck;
+        const ConnectivityKernel* ck = nullptr;
         HalfEdgeID he;
-        bool begun;
+        bool begun = false;
     public:
         using value_type = ItemID<ITEM>;
+        using difference_type = ptrdiff_t;
+
+        VertexCirculator() = default;
 
         VertexCirculator(const ConnectivityKernel& _ck, HalfEdgeID _he, bool _begun=false):
             ck(&_ck), he(_he), begun(_begun) {}
@@ -55,6 +58,7 @@ namespace HMesh {
             return false;
         }
     };
+    static_assert(std::input_iterator<VertexCirculator<Face>>);
 
     template<>
     inline VertexCirculator<Vertex>::value_type VertexCirculator<Vertex>::operator*() const {
@@ -80,6 +84,9 @@ namespace HMesh {
         bool begun;
     public:
         using value_type = ItemID<ITEM>;
+        using difference_type = ptrdiff_t;
+
+        FaceCirculator() = default;
 
         FaceCirculator(const ConnectivityKernel& _ck, HalfEdgeID _he, bool _begun=false):
             ck(&_ck), he(_he), begun(_begun) {}
@@ -112,6 +119,7 @@ namespace HMesh {
             return false;
         }
     };
+    static_assert(std::input_iterator<FaceCirculator<Face>>);
 
     template<>
     inline FaceCirculator<Vertex>::value_type FaceCirculator<Vertex>::operator*() const {
@@ -132,4 +140,4 @@ namespace HMesh {
 }
 
 
-#endif /* Circulator_h */
+#endif /* HMesh_Circulators_h */
