@@ -1030,7 +1030,88 @@ namespace HMesh
     /***************************************************
      * Namespace functions
      ***************************************************/
-        
+
+    VertexAttributeVector<size_t> build_manifold(
+        Manifold& manifold,
+        const std::span<Vec3d const> vertices, // need random access
+        const std::span<size_t const> face_indexes, // need linear access
+        const std::span<int const> face_vert_count
+        )
+    {
+        // perform bound checking in advance for bad inputs
+        const auto bound = vertices.size();
+        for (const auto index: face_indexes) {
+            // GEL_ASSERT(index < bound, "build_manifold called with out of bounds input");
+        }
+
+        VertexAttributeVector<size_t> cluster_id;
+        auto face_indexes_view = std::views::all(face_indexes);
+
+        size_t running_total = 0;
+        for (const int this_face_verts : face_vert_count) {
+            // we need to break early if face_vert_count is too long
+            if (running_total >= face_indexes.size())
+                break;
+
+            auto face_iter = face_indexes_view
+                | std::views::take(this_face_verts)
+                | std::views::transform([&](auto idx) { return vertices[idx]; });
+
+            const FaceID f = manifold.add_face(face_iter);
+
+            circulate_face_ccw(manifold, f, [&](VertexID v){
+                cluster_id[v] = face_indexes_view.front();
+                face_indexes_view = face_indexes_view | std::views::drop(1);
+            });
+
+            running_total += this_face_verts;
+        }
+
+        [[maybe_unused]] auto failed = stitch_mesh(manifold, cluster_id);
+        // std::cerr << "unable to stitch: " << failed << "\n";
+        IDRemap remap;
+        manifold.cleanup(remap);
+        cluster_id.cleanup(remap.vmap);
+        return cluster_id;
+    }
+
+    VertexAttributeVector<size_t> build_manifold(
+        Manifold& manifold,
+        const std::span<Vec3d const> vertices, // need random access
+        const std::span<size_t const> face_indexes, // need linear access
+        const int face_vert_count // FIXME: C++23 adds ranges::repeat_view which means this overload can be removed with a template
+        )
+    {
+        // perform bound checking in advance for bad inputs
+        const auto bound = vertices.size();
+        for (const auto index: face_indexes) {
+            // GEL_ASSERT(index < bound, "build_manifold called with out of bounds input");
+        }
+
+        VertexAttributeVector<size_t> cluster_id;
+        auto face_indexes_view = std::views::all(face_indexes);
+
+        for (size_t running_total = 0; running_total < face_indexes.size(); running_total += face_vert_count) {
+            auto face_iter = face_indexes_view
+                | std::views::take(face_vert_count)
+                | std::views::transform([&](auto idx) { return vertices[idx]; });
+
+            const FaceID f = manifold.add_face(face_iter);
+
+            circulate_face_ccw(manifold, f, [&](VertexID v){
+                cluster_id[v] = face_indexes_view.front();
+                face_indexes_view = face_indexes_view | std::views::drop(1);
+            });
+        }
+
+        [[maybe_unused]] auto failed = stitch_mesh(manifold, cluster_id);
+        // std::cerr << "unable to stitch: " << failed << "\n";
+        IDRemap remap;
+        manifold.cleanup(remap);
+        cluster_id.cleanup(remap.vmap);
+        return cluster_id;
+    }
+
     template<typename size_type, typename float_type, typename int_type>
     VertexAttributeVector<int_type> build_template(Manifold& m, size_type no_vertices,
                                   const float_type* vertvec,

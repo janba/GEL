@@ -651,7 +651,37 @@ namespace HMesh
     }
 
     // End of inline functions for the Manifold class  ---------------------------------
-    
+
+    /// @brief Build a manifold
+    /// @details Constructs a manifold from the given vertex and index spans. Returns a mapping from the manifold
+    /// indices to the original vertex indices.
+    /// If the provided input is not manifold, there will be failures during the stitching process.
+    /// @throws std::runtime_error If an entry in face_indexes is out of bounds.
+    /// @param manifold Manifold to build.
+    /// @param vertices A span of vertex coordinates.
+    /// @param face_indexes A span of vertex indexes for the faces in the manifold.
+    /// @param face_vert_count How many vertices each face contains. The sum of this span should be equal to the size of
+    /// face_indexes
+    /// @return Attribute vector containing a mapping from the manifold VertexIDs to original point indices
+    // TODO: should also return the number of failed stitches
+    VertexAttributeVector<size_t> build_manifold(Manifold& manifold, std::span<CGLA::Vec3d const> vertices,
+                                                 std::span<size_t const> face_indexes,
+                                                 std::span<int const> face_vert_count);
+
+    /// @brief Build a manifold where every face has the same number of vertices.
+    /// @details Constructs a manifold from the given vertex and index spans. Returns a mapping from the manifold
+    /// indices to the original vertex indices.
+    /// If the provided input is not manifold, there will be failures during the stitching process.
+    /// @throws std::runtime_error If an entry in face_indexes is out of bounds.
+    /// @param manifold manifold to build.
+    /// @param vertices a span of vertex coordinates.
+    /// @param face_indexes a span of vertex indices for the ngons in the manifold.
+    /// @param face_vert_count the number of vertices for every face.
+    /// @return Attribute vector containing a mapping from the manifold VertexIDs to original point indices
+    VertexAttributeVector<size_t> build_manifold(Manifold& manifold, std::span<CGLA::Vec3d const> vertices,
+        std::span<size_t const> face_indexes,
+        int face_vert_count);
+
     /** \brief Build a manifold.
      The arguments are the number of vertices (no_vertices),  the vector of vertices (vertvec),
      the number of faces (no_faces), a pointer to an array of float values (vert_vec) and an array
