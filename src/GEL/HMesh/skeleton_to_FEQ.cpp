@@ -602,22 +602,20 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(const HMesh::Manifold& m, F
     
     int count = 0;
     
-    circulate_face_ccw(m, f0, std::function<void(VertexID)>([&](VertexID v){
+    circulate_face_ccw(m, f0, [&](VertexID v) {
         loop0.push_back(v);
-        if(v == face_vertex_0)
-            loop0_index = count;
+        if (v == face_vertex_0) loop0_index = count;
         count++;
-    }) );
+    });
     
     vector<VertexID> loop1;
     count = 0;
     
-    circulate_face_ccw(m, f1, std::function<void(VertexID)>( [&](VertexID v) {
+    circulate_face_ccw(m, f1, [&](VertexID v) {
         loop1.push_back(v);
-        if(v == face_vertex_1)
-            loop1_index = count;
+        if (v == face_vertex_1) loop1_index = count;
         count++;
-    }) );
+    });
     
     size_t L0= loop0.size();
     size_t L1= loop1.size();
