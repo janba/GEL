@@ -102,7 +102,7 @@ void quad_mesh_leaves(HMesh::Manifold& m, VertexAttributeVector<NodeID>& vertex2
 
 vector<FaceID> create_face_pair(Manifold& m, const Vec3d& pos, const Mat3x3d& _R, int axis,
                                 Face2VertexMap& one_ring_face_vertex) {
-    int num_sides = 8;
+    constexpr int num_sides = 8;
     Mat3x3d R = _R;
     double det = determinant(R);
     if(abs(det) > 1e-6)
@@ -112,8 +112,8 @@ vector<FaceID> create_face_pair(Manifold& m, const Vec3d& pos, const Mat3x3d& _R
             R = R * M;
         }
 
-    vector<FaceID> fvec;
-    vector<Vec3d> pts;
+    std::vector<FaceID> fvec;
+    std::array<Vec3d, num_sides> pts;
     double angle = 0.0;
     for(int i = 0; i < num_sides; i++)
     {
@@ -123,10 +123,10 @@ vector<FaceID> create_face_pair(Manifold& m, const Vec3d& pos, const Mat3x3d& _R
         p[(0+axis)%3] += _p[0];
         p[(1+axis)%3] += _p[1];
         p[(2+axis)%3] += _p[2];
-        pts.push_back(R*p+pos);
+        pts[i] = R*p+pos;
     }
     fvec.push_back(m.add_face(pts));
-    reverse(begin(pts), end(pts));
+    std::ranges::reverse(pts);
     fvec.push_back(m.add_face(pts));
 
     for (auto f: fvec) 
@@ -456,10 +456,10 @@ construct_bnps(const Geometry::AMGraph3D &g,
             VertexAttributeVector<int> vertexid2spts;
             for (auto tri : stris)
             {
-                vector<Vec3d> triangle_pts;
-                for (int i = 0; i < 3; ++i)
+                std::array<Vec3d, 3> triangle_pts;
+                for (int i = 0; i < triangle_pts.size(); ++i)
                 {
-                    triangle_pts.push_back(spts[tri[i]]);
+                    triangle_pts[i] = spts[tri[i]];
                 }
                 FaceID f = m.add_face(triangle_pts);
                 int i=0;

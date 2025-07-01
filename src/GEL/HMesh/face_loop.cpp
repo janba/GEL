@@ -14,11 +14,9 @@
 //#include "LogMap.h"
 #include <GEL/CGLA/CGLA.h>
 #include <GEL/GLGraphics/ManifoldRenderer.h>
-#include <GEL/Geometry/RGrid.h>
 #include <GEL/Geometry/GridAlgorithm.h>
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/HMesh/HMesh.h>
-#include <GEL/Geometry/build_bbtree.h>
 #include <GEL/Util/Range.h>
 
 using namespace Util;
@@ -351,12 +349,13 @@ FaceSet extrude_along_edge_loop(Manifold& m, const HalfEdgeSet& hset)
         assign_cluster_id(w1.opp().vertex());
         assign_cluster_id(w2.vertex());
         assign_cluster_id(w2.opp().vertex());
-        
-        vector<Vec3d> pts(4);
-        pts[0] = m.pos(w1.vertex());
-        pts[1] = m.pos(w1.opp().vertex());
-        pts[2] = m.pos(w2.vertex());
-        pts[3] = m.pos(w2.opp().vertex());
+
+        auto&& pts = {
+            m.pos(w1.vertex()),
+            m.pos(w1.opp().vertex()),
+            m.pos(w2.vertex()),
+            m.pos(w2.opp().vertex())
+        };
         
         FaceID f = m.add_face(pts);
         new_faces.insert(f);
@@ -449,11 +448,12 @@ FaceSet extrude_halfedge_set(Manifold& m, HalfEdgeSet& halfedge_set)
         assign_cluster_id(w2.vertex());
         assign_cluster_id(w2.opp().vertex());
         
-        vector<Vec3d> ptsa(4);
-        ptsa[0] = m.pos(w1.vertex());
-        ptsa[1] = m.pos(w1.opp().vertex());
-        ptsa[2] = m.pos(w1.opp().vertex());
-        ptsa[3] = m.pos(w1.vertex());
+        auto&& ptsa = {
+            m.pos(w1.vertex()),
+            m.pos(w1.opp().vertex()),
+            m.pos(w1.opp().vertex()),
+            m.pos(w1.vertex())
+        };
         
         FaceID fa = m.add_face(ptsa);
         Walker wa = m.walker(fa);
@@ -470,11 +470,13 @@ FaceSet extrude_halfedge_set(Manifold& m, HalfEdgeSet& halfedge_set)
         new_verts.insert(wa.vertex());
         cluster_id[wa.vertex()] = orig_id[w1.vertex()];
         
-        vector<Vec3d> ptsb(4);
-        ptsa[0] = m.pos(w2.opp().vertex());
-        ptsa[1] = m.pos(w2.vertex());
-        ptsa[2] = m.pos(w2.vertex());
-        ptsa[3] = m.pos(w2.opp().vertex());
+        auto&& ptsb =
+        {
+            m.pos(w2.opp().vertex()),
+            m.pos(w2.vertex()),
+            m.pos(w2.vertex()),
+            m.pos(w2.opp().vertex())
+        };
         
         FaceID fb = m.add_face(ptsb);
         Walker wb = m.walker(fb);
@@ -521,7 +523,7 @@ FaceSet extrude_halfedge_set(Manifold& m, HalfEdgeSet& halfedge_set)
 vector<FaceID> create_box(Manifold& m, const Vec3d& pos, const Mat3x3d& _R, double sz)
 {
     double h = 0.5;
-    Vec3d face_points[] = {Vec3d(0,-h,-h),Vec3d(0,h,-h),Vec3d(0,h,h),Vec3d(0,-h,h)};
+    const auto face_points = std::array<Vec3d const, 4> {Vec3d(0,-h,-h),Vec3d(0,h,-h),Vec3d(0,h,h),Vec3d(0,-h,h)};
     
     Mat3x3d R = _R;
     double det = determinant(R);
@@ -535,15 +537,15 @@ vector<FaceID> create_box(Manifold& m, const Vec3d& pos, const Mat3x3d& _R, doub
     vector<FaceID> fvec;
     for(int axis : {0,1,2})
         for(int sgn : {-1,1}) {
-            vector<Vec3d> pts;
-            for(auto _p: face_points)
-            {
-                Vec3d p(0);
-                p[(0+axis)%3] += _p[0] + h * sgn;
-                p[(1+axis)%3] += sgn * _p[1];
-                p[(2+axis)%3] += _p[2];
-                pts.push_back((R*(p*sz))+pos);
-            }
+            // maybe better to just use a simple array here?
+            auto pts = std::views::all(face_points) |
+                std::views::transform([&](Vec3d _p) {
+                    Vec3d p(0);
+                    p[(0+axis)%3] += _p[0] + h * sgn;
+                    p[(1+axis)%3] += sgn * _p[1];
+                    p[(2+axis)%3] += _p[2];
+                    return (R*(p*sz))+pos;
+                });
             fvec.push_back(m.add_face(pts));
         }
     return fvec;
