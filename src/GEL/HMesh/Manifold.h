@@ -309,9 +309,27 @@ namespace HMesh
         VertexID split_face_by_vertex(FaceID f);
        // VertexID split_face_by_vertex(HalfEdgeID h);
 
-        /** \brief Insert a new vertex on halfedge h.
-        The new halfedge is insterted as the previous edge to h.
-        A handle to the inserted vertex is returned. */
+        /// @brief Insert a new vertex on halfedge h.
+        ///
+        /// The new halfedge is inserted as the previous edge to h. (???)
+        /// A handle to the inserted vertex is returned.
+        ///
+        /// This is an Euler operation.
+        ///
+        /// We start with the following situation:
+        ///
+        /// v <- he ->                               <- heo -> vo
+        ///
+        /// We add a vertex in the middle:
+        ///
+        ///  v <- he ->               vn              <- heo -> vo
+        ///
+        /// Then we add two half edges from the vertex:
+        ///
+        ///  (v <- he ->) (<- heno -> vn <- hen ->)  (<- heo -> vo)
+        ///
+        ///  And then we add the new half-edges to existing faces.
+        ///  @return vertex introduced as a result of the edge splitting
         VertexID split_edge(HalfEdgeID h);
         
         /** \brief Stitch two halfedges.
