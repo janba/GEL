@@ -25,7 +25,7 @@ GEL_WIN/Release/*
 # buildsystem files
 .idea/
 build/
-cmake-build-debug/
+cmake-build-*/
 GEL_UNIX/.deps
 GEL_UNIX/fabricate.pyc
 
@@ -36,6 +36,7 @@ doc/intro.out
 doc/intro.pdf
 doc/intro.synctex.gz
 doc/intro.toc
+doc/html/
 
 # scikit-build files
 _skbuild/
