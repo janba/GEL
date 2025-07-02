@@ -161,11 +161,10 @@ size_t Manifold_circulate_face(Manifold_ptr _self, size_t _f, char mode, IntVect
 size_t Manifold_add_face(Manifold_ptr _self, size_t no_verts, double* pos) {
     Manifold* self = reinterpret_cast<Manifold*>(_self);
 
-    vector<Vec3d> pts(no_verts);
-    for(size_t i=0;i<no_verts;++i) {
-        auto v = Vec3d(pos[3*i],pos[3*i+1],pos[3*i+2]);
-        pts[i] = v;
-    }
+    auto pts = std::views::iota(0UL, no_verts) |
+        std::views::transform([pos](size_t i) {
+            return Vec3d(pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]);
+        });
     FaceID f = self->add_face(pts);
     return f.get_index();
 }

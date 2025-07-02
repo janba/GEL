@@ -7,6 +7,7 @@
 #include <iostream>
 #include <vector>
 #include <map>
+#include <ranges>
 #include <stack>
 
 #include <GEL/Geometry/TriMesh.h>
@@ -24,54 +25,7 @@ namespace HMesh
     /*********************************************
 	 * Public functions
 	 *********************************************/
-    
-    FaceID Manifold::add_face(const std::vector<Manifold::Vec>& points)
-    {
-        struct Edge
-        {
-            HalfEdgeID h0 = InvalidHalfEdgeID;
-            HalfEdgeID h1 = InvalidHalfEdgeID;
-            int count;
-        };
 
-        int N = points.size();
-        vector<VertexID> vertices(N);
-        for(size_t i=0;i<points.size(); ++i) {
-            vertices[i]=kernel.add_vertex();
-            pos(vertices[i]) = points[i];
-        }
-        vector<Edge> edges(N);
-        for(size_t i=0;i<N; ++i) {
-            VertexID v0 = vertices[i];
-            VertexID v1 = vertices[(i+1)%points.size()];
-
-            Edge& e = edges[i];
-            e.h0 = kernel.add_halfedge();
-            e.h1 = kernel.add_halfedge();
-            e.count = 1;
-            
-            // glue operation: 1 edge = 2 glued halfedges
-            glue(e.h0, e.h1);
-            
-            // update halfedges with the vertices they point to
-            kernel.set_vert(e.h0, v1);
-            kernel.set_vert(e.h1, v0);
-
-            kernel.set_out(vertices[(i+1)%N], edges[i].h1);
-        }
-
-        FaceID fid = kernel.add_face();
-        for(size_t i=0;i<N; ++i) {
-            kernel.set_face(edges[i].h0, fid);
-            kernel.set_face(edges[i].h1, InvalidFaceID);
-            link(edges[i].h0,edges[(i+1)%N].h0);
-            link(edges[(i+1)%N].h1,edges[i].h1);
-        }
-        kernel.set_last(fid, edges[N-1].h0);
-        
-        return fid;
-    }
-    
     bool Manifold::remove_face(FaceID fid)
     {
         if(!in_use(fid))
@@ -145,10 +99,10 @@ namespace HMesh
             return false;
     
         vector<FaceID> faces;
-        circulate_vertex_ccw(*this, vid, static_cast<std::function<void(FaceID)>>([&](FaceID f) {
+        circulate_vertex_ccw(*this, vid, [&](FaceID f) {
             if(in_use(f))
                 faces.push_back(f);
-        }));
+        });
         for(auto f: faces)
             remove_face(f);
 
@@ -387,15 +341,15 @@ namespace HMesh
     {
         // get the one-ring of v0
         vector<VertexID> link0;
-        circulate_vertex_ccw(m, v0, static_cast<std::function<void(VertexID)>>([&](VertexID vn) {
+        circulate_vertex_ccw(m, v0, [&](VertexID vn) {
             link0.emplace_back(vn);
-        }));
+        });
 		
         // get the one-ring of v1
         vector<VertexID> link1;
-        circulate_vertex_ccw(m, v1, static_cast<std::function<void(VertexID)>>([&](VertexID vn) {
+        circulate_vertex_ccw(m, v1, [&](VertexID vn) {
             link1.emplace_back(vn);
-        }));
+        });
 		
         // sort the vertices of the two rings
         sort(link0.begin(), link0.end());
@@ -461,14 +415,14 @@ namespace HMesh
             }
 
             if(v0b != v0a)
-                circulate_vertex_ccw(*this, v0b, static_cast<std::function<void(Walker&)>>([&](Walker& hew) {
+                circulate_vertex_ccw(*this, v0b, [&](Walker& hew) {
                     kernel.set_vert(hew.opp().halfedge(), v0a);
-                }));
+                });
             
             if(v1b != v1a)
-                circulate_vertex_ccw(*this, v1b, static_cast<std::function<void(Walker&)>>([&](Walker& hew) {
+                circulate_vertex_ccw(*this, v1b, [&](Walker& hew) {
                     kernel.set_vert(hew.opp().halfedge(), v1a);
-                }));
+                });
             
             if(v0a != v0b)
             {
@@ -1076,7 +1030,88 @@ namespace HMesh
     /***************************************************
      * Namespace functions
      ***************************************************/
-        
+
+    VertexAttributeVector<size_t> build_manifold(
+        Manifold& manifold,
+        const std::span<Vec3d const> vertices, // need random access
+        const std::span<size_t const> face_indexes, // need linear access
+        const std::span<int const> face_vert_count
+        )
+    {
+        // perform bound checking in advance for bad inputs
+        const auto bound = vertices.size();
+        for (const auto index: face_indexes) {
+            // GEL_ASSERT(index < bound, "build_manifold called with out of bounds input");
+        }
+
+        VertexAttributeVector<size_t> cluster_id;
+        auto face_indexes_view = std::views::all(face_indexes);
+
+        size_t running_total = 0;
+        for (const int this_face_verts : face_vert_count) {
+            // we need to break early if face_vert_count is too long
+            if (running_total >= face_indexes.size())
+                break;
+
+            auto face_iter = face_indexes_view
+                | std::views::take(this_face_verts)
+                | std::views::transform([&](auto idx) { return vertices[idx]; });
+
+            const FaceID f = manifold.add_face(face_iter);
+
+            circulate_face_ccw(manifold, f, [&](VertexID v){
+                cluster_id[v] = face_indexes_view.front();
+                face_indexes_view = face_indexes_view | std::views::drop(1);
+            });
+
+            running_total += this_face_verts;
+        }
+
+        [[maybe_unused]] auto failed = stitch_mesh(manifold, cluster_id);
+        // std::cerr << "unable to stitch: " << failed << "\n";
+        IDRemap remap;
+        manifold.cleanup(remap);
+        cluster_id.cleanup(remap.vmap);
+        return cluster_id;
+    }
+
+    VertexAttributeVector<size_t> build_manifold(
+        Manifold& manifold,
+        const std::span<Vec3d const> vertices, // need random access
+        const std::span<size_t const> face_indexes, // need linear access
+        const int face_vert_count // FIXME: C++23 adds ranges::repeat_view which means this overload can be removed with a template
+        )
+    {
+        // perform bound checking in advance for bad inputs
+        const auto bound = vertices.size();
+        for (const auto index: face_indexes) {
+            // GEL_ASSERT(index < bound, "build_manifold called with out of bounds input");
+        }
+
+        VertexAttributeVector<size_t> cluster_id;
+        auto face_indexes_view = std::views::all(face_indexes);
+
+        for (size_t running_total = 0; running_total < face_indexes.size(); running_total += face_vert_count) {
+            auto face_iter = face_indexes_view
+                | std::views::take(face_vert_count)
+                | std::views::transform([&](auto idx) { return vertices[idx]; });
+
+            const FaceID f = manifold.add_face(face_iter);
+
+            circulate_face_ccw(manifold, f, [&](VertexID v){
+                cluster_id[v] = face_indexes_view.front();
+                face_indexes_view = face_indexes_view | std::views::drop(1);
+            });
+        }
+
+        [[maybe_unused]] auto failed = stitch_mesh(manifold, cluster_id);
+        // std::cerr << "unable to stitch: " << failed << "\n";
+        IDRemap remap;
+        manifold.cleanup(remap);
+        cluster_id.cleanup(remap.vmap);
+        return cluster_id;
+    }
+
     template<typename size_type, typename float_type, typename int_type>
     VertexAttributeVector<int_type> build_template(Manifold& m, size_type no_vertices,
                                   const float_type* vertvec,
@@ -1488,27 +1523,27 @@ namespace HMesh
     
     Manifold::Vec Manifold::area_normal(FaceID f) const
     {
-        vector<Vec> v;
+        std::vector<Manifold::Vec> vertices;
         Vec c(0.0);
-        int k= circulate_face_ccw(*this, f, static_cast<std::function<void(VertexID)>>([&](VertexID vid) {
+        int k = circulate_face_ccw(*this, f, [&](VertexID vid) {
             Vec p = positions[vid];
             c += p;
-            v.push_back(p);
-        }));
+            vertices.push_back(p);
+        });
         c /= k;
         Manifold::Vec norm(0);
         for(int i=0;i<k;++i)
-            norm += cross(v[i]-c,v[(i+1)%k]-c);
+            norm += cross(vertices[i]-c,vertices[(i+1)%k]-c);
         return 0.5 * norm;
     }
     
     double Manifold::area(FaceID fid) const
     {
         // Get all projected vertices
-        vector<Manifold::Vec> vertices;
-        int N = circulate_face_ccw(*this, fid, static_cast<std::function<void(VertexID)>>([&](VertexID vid) {
+        std::vector<Manifold::Vec> vertices;
+        int N = circulate_face_ccw(*this, fid, [&](VertexID vid) {
             vertices.push_back(positions[vid]);
-        }));
+        });
         
         double area = 0;
         Manifold::Vec norm = normal(fid);
