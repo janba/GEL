@@ -816,6 +816,7 @@ void minimum_spanning_tree(const SimpGraph& g, NodeID root,
         gn.add_node(vertices[n], normals[n]);
 
     Util::AttribVec<NodeID, unsigned char> in_tree(gn.no_nodes(), false);
+    in_tree[root] = True;
 
     std::priority_queue<QElem> Q;
     for (auto n : g.neighbors(root)) {
@@ -862,6 +863,7 @@ void minimum_spanning_tree(const SimpGraph& g, NodeID root, SimpGraph& gn) {
         gn.add_node();
 
     Util::AttribVec<NodeID, unsigned char> in_tree(gn.no_nodes(), false);
+    in_tree[root] = true;
 
     std::priority_queue<QElem> Q;
     for (auto n : g.neighbors(root)) {
