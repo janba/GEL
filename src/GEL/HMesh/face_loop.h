@@ -10,7 +10,7 @@
 #define face_loop_hmesh
 
 #include <GEL/CGLA/CGLA.h>
-#include <GEL/HMesh/HMesh.h>
+#include <GEL/HMesh/Manifold.h>
 #include <GEL/Geometry/Graph.h>
 
 /** FaceLoop data structure. The face loop is represented in terms of halfedges which separate the faces of the loop.

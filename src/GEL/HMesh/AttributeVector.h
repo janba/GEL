@@ -13,11 +13,8 @@
 #ifndef __HMESH_ATTRIBUTEVECTOR_H__
 #define __HMESH_ATTRIBUTEVECTOR_H__
 
-#include <cassert>
-#include <vector>
-#include <map>
+#include <GEL/HMesh/ConnectivityKernel.h>
 #include <GEL/Util/AttribVec.h>
-#include <GEL/Util/Serialization.h>
 
 namespace HMesh 
 {

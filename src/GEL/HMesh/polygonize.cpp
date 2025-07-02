@@ -68,7 +68,7 @@ namespace  HMesh {
                             t = (tau-va)/(vb - va);
                         }
                         edge_intersections.push_back(p * (1-t) + Vec3d(pni) * t);
-                        vector<Vec3d> quad_vertices(4);
+                        std::array<Vec3d, 4> quad_vertices;
                         for(int n=0;n<4;++n)
                             quad_vertices[n] = p + hex_faces[nbr_idx][3-n];
                         mani.add_face(quad_vertices);

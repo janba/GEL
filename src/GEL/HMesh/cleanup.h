@@ -5,12 +5,12 @@
  * ----------------------------------------------------------------------- */
 
 /**
- * @file caps_and_needles.h
+ * @file cleanup.h
  * @brief Simple tools for improving polygonal meshes by removing bad triangles.
  */
 
-#ifndef __HMESH_CAPS_AND_NEEDLES_H__
-#define __HMESH_CAPS_AND_NEEDLES_H__
+#ifndef HMESH_CLEANUP_H
+#define HMESH_CLEANUP_H
 
 namespace HMesh
 {
@@ -26,15 +26,16 @@ namespace HMesh
     /** \brief Remove needles from a manifold consisting of only triangles.
     A needle is a triangle with a single very short edge. It is moved by collapsing the short edge. 
     The thresh parameter sets the length threshold as a fraction of the average edge length.		 */
-    void remove_needles(Manifold& m, float thresh=0.1f, bool averagePositions = true);
-    
-    /** \brief Stitch together edges whose endpoints coincide geometrically. 
+    void remove_needles(Manifold& m, float thresh = 0.1f, bool averagePositions = true);
+
+    /** \brief Stitch together edges whose endpoints coincide geometrically.
      This function allows you to create a mesh as a bunch of faces and then stitch these together
      to form a coherent whole. What this function adds is a spatial data structure to find out
      which vertices coincide. The return value is the number of edges that could not be stitched. 
      Often this is because it would introduce a non-manifold situation.*/
     int stitch_mesh(Manifold& m, double rad);
-    int stitch_mesh(Manifold& m, const VertexAttributeVector<int>& cluster_id);
+
+    template<typename Integral> Integral stitch_mesh(Manifold& m, const VertexAttributeVector<Integral>& cluster_id);
 
     /** \brief Stitches the mesh together, splits edges that could not be stitched and goes again.
      This function thereby handles situations where stitch mesh would not have worked. */
@@ -51,14 +52,14 @@ namespace HMesh
     void flip_orientation(Manifold& m);
     
     /** Remove valence one vertices. */
-    void remove_valence_one_vertices(Manifold & m);
+    void remove_valence_one_vertices(Manifold& m);
 
     /** Remove valence two vertices. */
-    void remove_valence_two_vertices(Manifold & m);
+    void remove_valence_two_vertices(Manifold& m);
 
     /** This function merges pairs of boundary vertices, provided there are exactly two such vertices
      at a given point in space, that they are not in each others' one ring and  that the one rings are disjoint. */
-    void merge_coincident_boundary_vertices(Manifold& m, double rad=1e-30);
-}
+    void merge_coincident_boundary_vertices(Manifold& m, double rad = 1e-30);
+} // namespace HMesh
 
 #endif

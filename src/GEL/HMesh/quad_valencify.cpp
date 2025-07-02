@@ -536,10 +536,10 @@ void quad_valencify_cc(HMesh::Manifold& m_orig,
     
     Manifold m_dual;
     for (auto v: m.vertices()) {
-        vector<Vec3d> pos;
-        for (auto fn: m.incident_faces(v)) {
-            pos.push_back(centre(m,fn));
-        }
+        // add_face cannot be called with owned views
+        auto incident = m.incident_faces(v);
+        auto pos = std::views::all(incident)
+        | std::views::transform([&m](FaceID fn) { return centre(m, fn); });
         m_dual.add_face(pos);
     }
     stitch_mesh(m_dual,1e-10);
