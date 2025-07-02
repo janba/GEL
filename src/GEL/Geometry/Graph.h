@@ -111,11 +111,13 @@ namespace Geometry {
          were not valid or the edge already existed. */
         EdgeID connect_nodes(NodeID n0, NodeID n1)
         {
-            if(valid_node_id(n0) && valid_node_id(n1) &&
-               find_edge(n0, n1) == InvalidEdgeID) {
-                size_t id = no_edges_created++;
-                edge_map[n0][n1] = id;
-                edge_map[n1][n0] = id;
+            if(valid_node_id(n0) && valid_node_id(n1)) {
+                size_t id = find_edge(n0, n1);
+                if (id == InvalidEdgeID) {
+                    id = no_edges_created++;
+                    edge_map[n0][n1] = id;
+                    edge_map[n1][n0] = id;
+                }
                 return id;
             }
             return InvalidEdgeID;

@@ -24,7 +24,7 @@ def smooth_vector_field(m: hmesh.Manifold, data, niter=10):
         data = data_new
     return data
 
-fn = "../../../data/Solids/sphere.obj" if len(argv) < 2 else argv[1]
+fn = "../../../data/Solids/torus.obj" if len(argv) < 2 else argv[1]
 m = hmesh.load(fn)
 hmesh.triangulate(m)
 

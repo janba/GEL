@@ -81,8 +81,9 @@ public:
     Util::AttribVec<AMGraph::EdgeID, Edge> m_edges;
 
     EdgeID connect_nodes(NodeID source, NodeID target, float weight = 0.) {
-
+        // std::cout << __FILE__ << " " << __LINE__ << " " << source << " " << target << std::endl;
         EdgeID id = AMGraph::connect_nodes(source, target);
+        // std::cout << __FILE__ << " " << __LINE__ << " " << id << std::endl;        
         m_edges[id].weight = weight;
         return id;
     }
