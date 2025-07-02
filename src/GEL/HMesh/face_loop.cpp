@@ -471,10 +471,10 @@ FaceSet extrude_halfedge_set(Manifold& m, HalfEdgeSet& halfedge_set)
         cluster_id[wa.vertex()] = orig_id[w1.vertex()];
         
         vector<Vec3d> ptsb(4);
-        ptsa[0] = m.pos(w2.opp().vertex());
-        ptsa[1] = m.pos(w2.vertex());
-        ptsa[2] = m.pos(w2.vertex());
-        ptsa[3] = m.pos(w2.opp().vertex());
+        ptsb[0] = m.pos(w2.opp().vertex());
+        ptsb[1] = m.pos(w2.vertex());
+        ptsb[2] = m.pos(w2.vertex());
+        ptsb[3] = m.pos(w2.opp().vertex());
         
         FaceID fb = m.add_face(ptsb);
         Walker wb = m.walker(fb);
@@ -495,7 +495,7 @@ FaceSet extrude_halfedge_set(Manifold& m, HalfEdgeSet& halfedge_set)
     // Stitch
     stitch_mesh(m, cluster_id);
     
-    for (int iter=0;iter<2;++iter) {
+    for (int iter=0;iter<1;++iter) {
         VertexAttributeVector<Vec3d> new_pos;
         for(auto v: new_verts)
             if(m.in_use(v))

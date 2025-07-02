@@ -40,7 +40,6 @@
 		0D52EB76197D18C1002C7150 /* load_raw.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EACA197D18C1002C7150 /* load_raw.cpp */; };
 		0D52EB77197D18C1002C7150 /* Neighbours.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EACD197D18C1002C7150 /* Neighbours.cpp */; };
 		0D52EB78197D18C1002C7150 /* OBox.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EAD0197D18C1002C7150 /* OBox.cpp */; };
-		0D52EB79197D18C1002C7150 /* Polygonizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EAD3197D18C1002C7150 /* Polygonizer.cpp */; };
 		0D52EB7A197D18C1002C7150 /* QEM.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EAD5197D18C1002C7150 /* QEM.cpp */; };
 		0D52EB7B197D18C1002C7150 /* rply.c in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EAD9197D18C1002C7150 /* rply.c */; };
 		0D52EB7C197D18C1002C7150 /* rply_load.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EADB197D18C1002C7150 /* rply_load.cpp */; };
@@ -159,7 +158,6 @@
 		0D52EC05197D1DB9002C7150 /* obj_load.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EACF197D18C1002C7150 /* obj_load.h */; };
 		0D52EC06197D1DB9002C7150 /* OBox.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAD1197D18C1002C7150 /* OBox.h */; };
 		0D52EC07197D1DB9002C7150 /* ply_load.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAD2197D18C1002C7150 /* ply_load.h */; };
-		0D52EC08197D1DB9002C7150 /* Polygonizer.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAD4197D18C1002C7150 /* Polygonizer.h */; };
 		0D52EC09197D1DB9002C7150 /* QEM.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAD6197D18C1002C7150 /* QEM.h */; };
 		0D52EC0A197D1DB9002C7150 /* Ray.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAD7197D18C1002C7150 /* Ray.h */; };
 		0D52EC0B197D1DB9002C7150 /* RGrid.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D52EAD8197D18C1002C7150 /* RGrid.h */; };
@@ -357,7 +355,6 @@
 				0D52EC05197D1DB9002C7150 /* obj_load.h in CopyFiles */,
 				0D52EC06197D1DB9002C7150 /* OBox.h in CopyFiles */,
 				0D52EC07197D1DB9002C7150 /* ply_load.h in CopyFiles */,
-				0D52EC08197D1DB9002C7150 /* Polygonizer.h in CopyFiles */,
 				0D52EC09197D1DB9002C7150 /* QEM.h in CopyFiles */,
 				0D52EC0A197D1DB9002C7150 /* Ray.h in CopyFiles */,
 				0D52EC0B197D1DB9002C7150 /* RGrid.h in CopyFiles */,
@@ -579,8 +576,6 @@
 		0D52EAD0197D18C1002C7150 /* OBox.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = OBox.cpp; sourceTree = "<group>"; };
 		0D52EAD1197D18C1002C7150 /* OBox.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OBox.h; sourceTree = "<group>"; };
 		0D52EAD2197D18C1002C7150 /* ply_load.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ply_load.h; sourceTree = "<group>"; };
-		0D52EAD3197D18C1002C7150 /* Polygonizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = Polygonizer.cpp; sourceTree = "<group>"; };
-		0D52EAD4197D18C1002C7150 /* Polygonizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Polygonizer.h; sourceTree = "<group>"; };
 		0D52EAD5197D18C1002C7150 /* QEM.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = QEM.cpp; sourceTree = "<group>"; };
 		0D52EAD6197D18C1002C7150 /* QEM.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = QEM.h; sourceTree = "<group>"; };
 		0D52EAD7197D18C1002C7150 /* Ray.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Ray.h; sourceTree = "<group>"; };
@@ -807,7 +802,6 @@
 				0D52EACD197D18C1002C7150 /* Neighbours.cpp */,
 				BDF839DE2D50F2330090F280 /* normal.cpp */,
 				0D52EAD0197D18C1002C7150 /* OBox.cpp */,
-				0D52EAD3197D18C1002C7150 /* Polygonizer.cpp */,
 				0D52EAD5197D18C1002C7150 /* QEM.cpp */,
 				0D52EAD9197D18C1002C7150 /* rply.c */,
 				0D52EADB197D18C1002C7150 /* rply_load.cpp */,
@@ -996,7 +990,6 @@
 				0D52EACF197D18C1002C7150 /* obj_load.h */,
 				0D52EAD1197D18C1002C7150 /* OBox.h */,
 				0D52EAD2197D18C1002C7150 /* ply_load.h */,
-				0D52EAD4197D18C1002C7150 /* Polygonizer.h */,
 				0D52EAD6197D18C1002C7150 /* QEM.h */,
 				0D52EAD7197D18C1002C7150 /* Ray.h */,
 				0D52EAD8197D18C1002C7150 /* RGrid.h */,
@@ -1263,7 +1256,6 @@
 				0D52EB60197D18C1002C7150 /* gel_rand.cpp in Sources */,
 				0D52EB62197D18C1002C7150 /* Mat3x3f.cpp in Sources */,
 				0D52EB93197D18C1002C7150 /* stb_image_write.c in Sources */,
-				0D52EB79197D18C1002C7150 /* Polygonizer.cpp in Sources */,
 				0D52EBAE197D18C1002C7150 /* Parse.cpp in Sources */,
 				0D52EB7D197D18C1002C7150 /* tessellate.cpp in Sources */,
 				BDC3325F29D378AA003073FE /* quad_valencify.cpp in Sources */,
