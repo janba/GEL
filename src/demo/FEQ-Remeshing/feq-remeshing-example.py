@@ -31,7 +31,7 @@ for o_file in obj_files:
         fit_mesh = hmesh.Manifold(m_skel)
         hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh)
         hmesh.cc_subdivide(fit_mesh)
-        hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh,dist_wt=0.25)
+        hmesh.fit_mesh_to_ref(fit_mesh, ref_mesh, dist_wt=0.125)
 
         # viewer.display(fit_mesh, bg_col=[1,1,1], reset_view=True)
         out_file = base_name + "-" + mode + "-out.obj"
