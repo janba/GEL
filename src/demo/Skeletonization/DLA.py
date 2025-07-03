@@ -19,7 +19,7 @@ viewer = gl.Viewer()
 # The points are added as nodes to the graph.
 g = graph.Graph()
 g.add_node([.0,.0,.0])
-for _ in range(5000):
+for _ in range(10000):
     g.add_node(random_point_in_unit_ball())
 pos = g.positions()
 fixed = array([True] + [False] * (len(pos) - 1))
@@ -28,10 +28,10 @@ fixed = array([True] + [False] * (len(pos) - 1))
 # We will move the points randomly and connect them to the nearest fixed point.
 # The process is repeated until all points are connected to a fixed point or we
 # reach a maximum number of iterations.
-for _ in range(500):
+for _ in range(1000):
     for i, x in enumerate(pos):
         if not fixed[i]:
-            x += 0.035 * random_point_in_unit_ball()
+            x += 0.025 * random_point_in_unit_ball()
             l = norm(x)
             if l > 1.0:
                 x_norm = x/l
@@ -70,3 +70,4 @@ m = hmesh.graph_to_feq(s, node_radii=0.01)
 viewer2.display(m, smooth=False)
 viewer2.display(m, s, mode='x', reset_view=True)
 
+hmesh.save("dla.obj", m)
