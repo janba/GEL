@@ -508,10 +508,11 @@ namespace GLGraphics {
         }
 
         
-        void console_test(MeshEditor* me, const std::vector<std::string> & args)
+        void console_slit_edges(MeshEditor* me, const std::vector<std::string> & args)
         {
             if(wantshelp(args)) {
-                me->printf("usage: test");
+                me->printf("usage: edit.selected.slit_edges");
+                me->printf("Slices open the mesh along the path given by selected vertices.");
                 return;
             }
             
@@ -2030,8 +2031,7 @@ namespace GLGraphics {
         register_console_function("edit.selected.delete", console_delete, "");
         register_console_function("edit.selected.triangulate_face", console_triangulate_face, "");
         register_console_function("edit.selected.bridge_faces", console_bridge_faces, "");
-
-        register_console_function("test", console_test, "Test some shit");
+        register_console_function("edit.selected.slit_edges", console_slit_edges, "");
         
         selection_mode.reg(theConsole, "selection.mode", "The selection mode. 0 = vertex, 1 = halfedge, 2 = face");
         active.reg(theConsole, "active_mesh", "The active mesh");
