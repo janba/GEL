@@ -8,6 +8,8 @@ from os import getcwd, chdir
 
 try:
     lib_py_gel.GLManifoldViewer_new.restype = ct.c_void_p
+    lib_py_gel.GLManifoldViewer_clone_controller.argtypes = (ct.c_void_p, ct.c_void_p)
+    lib_py_gel.GLManifoldViewer_clone_controller.restype = None
     lib_py_gel.GLManifoldViewer_delete.argtypes = (ct.c_void_p,)
     lib_py_gel.GLManifoldViewer_display.argtypes = (ct.c_void_p,ct.c_void_p,ct.c_void_p,ct.c_char,ct.c_bool, ct.POINTER(ct.c_float*3), ct.POINTER(ct.c_double),ct.c_bool,ct.c_bool)
     lib_py_gel.GLManifoldViewer_get_annotation_points.restype = ct.c_size_t
@@ -27,6 +29,14 @@ try:
             chdir(current_directory) # Necessary because init_glfw changes cwd
         def __del__(self):
             lib_py_gel.GLManifoldViewer_delete(self.obj)
+        def clone_controller(self, other):
+            """ Clone the controller from another GLManifoldViewer. This is useful if you
+            want to display a mesh in a different window but keep the same view controller.
+            """
+            if isinstance(other, Viewer):
+                lib_py_gel.GLManifoldViewer_clone_controller(self.obj, other.obj)
+            else:
+                raise TypeError("Argument must be an instance of Viewer")
         def display(self, m: Manifold, g: Graph=None, mode='w', smooth=True, bg_col=(0.3,0.3,0.3), data=None, reset_view=False, once=False):
             """ Display a mesh
 

@@ -6,6 +6,7 @@
 //  Copyright © 2017 Jakob Andreas Bærentzen. All rights reserved.
 //
 
+#include <memory>
 #include <map>
 #include <GEL/GL/glew.h>
 #include <GLFW/glfw3.h>
@@ -39,7 +40,7 @@ class GLManifoldViewer {
     bool active_annotation = false;
     bool do_pick = false;
     bool mouse_down = false;
-    GLGraphics::GLViewController* glv = 0;
+    std::shared_ptr<GLGraphics::GLViewController> glv = nullptr;
     GLGraphics::ManifoldRenderer* renderer = 0;
     GLuint graph_display_list = 0;
     bool escaping = false;
@@ -49,10 +50,15 @@ public:
     GLManifoldViewer();
     ~GLManifoldViewer();
     
-    bool was_initialized() const {return glv != 0;}
+    bool was_initialized() const {return glv != nullptr;}
     
     DisplayParameters display_parameters;
+
     void display_init();
+
+    void clone_controller(const GLManifoldViewer* other) {
+        glv = other->glv;
+    }
     
     void display();
     
@@ -275,9 +281,8 @@ void GLManifoldViewer::display_init() {
     glfwGetWindowSize(window, &W, &H);
     glfwGetWindowContentScale(window, &xscale, &yscale);
     glfwGetFramebufferSize(window, &WF, &HF);
-    if(glv==0 || display_parameters.reset_view) {
-        delete glv;
-        glv = new GLViewController(W*xscale,H*yscale,Vec3f(ctr),2.0*rad);
+    if(glv==nullptr || display_parameters.reset_view) {
+        glv = make_shared<GLViewController>(W*xscale,H*yscale,Vec3f(ctr),2.0*rad);
     }
     else glv->reshape(WF, HF);
     if(renderer != 0) {
@@ -379,7 +384,6 @@ GLManifoldViewer::GLManifoldViewer() {
 GLManifoldViewer::~GLManifoldViewer() {
     wv_map.erase(window);
     delete renderer;
-    delete glv;
     glfwDestroyWindow(window);
 }
 
@@ -449,6 +453,11 @@ void GLManifoldViewer_display(GLManifoldViewer_ptr _self,
     self->display_init();
     GLManifoldViewer_event_loop(once);
 }
+
+void GLManifoldViewer_clone_controller(GLManifoldViewer_ptr self, GLManifoldViewer_ptr other) {
+    reinterpret_cast<GLManifoldViewer*>(self)->clone_controller(reinterpret_cast<GLManifoldViewer*>(other));
+}
+
 
 void GLManifoldViewer_delete(GLManifoldViewer_ptr _self) {
     delete reinterpret_cast<GLManifoldViewer*>(_self);

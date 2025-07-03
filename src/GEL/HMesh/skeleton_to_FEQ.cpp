@@ -143,6 +143,7 @@ void val2nodes_to_face_pairs(const Geometry::AMGraph3D &g, HMesh::Manifold &mani
 {
     Util::AttribVec<NodeID, int> touched(g.no_nodes(), 0);
     Util::AttribVec<NodeID, Mat3x3d> warp_frame(g.no_nodes(), identity_Mat3x3d());
+    Util::AttribVec<NodeID, Mat3x3d> mid_frame(g.no_nodes(), identity_Mat3x3d());
     Util::AttribVec<NodeID, int> max_idx(g.no_nodes(), 0);
 
     queue<NodeID> Q;
@@ -165,10 +166,10 @@ void val2nodes_to_face_pairs(const Geometry::AMGraph3D &g, HMesh::Manifold &mani
                         Vec3d vect = normalize(g.pos[m] - g.pos[n]);
                         if (N_size == 2)
                         {
-                            NodeID o = next_neighbours(g, n, m)[0];
-                            vect = normalize((g.pos[o]-g.pos[n]));
+                            auto N_m = g.neighbors(m);
+                            NodeID o = N_m[0]==n ? N_m[1] : N_m[0];
+                            vect = normalize(vect + normalize(g.pos[o]-g.pos[m]));
                         }
-                        vect = normalize(vect);
                         Vec3d warp_v = warp_frame[n] * vect;
 
                         double max_sgn = sign(warp_v[0]);
@@ -200,22 +201,22 @@ void val2nodes_to_face_pairs(const Geometry::AMGraph3D &g, HMesh::Manifold &mani
             Mat3x3d S = scaling_Mat3x3d(s);
             auto face_list = create_face_pair(mani, g.pos[m], transpose(warp_frame[m]) * S, max_idx[m], one_ring_face_vertex);
             stitch_mesh(mani, 1e-10);
+            vector<Vec3d> norm;
             for (auto f : face_list)
             {
                 for (auto v : mani.incident_vertices(f))
                     vertex2node[v] = m;
+                norm.push_back(normal(mani, f));
             }
-            int idx_sum=0;
+            int idx_taken=-1;
             for (auto mm: g.neighbors(m)) {
-                Vec3d m_mm_v = g.pos[mm] - g.pos[m];
-                Vec3d n0 = normal(mani, face_list[0]);
-                Vec3d n1 = normal(mani, face_list[1]);
-                
-                int idx = (dot(n0, m_mm_v) > dot(n1, m_mm_v)) ? 0 : 1;
+                Vec3d m_mm_v = cond_normalize(g.pos[mm] - g.pos[m]);
+                int idx = (dot(norm[0], m_mm_v) > dot(norm[1], m_mm_v)) ? 0 : 1;
+                if (idx==idx_taken)
+                    idx = 1-idx;
+                idx_taken = idx;
                 branch2mesh_map[make_pair(m,mm)].face = face_list[idx];
             }
-            if(idx_sum == 1)
-                cout << "error: doubly assigned face in bridge node " << endl;
         }
     }
 
@@ -590,8 +591,10 @@ Face2VertexMap merge_branch_faces(const Geometry::AMGraph3D &g,
 vector<pair<VertexID, VertexID>> face_match_one_ring(const HMesh::Manifold& m, FaceID &f0, FaceID &f1, Face2VertexMap& one_ring_face_vertex) {
     
     vector<pair<VertexID, VertexID> > connections;
-    if(!m.in_use(f0) || !m.in_use(f1))
+    if(!m.in_use(f0) || !m.in_use(f1)) {
+        cout << "one face unused" << endl;
         return connections;
+    }
     
     VertexID face_vertex_0 = one_ring_face_vertex[f0];
     VertexID face_vertex_1 = one_ring_face_vertex[f1];
@@ -620,8 +623,10 @@ vector<pair<VertexID, VertexID>> face_match_one_ring(const HMesh::Manifold& m, F
     size_t L0= loop0.size();
     size_t L1= loop1.size();
     
-    if (L0 != L1)
+    if (L0 != L1) {
+        cout << "loop sizes " << L0 << " " << L1 << endl;   
         return connections;
+    }
     
     size_t L = L0;
     
@@ -666,25 +671,15 @@ void bridge_branch_node_meshes(const AMGraph3D& g,
         if(one_ring_face_vertex.find(f_id) == one_ring_face_vertex.end())
             one_ring_face_vertex[f_id] = InvalidVertexID;
 
+    Util::AttribVec<NodeID,int> visited(0);
     for (auto n: g.node_ids()) {
-        VertexID v0, v1;
+        visited[n] = 1;
 
-        auto N = g.neighbors(n);
+        for(auto nn:  g.neighbors(n)) 
+            if (!visited[nn]) {
+                FaceID f0 = branch2mesh_map[make_pair(n,nn)].face;
+                FaceID f1 = branch2mesh_map[make_pair(nn,n)].face;
 
-        for(auto nn: N) {
-            auto key = std::make_pair(n,nn);
-
-            NodeID start_node = n;
-            NodeID next_node = nn;
-
-            vector<NodeID> nbd_list = next_neighbours(g, start_node, next_node);
-
-            do
-            {
-                FaceID f0 = branch2mesh_map[make_pair(start_node,next_node)].face;
-                FaceID f1 = branch2mesh_map[make_pair(next_node,start_node)].face;
-
-                nbd_list = next_neighbours(g, start_node, next_node);
                 using VertexPair = pair<VertexID, VertexID>;
                 vector<VertexPair> connections;
 
@@ -694,13 +689,7 @@ void bridge_branch_node_meshes(const AMGraph3D& g,
                 if (connections.size() != 0)
                     m_out.bridge_faces(f0, f1, connections);
                 else
-                    break;
-
-                start_node = next_node;
-                if (nbd_list.size() == 1)
-                    next_node = nbd_list[0];
-
-            } while (nbd_list.size() == 1);
+                    cout << "FAILED TO CONNECT " << f0.get_index() << " " << f1.get_index() << endl;
         }
     }
 
@@ -733,6 +722,7 @@ void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
             Vec3d p0 = m_out.pos(v);
             for (auto vn: m_out.incident_vertices(v)) {
                 double w = vertex2node[vn] == n ? 1 : 0.25;
+                w /= length(m_out.pos(vn)-p0);
                 lap += w * (m_out.pos(vn)-p0);
                 w_sum += w;
             }

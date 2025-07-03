@@ -1,44 +1,72 @@
 from pygel3d import hmesh, gl_display as gl, graph
-import numpy as np
-from numba import jit, njit
+from numpy import where, array
 from numpy.linalg import norm
-from random import random
-array = np.array
+from scipy.spatial import cKDTree
+from numpy.random import uniform
 
-@njit
-def random_point_in_unit_sphere():
+def random_point_in_unit_ball():
+    """Generate a random point in the unit ball."""
     while True:
-        x = array((random(), random(), random()))
-        x *= 2 - 1
+        x = uniform(-1.0, 1.0, size=3)
         if norm(x) < 1.0:
             return x
-    return None
 
-@njit
-def find_closest(pos: np.ndarray, x):
-    idx = np.argmin([norm(pos[i]-x) for i in g.nodes()])
-    return idx 
-
+# Create a viewer.
 viewer = gl.Viewer()
+
+# Create a graph and add a central node at the origin.
+# Then add 5000 random points in the unit ball around the origin.
+# The points are added as nodes to the graph.
 g = graph.Graph()
 g.add_node([.0,.0,.0])
+for _ in range(5000):
+    g.add_node(random_point_in_unit_ball())
+pos = g.positions()
+fixed = array([True] + [False] * (len(pos) - 1))
 
-for _ in range(100):
-    pos = g.positions()
-    x = random_point_in_unit_sphere()
-    for inner_iter in range(100000):
-        v = 0.01 * random_point_in_unit_sphere()
-        x = x + v
-        l = norm(x)
-        if l > 1.0:
-            x_norm = x/l
-            x -= 2*x_norm
-        i = find_closest(g.positions(), x)
-        if norm(x-pos[i]) < 0.01:
-            j = g.add_node(x)
-            g.connect_nodes(i, j)
-            break
+# Diffusion Limited Aggregation (DLA) process:
+# We will move the points randomly and connect them to the nearest fixed point.
+# The process is repeated until all points are connected to a fixed point or we
+# reach a maximum number of iterations.
+for _ in range(500):
+    for i, x in enumerate(pos):
+        if not fixed[i]:
+            x += 0.035 * random_point_in_unit_ball()
+            l = norm(x)
+            if l > 1.0:
+                x_norm = x/l
+                x -= 2*x_norm
+    fixed_indices = where(fixed)[0]
+    tree = cKDTree(pos[fixed])
+    not_fixed_indices = where(~fixed)[0]
+    nbors = tree.query_ball_point(pos[~fixed], 0.035, workers=-1)
+    for i, nbor_list in zip(not_fixed_indices, nbors):
+        if len(nbor_list) > 0:
+            fixed[i] = True
+            for j in nbor_list:
+                g.connect_nodes(i,fixed_indices[j])
+    viewer.display(g, once=True)
+
+# Cleanup: remove nodes that are not fixed and add some edges to the graph (saturate).
+# We show the resulting graph in the viewer and compute the MSLS skeleton.
+for i in g.nodes():
+    if not fixed[i]:
+        g.remove_node(i)
+graph.saturate(g, rad=0.05)
 viewer.display(g)
+s = graph.MSLS_skeleton(g)
 
+# Display the skeleton in a new viewer. We clone the controller from the first viewer
+# so that the view is the same.
+viewer2 = gl.Viewer()
+viewer2.clone_controller(viewer)
+viewer2.display(s)
 
+# Convert the skeleton to a manifold mesh and display it. node_radii is the thickness
+# of the skeleton edges when converted to a mesh.
+# The mesh is displayed first in an opaque fashion and the a second time in x-ray
+# mode to show the skeleton edges inside the mesh.
+m = hmesh.graph_to_feq(s, node_radii=0.01)
+viewer2.display(m, smooth=False)
+viewer2.display(m, s, mode='x', reset_view=True)
 

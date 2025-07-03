@@ -37,6 +37,8 @@ extern "C" {
                                             double* attrib_vec,
                                             bool reset_view,
                                             bool once);
+
+    DLLEXPORT void GLManifoldViewer_clone_controller(GLManifoldViewer_ptr self, GLManifoldViewer_ptr other);
     
     DLLEXPORT void GLManifoldViewer_delete(GLManifoldViewer_ptr);
     
