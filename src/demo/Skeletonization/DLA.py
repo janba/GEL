@@ -52,7 +52,7 @@ for _ in range(1000):
 for i in g.nodes():
     if not fixed[i]:
         g.remove_node(i)
-graph.saturate(g, rad=0.05)
+graph.saturate(g, hops=3, rad=0.05)
 viewer.display(g)
 s = graph.MSLS_skeleton(g)
 
@@ -66,8 +66,9 @@ viewer2.display(s)
 # of the skeleton edges when converted to a mesh.
 # The mesh is displayed first in an opaque fashion and the a second time in x-ray
 # mode to show the skeleton edges inside the mesh.
-m = hmesh.graph_to_feq(s, node_radii=0.01)
+m = hmesh.graph_to_feq(s, node_radii=0.005)
 viewer2.display(m, smooth=False)
 viewer2.display(m, s, mode='x', reset_view=True)
 
+# Save the mesh to an OBJ file.
 hmesh.save("dla.obj", m)

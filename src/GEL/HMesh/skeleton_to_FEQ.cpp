@@ -718,7 +718,9 @@ void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
             Vec3d dir = cond_normalize(m_out.pos(v) - barycenters[n]);
             double r = node_radii[n] * sqrt(g.valence(n)/2.0);
             // new_pos[v] = dir * r + g.pos[n];
-            new_pos[v] = 0.7 * ((0.7*dir+0.3*norm) * r + g.pos[n]) + 0.3 * m_out.pos(v);
+            // new_pos[v] = 0.7 * ((0.7*dir+0.3*norm) * r + g.pos[n]) + 0.3 * m_out.pos(v);
+            new_pos[v] = ((0.75*dir+0.25*norm) * r + g.pos[n]);
+
         }
         m_out.positions_attribute_vector() = new_pos;
     }
