@@ -9,11 +9,11 @@
  * @brief The data structure under HMesh.
  */
 
-#ifndef __HMESH_CONNECTIVITY_KERNEL_H__
-#define __HMESH_CONNECTIVITY_KERNEL_H__
+#ifndef HMESH_CONNECTIVITY_KERNEL_H
+#define HMESH_CONNECTIVITY_KERNEL_H
 
 #include <vector>
-#include <map>
+#include <unordered_map>
 #include <set>
 #include <GEL/HMesh/ItemVector.h>
 #include <GEL/HMesh/ItemID.h>
@@ -25,9 +25,9 @@ namespace HMesh
     struct Face;
     struct HalfEdge;
 
-    typedef ItemVector<Vertex>::IDType VertexID;
-    typedef ItemVector<Face>::IDType FaceID;
-    typedef ItemVector<HalfEdge>::IDType HalfEdgeID;
+    using VertexID = ItemVector<Vertex>::IDType;
+    using FaceID = ItemVector<Face>::IDType;
+    using HalfEdgeID = ItemVector<HalfEdge>::IDType;
 
     /// The vertex struct. This contains just a single outgoing halfedge.
     struct Vertex
@@ -51,19 +51,22 @@ namespace HMesh
         FaceID face;
     };
     
-    
-    typedef IDIterator<Vertex> VertexIDIterator;
-    typedef IDIterator<Face> FaceIDIterator;
-    typedef IDIterator<HalfEdge> HalfEdgeIDIterator;
 
-    static const VertexID InvalidVertexID;
-    static const FaceID InvalidFaceID;
-    static const HalfEdgeID InvalidHalfEdgeID;
-    
-    typedef std::map<VertexID, VertexID> VertexIDRemap;
-    typedef std::map<FaceID, FaceID> FaceIDRemap;
-    typedef std::map<HalfEdgeID, HalfEdgeID> HalfEdgeIDRemap;
-  
+    static constexpr VertexID InvalidVertexID;
+    static constexpr FaceID InvalidFaceID;
+    static constexpr HalfEdgeID InvalidHalfEdgeID;
+
+    using VertexIDIterator = IDIterator<Vertex>;
+    using FaceIDIterator = IDIterator<Face>;
+    using HalfEdgeIDIterator = IDIterator<HalfEdge>;
+
+    template <typename T>
+    using RemapType = std::unordered_map<T, T>;
+
+    using VertexIDRemap   = RemapType<VertexID>;
+    using FaceIDRemap     = RemapType<FaceID>;
+    using HalfEdgeIDRemap = RemapType<HalfEdgeID>;
+
     /// The IDRemap struct is just used for garbage collection.
     struct IDRemap
     {
@@ -332,4 +335,4 @@ namespace HMesh
     }
 }
 
-#endif
+#endif // HMESH_CONNECTIVITY_KERNEL_H
