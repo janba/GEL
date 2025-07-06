@@ -33,6 +33,7 @@ add_subdirectory(CGLA-simple)
 add_subdirectory(CGLA-vec)
 add_subdirectory(Geometry-kdtree)
 add_subdirectory(Util-Assert)
+add_subdirectory(Manifold)
 # The following two rely on key input in order to exit
 #add_subdirectory(CGLA-ogl)
 #add_subdirectory(GLGraphics-console)

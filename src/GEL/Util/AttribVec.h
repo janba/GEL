@@ -6,12 +6,12 @@
 //  Copyright © 2016 J. Andreas Bærentzen. All rights reserved.
 //
 
-#ifndef UTIL__AttribVec_h
-#define UTIL__AttribVec_h
+#ifndef UTIL_ATTRIBVEC_H
+#define UTIL_ATTRIBVEC_H
 
-#include <assert.h>
-#include <map>
-#include "Serialization.h"
+#include <GEL/Util/Assert.h>
+#include <GEL/HMesh/ConnectivityKernel.h> // RemapType declaration
+#include <GEL/Util/Serialization.h>
 namespace Util {
 
 
@@ -91,11 +91,11 @@ public:
         items.clear();
     }
     
-    /// cleanup unused items from the vector, given by remap from associated container
-    void cleanup(const std::map<IndexT, IndexT>& remap) {
+    /// Clean up unused items from the vector, given by remap from the IDRemap struct
+    void cleanup(const HMesh::RemapType<IndexT>& remap) {
         std::vector<ValT> new_items(remap.size());
         for(const auto& mapping : remap){
-            assert(get_index(mapping.second) < remap.size());
+            GEL_ASSERT(get_index(mapping.second) < remap.size());
             if(get_index(mapping.first) < items.size())
                 new_items[get_index(mapping.second)] = items[get_index(mapping.first)];
         }
@@ -117,4 +117,4 @@ public:
 }
 
 
-#endif /* AttribVec_h */
+#endif /* UTIL_ATTRIBVEC_H */
