@@ -1535,7 +1535,7 @@ namespace GLGraphics {
         char buffer[1024];
         va_list args;
         va_start(args, format);
-        vsprintf(buffer, format, args);
+        vsnprintf(buffer, sizeof(buffer), format, args);
         va_end(args);
         theConsole.print(buffer);
     }
