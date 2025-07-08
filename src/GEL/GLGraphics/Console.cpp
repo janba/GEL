@@ -534,7 +534,7 @@ void Console::executef(const char* format, ...)
     char buffer[1024];
     va_list arguments;
     va_start(arguments, format);
-    vsprintf(buffer, format, arguments);
+    vsnprintf(buffer, sizeof(buffer), format, arguments);
     va_end(arguments);
 
     execute(buffer);
@@ -725,7 +725,7 @@ void Console::printf(const char* format, ...)
     char buffer[1024];
     va_list args;
     va_start(args, format);
-    vsprintf(buffer, format, args);
+    vsnprintf(buffer, sizeof(buffer), format, args);
     va_end(args);
 
     print(buffer);
