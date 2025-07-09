@@ -1601,30 +1601,28 @@ namespace HMesh
             if (visited[face] == 0) {
                 stack<FaceID> face_stack;
                 face_stack.push(face);
+                visited[face] = 1;
                 components.push_back(Manifold());
                 Manifold& comp_mesh = components.back();
                 VertexAttributeVector<int> orig_id;
                 while(!face_stack.empty()) {
                     FaceID current_face = face_stack.top();
                     face_stack.pop();
-                    if (visited[current_face] == 0) {
-                        visited[current_face] = 1;
-                        vector<Vec3d> pts;
-                        vector<int> ids;
-                        for (auto v: m.incident_vertices(current_face)) {
-                            pts.push_back(m.pos(v));
-                            ids.push_back(v.get_index());
-                        }
-                        FaceID f_new = comp_mesh.add_face(pts);
-                        int i=0;
-                        for (auto v: comp_mesh.incident_vertices(f_new))
-                            orig_id[v] = ids[i++];
-                        for (auto neighbor: m.incident_faces(current_face)) {
+                    vector<Vec3d> pts;
+                    vector<int> ids;
+                    for (auto v: m.incident_vertices(current_face)) {
+                        pts.push_back(m.pos(v));
+                        ids.push_back(v.get_index());
+                        for (auto neighbor: m.incident_faces(v))
                             if (m.in_use(neighbor) and visited[neighbor] == 0) {
                                 face_stack.push(neighbor);
+                                visited[neighbor] = 1;
                             }
-                        }
                     }
+                    FaceID f_new = comp_mesh.add_face(pts);
+                    int i=0;
+                    for (auto v: comp_mesh.incident_vertices(f_new))
+                        orig_id[v] = ids[i++];
                 }
                 stitch_mesh(comp_mesh, orig_id);
                 comp_mesh.cleanup();
