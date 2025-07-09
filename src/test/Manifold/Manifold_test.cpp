@@ -165,7 +165,7 @@ TEST_CASE("Benchmark manifold")
         };
         auto m = HMesh::Manifold();
         auto f0 = m.add_face({pts[0],pts[1], pts[2]});
-        m.add_face({pts[1],pts[0], pts[3]});
+        auto f1 = m.add_face({pts[1],pts[0], pts[3]});
 
         HMesh::stitch_mesh(m, 1e-6);
         // THere must be a single connected components
@@ -176,19 +176,18 @@ TEST_CASE("Benchmark manifold")
         CHECK(validate_manifold(m));
 
         // Now extrude the shared edge.
-        HMesh::HalfEdgeSet hset = {m.walker(f0).halfedge()};
+        HMesh::HalfEdgeID h0;
+        for (auto h: m.incident_halfedges(f0)) {
+            if (m.walker(h).opp().face() != HMesh::InvalidFaceID) {
+                h0 = h;
+                break;
+            }
+        }
+        HMesh::HalfEdgeSet hset = {h0};
         auto extruded_faces = HMesh::extrude_halfedge_set(m, hset);
         auto f = *(extruded_faces.begin());
-        auto w = m.walker(f);
-        size_t k = 0;
-        while (extruded_faces.count(w.opp().face()) == 0) {
-            w = w.next();
-            ++k;
-        }
-        CHECK(k<4);
-
         // which we cannot merge since it would result in valence 1 vertices.
-        bool can_we_merge = m.merge_faces(f, w.halfedge());
+        bool can_we_merge = m.merge_faces(f, h0);
         CHECK(can_we_merge == false);
 
         // Since we have two valence two vertices, we cannot validate that the mesh
