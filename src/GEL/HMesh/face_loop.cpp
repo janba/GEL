@@ -32,10 +32,10 @@ namespace HMesh {
         for(const auto& p: pts)
             avg_p += p;
         avg_p /= pts.size();
-        
+
         for(auto& p: pts)
             p = scale*(p-avg_p) + avg_p;
-        
+
         m.add_face({pts[0],pts[1],pts[2],pts[3]});
         m.add_face({pts[7],pts[6],pts[5],pts[4]});
         m.add_face({pts[4],pts[5],pts[1],pts[0]});
@@ -69,7 +69,7 @@ namespace HMesh {
         auto comp_valency_imbalance = [](Manifold& m, Walker& w) {
             int val1 = valency(m, w.vertex());
             int val2 = valency(m, w.opp().vertex());
-            
+
             if(val1 < 4 && val2 > 4)
                 return val2-val1;
             if(val2 < 4 && val1 > 4)
@@ -78,9 +78,9 @@ namespace HMesh {
                 return -1;
             return 0;
         };
-        
+
         Walker w = m.walker(h);
-        
+
         FaceLoop loop;
         FaceAttributeVector<int> path_faces_touched(0);
         Vec3d avg_edge(0);
@@ -118,7 +118,7 @@ namespace HMesh {
         loop.valency_imbalance /= loop.area;
         loop.mean_aspect /= loop.hvec.size();
     //    loop.cylindricity;// /= loop.area;
-        
+
         return loop;
     }
 
@@ -143,7 +143,7 @@ namespace HMesh {
         FaceAttributeVector<int> face_status(m.no_faces(),0);
         for(FaceLoop& l: face_loops) {
             if(l.double_cross_faces.empty()) {
-                
+
                 // Mark all faces in the loop with loop id.
                 for(auto h: l.hvec)
                     face_status[m.walker(h).face()] = l.id;
@@ -155,7 +155,7 @@ namespace HMesh {
                     if(face_status[f]!= l.id)
                         fq.push(f);
                 }
-                
+
                 while(!fq.empty())
                 {
                     auto f = fq.front();
@@ -172,7 +172,7 @@ namespace HMesh {
                                 fq.push(fn);
                         });
                     }
-                    
+
                 }
             }
             else l.interior_area = DBL_MAX;
@@ -187,7 +187,7 @@ namespace HMesh {
             if(l.double_cross_faces.empty()) {
                 for(auto h: l.hvec)
                     face_status[m.walker(h).face()] = l.id;
-                
+
                 queue<FaceID> fq;
                 for(auto h: l.hvec) {
                     Walker w = m.walker(h);
@@ -195,7 +195,7 @@ namespace HMesh {
                     if(face_status[f]!= l.id)
                         fq.push(f);
                 }
-                
+
                 VertexSet vs;
                 for(FaceID f: l.interior)
                     circulate_face_ccw(m, f, [&](VertexID v){
@@ -204,7 +204,7 @@ namespace HMesh {
                             touched[v] = 1;
                         }
                     });
-                
+
                 Vec3d barycenter(0);
                 int n=0;
                 for(auto v: vs)
@@ -236,15 +236,15 @@ namespace HMesh {
                         VertexID v1 = w.next().vertex();
                         VertexID v2 = w.next().next().vertex();
                         VertexID v3 = w.next().next().next().vertex();
-                        
+
                         vector<int> val = {valency(m, v0),valency(m, v1), valency(m, v2), valency(m, v3)};
                         double E_bef = 0;
                         for (auto v : val)
                             E_bef += sqr(v-4.0);
-                        
+
                         double E_after_02 = sqr(val[0]+val[2]-2-4) + sqr(val[1]-1-4) + sqr(val[3]-1-4);
                         double E_after_13 = sqr(val[1]+val[3]-2-4) + sqr(val[0]-1-4) + sqr(val[2]-1-4);
-                        
+
                         double DE02 = E_after_02 - E_bef;
                         double DE13 = E_after_13 - E_bef;
                         double DE;
@@ -289,7 +289,7 @@ namespace HMesh {
         FaceSet faces_to_split;
         for(auto& fl: face_loops )
             faces_to_split.insert(begin(fl.double_cross_faces), end(fl.double_cross_faces));
-                    
+
         for(auto f: faces_to_split)
         {
             Walker w = m.walker(f); VertexID v0 = w.vertex();
@@ -311,45 +311,45 @@ namespace HMesh {
 
 
 
-    FaceSet extrude_along_edge_loop(Manifold& m, const HalfEdgeSet& hset)
-    {
-        vector<pair<HalfEdgeID, HalfEdgeID>> h_pairs;
-        
-        for(auto h: hset) {
-            auto w = m.walker(h);
-            h_pairs.push_back(make_pair(w.halfedge(), w.opp().halfedge()));
-        }
-        
-        // Slit edges
-        for(auto h_in: hset) {
-            Walker w_in = m.walker(h_in);
-            VertexID v = w_in.vertex();
-            for(auto h_out: hset) {
-                Walker w_out = m.walker(h_out);
-                if(w_out.opp().vertex() == v) {
-                    auto vnew = m.slit_vertex(v, h_in, h_out);
-                    break;
-                }
+FaceSet extrude_along_edge_loop(Manifold& m, const HalfEdgeSet& hset)
+{
+    vector<pair<HalfEdgeID, HalfEdgeID>> h_pairs;
+    
+    for(auto h: hset) {
+        auto w = m.walker(h);
+        h_pairs.push_back(make_pair(w.halfedge(), w.opp().halfedge()));
+    }
+    
+    // Slit edges
+    for(auto h_in: hset) {
+        Walker w_in = m.walker(h_in);
+        VertexID v = w_in.vertex();
+        for(auto h_out: hset) {
+            Walker w_out = m.walker(h_out);
+            if(w_out.opp().vertex() == v) {
+                auto vnew = m.slit_one_ring(h_in, h_out);
+                break;
             }
         }
-        
-        VertexAttributeVector<int> cluster_id(m.allocated_vertices(),-1);
-        int CLUSTER_CNT = 0;
-        auto assign_cluster_id = [&](VertexID v) {
-            if(cluster_id[v]==-1)
-                cluster_id[v]= ++CLUSTER_CNT;
-        };
-        
-        FaceSet new_faces;
-        // Make new faces
-        for(auto h_pair: h_pairs)
-        {
-            Walker w1 = m.walker(h_pair.first);
-            Walker w2 = m.walker(h_pair.second);
-            assign_cluster_id(w1.vertex());
-            assign_cluster_id(w1.opp().vertex());
-            assign_cluster_id(w2.vertex());
-            assign_cluster_id(w2.opp().vertex());
+    }
+    
+    VertexAttributeVector<int> cluster_id(m.allocated_vertices(),-1);
+    int CLUSTER_CNT = 0;
+    auto assign_cluster_id = [&](VertexID v) {
+        if(cluster_id[v]==-1)
+            cluster_id[v]= ++CLUSTER_CNT;
+    };
+    
+    FaceSet new_faces;
+    // Make new faces
+    for(auto h_pair: h_pairs)
+    {
+        Walker w1 = m.walker(h_pair.first);
+        Walker w2 = m.walker(h_pair.second);
+        assign_cluster_id(w1.vertex());
+        assign_cluster_id(w1.opp().vertex());
+        assign_cluster_id(w2.vertex());
+        assign_cluster_id(w2.opp().vertex());
 
             auto&& pts = {
                 m.pos(w1.vertex()),
@@ -357,11 +357,11 @@ namespace HMesh {
                 m.pos(w2.vertex()),
                 m.pos(w2.opp().vertex())
             };
-            
+
             FaceID f = m.add_face(pts);
             new_faces.insert(f);
             Walker w =  m.walker(f);
-            
+
             cluster_id[w.vertex()] = cluster_id[w1.vertex()];
             w = w.next();
             cluster_id[w.vertex()] = cluster_id[w1.opp().vertex()];
@@ -370,10 +370,10 @@ namespace HMesh {
             w = w.next();
             cluster_id[w.vertex()] = cluster_id[w2.opp().vertex()];
         }
-        
+
         // Stitch
         stitch_mesh(m, cluster_id);
-        
+
         return new_faces;
     }
 
@@ -381,7 +381,7 @@ namespace HMesh {
     FaceSet extrude_face_set(Manifold& m, const FaceSet& face_set)
     {
         HalfEdgeSet hset;
-        
+
         for(auto f: face_set) {
             circulate_face_ccw(m, f, [&](Walker& w){
                 if(face_set.find(w.opp().face()) == face_set.end()) {
@@ -392,73 +392,73 @@ namespace HMesh {
         return extrude_along_edge_loop(m, hset);
     }
 
-    FaceSet extrude_halfedge_set(Manifold& m, HalfEdgeSet& halfedge_set)
+FaceSet extrude_halfedge_set(Manifold& m, HalfEdgeSet& halfedge_set)
+{
+    vector<pair<HalfEdgeID, HalfEdgeID>> h_pairs;
+    HalfEdgeSet hset;
+    
+    for(auto h: halfedge_set)
     {
-        vector<pair<HalfEdgeID, HalfEdgeID>> h_pairs;
-        HalfEdgeSet hset;
-        
-        for(auto h: halfedge_set)
-        {
-            Walker w = m.walker(h);
-            hset.insert(w.halfedge());
-            hset.insert(w.opp().halfedge());
-            h_pairs.push_back(make_pair(w.halfedge(), w.opp().halfedge()));
-        }
-        halfedge_set.clear();
-        
-        int CLUSTER_CNT = 0;
-        VertexAttributeVector<int> orig_id;
-        for(auto v: m.vertices())
-            orig_id[v] = ++CLUSTER_CNT;
-        
-        VertexSet new_verts;
-        // Slit edges
-        for(auto h_in: hset)
-            for(auto h_out: hset) {
-                Walker w_in = m.walker(h_in);
-                Walker w_out = m.walker(h_out);
-                VertexID v = w_in.vertex();
-                new_verts.insert(w_in.opp().vertex());
-                new_verts.insert(v);
-                new_verts.insert(w_out.vertex());
-                if(w_out.opp().vertex() == v &&
-                w_in.halfedge() != w_out.opp().halfedge())
-                {
-                    VertexID v_new = m.slit_vertex(v, h_in, h_out);
-                    if(v_new != InvalidVertexID) {
-                        orig_id[v_new] = orig_id[v];
-                        break;
-                    }
+        Walker w = m.walker(h);
+        hset.insert(w.halfedge());
+        hset.insert(w.opp().halfedge());
+        h_pairs.push_back(make_pair(w.halfedge(), w.opp().halfedge()));
+    }
+    halfedge_set.clear();
+    
+    int CLUSTER_CNT = 0;
+    VertexAttributeVector<int> orig_id;
+    for(auto v: m.vertices())
+        orig_id[v] = ++CLUSTER_CNT;
+    
+    VertexSet new_verts;
+    // Slit edges
+    for(auto h_in: hset)
+        for(auto h_out: hset) {
+            Walker w_in = m.walker(h_in);
+            Walker w_out = m.walker(h_out);
+            VertexID v = w_in.vertex();
+            new_verts.insert(w_in.opp().vertex());
+            new_verts.insert(v);
+            new_verts.insert(w_out.vertex());
+            if(w_out.opp().vertex() == v &&
+               w_in.halfedge() != w_out.opp().halfedge())
+            {
+                VertexID v_new = m.slit_one_ring(h_in, h_out);
+                if(v_new != InvalidVertexID) {
+                    orig_id[v_new] = orig_id[v];
+                    break;
                 }
             }
+        }
+    
+    
+    VertexAttributeVector<int> cluster_id(m.allocated_vertices(),-1);
+    auto assign_cluster_id = [&](VertexID v) {
+        if(cluster_id[v]==-1)
+            cluster_id[v]= ++CLUSTER_CNT;
+    };
+    // Make new faces
+    FaceSet new_faces;
+    for(auto h_pair: h_pairs)
+    {
+        Walker w1 = m.walker(h_pair.first);
+        Walker w2 = m.walker(h_pair.second);
+        assign_cluster_id(w1.vertex());
+        assign_cluster_id(w1.opp().vertex());
+        assign_cluster_id(w2.vertex());
+        assign_cluster_id(w2.opp().vertex());
         
-        
-        VertexAttributeVector<int> cluster_id(m.allocated_vertices(),-1);
-        auto assign_cluster_id = [&](VertexID v) {
-            if(cluster_id[v]==-1)
-                cluster_id[v]= ++CLUSTER_CNT;
+        auto&& ptsa = {
+            m.pos(w1.vertex()),
+            m.pos(w1.opp().vertex()),
+            m.pos(w1.opp().vertex()),
+            m.pos(w1.vertex())
         };
-        // Make new faces
-        FaceSet new_faces;
-        for(auto h_pair: h_pairs)
-        {
-            Walker w1 = m.walker(h_pair.first);
-            Walker w2 = m.walker(h_pair.second);
-            assign_cluster_id(w1.vertex());
-            assign_cluster_id(w1.opp().vertex());
-            assign_cluster_id(w2.vertex());
-            assign_cluster_id(w2.opp().vertex());
-            
-            auto&& ptsa = {
-                m.pos(w1.vertex()),
-                m.pos(w1.opp().vertex()),
-                m.pos(w1.opp().vertex()),
-                m.pos(w1.vertex())
-            };
-            
-            FaceID fa = m.add_face(ptsa);
-            Walker wa = m.walker(fa);
-            new_faces.insert(fa);
+        
+        FaceID fa = m.add_face(ptsa);
+        Walker wa = m.walker(fa);
+        new_faces.insert(fa);
 
             cluster_id[wa.vertex()] = cluster_id[w1.vertex()];
             wa = wa.next();
@@ -470,7 +470,7 @@ namespace HMesh {
             halfedge_set.insert(wa.halfedge());
             new_verts.insert(wa.vertex());
             cluster_id[wa.vertex()] = orig_id[w1.vertex()];
-            
+
             auto&& ptsb =
             {
                 m.pos(w2.opp().vertex()),
@@ -478,7 +478,7 @@ namespace HMesh {
                 m.pos(w2.vertex()),
                 m.pos(w2.opp().vertex())
             };
-            
+
             FaceID fb = m.add_face(ptsb);
             Walker wb = m.walker(fb);
             new_faces.insert(fb);
@@ -492,12 +492,12 @@ namespace HMesh {
             cluster_id[wb.vertex()] = cluster_id[w2.vertex()];
             wb = wb.next();
             cluster_id[wb.vertex()] = cluster_id[w2.opp().vertex()];
-            
+
         }
-        
+
         // Stitch
         stitch_mesh(m, cluster_id);
-        
+
         for (int iter=0;iter<1;++iter) {
             VertexAttributeVector<Vec3d> new_pos;
             for(auto v: new_verts)
@@ -516,7 +516,7 @@ namespace HMesh {
                 if(m.in_use(v))
                     m.pos(v) = new_pos[v];
         }
-        
+
         return new_faces;
     }
 
@@ -525,7 +525,7 @@ namespace HMesh {
     {
         double h = 0.5;
         const auto face_points = std::array<Vec3d const, 4> {Vec3d(0,-h,-h),Vec3d(0,h,-h),Vec3d(0,h,h),Vec3d(0,-h,h)};
-        
+
         Mat3x3d R = _R;
         double det = determinant(R);
         if(abs(det))
@@ -534,7 +534,7 @@ namespace HMesh {
                 M[2][2] = -1;
                 R = R * M;
             }
-        
+
         vector<FaceID> fvec;
         for(int axis : {0,1,2})
             for(int sgn : {-1,1}) {
@@ -554,11 +554,11 @@ namespace HMesh {
 
 
     bool remove_face_loop(Manifold& m, const FaceLoop& l, bool average) {
-        
+
         VertexAttributeVector<int> cluster_id(m.allocated_vertices(), -1);
         vector<VertexSet> cluster;
         int cid_N = 0;
-        
+
         // The block of code below makes a list of faces to remove but it also
         // clusters vertices such that we can stitch the mesh when the faces have
         // been removed.
@@ -599,7 +599,7 @@ namespace HMesh {
             }
             fvec.push_back(w.face());
         }
-        
+
         // Set the position of vertices on the edge of the face loop.
         // We normally see this is an inverse extrusion, so the vertex on the edge
         // that is contracted is assigned the position of the vertex on the side towards
@@ -620,15 +620,15 @@ namespace HMesh {
                 m.pos(w.vertex()) = p;
             }
         }
-        
+
         //Remove faces.
         for(auto f: fvec)
             if(m.in_use(f))
                 m.remove_face(f);
-        
+
         // Stitch up mesh
         int unstitched = stitch_mesh(m, cluster_id);
-        
+
         // The conditional below is entered only if there is a bug.
         // We should always be able to stitch.
         if (unstitched) {
@@ -639,14 +639,14 @@ namespace HMesh {
     }
 
     void kill_face_loop(Manifold& m) {
-        
+
         auto loops = find_face_loops(m);
-        
+
         face_loops_compute_contained_area(m, loops);
         sort(begin(loops), end(loops), [](const FaceLoop& f1, const FaceLoop& f2) {
             return f1.interior_area<f2.interior_area;
         });
-        
+
         // Visit all face loops
         auto& l  = loops.front();
         cout << "Interior area " << l.interior_area << endl;
@@ -666,7 +666,7 @@ namespace HMesh {
                 if(!boundary_vertices.count(v))
                     interior_vertices.insert(v);
             });
-        
+
         // Remove the actual loop...
         remove_face_loop(m, l);
 
@@ -722,12 +722,12 @@ namespace HMesh {
 
 
     int refine_loop(Manifold& m) {
-        
+
         auto loops = find_face_loops(m);
         sort(loops.begin(), loops.end(), [&](FaceLoop& f0, FaceLoop& f1){
             return f0.avg_len > f1.avg_len;
         });
-        
+
         int work = 0;
         for(auto l: loops)
             if(l.double_cross_faces.size()==0)
@@ -751,16 +751,16 @@ namespace HMesh {
     }
 
     Geometry::AMGraph3D face_loop_skeleton(HMesh::Manifold& m) {
-        
+
         AMGraph3D graph;
-        
+
         auto loops = find_face_loops(m);
-        
+
         int f_no = m.no_faces();
         sort(loops.begin(), loops.end(), [&](FaceLoop& f0, FaceLoop& f1){
             return f0.cylindricity > f1.cylindricity;
         });
-        
+
         HalfEdgeAttributeVector<AMGraph::NodeID> h2n_map(m.allocated_halfedges(), AMGraph::InvalidNodeID);
         FaceAttributeVector<int> touched(m.allocated_faces(),0);
         for(auto i: Util::Range(0,loops.size()))
@@ -774,17 +774,17 @@ namespace HMesh {
                     if(touched[f])
                         face_loop_intersects = true;
                 }
-                
+
                 if(!face_loop_intersects) {
                     AMGraph::NodeID n0,n1;
-                    
+
                     // Create graph nodes corresponding to the face loop, we kill.
                     n0 = graph.add_node(Vec3d(0));
                     n1 = graph.add_node(Vec3d(0));
-                    
+
                     auto e = graph.connect_nodes(n0, n1);
                     graph.edge_color[e] = Vec3f(0,0,0.6);
-                    
+
                     // Move vertices to new position corresponding to the loop being removed.
                     for(auto h: l.hvec) {
                         Walker w = m.walker(h);
@@ -795,24 +795,24 @@ namespace HMesh {
                         VertexID v1 = w.opp().vertex();
                         graph.pos[n0] += m.pos(v0);
                         graph.pos[n1] += m.pos(v1);
-                        
+
                         HalfEdgeID h0 = w.next().halfedge();
                         HalfEdgeID h1 = w.prev().halfedge();
                         h2n_map[h0] = n0;
                         h2n_map[h1] = n1;
                     }
-                    
+
                     // Finalize position of end points of skeletal edge.
                     graph.pos[n0] /= l.hvec.size();
                     graph.pos[n1] /= l.hvec.size();
                 }
             }
         }
-        
+
         for(auto f0: m.faces())
             if(touched[f0] == 0)
             {
-                
+
                 AMGraph::NodeID patch_node = graph.add_node(Vec3d(0));
                 graph.node_color[patch_node] = Vec3f(1,0,0);
                 queue<FaceID> fq;
@@ -843,8 +843,8 @@ namespace HMesh {
                 }
                 graph.pos[patch_node] /= i;
             }
-        
-        
+
+
         for(auto h: m.halfedges())
         {
             Walker w = m.walker(h);

@@ -331,7 +331,16 @@ namespace HMesh
         ///  And then we add the new half-edges to existing faces.
         ///  @return vertex introduced as a result of the edge splitting
         VertexID split_edge(HalfEdgeID h);
-        
+
+        /// @brief Creates a slice using the given two half edges, introducing a new vertex.
+        /// Connects the created vertex to the original one and fills the surrounding holes.
+        /// @details This function does what @link slit_one_ring @endlink does but is valid in a few additional cases.
+        /// Namely, it has a well defined output when h_in and h_out are both boundary vertices.
+        /// @param h_in a vertex going into the vertex to be sliced
+        /// @param h_out a vertex going out of the vertex to be sliced
+        /// @return The ID of the vertex created as a result of the split.
+        VertexID split_vertex(HalfEdgeID h_in, HalfEdgeID h_out);
+
         /** \brief Stitch two halfedges.
          Two boundary halfedges can be stitched together. This can be used to build a complex mesh
          from a bunch of simple faces. */
@@ -344,44 +353,50 @@ namespace HMesh
         This function returns true if the merging was possible and false otherwise. 
         Currently merge only fails if the mesh is already illegal. Thus it should, in fact, never fail. */
         bool merge_faces(FaceID f, HalfEdgeID h);
-		
-		/** \brief Merge all faces in the one ring of a vertex into a single polygon.
-		The vertex is given by v.
-		 
-		The return value is the FaceID of the resulting polygonal face. 
-		InvalidFaceID is returned if 
-		- the input vertex is not in use or 
-		- the input vertex has valence less than two which is a degenerate case.
-		- the input vertex is a boundary vertex of valence two - i.e. adjacent to just one face.
-		- the same halfedge appears in two faces of the one ring of the input vertex: I.e.
-		the input vertex is twice adjacent to the same face!
-		 
-		Note that this function can create some unusual and arguably degenerate meshes. For instance, 
-		two triangles which share all vertices is collapsed to a single pair of vertices connected by 
-		a pair of halfedges bounding the same face. */
-		FaceID merge_one_ring(VertexID v);
+
+        /** \brief Merge all faces in the one ring of a vertex into a single polygon.
+        The vertex is given by v.
+
+        The return value is the FaceID of the resulting polygonal face.
+        InvalidFaceID is returned if
+        - the input vertex is not in use or
+        - the input vertex has valence less than two which is a degenerate case.
+        - the input vertex is a boundary vertex of valence two - i.e. adjacent to just one face.
+        - the same halfedge appears in two faces of the one ring of the input vertex: I.e.
+        the input vertex is twice adjacent to the same face!
+
+        Note that this function can create some unusual and arguably degenerate meshes. For instance,
+        two triangles which share all vertices is collapsed to a single pair of vertices connected by
+        a pair of halfedges bounding the same face. */
+        FaceID merge_one_ring(VertexID v);
 
         /** \brief Close hole given by the invalid face of halfedgehandle h.
          returns FaceID of the created face or the face that is already there if the 
          face was not InvalidFaceID. */
         FaceID close_hole(HalfEdgeID h);
-        
-        /** \brief Create hole by opening a slit at a vertex.
-        This function creates a hole by slitting the mesh at a vertex v along a pair of halfedges.
-        The function returns the vertex created by this operation.
-        The first halfedge h_in is oriented towards the vertex and the second, h_out, away from the 
-        vertex. Neither h_in nor h_out may be boundary halfedges for a hole since the result would be
-        two holes separated by an edge. That is an abomination we should avoid. In particular because
-        it would be invisible. h_in and h_out also should not be each other's opposite edges. That would 
-         result in an isolated vertex. */
-         VertexID slit_vertex(VertexID v, HalfEdgeID h_in, HalfEdgeID h_out);
-        
-        /** \brief Create hole by slitting open the mesh along the path given as argument.
-         This function returns the HalfEdgeID of one of the halfedges bounding the created hole.
-         The path is specified as a selection set of vertices. If the selected vertices form a closed 
-         loop, a piece is cut off from the mesh. Surprising results can occur if the selected vertices
-         can be connected by more than one sequence (or a self intersecting sequence) of edges. */
-        HalfEdgeID slit_edges(HMesh::VertexSet& selection);
+
+        /// @brief see: @link slit_one_ring @endlink
+        [[deprecated("Use slit_one_ring or split_vertex for a filling alternative")]]
+        VertexID slit_vertex(VertexID vid, HalfEdgeID h_in, HalfEdgeID h_out);
+
+        /// @brief Create a hole by opening a slit at a vertex.
+        /// @details This function creates a hole by slitting the mesh at a vertex @code v@endcode along a pair of
+        /// halfedges. @code h_in@endcode is oriented towards the vertex and h_out away from it.
+        /// Neither @code h_in@endcode nor @code h_out@endcode may be boundary halfedges for a hole since the result
+        /// would be two holes separated by an edge. That is an abomination we should avoid. In particular because it
+        /// would be invisible. @code h_in@endcode and @code h_out@endcode also should not be each other's opposite
+        /// edges. That would result in an isolated vertex.
+        /// @param h_in a vertex going into the vertex to be sliced
+        /// @param h_out a vertex going out of the vertex to be sliced
+        /// @return the vertex created as a result of the slit.
+        VertexID slit_one_ring(HalfEdgeID h_in, HalfEdgeID h_out);
+
+         /** \brief Create hole by slitting open the mesh along the path given as argument.
+          This function returns the HalfEdgeID of one of the halfedges bounding the created hole.
+          The path is specified as a selection set of vertices. If the selected vertices form a closed
+          loop, a piece is cut off from the mesh. Surprising results can occur if the selected vertices
+          can be connected by more than one sequence (or a self intersecting sequence) of edges. */
+        HalfEdgeID slit_edges(const HMesh::VertexSet& selection);
 
         /** \brief Flip an edge h. 
             This method assumes both the incident faces exist and are triangles. 
@@ -407,6 +422,26 @@ namespace HMesh
 
         /// Auxiliary function called from collapse
         void remove_face_if_degenerate(HalfEdgeID h);
+
+        /// @brief Given boundary edge h, creates a new triangle.
+        /// @details @code face | kernel.last | kernel.vert@endcode points to the "dangling" vertex whose coordinate
+        /// must be set
+        /// @param h a boundary edge
+        /// @return handle to the triangle
+        FaceID add_boundary_face(HalfEdgeID h);
+
+        /// @brief Given consecutive boundary edges h0 and h1, creates a new triangle. Reducing the number of boundary
+        /// edges by one.
+        /// @details @code face | kernel.last | kernel.opp@endcode is the new boundary halfedge
+        /// @param h0 a boundary edge
+        /// @param h1 another boundary edge, and @code h0 | kernel.next@endcode
+        /// @return handle to the triangle
+        FaceID add_boundary_face(HalfEdgeID h0, HalfEdgeID h1);
+
+        /// Performs a slit without checking for manifold output, since the non-Manifold case
+        /// can immediately be filled to become manifold again. For details, see @link slit_one_ring @endlink and
+        /// @link split_vertex @endlink
+        VertexID slit_vertex_impl(HalfEdgeID h_in, HalfEdgeID h_out);
     };
 
 

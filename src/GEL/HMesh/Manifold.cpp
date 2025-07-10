@@ -3,18 +3,19 @@
  * Copyright (C) the authors and DTU Informatics
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
-#include <iterator>
-#include <iostream>
-#include <vector>
-#include <map>
-#include <ranges>
-#include <stack>
-
 #include <GEL/Geometry/TriMesh.h>
 #include <GEL/Geometry/bounding_sphere.h>
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/HMesh/cleanup.h>
 #include <GEL/HMesh/triangulate.h>
+#include <GEL/Util/Assert.h>
+
+#include <iostream>
+#include <iterator>
+#include <map>
+#include <ranges>
+#include <stack>
+#include <vector>
 
 namespace HMesh
 {
@@ -156,40 +157,36 @@ namespace HMesh
         remove_face_if_degenerate(hn);
         remove_face_if_degenerate(hon);
     }
-	
+
     FaceID Manifold::split_face_by_edge(FaceID f, VertexID v0, VertexID v1)
     {
         // make sure we are not trying to connect a vertex to itself
-        assert(v0 != v1);
-        assert(f != InvalidFaceID);
+        GEL_ASSERT_NEQ(v0, v1);
+        GEL_ASSERT_NEQ(f, InvalidFaceID);
+        GEL_ASSERT_FALSE(connected(v0, v1));
 
-		if(connected(v0, v1))
-            return InvalidFaceID;
-        		
         // Find the edge along f that emanates from v0
-		HalfEdgeID h0 = kernel.out(v0);
+        HalfEdgeID h0 = kernel.out(v0);
         Walker w = walker(v0);
-        for(int steps_v = 0;  !w.full_circle(); w = w.circulate_vertex_ccw(), ++ steps_v) {
-			if(w.face() == f){
-				h0 = w.halfedge();
-				break;
-			}
-		}
-        // If v0 is not a corner of f, we bail out
-        if(kernel.face(h0) != f) {
-            return InvalidFaceID;
+        for (int steps_v = 0; !w.full_circle(); w = w.circulate_vertex_ccw(), ++steps_v) {
+            if (w.face() == f) {
+                h0 = w.halfedge();
+                break;
+            }
         }
-		
+        // If v0 is not a corner of f, we bail out
+        if (kernel.face(h0) != f) { return InvalidFaceID; }
+
         // the halfedge belonging to f, going out from v0, is denoted h. Move along h until we hit v1.
         // now we have the halfedge which belongs to f and points to v1.
         HalfEdgeID h = h0;
-        while(kernel.vert(h) != v1) {
+        while (kernel.vert(h) != v1) {
             h = kernel.next(h);
             if (h == h0) { // Oops came full circle, bail out...
                 return InvalidFaceID;
             }
         }
-		
+
         // create a new halfedge ha which connects v1 and v0 closing the first loop.
         HalfEdgeID h1 = kernel.next(h);
         HalfEdgeID ha = kernel.add_halfedge();
@@ -198,17 +195,17 @@ namespace HMesh
         kernel.set_face(ha, f);
         kernel.set_vert(ha, v0);
         kernel.set_last(f, ha);
-		
+
         // create a new face, f2, and set all halfedges in the remaining part of the polygon to point to this face.
         h = h1;
         FaceID f2 = kernel.add_face();
-        while(kernel.vert(h) != v0){
+        while (kernel.vert(h) != v0) {
             kernel.set_face(h, f2);
             h = kernel.next(h);
         }
         kernel.set_face(h, f2);
         assert(h != h1);
-		
+
         // create a new halfedge hb to connect v0 and v1.
         HalfEdgeID hb = kernel.add_halfedge();
         link(h, hb);
@@ -216,17 +213,17 @@ namespace HMesh
         kernel.set_face(hb, f2);
         kernel.set_vert(hb, v1);
         kernel.set_last(f2, hb);
-		
+
         // complete the operation by gluing the two new halfedges
         glue(ha, hb);
-		
+
         // assert sanity of operation
         assert(kernel.next(kernel.opp(kernel.prev(h1))) == h0);
         assert(kernel.next(kernel.opp(kernel.prev(h0))) == h1);
         assert(kernel.face(kernel.next(hb)) == f2);
         assert(kernel.face(kernel.next(kernel.next(hb))) == f2);
         assert(kernel.face(hb) == f2);
-        
+
         // return handle to newly created face
         return f2;
     }
@@ -299,44 +296,127 @@ namespace HMesh
         HalfEdgeID ho = kernel.opp(h);
         VertexID v = kernel.vert(h);
         VertexID vo = kernel.vert(ho);
-		
-        //create the new vertex with middle of edge as position and update connectivity
+
+        // create the new vertex with middle of edge as position and update connectivity
         VertexID vn = kernel.add_vertex();
         positions[vn] = .5f * (positions[v] + positions[vo]);
         kernel.set_out(vn, h);
-		
-        //create two necessary halfedges, and update connectivity
+
+        // create two necessary halfedges, and update connectivity
         HalfEdgeID hn = kernel.add_halfedge();
         HalfEdgeID hno = kernel.add_halfedge();
-		
+
         kernel.set_out(vo, hn);
         kernel.set_out(v, hno);
-		
+
         glue(h, hno);
         glue(hn, ho);
-		
+
         link(kernel.prev(h), hn);
         link(hn, h);
         kernel.set_vert(hn, vn);
-		
+
         link(kernel.prev(ho), hno);
         link(hno, ho);
         kernel.set_vert(hno, vn);
-		
+
         // update faces in case of non boundary edge
-        if(kernel.face(h) != InvalidFaceID)
-            kernel.set_last(kernel.face(h), hn);
-		
-        if(kernel.face(ho) != InvalidFaceID)
-            kernel.set_last(kernel.face(ho), ho);
-		
+        if (kernel.face(h) != InvalidFaceID) kernel.set_last(kernel.face(h), hn);
+
+        if (kernel.face(ho) != InvalidFaceID) kernel.set_last(kernel.face(ho), ho);
+
         // update new edge with faces from existing edge
         kernel.set_face(hn, kernel.face(h));
         kernel.set_face(hno, kernel.face(ho));
-		
+
         return vn;
     }
-    
+
+    FaceID Manifold::add_boundary_face(const HalfEdgeID h)
+    {
+        GEL_ASSERT(kernel.in_use(h), "h must be valid");
+        GEL_ASSERT(kernel.face(h) == InvalidFaceID, "h must be on boundary");
+
+        const FaceID f = add_face({Vec3d(0), Vec3d(0), Vec3d(0)});
+        const auto hn0_o = kernel.opp(kernel.last(f));
+        const auto hn1_o = kernel.next(hn0_o);
+        // const auto hn2_o = kernel.next(hn1_o);
+        GEL_ASSERT(stitch_boundary_edges(h, hn1_o));
+
+        // face | kernel.last | kernel.vert points to the dangling vertex
+        return f;
+    }
+
+    FaceID Manifold::add_boundary_face(const HalfEdgeID h0, const HalfEdgeID h1)
+    {
+        GEL_ASSERT(kernel.in_use(h0), "h0 must be valid");
+        GEL_ASSERT(kernel.in_use(h1), "h0 must be valid");
+        GEL_ASSERT(kernel.face(h0) == InvalidFaceID, "h0 must be on boundary");
+        GEL_ASSERT(kernel.face(h1) == InvalidFaceID, "h1 must be on boundary");
+        GEL_ASSERT(kernel.next(h0) == h1, "h1 must follow h0");
+
+        const FaceID f = add_face({Vec3d(0), Vec3d(0), Vec3d(0)});
+        const auto hn0_o = kernel.opp(kernel.last(f));
+        const auto hn1_o = kernel.next(hn0_o);
+        const auto hn2_o = kernel.next(hn1_o);
+
+        GEL_ASSERT(stitch_boundary_edges(h0, hn2_o));
+        GEL_ASSERT(stitch_boundary_edges(h1, hn1_o));
+
+        // face | kernel.last | kernel.opp is the new boundary halfedge
+        return f;
+    }
+
+    VertexID Manifold::split_vertex(HalfEdgeID h_in, HalfEdgeID h_out)
+    {
+        GEL_ASSERT(kernel.in_use(h_in), "h1 must be valid");
+        GEL_ASSERT(kernel.in_use(h_in), "h2 must be valid");
+        GEL_ASSERT_EQ(kernel.vert(kernel.opp(h_out)), kernel.vert(h_in),
+                      "h_in must point to h_out's origin");
+        const auto v = kernel.vert(h_in);
+
+        // If the halfedges are on the border, then we don't have to perform a slit, we can just directly add a face.
+        if (kernel.face(h_in) == InvalidFaceID && kernel.face(h_out) == InvalidFaceID) {
+            const auto f = add_boundary_face(h_in);
+            const auto vn = kernel.vert(kernel.last(f));
+            pos(vn) = pos(v);
+            const auto hn = kernel.opp(kernel.last(f));
+            add_boundary_face(hn, h_out);
+
+            return vn;
+            // xor
+        } else if ((kernel.face(kernel.opp(h_in)) == InvalidFaceID) != (kernel.face(kernel.opp(h_out)) == InvalidFaceID)) {
+            const auto v_new = slit_vertex_impl(h_in, h_out);
+            GEL_ASSERT_NEQ(v_new, InvalidVertexID);
+
+            if (kernel.vert(kernel.next(kernel.opp(h_in))) == v) {
+                const auto h_in_opp = kernel.opp(h_in);
+                const auto h_in_opp_next = kernel.next(h_in_opp);
+                const auto h_in_opp_prev = kernel.prev(h_in_opp);
+                const auto f = add_boundary_face(h_in_opp, h_in_opp_next);
+                const auto h_b = kernel.opp(kernel.last(f));
+                add_boundary_face(h_in_opp_prev, h_b);
+            } else {
+                const auto h_out_opp = kernel.opp(h_out);
+                const auto h_out_opp_prev = kernel.prev(h_out_opp);
+                const auto h_out_opp_next = kernel.next(h_out_opp);
+                const auto f = add_boundary_face(h_out_opp_prev, h_out_opp);
+                const auto h_b = kernel.opp(kernel.last(f));
+                add_boundary_face(h_b, h_out_opp_next);
+            }
+            return v_new;
+        } else {
+            const auto vn = slit_vertex_impl(h_in, h_out);
+            GEL_ASSERT_NEQ(vn, InvalidVertexID);
+
+            const auto f = close_hole(kernel.out(vn));
+
+            split_face_by_edge(f, v, vn);
+
+            return vn;
+        }
+    }
+
     VertexSet link_intersection(const Manifold& m, VertexID v0, VertexID v1)
     {
         // get the one-ring of v0
@@ -367,6 +447,8 @@ namespace HMesh
     
     bool Manifold::stitch_boundary_edges(HalfEdgeID h0, HalfEdgeID h1)
     {
+        GEL_ASSERT(kernel.in_use(h0), "h0 must be valid");
+        GEL_ASSERT(kernel.in_use(h1), "h1 must be valid");
         // Cannot stitch an edge with itself
         if(h0 == h1) {
         //    cout << "Stupid, you are stitching edge with self!" << endl;
@@ -697,26 +779,41 @@ namespace HMesh
         return kernel.face(h);
     }
     
-    VertexID Manifold::slit_vertex(VertexID v, HalfEdgeID h_in, HalfEdgeID h_out)
+    VertexID Manifold::slit_vertex([[maybe_unused]] const VertexID vid, const HalfEdgeID h_in, const HalfEdgeID h_out)
+    {
+        return slit_one_ring(h_in, h_out);
+    }
+
+    VertexID Manifold::slit_one_ring(const HalfEdgeID h_in, const HalfEdgeID h_out)
     {
         // Check validity of input. Neither h_in nor h_out may be adjacent to a hole
         // i.e. their faces must be defined. They must also not be each others opposite
-        // edges. Finally, if their op
+        // edges.
         if (kernel.face(h_in) == InvalidFaceID ||
             kernel.face(h_out) == InvalidFaceID ||
-            kernel.opp(h_out) == h_in)
+            kernel.opp(h_out) == h_in ||
+            kernel.vert(kernel.opp(h_out)) != kernel.vert(h_in)
+            )
             return InvalidVertexID;
 
+        // Only one of h_in and h_out can be the opposite of a border.
+        // Otherwise, there is no way of performing a manifold slit without immediately filling.
         if (kernel.next(kernel.opp(h_out)) == kernel.opp(h_in) &&
             kernel.face(kernel.opp(h_in)) == InvalidFaceID &&
             kernel.face(kernel.opp(h_out)) == InvalidFaceID)
-            return InvalidVertexID;
-        
-        // Slitting always creates a new vertex.
+            return InvalidVertexID; // can be replaced with an assert
 
+        return slit_vertex_impl(h_in, h_out);
+    }
+
+    VertexID Manifold::slit_vertex_impl(const HalfEdgeID h_in, const HalfEdgeID h_out)
+    {
+        GEL_ASSERT_EQ(kernel.vert(kernel.opp(h_out)), kernel.vert(h_in));
+        GEL_ASSERT_NEQ(h_in, kernel.opp(h_out));
+        const VertexID v = kernel.vert(h_in);
         VertexID v_new = kernel.add_vertex();
         pos(v_new) = Vec3d(pos(v));
-        
+
         // Go counter clockwise from h_out to h_in. Set all
         // halfedges that used to point to v to point to v_new
         HalfEdgeID h = kernel.prev(h_out);
@@ -725,44 +822,49 @@ namespace HMesh
             h = kernel.prev(kernel.opp(h));
             kernel.set_vert(h, v_new);
         }
-        
+
         HalfEdgeID h_in_opp = kernel.opp(h_in);
         HalfEdgeID h_new_in, h_new_in_opp;
-        if(kernel.face(h_in_opp) != InvalidFaceID)
+
+        HalfEdgeID h_out_opp = kernel.opp(h_out);
+        HalfEdgeID h_new_out,h_new_out_opp;
+
+        // boundary case
+        if (kernel.face(h_in_opp) == InvalidFaceID && kernel.face(h_out_opp) != InvalidFaceID)
         {
+            h_new_in_opp = h_in_opp;
+            h_new_in = kernel.prev(h_new_in_opp);
+            h_in_opp = kernel.opp(h_new_in);
+        } else {
             // Create two boundary edges that form a wedge between
             // h_in and h_in_opp -- if h_in_opp is not boundary
             h_new_in = kernel.add_halfedge();
             kernel.set_face(h_new_in, InvalidFaceID);
             glue(h_in_opp, h_new_in);
-            
+
             h_new_in_opp = kernel.add_halfedge();
             kernel.set_face(h_new_in_opp, InvalidFaceID);
             glue(h_in, h_new_in_opp);
-            
+
             link(h_new_in_opp, h_new_in);
-            
+
             VertexID v_i = kernel.vert(h_in_opp);
             kernel.set_vert(h_new_in_opp, v_i);
             kernel.set_out(v_i, h_new_in);
         }
-        else
-        {
-            h_new_in_opp = h_in_opp;
-            h_new_in = kernel.prev(h_new_in_opp);
-            h_in_opp = kernel.opp(h_new_in);
-        }
-        
-        HalfEdgeID h_out_opp = kernel.opp(h_out);
-        HalfEdgeID h_new_out,h_new_out_opp;
-        if(kernel.face(h_out_opp) != InvalidFaceID)
-        {
+
+        // boundary case
+        if (kernel.face(h_out_opp) == InvalidFaceID && kernel.face(h_in_opp) != InvalidFaceID) {
+            h_new_out_opp = h_out_opp;
+            h_new_out = kernel.next(h_new_out_opp);
+            h_out_opp = kernel.opp(h_new_out);
+        } else {
             // Create two boundary edges that for a wedge between
             // h_out and h_out_opp -- if h_out_opp is not boundary
             h_new_out = kernel.add_halfedge();
             kernel.set_face(h_new_out, InvalidFaceID);
             glue(h_out_opp, h_new_out);
-            
+
             h_new_out_opp = kernel.add_halfedge();
             kernel.set_face(h_new_out_opp, InvalidFaceID);
             glue(h_out, h_new_out_opp);
@@ -773,27 +875,21 @@ namespace HMesh
             kernel.set_vert(h_new_out, v_o);
             kernel.set_out(v_o, h_new_out_opp);
         }
-        else
-        {
-            h_new_out_opp = h_out_opp;
-            h_new_out = kernel.next(h_new_out_opp);
-            h_out_opp = kernel.opp(h_new_out);
-        }
-        
+
         link(h_new_out_opp, h_new_in_opp);
         link(h_new_in, h_new_out);
-        
+
         kernel.set_vert(h_new_in, v);
         kernel.set_vert(h_new_out_opp, v_new);
-        
+
         kernel.set_out(v, h_new_out);
         kernel.set_out(v_new, h_new_in_opp);
-        
+
         return v_new;
     }
 
     
-    HalfEdgeID Manifold::slit_edges(HMesh::VertexSet& insel)
+    HalfEdgeID Manifold::slit_edges(const HMesh::VertexSet& insel)
     {
         HalfEdgeID h;
         for(auto vid : insel)
@@ -802,7 +898,7 @@ namespace HMesh
             Walker w = walker(vid);
             while(!w.full_circle())
             {
-                if(insel.count(w.vertex())) {
+                if(insel.contains(w.vertex())) {
                     if(h_in == InvalidHalfEdgeID) {
                         if(w.opp().face() == InvalidFaceID)
                             h_in = w.opp().next().opp().halfedge();
@@ -821,7 +917,7 @@ namespace HMesh
             }
             if(h_in != InvalidHalfEdgeID &&
                h_out != InvalidHalfEdgeID) {
-                VertexID v_new = slit_vertex(vid, h_in, h_out);
+                VertexID v_new = slit_one_ring(h_in, h_out);
                 h = walker(v_new).halfedge();
             }
         }
@@ -1041,7 +1137,7 @@ namespace HMesh
         // perform bound checking in advance for bad inputs
         const auto bound = vertices.size();
         for (const auto index: face_indexes) {
-            // GEL_ASSERT(index < bound, "build_manifold called with out of bounds input");
+            GEL_ASSERT(index < bound, "build_manifold called with out of bounds input");
         }
 
         VertexAttributeVector<size_t> cluster_id;
@@ -1085,7 +1181,7 @@ namespace HMesh
         // perform bound checking in advance for bad inputs
         const auto bound = vertices.size();
         for (const auto index: face_indexes) {
-            // GEL_ASSERT(index < bound, "build_manifold called with out of bounds input");
+            GEL_ASSERT(index < bound, "build_manifold called with out of bounds input");
         }
 
         VertexAttributeVector<size_t> cluster_id;
