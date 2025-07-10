@@ -4,13 +4,19 @@
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 
+#include <iostream>
+
 #include <doctest.h>
 
 #include <nanobench.h>
 
 #include <GEL/HMesh/Manifold.h>
+#include <GEL/HMesh/obj_save.h>
 #include <GEL/HMesh/cleanup.h>
 #include <GEL/HMesh/face_loop.h>
+
+// Validators
+
 
 // Quick and dirty validation
 bool validate_manifold(const HMesh::Manifold &m) {
@@ -18,6 +24,212 @@ bool validate_manifold(const HMesh::Manifold &m) {
     HMesh::HalfEdgeSet hs;
     HMesh::FaceSet fs;
     return find_invalid_entities(m, vs, hs, fs);
+}
+
+struct PointHash {
+    size_t operator()(const CGLA::Vec3d& point) const
+    {
+        const auto h1 = std::hash<double>{}(point[0]);
+        const auto h2 = std::hash<double>{}(point[1]);
+        const auto h3 = std::hash<double>{}(point[2]);
+        return h1 ^ (h2 << 1) ^ (h3 << 2);
+    }
+};
+
+// Helper functions
+
+HMesh::VertexID find_vertex_id(const HMesh::Manifold& m, const CGLA::Vec3d& p)
+{
+    for (size_t i = 0; i < m.no_vertices(); ++i) {
+        if (m.positions[HMesh::VertexID(i)] == CGLA::Vec3d(0.0, 0.0, 0.0))
+            return HMesh::VertexID(i);
+    }
+    return HMesh::InvalidVertexID;
+}
+
+CGLA::Vec3d half_edge_direction(const HMesh::Manifold& m, HMesh::HalfEdgeID h)
+{
+    const auto w = m.walker(h);
+    const auto current = w.vertex();
+    const auto opposing = w.opp().vertex();
+    return CGLA::normalize(m.positions[opposing] - m.positions[current]);
+}
+
+std::array<HMesh::HalfEdgeID, 2> find_perpendicular_edges(const HMesh::Manifold& m, const HMesh::VertexID center_idx, const CGLA::Vec3d& to_insert_position)
+{
+    std::array edges = {HMesh::InvalidHalfEdgeID, HMesh::InvalidHalfEdgeID};
+    const auto he_normal = CGLA::normalize(to_insert_position - m.positions[center_idx]);
+    int i = 0;
+    HMesh::circulate_vertex_ccw(m, center_idx, [&](HMesh::HalfEdgeID h) {
+        const auto dir = half_edge_direction(m, h);
+        const auto perpendicular = CGLA::dot(he_normal, dir);
+
+        // in the perpendicular case, which is true for two edges in the test case, the above variable will be zero
+        if (perpendicular == 0.0) { edges.at(i++) = h; }
+    });
+    return edges;
+}
+
+// HMesh construction functions
+
+/// Makes the following shape:
+///     1  -  3
+///    /  \   / \
+///   0  -  2 -  4
+///    \  /  \ /
+///     5  -  6
+///
+/// @return
+HMesh::Manifold make_hex()
+{
+    std::vector<CGLA::Vec3d> vertices = {
+        {-2.0, 0.0, 0.0},
+        {-1.0, 1.0, 0.0},
+        {0.0, 0.0, 0.0},
+        {1.0, 1.0, 0.0},
+        {2.0, 0.0, 0.0},
+        {-1.0, -1.0, 0.0},
+        {1.0, -1.0, 0.0} };
+    std::vector<size_t> faces = {
+        2, 0, 1,
+        2, 1, 3,
+        2, 3, 4,
+        2, 5, 0,
+        2, 6, 5,
+        2, 4, 6,
+    };
+    HMesh::Manifold m;
+    HMesh::build_manifold(m, vertices, faces, 3);
+    CHECK_EQ(m.no_faces(), 6);
+    CHECK_EQ(m.no_vertices(), 7);
+    CHECK_EQ(m.no_halfedges(), 12 * 2);
+    return m;
+}
+
+/// Makes the following shape:
+///   0  -  2 -  4
+///    \  /  \ /
+///     5  -  6
+///
+/// @return
+HMesh::Manifold make_half_hex()
+{
+    std::vector<CGLA::Vec3d> vertices = {
+        {-2.0, 0.0, 0.0},
+        {-1.0, 1.0, 0.0},
+        {0.0, 0.0, 0.0},
+        {1.0, 1.0, 0.0},
+        {2.0, 0.0, 0.0},
+        {-1.0, -1.0, 0.0},
+        {1.0, -1.0, 0.0} };
+    std::vector<size_t> faces = {
+        2, 5, 0,
+        2, 6, 5,
+        2, 4, 6,
+    };
+    HMesh::Manifold m;
+    HMesh::build_manifold(m, vertices, faces, 3);
+    CHECK_EQ(m.no_faces(), 3);
+    CHECK_EQ(m.no_vertices(), 5);
+    CHECK_EQ(m.no_halfedges(), 7 * 2);
+    return m;
+}
+
+/// Makes the following shape:
+///     1  -  3
+///       \   / \
+///   0  -  2 -  4
+///    \  /  \ /
+///     5  -  6
+///
+/// @return
+HMesh::Manifold make_crooked_hex_left()
+{
+    std::vector<CGLA::Vec3d> vertices = {
+        {-2.0, 0.0, 0.0},
+        {-1.0, 1.0, 0.0},
+        {0.0, 0.0, 0.0},
+        {1.0, 1.0, 0.0},
+        {2.0, 0.0, 0.0},
+        {-1.0, -1.0, 0.0},
+        {1.0, -1.0, 0.0} };
+    std::vector<size_t> faces = {
+        2, 1, 3,
+        2, 3, 4,
+        2, 5, 0,
+        2, 6, 5,
+        2, 4, 6,
+    };
+    HMesh::Manifold m;
+    HMesh::build_manifold(m, vertices, faces, 3);
+    CHECK_EQ(m.no_faces(), 5);
+    CHECK_EQ(m.no_vertices(), 7);
+    CHECK_EQ(m.no_halfedges(), 11 * 2);
+    return m;
+}
+
+/// Makes the following shape:
+///     1  -  3
+///    /  \   /
+///   0  -  2 -  4
+///    \  /  \ /
+///     5  -  6
+///
+/// @return
+HMesh::Manifold make_crooked_hex_right()
+{
+    std::vector<CGLA::Vec3d> vertices = {
+        {-2.0, 0.0, 0.0},
+        {-1.0, 1.0, 0.0},
+        {0.0, 0.0, 0.0},
+        {1.0, 1.0, 0.0},
+        {2.0, 0.0, 0.0},
+        {-1.0, -1.0, 0.0},
+        {1.0, -1.0, 0.0} };
+    std::vector<size_t> faces = {
+        2, 0, 1,
+        2, 1, 3,
+        2, 5, 0,
+        2, 6, 5,
+        2, 4, 6,
+    };
+    HMesh::Manifold m;
+    HMesh::build_manifold(m, vertices, faces, 3);
+    CHECK_EQ(m.no_faces(), 5);
+    CHECK_EQ(m.no_vertices(), 7);
+    CHECK_EQ(m.no_halfedges(), 11 * 2);
+    return m;
+}
+
+HMesh::Manifold make_final()
+{
+    std::vector<CGLA::Vec3d> vertices = {
+        {-2.0, 0.0, 0.0},
+        {-1.0, 1.0, 0.0},
+        {0.0, 0.0, 0.0},
+        {1.0, 1.0, 0.0},
+        {2.0, 0.0, 0.0},
+        {-1.0, -1.0, 0.0},
+        {1.0, -1.0, 0.0},
+        {0.0, 0.5, 0.0}};
+    std::vector<size_t> faces = {
+        7, 0, 1,
+        7, 1, 3,
+        7, 3, 4,
+        2, 5, 0,
+        2, 6, 5,
+        2, 4, 6,
+        2, 0, 7, 4
+    };
+    std::vector<int> index_numbers = {
+        3, 3, 3, 3, 3, 3, 4
+    };
+    HMesh::Manifold m;
+    HMesh::build_manifold(m, vertices, faces, index_numbers);
+    CHECK_EQ(m.no_faces(), 7);
+    CHECK_EQ(m.no_vertices(), 8);
+    //CHECK_EQ(m.no_halfedges(), 12 * 2);
+    return m;
 }
 
 HMesh::Manifold create_rectangular_manifold(const size_t x_size, const size_t y_size)
@@ -53,6 +265,214 @@ HMesh::Manifold create_rectangular_manifold(const size_t x_size, const size_t y_
     return m;
 }
 
+// Test cases
+
+TEST_SUITE("Slit")
+{
+    TEST_CASE("center")
+    {
+        auto m = make_hex();
+        const auto m_copy = m;
+        const auto center_idx = find_vertex_id(m, CGLA::Vec3d(0.0, 0.0, 0.0));
+        REQUIRE_NE(center_idx, HMesh::InvalidVertexID);
+        const auto to_insert_position = CGLA::Vec3d(0.0, 0.5, 0.0);
+
+        const auto edges = find_perpendicular_edges(m, center_idx, to_insert_position);
+        REQUIRE_NE(edges[0], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(edges[1], HMesh::InvalidHalfEdgeID);
+
+        validate_manifold(m);
+        const auto vn = m.slit_one_ring(m.walker(edges[1]).opp().halfedge(), edges[0]);
+        REQUIRE_NE(vn, HMesh::InvalidVertexID);
+
+        CHECK(validate_manifold(m));
+        CHECK_EQ(m.no_faces(), 6);
+        CHECK_EQ(m.no_vertices(), 8);
+        CHECK_EQ(m.no_halfedges(), 14 * 2);
+    }
+}
+
+TEST_SUITE("Split")
+{
+    TEST_CASE("inner")
+    {
+        auto m = make_hex();
+        const auto to_insert_position = CGLA::Vec3d(0.0, 0.5, 0.0);
+        const auto center_idx = find_vertex_id(m, CGLA::Vec3d(0.0, 0.0, 0.0));
+        REQUIRE_NE(center_idx, HMesh::InvalidVertexID);
+        const auto edges = find_perpendicular_edges(m, center_idx, to_insert_position);
+        REQUIRE_NE(edges[0], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(edges[1], HMesh::InvalidHalfEdgeID);
+
+        const auto vn = m.split_vertex(m.walker(edges[1]).opp().halfedge(), edges[0]);
+        REQUIRE_NE(vn, HMesh::InvalidVertexID);
+
+        m.positions[vn] = to_insert_position;
+        CHECK(validate_manifold(m));
+        CHECK_EQ(m.no_faces(), 8);
+        CHECK_EQ(m.no_vertices(), 8);
+        CHECK_EQ(m.no_halfedges(), 15 * 2);
+
+        HMesh::obj_save("hex_obj.obj", m);
+    }
+
+    TEST_CASE("boundary inner")
+    {
+        auto m = make_half_hex();
+        const auto to_insert_position = CGLA::Vec3d(0.0, -0.5, 0.0);
+        const auto center_idx = find_vertex_id(m, CGLA::Vec3d(0.0, 0.0, 0.0));
+        REQUIRE_NE(center_idx, HMesh::InvalidVertexID);
+        const auto edges = find_perpendicular_edges(m, center_idx, to_insert_position);
+        REQUIRE_NE(edges[0], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(edges[1], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(m.walker(edges[1]).face(), HMesh::InvalidFaceID);
+        REQUIRE_NE(m.walker(edges[0]).opp().face(), HMesh::InvalidFaceID);
+
+        const auto vn = m.split_vertex(m.walker(edges[0]).opp().halfedge(), edges[1]);
+        REQUIRE_NE(vn, HMesh::InvalidVertexID);
+        m.positions[vn] = to_insert_position;
+        CHECK(validate_manifold(m));
+        CHECK_EQ(m.no_faces(), 5);
+        CHECK_EQ(m.no_vertices(), 6);
+        CHECK_EQ(m.no_halfedges(), 10 * 2);
+
+        HMesh::obj_save("half_hex_obj_inner.obj", m);
+    }
+
+    TEST_CASE("boundary partial inner")
+    {
+        auto m = make_crooked_hex_left();
+        const auto to_insert_position = CGLA::Vec3d(0.0, 0.5, 0.0);
+        const auto center_idx = find_vertex_id(m, CGLA::Vec3d(0.0, 0.0, 0.0));
+        REQUIRE_NE(center_idx, HMesh::InvalidVertexID);
+        const auto edges = find_perpendicular_edges(m, center_idx, to_insert_position);
+        REQUIRE_NE(edges[0], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(edges[1], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(m.walker(edges[1]).face(), HMesh::InvalidFaceID);
+        REQUIRE_NE(m.walker(edges[0]).opp().face(), HMesh::InvalidFaceID);
+
+        const auto vn = m.split_vertex(m.walker(edges[1]).opp().halfedge(), edges[0]);
+        REQUIRE_NE(vn, HMesh::InvalidVertexID);
+        m.positions[vn] = to_insert_position;
+        CHECK(validate_manifold(m));
+        CHECK_EQ(m.no_faces(), 7);
+        CHECK_EQ(m.no_vertices(), 8);
+        CHECK_EQ(m.no_halfedges(), 14 * 2);
+
+        HMesh::obj_save("crooked_hex_obj_inner.obj", m);
+    }
+
+    TEST_CASE("boundary partial outer left")
+    {
+        auto m = make_crooked_hex_left();
+        const auto to_insert_position = CGLA::Vec3d(0.0, -0.5, 0.0);
+        const auto center_idx = find_vertex_id(m, CGLA::Vec3d(0.0, 0.0, 0.0));
+        REQUIRE_NE(center_idx, HMesh::InvalidVertexID);
+        const auto edges = find_perpendicular_edges(m, center_idx, to_insert_position);
+        REQUIRE_NE(edges[0], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(edges[1], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(m.walker(edges[1]).face(), HMesh::InvalidFaceID);
+        REQUIRE_NE(m.walker(edges[0]).opp().face(), HMesh::InvalidFaceID);
+
+        const auto vn = m.split_vertex(m.walker(edges[0]).opp().halfedge(), edges[1]);
+        REQUIRE_NE(vn, HMesh::InvalidVertexID);
+        m.positions[vn] = to_insert_position;
+        CHECK(validate_manifold(m));
+        CHECK_EQ(m.no_faces(), 7);
+        CHECK_EQ(m.no_vertices(), 8);
+        CHECK_EQ(m.no_halfedges(), 14 * 2);
+
+        HMesh::obj_save("crooked_hex_obj_outer_left.obj", m);
+    }
+
+    TEST_CASE("boundary partial outer left flipped")
+    {
+        auto m = make_crooked_hex_left();
+        const auto to_insert_position = CGLA::Vec3d(0.0, -0.5, 0.0);
+        const auto center_idx = find_vertex_id(m, CGLA::Vec3d(0.0, 0.0, 0.0));
+        REQUIRE_NE(center_idx, HMesh::InvalidVertexID);
+        const auto edges = find_perpendicular_edges(m, center_idx, to_insert_position);
+        REQUIRE_NE(edges[0], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(edges[1], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(m.walker(edges[1]).face(), HMesh::InvalidFaceID);
+        REQUIRE_NE(m.walker(edges[0]).opp().face(), HMesh::InvalidFaceID);
+
+        const auto vn = m.split_vertex(m.walker(edges[1]).opp().halfedge(), m.walker(edges[0]).halfedge());
+        REQUIRE_NE(vn, HMesh::InvalidVertexID);
+        m.positions[vn] = to_insert_position;
+        CHECK(validate_manifold(m));
+        CHECK_EQ(m.no_faces(), 7);
+        CHECK_EQ(m.no_vertices(), 8);
+        CHECK_EQ(m.no_halfedges(), 14 * 2);
+
+        HMesh::obj_save("crooked_hex_obj_outer_left_flipped.obj", m);
+    }
+
+    TEST_CASE("boundary partial outer right")
+    {
+        auto m = make_crooked_hex_right();
+        const auto to_insert_position = CGLA::Vec3d(0.0, -0.5, 0.0);
+        const auto center_idx = find_vertex_id(m, CGLA::Vec3d(0.0, 0.0, 0.0));
+        REQUIRE_NE(center_idx, HMesh::InvalidVertexID);
+        const auto edges = find_perpendicular_edges(m, center_idx, to_insert_position);
+        REQUIRE_NE(edges[0], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(edges[1], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(m.walker(edges[1]).face(), HMesh::InvalidFaceID);
+        REQUIRE_NE(m.walker(edges[0]).opp().face(), HMesh::InvalidFaceID);
+
+        const auto vn = m.split_vertex(m.walker(edges[0]).opp().halfedge(), edges[1]);
+        REQUIRE_NE(vn, HMesh::InvalidVertexID);
+        m.positions[vn] = to_insert_position;
+        CHECK(validate_manifold(m));
+        CHECK_EQ(m.no_faces(), 7);
+        CHECK_EQ(m.no_vertices(), 8);
+        CHECK_EQ(m.no_halfedges(), 14 * 2);
+
+        HMesh::obj_save("crooked_hex_obj_outer_right.obj", m);
+    }
+
+    TEST_CASE("boundary outer")
+    {
+        auto m = make_half_hex();
+        const auto to_insert_position = CGLA::Vec3d(0.0, 0.5, 0.0);
+        const auto center_idx = find_vertex_id(m, CGLA::Vec3d(0.0, 0.0, 0.0));
+        REQUIRE_NE(center_idx, HMesh::InvalidVertexID);
+        const auto edges = find_perpendicular_edges(m, center_idx, to_insert_position);
+        REQUIRE_NE(edges[0], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(edges[1], HMesh::InvalidHalfEdgeID);
+        REQUIRE_EQ(m.walker(edges[0]).face(), HMesh::InvalidFaceID);
+        REQUIRE_EQ(m.walker(edges[1]).opp().face(), HMesh::InvalidFaceID);
+
+        const auto vn = m.split_vertex(m.walker(edges[1]).opp().halfedge(), edges[0]);
+        REQUIRE_NE(vn, HMesh::InvalidVertexID);
+        m.positions[vn] = to_insert_position;
+        CHECK(validate_manifold(m));
+        CHECK_EQ(m.no_faces(), 5);
+        CHECK_EQ(m.no_vertices(), 6);
+        CHECK_EQ(m.no_halfedges(), 10 * 2);
+
+        CHECK(HMesh::obj_save("half_hex_obj_outer.obj", m));
+    }
+
+    TEST_CASE("split reverse boundary")
+    {
+        auto m = make_half_hex();
+        const auto to_insert_position = CGLA::Vec3d(0.0, -0.5, 0.0);
+        const auto center_idx = find_vertex_id(m, CGLA::Vec3d(0.0, 0.0, 0.0));
+        REQUIRE_NE(center_idx, HMesh::InvalidVertexID);
+        const auto edges = find_perpendicular_edges(m, center_idx, to_insert_position);
+        REQUIRE_NE(edges[0], HMesh::InvalidHalfEdgeID);
+        REQUIRE_NE(edges[1], HMesh::InvalidHalfEdgeID);
+
+        const auto vn = m.split_vertex(m.walker(edges[0]).opp().halfedge(), edges[1]);
+        REQUIRE_NE(vn, HMesh::InvalidVertexID);
+        m.positions[vn] = to_insert_position;
+        CHECK(validate_manifold(m));
+
+        HMesh::obj_save("half_hex_obj_cursed.obj", m);
+    }
+}
+
 TEST_CASE("Benchmark manifold")
 {
     SUBCASE("10 x 10")
@@ -85,16 +505,16 @@ TEST_CASE("Benchmark manifold")
     }
     SUBCASE("Borderline non-manifold")
     {
-        // This tests a case where a mesh is not technically manifold but this case should still be 
+        // This tests a case where a mesh is not technically manifold but this case should still be
         // supported.
-        // We first create a grid of 2x2 faces 
+        // We first create a grid of 2x2 faces
         auto m = create_rectangular_manifold(3,3);
         // We check that this is a single connected component
         CHECK(HMesh::connected_components(m).size()==1);
         // We now remove two diagonally opposite faces
         m.remove_face(HMesh::FaceID(0));
         m.remove_face(HMesh::FaceID(3));
-        // We check that there is stil a single connected component since 
+        // We check that there is stil a single connected component since
         // the two remaining faces are connected by a single vertex
         CHECK(HMesh::connected_components(m).size()==1);
         // There is also just one boundary curve
@@ -107,8 +527,8 @@ TEST_CASE("Benchmark manifold")
         // This is a simple case where two tetra share a vertex. The important thing
         // to validate is that we get two connected components and not just one
         std::vector<CGLA::Vec3d> pts = {
-            CGLA::Vec3d(0,0,0), CGLA::Vec3d(1,0,0), CGLA::Vec3d(0,1,0), 
-            CGLA::Vec3d(0,0,0.5), 
+            CGLA::Vec3d(0,0,0), CGLA::Vec3d(1,0,0), CGLA::Vec3d(0,1,0),
+            CGLA::Vec3d(0,0,0.5),
             CGLA::Vec3d(0,0,1), CGLA::Vec3d(1,0,1), CGLA::Vec3d(0,1,1)
         };
         auto m = HMesh::Manifold();
@@ -135,9 +555,9 @@ TEST_CASE("Benchmark manifold")
         // get two connected components, i.e. two out of three triangles
         // are stitched,
         std::vector<CGLA::Vec3d> pts = {
-            CGLA::Vec3d(0,0,0), 
-            CGLA::Vec3d(0,0,1), 
-            CGLA::Vec3d(1,0,0), 
+            CGLA::Vec3d(0,0,0),
+            CGLA::Vec3d(0,0,1),
+            CGLA::Vec3d(1,0,0),
             CGLA::Vec3d(-1,0,0),
             CGLA::Vec3d(0,1,0)
         };
@@ -158,9 +578,9 @@ TEST_CASE("Benchmark manifold")
     {
         // We start by forming a mesh consisting of two triangles.
         std::vector<CGLA::Vec3d> pts = {
-            CGLA::Vec3d(0,0,0), 
-            CGLA::Vec3d(0,1,0), 
-            CGLA::Vec3d(-1,0,0), 
+            CGLA::Vec3d(0,0,0),
+            CGLA::Vec3d(0,1,0),
+            CGLA::Vec3d(-1,0,0),
             CGLA::Vec3d(1,0,0)
         };
         auto m = HMesh::Manifold();
