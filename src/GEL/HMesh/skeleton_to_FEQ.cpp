@@ -685,7 +685,8 @@ void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
                               Manifold& m_out,
                               const VertexAttributeVector<NodeID>& vertex2node,
                               const vector<double>& node_radii) {
-    const int N_dir_idx = 10;
+    const int N_dir_idx = 15;
+    double avg_edge_len = average_edge_length(m_out);
     for (int dir_idx=0;dir_idx<N_dir_idx; ++dir_idx) {
         auto new_pos = m_out.positions_attribute_vector();
         for (auto v: m_out.vertices()) {
@@ -694,8 +695,10 @@ void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
             Vec3d lap(0.0);
             Vec3d p0 = m_out.pos(v);
             for (auto vn: m_out.incident_vertices(v)) {
-                lap += m_out.pos(vn)-p0;
-                w_sum += 1.0;
+                Vec3d e = m_out.pos(vn)-p0;
+                double w = exp(-0.25*length(e)/avg_edge_len); 
+                lap += w*e;
+                w_sum += w;
             }
             lap /= w_sum;
             new_pos[v] = m_out.pos(v) + lap;
@@ -715,11 +718,9 @@ void skeleton_aware_smoothing(const Geometry::AMGraph3D& g,
         for (auto v: m_out.vertices()) {
             NodeID n = vertex2node[v];
             Vec3d norm = normal(m_out, v);
-            Vec3d dir = cond_normalize(m_out.pos(v) - barycenters[n]);
+            Vec3d dir = m_out.pos(v) - barycenters[n];
             double r = node_radii[n] * sqrt(g.valence(n)/2.0);
-            // new_pos[v] = dir * r + g.pos[n];
-            // new_pos[v] = 0.7 * ((0.7*dir+0.3*norm) * r + g.pos[n]) + 0.3 * m_out.pos(v);
-            new_pos[v] = ((0.75*dir+0.25*norm) * r + g.pos[n]);
+            new_pos[v] = (0.5*dir+0.5*norm*r + g.pos[n]);
 
         }
         m_out.positions_attribute_vector() = new_pos;
