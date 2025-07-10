@@ -11,4 +11,4 @@ set_target_properties(Manifold_test PROPERTIES
 target_include_directories(Manifold_test PRIVATE ${GEL_INCLUDE_DIR} ${DOCTEST_INCLUDE_DIR})
 target_link_libraries(Manifold_test GEL nanobench)
 
-add_test(NAME GEL.Test.Manifold COMMAND Manifold_test)
+doctest_discover_tests(Manifold_test TEST_PREFIX "Manifold.")
