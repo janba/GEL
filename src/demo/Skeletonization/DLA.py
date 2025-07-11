@@ -51,7 +51,6 @@ for t in linspace(0, 1, 1000):
             fixed[i] = True
             for j in nbor_list:
                 g.connect_nodes(i,fixed_indices[j])
-    graph.smooth(g, iter=1, alpha=0.002)
     viewer.display(g, once=True)
 
 # Cleanup: remove nodes that are not fixed and add some edges to the graph (saturate).
@@ -60,6 +59,7 @@ for i in g.nodes():
     if not fixed[i]:
         g.remove_node(i)
 graph.saturate(g, hops=3, rad=0.001)
+# graph.smooth(g, iter=10, alpha=0.1)
 viewer.display(g)
 s = graph.MSLS_skeleton(g)
 
