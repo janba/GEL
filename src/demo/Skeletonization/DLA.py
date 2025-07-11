@@ -18,8 +18,8 @@ viewer = gl.Viewer()
 # Create a graph and add a central node at the origin.
 # Then add 5000 random points in the unit ball around the origin.
 # The points are added as nodes to the graph.
-rad_min = 0.025
-rad_max = 0.5
+rad_min = 0.1
+rad_max = 1.0
 g = graph.Graph()
 g.add_node([.0,.0,.0])
 for _ in range(10000):
@@ -31,10 +31,10 @@ fixed = array([True] + [False] * (len(pos) - 1))
 # We will move the points randomly and connect them to the nearest fixed point.
 # The process is repeated until all points are connected to a fixed point or we
 # reach a maximum number of iterations.
-for t in linspace(0, 1, 1000):
+for t in linspace(0, 1, 1500):
     pos = g.positions()
     rad = rad_min + (t**2) * (rad_max - rad_min)
-    k = 0.002
+    k = 0.01
     for i, x in enumerate(pos):
         if not fixed[i]:
             x += k * random_point_in_unit_ball()
@@ -45,7 +45,7 @@ for t in linspace(0, 1, 1000):
     fixed_indices = where(fixed)[0]
     tree = cKDTree(pos[fixed])
     not_fixed_indices = where(~fixed)[0]
-    nbors = tree.query_ball_point(pos[~fixed], 0.5*k, workers=-1)
+    nbors = tree.query_ball_point(pos[~fixed], 0.4*k, workers=-1)
     for i, nbor_list in zip(not_fixed_indices, nbors):
         if len(nbor_list) > 0:
             fixed[i] = True
@@ -58,7 +58,7 @@ for t in linspace(0, 1, 1000):
 for i in g.nodes():
     if not fixed[i]:
         g.remove_node(i)
-graph.saturate(g, hops=3, rad=0.001)
+graph.saturate(g, hops=3, rad=0.005)
 # graph.smooth(g, iter=10, alpha=0.1)
 viewer.display(g)
 s = graph.MSLS_skeleton(g)
