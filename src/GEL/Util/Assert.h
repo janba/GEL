@@ -6,14 +6,25 @@
 #ifndef GEL_ASSERT_H
 #define GEL_ASSERT_H
 
+/// @file Assert.h
+/// @brief Assertion macros.
+
 #include <cstdio>
 #include <sstream>
 #include <stdexcept>
 
-/// The assert macro in <cassert> is inert in release mode. Certain graph algorithms
+/// @namespace Util::Assert
+/// @brief Assertion macros.
+/// @details The assert macro in cassert is inert in release mode. Certain graph algorithms
 /// are very slow necessitating testing on release mode which is why these macros are
 /// provided.
+///
+/// See @link GEL/Util/Assert.h Assert.h @endlink for the actual macros.
+
 namespace Util::Assert::detail {
+    /// @privatesection
+
+    /// @private
     template<typename T> concept has_to_str_operator = requires(T t, std::stringstream& os) {
         { os << t };
     };
@@ -36,12 +47,14 @@ namespace Util::Assert::detail {
         return "?";
     }
 
+
 #ifdef __GNUG__
 #define IGNORE_WFORMAT _Pragma("GCC diagnostic ignored \"-Wformat-security\"")
 #else
 #define IGNORE_WFORMAT
 #endif
 
+    [[noreturn]]
 #ifdef _MSC_VER
     __declspec(noinline)
 #else
@@ -54,9 +67,10 @@ namespace Util::Assert::detail {
         IGNORE_WFORMAT
         fprintf(stderr, fmt, args...);
         fprintf(stderr, "\n");
-        throw std::runtime_error("GEL assertion failure");
+        throw ::std::runtime_error("GEL assertion failure");
     }
 
+    [[noreturn]]
 #ifdef _MSC_VER
     __declspec(noinline)
 #else
@@ -70,9 +84,10 @@ namespace Util::Assert::detail {
         IGNORE_WFORMAT
         fprintf(stderr, fmt, args...);
         fprintf(stderr, "\n");
-        throw std::runtime_error("GEL assertion failure");
+        throw ::std::runtime_error("GEL assertion failure");
     }
 
+    [[noreturn]]
 #ifdef _MSC_VER
     __declspec(noinline)
 #else
@@ -87,9 +102,10 @@ namespace Util::Assert::detail {
         IGNORE_WFORMAT
         fprintf(stderr, fmt, args...);
         fprintf(stderr, "\n");
-        throw std::runtime_error("GEL assertion failure");
+        throw ::std::runtime_error("GEL assertion failure");
     }
 
+    [[noreturn]]
 #ifdef _MSC_VER
     __declspec(noinline)
 #else
@@ -104,53 +120,55 @@ namespace Util::Assert::detail {
         IGNORE_WFORMAT
         fprintf(stderr, fmt, args...);
         fprintf(stderr, "\n");
-        throw std::runtime_error("GEL assertion failure");
+        throw ::std::runtime_error("GEL assertion failure");
     }
 
     template<typename Predicate, typename... Args>
-    auto gel_assert_impl(Predicate&& p, auto expr, auto file, auto line, auto func, Args... args) -> void
+    constexpr auto gel_assert_impl(Predicate&& p, auto expr, auto file, auto line, auto func, Args... args) -> void
     {
-        [[unlikely]]
-        if (!p) {
+
+        if (!p) [[unlikely]] {
             gel_assert_failure(file, line, func, expr, args...);
         }
     }
 
     template<typename Predicate, typename... Args>
-    auto gel_assert_false_impl(Predicate&& p, auto expr, auto file, auto line, auto func, Args... args) -> void
+    constexpr auto gel_assert_false_impl(Predicate&& p, auto expr, auto file, auto line, auto func, Args... args) -> void
     {
-        [[unlikely]]
-        if (p) {
+
+        if (p) [[unlikely]] {
             gel_assert_false_failure(file, line, func, expr, args...);
         }
     }
 
     template<typename Left, typename Right, typename... Args>
-    auto gel_assert_eq_impl(Left&& l, Right&& r, auto expr_l, auto expr_r, auto file, auto line, auto func,
+    constexpr auto gel_assert_eq_impl(Left&& l, Right&& r, auto expr_l, auto expr_r, auto file, auto line, auto func,
                             Args... args) -> void
     requires has_eq<Right, Left>
     {
-        [[unlikely]]
-        if (l != r) {
+
+        if (l != r) [[unlikely]] {
             gel_assert_eq_failure(file, line, func, expr_l, expr_r, l, r, args...);
         }
     }
 
     template<typename Left, typename Right, typename... Args>
-    auto gel_assert_neq_impl(Left&& l, Right&& r, auto expr_l, auto expr_r, auto file, auto line, auto func,
+    constexpr auto gel_assert_neq_impl(Left&& l, Right&& r, auto expr_l, auto expr_r, auto file, auto line, auto func,
                              Args... args) -> void
     requires has_eq<Right, Left>
     {
-        [[unlikely]]
-        if (l == r) {
+        if (l == r) [[unlikely]] {
             gel_assert_neq_failure(file, line, func, expr_l, expr_r, l, r, args...);
         }
     }
 } // namespace Util::Assert::detail
 
+
+
+/// @def GEL_ASSERT(pred, ...)
 /// @brief Assertion macro
 /// @details If pred is false, throws an std::runtime_error. Can be given a C-style format string.
-/// @code
+/// @code{.cpp}
 /// auto i = 1;
 /// auto j = 2;
 /// GEL_ASSERT_FALSE(i == j, "math is broken because %d is equal to %d", i, j);
@@ -161,9 +179,10 @@ namespace Util::Assert::detail {
     }                                                                                                                  \
     while (false)
 
+/// @def GEL_ASSERT_FALSE(pred, ...)
 /// @brief Assertion macro
 /// @details If pred is true, throws an std::runtime_error. Can be given a C-style format string.
-/// @code
+/// @code{.cpp}
 /// GEL_ASSERT(1 == 1, "math is broken");
 /// @endcode
 #define GEL_ASSERT_FALSE(pred, ...)                                                                                    \
@@ -172,9 +191,10 @@ namespace Util::Assert::detail {
     }                                                                                                                  \
     while (false)
 
+/// @def GEL_ASSERT_EQ(left, right, ...)
 /// @brief Assertion macro
 /// @details If left is not equal to right, throws an std::runtime_error. Can be given a C-style format string.
-/// @code
+/// @code{.cpp}
 /// auto i = 1;
 /// auto j = 1;
 /// GEL_ASSERT_EQ(i, j, "math is broken");
@@ -186,9 +206,10 @@ namespace Util::Assert::detail {
     }                                                                                                                  \
     while (false)
 
+/// @def GEL_ASSERT_NEQ(left, right, ...)
 /// @brief Assertion macro
 /// @details If left is equal to right, throws an std::runtime_error. Can be given a C-style format string.
-/// @code
+/// @code{.cpp}
 /// auto i = 1;
 /// auto j = 2;
 /// GEL_ASSERT_NEQ(1, 2, "math is broken");
