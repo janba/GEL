@@ -21,10 +21,9 @@ namespace HMesh
      @brief Computes a polygonal mesh from a volumetric isocontour
      @param xform is the transformation from voxel indices back to the domain of the implicit being polygonized.
      @param grid is the voxel grid.
-     @param mani is the manifold into which the output mesh is written.
      @param tau is the threshold (or isovalue)
      @param make_triangles tells whether we output triangles (default: true) or quads (false)
-     @param high_is_inside tells whether values greater than @tau (defalut: true) are interior or exterior
+     @param high_is_inside tells whether values greater than @c tau (defalut: true) are interior or exterior
      @param dual_connectivity should be true if you want dual contouring and fals for marching cubes connectivity
      @returns HMesh::Manifold - the resulting mesh.
      
