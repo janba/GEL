@@ -53,6 +53,7 @@ namespace HMesh {
 } // namespace HMesh
 
 // Injecting into std::hash is explicitly allowed
+/// @private
 template<typename T> struct std::hash<HMesh::ItemID<T>> {
     std::size_t operator()(const HMesh::ItemID<T>& item_id) const noexcept
     {

@@ -3,7 +3,7 @@
  * @brief Simple OpenGL Image Library
  */
 /**
-	@mainpage SOIL
+	@details SOIL
 
 	Jonathan Dummer
 	2007-07-26-10.36
@@ -213,6 +213,7 @@ unsigned int
 	Loads an HDR image from disk into an OpenGL texture.
 	\param filename the name of the file to upload as a texture
 	\param fake_HDR_format SOIL_HDR_RGBE, SOIL_HDR_RGBdivA, SOIL_HDR_RGBdivA2
+	\param rescale_to_max
 	\param reuse_texture_ID 0-generate a new texture ID, otherwise reuse the texture ID (overwriting the old texture)
 	\param flags can be any of SOIL_FLAG_POWER_OF_TWO | SOIL_FLAG_MIPMAPS | SOIL_FLAG_TEXTURE_REPEATS | SOIL_FLAG_MULTIPLY_ALPHA | SOIL_FLAG_INVERT_Y | SOIL_FLAG_COMPRESS_TO_DXT
 	\return 0-failed, otherwise returns the OpenGL texture handle

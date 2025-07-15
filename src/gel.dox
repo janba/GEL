@@ -1,6 +1,6 @@
-/** \mainpage GEL: GEometric and Linear algebra tools.
+/** \mainpage GEL: Geometric and Linear algebra tools.
 
-GEL is a framwork for computer graphics and 3D vision.
+GEL is a framework for computer graphics and 3D vision.
 
 There are a good many tools for computational geometry processing: A
 voxel grid and a simple triangle mesh data structure. There is also 
@@ -17,7 +17,7 @@ GLGraphics contains facilities for drawing entities from other parts of GEL
 via OpenGL and also some tools for viewing in interactive programs and
 SOIL a small open source library for image loading by Jonathan Dummer.
 
-Finally there are some utilities in Util: Getting command line argumens,
+Finally there are some utilities in Util: Getting command line arguments,
 hash table classes, a 2D grid class, a resource manager and other 
 miscellany.
 */
@@ -99,48 +99,12 @@ There is also SOIL, the image loading library for OpenGL, by Jonathan Dummer.
 		\brief The HMesh namespace contains the Manifold class which is a halfedge
 		based mesh.
 
-		Apart from manifold there are also face and vertex circulators in this 
-		namespace. More advanced things are relegated to the HMeshUtil namespace.
+		Apart from Manifold there are also face and vertex circulators in this
+		namespace.
 
 		Some applications are also found here. For instance an isosurface 
 		polygonizer and Garland Heckbert simplification has been implemented
 	  on top of HMesh.
-*/
-
-/*!
-	\namespace LinAlg
-	\brief The Linear Algebra Implementation/Module/Package. 
-
-  This is the linear algebra package deal with vector and matrix types plus 
-  the basic operation on them. The Vector and Matrix Types are templated such 
-  that the precision of a given 'system' can be changen. Though the precision 
-  or type in mind is the double. Special types for 2 and 3 vectors 
-  (CVec2 and CVec3) are included for improved performance. The more advanced 
-  linear algebra functions are supplied by lincage to the LaPack package.
-
-  \test The functionality in this pacage has if nothing else is mentioned 
-  been tested by making small functions utilizing the functions. The 
-  reason being that the functions here are rather esay to validate due to 
-  their functional simplicity.
-
-	A list of improvements in mind is:
-	- Lapack interface
-	- Vector and Matrix product and so on, with interface to _BLAS_
-	- iterator thing
-	- Memory leak check ? inline ?
-	- Element functor
-	- Identity matrixs
-	- Compile and utilize the newer versions of the Lapack routines.
-	- Have a nameing convention section in the documentaion
-	- Integrate the design into the documentation
-	- Have a get data in the matrix and vector instead of &A[0].
-	- Have 3x3, 3x4 4x1 and 4x4 specialities.
-	- Look at casting e.g. vec2i=vec2l.
-	- Error handling in From/To matrix
-	- Has error handling in Lapack been made ?
-
-	\author Henrik Aanæs
-	\version Aug 2001
 */
 
 /** \namespace Util
