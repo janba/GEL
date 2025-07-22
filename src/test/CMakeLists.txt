@@ -27,6 +27,8 @@ FetchContent_GetProperties(doctest SOURCE_DIR doctest_source_dir)
 set(DOCTEST_INCLUDE_DIR ${doctest_source_dir}/doctest CACHE INTERNAL "Path to include folder for doctest")
 # # Add doctest to a project with:
 # target_include_directories(some_executable PRIVATE ${DOCTEST_INCLUDE_DIR})
+
+# include the doctest_discover_tests() script
 include(${doctest_source_dir}/scripts/cmake/doctest.cmake)
 
 add_subdirectory(CGLA-covariance)
@@ -36,6 +38,9 @@ add_subdirectory(CGLA-vec)
 add_subdirectory(Geometry-kdtree)
 add_subdirectory(Util-Assert)
 add_subdirectory(Manifold)
+
+add_subdirectory(RsR)
+add_subdirectory(Util-ThreadPool)
 # The following two rely on key input in order to exit
 #add_subdirectory(CGLA-ogl)
 #add_subdirectory(GLGraphics-console)
