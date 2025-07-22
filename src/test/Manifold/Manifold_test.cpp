@@ -17,15 +17,6 @@
 
 // Validators
 
-
-// Quick and dirty validation
-bool validate_manifold(const HMesh::Manifold &m) {
-    HMesh::VertexSet vs;
-    HMesh::HalfEdgeSet hs;
-    HMesh::FaceSet fs;
-    return find_invalid_entities(m, vs, hs, fs);
-}
-
 struct PointHash {
     size_t operator()(const CGLA::Vec3d& point) const
     {
@@ -281,11 +272,11 @@ TEST_SUITE("slit_one_ring")
         REQUIRE_NE(edges[0], HMesh::InvalidHalfEdgeID);
         REQUIRE_NE(edges[1], HMesh::InvalidHalfEdgeID);
 
-        validate_manifold(m);
+        HMesh::valid(m);
         const auto vn = m.slit_one_ring(m.walker(edges[1]).opp().halfedge(), edges[0]);
         REQUIRE_NE(vn, HMesh::InvalidVertexID);
 
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
         CHECK_EQ(m.no_faces(), 6);
         CHECK_EQ(m.no_vertices(), 8);
         CHECK_EQ(m.no_halfedges(), 14 * 2);
@@ -308,7 +299,7 @@ TEST_SUITE("split_vertex")
         REQUIRE_NE(vn, HMesh::InvalidVertexID);
 
         m.positions[vn] = to_insert_position;
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
         CHECK_EQ(m.no_faces(), 8);
         CHECK_EQ(m.no_vertices(), 8);
         CHECK_EQ(m.no_halfedges(), 15 * 2);
@@ -331,7 +322,7 @@ TEST_SUITE("split_vertex")
         const auto vn = m.split_vertex(m.walker(edges[0]).opp().halfedge(), edges[1]);
         REQUIRE_NE(vn, HMesh::InvalidVertexID);
         m.positions[vn] = to_insert_position;
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
         CHECK_EQ(m.no_faces(), 5);
         CHECK_EQ(m.no_vertices(), 6);
         CHECK_EQ(m.no_halfedges(), 10 * 2);
@@ -354,7 +345,7 @@ TEST_SUITE("split_vertex")
         const auto vn = m.split_vertex(m.walker(edges[1]).opp().halfedge(), edges[0]);
         REQUIRE_NE(vn, HMesh::InvalidVertexID);
         m.positions[vn] = to_insert_position;
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
         CHECK_EQ(m.no_faces(), 7);
         CHECK_EQ(m.no_vertices(), 8);
         CHECK_EQ(m.no_halfedges(), 14 * 2);
@@ -377,7 +368,7 @@ TEST_SUITE("split_vertex")
         const auto vn = m.split_vertex(m.walker(edges[0]).opp().halfedge(), edges[1]);
         REQUIRE_NE(vn, HMesh::InvalidVertexID);
         m.positions[vn] = to_insert_position;
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
         CHECK_EQ(m.no_faces(), 7);
         CHECK_EQ(m.no_vertices(), 8);
         CHECK_EQ(m.no_halfedges(), 14 * 2);
@@ -400,7 +391,7 @@ TEST_SUITE("split_vertex")
         const auto vn = m.split_vertex(m.walker(edges[1]).opp().halfedge(), m.walker(edges[0]).halfedge());
         REQUIRE_NE(vn, HMesh::InvalidVertexID);
         m.positions[vn] = to_insert_position;
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
         CHECK_EQ(m.no_faces(), 7);
         CHECK_EQ(m.no_vertices(), 8);
         CHECK_EQ(m.no_halfedges(), 14 * 2);
@@ -423,7 +414,7 @@ TEST_SUITE("split_vertex")
         const auto vn = m.split_vertex(m.walker(edges[0]).opp().halfedge(), edges[1]);
         REQUIRE_NE(vn, HMesh::InvalidVertexID);
         m.positions[vn] = to_insert_position;
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
         CHECK_EQ(m.no_faces(), 7);
         CHECK_EQ(m.no_vertices(), 8);
         CHECK_EQ(m.no_halfedges(), 14 * 2);
@@ -446,7 +437,7 @@ TEST_SUITE("split_vertex")
         const auto vn = m.split_vertex(m.walker(edges[1]).opp().halfedge(), edges[0]);
         REQUIRE_NE(vn, HMesh::InvalidVertexID);
         m.positions[vn] = to_insert_position;
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
         CHECK_EQ(m.no_faces(), 5);
         CHECK_EQ(m.no_vertices(), 6);
         CHECK_EQ(m.no_halfedges(), 10 * 2);
@@ -467,7 +458,7 @@ TEST_SUITE("split_vertex")
         const auto vn = m.split_vertex(m.walker(edges[0]).opp().halfedge(), edges[1]);
         REQUIRE_NE(vn, HMesh::InvalidVertexID);
         m.positions[vn] = to_insert_position;
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
 
         HMesh::obj_save("half_hex_obj_cursed.obj", m);
     }
@@ -492,7 +483,7 @@ TEST_SUITE("Misc.")
         // There is also just one boundary curve
         CHECK_EQ(HMesh::count_boundary_curves(m), 1);
         // Final validation.
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
     }
 
     TEST_CASE("Two tetrahedra share a vertex")
@@ -519,7 +510,7 @@ TEST_SUITE("Misc.")
         // no boundary curves
         CHECK_EQ(HMesh::count_boundary_curves(m), 0);
         // Final validation.
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
     }
     TEST_CASE("Non-manifold edge")
     {
@@ -545,7 +536,7 @@ TEST_SUITE("Misc.")
         // no boundary curves
         CHECK_EQ(HMesh::count_boundary_curves(m), 2);
         // Final validation.
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
     }
     TEST_CASE("Strange fin")
     {
@@ -566,7 +557,7 @@ TEST_SUITE("Misc.")
         // one boundary curve
         CHECK_EQ(HMesh::count_boundary_curves(m), 1);
         // Final validation.
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
 
         // Now extrude the shared edge.
         HMesh::HalfEdgeID h0;
@@ -596,7 +587,7 @@ TEST_CASE("Benchmark manifold")
         const auto y_size = 10UL;
         ankerl::nanobench::Bench().unit("vertex").batch(x_size * y_size).run("100 vertex Manifold", [&]() {
         auto m = create_rectangular_manifold(x_size, y_size);
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
         });
     }
     SUBCASE("100 x 100")
@@ -605,7 +596,7 @@ TEST_CASE("Benchmark manifold")
         const auto y_size = 100UL;
         ankerl::nanobench::Bench().unit("vertex").batch(x_size * y_size).run("10 thousand vertex Manifold", [&]() {
         auto m = create_rectangular_manifold(x_size, y_size);
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
         });
     }
     SUBCASE("1000 x 1000")
@@ -615,7 +606,7 @@ TEST_CASE("Benchmark manifold")
         const auto y_size = 1000UL;
         ankerl::nanobench::Bench().unit("vertex").batch(x_size * y_size).run("1 million vertex Manifold", [&]() {
         auto m = create_rectangular_manifold(x_size, y_size);
-        CHECK(validate_manifold(m));
+        CHECK(HMesh::valid(m));
         });
     }
     // // If Manifold::cleanup can be improved to use constant space, this should be able to run on the CI
@@ -627,7 +618,7 @@ TEST_CASE("Benchmark manifold")
     //     const auto y_size = 10'000UL;
     //     ankerl::nanobench::Bench().unit("vertex").batch(x_size * y_size).run("100 million vertex Manifold", [&]() {
     //     auto m = create_rectangular_manifold(x_size, y_size);
-    //     CHECK(validate_manifold(m));
+    //     CHECK(HMesh::valid(m));
     //     });
     // }
 }
