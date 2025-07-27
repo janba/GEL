@@ -44,10 +44,10 @@ namespace Geometry {
         using AdjMap = std::map<NodeID, EdgeID>;
         
         /// Special ID value for invalid node
-		static const NodeID InvalidNodeID;// = std::numeric_limits<size_t>::max();
-        
+		static constexpr NodeID InvalidNodeID = std::numeric_limits<size_t>::max();
+
         /// Special ID value for invalid edge
-		static const EdgeID InvalidEdgeID;// = std::numeric_limits<size_t>::max();
+		static constexpr EdgeID InvalidEdgeID = std::numeric_limits<size_t>::max();
         
     protected:
         
