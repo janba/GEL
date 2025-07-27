@@ -8,8 +8,8 @@
  * @brief 2x3 double matrix class
  */
 
-#ifndef __CGLA_MAT2X3D_H__
-#define __CGLA_MAT2X3D_H__
+#ifndef CGLA_MAT2X3D_H
+#define CGLA_MAT2X3D_H
 
 #include <GEL/CGLA/Vec2d.h>
 #include <GEL/CGLA/Vec3d.h>
@@ -27,11 +27,11 @@ namespace CGLA
 
 	public:
 		/// Construct Mat2x3d from two Vec3f vectors (vectors become rows)
-		Mat2x3d(const Vec3d& _a, const Vec3d& _b): 
+		constexpr Mat2x3d(const Vec3d& _a, const Vec3d& _b):
 			ArithMatFloat<Vec2d, Vec3d, Mat2x3d, 2> (_a,_b) {}
 
 		/// Construct 0 matrix.
-		Mat2x3d() {}
+		constexpr Mat2x3d() = default;
 	};
 
 	/**  \brief 3x2 double matrix class.
@@ -45,11 +45,11 @@ namespace CGLA
 
 		/** Construct matrix from three Vec2d vectors which become the 
 				rows of the matrix. */
-		Mat3x2d(const Vec2d& _a, const Vec2d& _b, const Vec2d& _c): 
+		constexpr Mat3x2d(const Vec2d& _a, const Vec2d& _b, const Vec2d& _c):
 			ArithMatFloat<Vec3d, Vec2d, Mat3x2d, 3> (_a,_b,_c) {}
 
 		/// Construct 0 matrix.
-		Mat3x2d() {}
+		constexpr Mat3x2d() = default;
 
 	};
 

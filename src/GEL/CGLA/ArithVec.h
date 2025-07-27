@@ -9,8 +9,8 @@
  * @brief Abstract vector class
  */
 
-#ifndef __CGLA_ARITHVEC_H__
-#define __CGLA_ARITHVEC_H__
+#ifndef CGLA_ARITHVEC_H
+#define CGLA_ARITHVEC_H
 
 #include <array>
 #include <algorithm>
@@ -53,78 +53,83 @@ namespace CGLA
         std::array<T,N> data;
         
     protected:
-        
-        //----------------------------------------------------------------------
-        // Constructors
-        //----------------------------------------------------------------------
+
+        /// @name Constructors
+        /// @{
         
         /// Construct uninitialized vector
-        ArithVec() {}
+        constexpr ArithVec() noexcept = default;
         
         /// Construct a vector where all coordinates are identical
-        explicit ArithVec(T _a)
+        constexpr explicit ArithVec(T _a) noexcept
         {
             std::fill_n(data, N, _a);
         }
         
         /// Construct a 2D vector
-        ArithVec(T _a, T _b)
+        constexpr ArithVec(T _a, T _b) noexcept
         {
-            assert(N==2);
+            static_assert(N==2);
             data[0] = _a;
             data[1] = _b;
         }
         
         /// Construct a 3D vector
-        ArithVec(T _a, T _b, T _c)
+        constexpr ArithVec(T _a, T _b, T _c) noexcept
         {
-            assert(N==3);
+            static_assert(N==3);
             data[0] = _a;
             data[1] = _b;
             data[2] = _c;
         }
         
         /// Construct a 4D vector
-        ArithVec(T _a, T _b, T _c, T _d)
+        constexpr ArithVec(T _a, T _b, T _c, T _d) noexcept
         {
-            assert(N==4);
+            static_assert(N==4);
             data[0] = _a;
             data[1] = _b;
             data[2] = _c;
             data[3] = _d;
         }
+
+        /// @}
+
     public:
         
         /// For convenience we define a more meaningful name for the scalar type
-        typedef T ScalarType;
+        using ScalarType = T;
         
         /// A more meaningful name for vector type
-        typedef V VectorType;
+        using VectorType = V;
+
+        /// @name Accessors
+        /// @{
         
         /// Return dimension of vector
         static constexpr unsigned int get_dim() {return N;}
         
         /// Set all coordinates of a 2D vector.
-        void set(T _a, T _b)
+        constexpr void set(T _a, T _b) noexcept
         {
-            assert(N==2);
+            static_assert(N==2);
             data[0] = _a;
             data[1] = _b;
         }
         
         /// Set all coordinates of a 3D vector.
-        void set(T _a, T _b, T _c)
+        constexpr void set(T _a, T _b, T _c) noexcept
         {
-            assert(N==3);
+            static_assert(N==3);
             data[0] = _a;
             data[1] = _b;
             data[2] = _c;
         }
         
         /// Set all coordinates of a 4D vector.
-        void set(T _a, T _b, T _c, T _d)
+        constexpr void set(T _a, T _b, T _c, T _d) noexcept
         {
-            assert(N==4);
+            static_assert(N==4);
             data[0] = _a;
             data[1] = _b;
             data[2] = _c;
@@ -132,176 +137,180 @@ namespace CGLA
         }
         
         /// Const index operator
-        const T& operator [] ( unsigned int i ) const
+        constexpr const T& operator [] ( unsigned int i ) const
         {
             assert(i<N);
             return data[i];
         }
         
         /// Non-const index operator
-        T& operator [] ( unsigned int i )
+        constexpr T& operator [] ( unsigned int i )
         {
             assert(i<N);
             return data[i];
         }
         
         /// Const index operator
-        const T& operator () ( unsigned int i ) const
+        constexpr const T& operator () ( unsigned int i ) const
         {
             assert(i<N);
             return data[i];
         }
         
         /// Non-const index operator
-        T& operator () ( unsigned int i )
+        constexpr T& operator () ( unsigned int i )
         {
             assert(i<N);
             return data[i];
         }
+
+        /// @}
+        /// @name Iterators
+        /// @{
         
-        typedef typename std::array<T,N>::iterator iterator;
-        typedef typename std::array<T,N>::const_iterator const_iterator;
+        using iterator = typename std::array<T, N>::iterator;
+        using const_iterator = typename std::array<T, N>::const_iterator;
         
         
         /** Get a pointer to first element in data array.
          This function may be useful when interfacing with some other API
          such as OpenGL (TM) */
-        iterator begin() {return data.begin();}
-        iterator end() {return data.end();}
-        T* get() {return data.data();}
+        constexpr iterator begin() {return data.begin();}
+        constexpr iterator end() {return data.end();}
+        constexpr T* get() {return data.data();}
         
         /** Get a const pointer to first element in data array.
          This function may be useful when interfacing with some other API
          such as OpenGL (TM). */
-        const_iterator begin() const {return data.begin();}
-        const_iterator end() const {return data.end();}
-        const T* get() const {return data.data();}
+        constexpr const_iterator begin() const {return data.begin();}
+        constexpr const_iterator end() const {return data.end();}
+        constexpr const T* get() const {return data.data();}
         
-        //----------------------------------------------------------------------
-        // Comparison operators
-        //----------------------------------------------------------------------
+        /// @}
+        /// @name Comparison Operators
+        /// @{
         
         /// Equality operator
-        bool operator==(const V& v) const
+        constexpr bool operator==(const V& v) const
         {
             return std::equal(begin(),end(), v.begin());
         }
         
         /// Equality wrt scalar. True if all coords are equal to scalar
-        bool operator==(T k) const
+        constexpr bool operator==(T k) const
         {
             return std::count(begin(),end(), k)==N;
         }
         
         /// Inequality operator
-        bool operator!=(const V& v) const
+        constexpr bool operator!=(const V& v) const
         {
             return !(*this==v);
         }
         
         /// Inequality wrt scalar. True if any coord not equal to scalar
-        bool operator!=(T k) const
+        constexpr bool operator!=(T k) const
         {
             return !(*this==k);
         }
         
         
-        //----------------------------------------------------------------------
-        // Comparison functions ... of geometric significance
-        //----------------------------------------------------------------------
+        /// @}
+        /// @name Comparison and geometric significance operators
+        /// @{
         
         /** Compare all coordinates against other vector ( < ) and combine with 'and'.
          Similar to testing whether we are on one side of three planes. */
-        bool  all_l  (const V& v) const
+        constexpr bool  all_l  (const V& v) const
         {
             return std::inner_product(begin(), end(), v.begin(), true,
-                                      std::logical_and<bool>(), std::less<T>());
+                                      std::logical_and<>(), std::less<T>());
         }
         
         /** Compare all coordinates against other vector ( <= ) and combine with 'and'.
          Similar to testing whether we are on one side of three planes. */
-        bool  all_le (const V& v) const
+        constexpr bool  all_le (const V& v) const
         {
             return std::inner_product(begin(), end(), v.begin(), true,
-                                      std::logical_and<bool>(), std::less_equal<T>());
+                                      std::logical_and<>(), std::less_equal<T>());
         }
         
         /** Compare all coordinates against other vector ( > ) and combine with 'and'.
          Similar to testing whether we are on one side of three planes. */
-        bool  all_g  (const V& v) const
+        constexpr bool  all_g  (const V& v) const
         {
             return std::inner_product(begin(), end(), v.begin(), true,
-                                      std::logical_and<bool>(), std::greater<T>());
+                                      std::logical_and<>(), std::greater<T>());
         }
         
         /** Compare all coordinates against other vector  ( >= ) and combine with 'and'.
          Similar to testing whether we are on one side of three planes. */
-        bool  all_ge (const V& v) const
+        constexpr bool  all_ge (const V& v) const
         {
             return std::inner_product(begin(), end(), v.begin(), true,
-                                      std::logical_and<bool>(), std::greater_equal<T>());
+                                      std::logical_and<>(), std::greater_equal<T>());
         }
      
         /** Compare all coordinates against other vector ( < ) and combine with 'or'.
          Similar to testing whether we are on one side of three planes. */
-        bool  any_l  (const V& v) const
+        constexpr bool  any_l  (const V& v) const
         {
             return std::inner_product(begin(), end(), v.begin(), true,
-                                      std::logical_or<bool>(), std::less<T>());
+                                      std::logical_or<>(), std::less<T>());
         }
         
         /** Compare all coordinates against other vector ( <= ) and combine with 'or'.
          Similar to testing whether we are on one side of three planes. */
-        bool  any_le (const V& v) const
+        constexpr bool  any_le (const V& v) const
         {
             return std::inner_product(begin(), end(), v.begin(), true,
-                                      std::logical_or<bool>(), std::less_equal<T>());
+                                      std::logical_or<>(), std::less_equal<T>());
         }
         
         /** Compare all coordinates against other vector ( > ) and combine with 'or'.
          Similar to testing whether we are on one side of three planes. */
-        bool  any_g  (const V& v) const
+        constexpr bool  any_g  (const V& v) const
         {
             return std::inner_product(begin(), end(), v.begin(), true,
-                                      std::logical_or<bool>(), std::greater<T>());
+                                      std::logical_or<>(), std::greater<T>());
         }
         
         /** Compare all coordinates against other vector  ( >= ) and combine with 'or'.
          Similar to testing whether we are on one side of three planes. */
-        bool  any_ge (const V& v) const
+        constexpr bool  any_ge (const V& v) const
         {
             return std::inner_product(begin(), end(), v.begin(), true,
                                       std::logical_or<bool>(), std::greater_equal<T>());
         }
 
         
-        //----------------------------------------------------------------------
-        // Assignment operators
-        //----------------------------------------------------------------------
+        /// @}
+        /// @name Assignment operators
+        /// @{
         
         /// Assignment multiplication with scalar.
-        const V& operator *=(T k)
+        constexpr const V& operator *=(T k)
         {
             for(auto& x : data) {x*=k;}
             return static_cast<const V&>(*this);
         }
         
         /// Assignment division with scalar.
-        const V& operator /=(T k)
+        constexpr const V& operator /=(T k)
         {
             for(auto& x : data) {x/=k;}
             return static_cast<const V&>(*this);
         }
         
         /// Assignment addition with scalar. Adds scalar to each coordinate.
-        const V& operator +=(T k)
+        constexpr const V& operator +=(T k)
         {
             for(auto& x : data) {x+=k;}
             return  static_cast<const V&>(*this);
         }
         
         /// Assignment subtraction with scalar. Subtracts scalar from each coord.
-        const V& operator -=(T k)
+        constexpr const V& operator -=(T k)
         {
             for(auto& x : data) {x-=k;}
             return  static_cast<const V&>(*this);
@@ -309,53 +318,53 @@ namespace CGLA
         
         /** Assignment multiplication with vector.
          Multiply each coord independently. */
-        const V& operator *=(const V& v)
+        constexpr const V& operator *=(const V& v)
         {
             std::transform(begin(), end(), v.begin(), begin(), std::multiplies<T>());
             return  static_cast<const V&>(*this);
         }
         
         /// Assigment division with vector. Each coord divided independently.
-        const V& operator /=(const V& v)
+        constexpr const V& operator /=(const V& v)
         {
             std::transform(begin(), end(),  v.begin(), begin(), std::divides<T>());
             return  static_cast<const V&>(*this);
         }
         
         /// Assignmment addition with vector.
-        const V& operator +=(const V& v)
+        constexpr const V& operator +=(const V& v)
         {
             std::transform(begin(), end(), v.begin(), begin(), std::plus<T>());
             return  static_cast<const V&>(*this);
         }
 		
         /// Assignment subtraction with vector.
-        const V& operator -=(const V& v)
+        constexpr const V& operator -=(const V& v)
         {
             std::transform(begin(), end(), v.begin(), begin(), std::minus<T>());
             return  static_cast<const V&>(*this);
         }
         
         
-        //----------------------------------------------------------------------
-        // Unary operators on vectors
-        //----------------------------------------------------------------------
+        /// @}
+        /// @name Unary operators
+        /// @{
         
         /// Negate vector.
-        const V operator - () const
+        constexpr V operator - () const
         {
             V v_new;
             std::transform(begin(), end(), v_new.begin(), std::negate<T>());
             return v_new;
         }
         
-        //----------------------------------------------------------------------
-        // Binary operators on vectors
-        //----------------------------------------------------------------------
+        /// @}
+        /// @name Binary operations with vectors
+        /// @{
         
         /** Multiply vector with vector. Each coord multiplied independently
          Do not confuse this operation with dot product. */
-        const V operator * (const V& v1) const
+        constexpr V operator * (const V& v1) const
         {
             V v_new;
             std::transform(begin(), end(), v1.begin(), v_new.begin(), std::multiplies<T>());
@@ -363,7 +372,7 @@ namespace CGLA
         }
         
         /// Add two vectors
-        const V operator + (const V& v1) const
+        constexpr V operator + (const V& v1) const
         {
             V v_new;
             std::transform(begin(), end(), v1.begin(), v_new.begin(), std::plus<T>());
@@ -371,7 +380,7 @@ namespace CGLA
         }
         
         /// Subtract two vectors.
-        const V operator - (const V& v1) const
+        constexpr V operator - (const V& v1) const
         {
             V v_new;
             std::transform(begin(), end(), v1.begin(), v_new.begin(), std::minus<T>());
@@ -379,19 +388,19 @@ namespace CGLA
         }
         
         /// Divide two vectors. Each coord separately
-        const V operator / (const V& v1) const
+        constexpr V operator / (const V& v1) const
         {
             V v_new;
             std::transform(begin(), end(), v1.begin(), v_new.begin(), std::divides<T>());
             return v_new;
         }
         
-        //----------------------------------------------------------------------
-        // Binary operators on vector and scalar
-        //----------------------------------------------------------------------
+        /// @}
+        /// @name Binary operations with scalars
+        /// @{
         
         /// Multiply scalar onto vector.
-        const V operator * (T k) const
+        constexpr V operator * (T k) const
         {
             V v_new;
             std::transform(begin(), end(), v_new.begin(), [k](T x){return x*k;});
@@ -400,7 +409,7 @@ namespace CGLA
         
         
         /// Divide vector by scalar.
-        const V operator / (T k) const
+        constexpr V operator / (T k) const
         {
             V v_new;
             std::transform(begin(), end(), v_new.begin(), [k](T x){return x/k;});
@@ -409,21 +418,21 @@ namespace CGLA
         
         
         /// Return the smallest coordinate of the vector
-        const T min_coord() const
+        constexpr T min_coord() const
         {
             return *std::min_element(begin(), end());
         }
         
         /// Return the largest coordinate of the vector
-        const T max_coord() const
+        constexpr T max_coord() const
         {
             return *std::max_element(begin(), end());
         }
-        
+
     };
     
     template <class T, class V, unsigned int N>
-    inline std::ostream& operator<<(std::ostream&os, const ArithVec<T,V,N>& v)
+    constexpr std::ostream& operator<<(std::ostream&os, const ArithVec<T,V,N>& v)
     {
         os << "[ ";
         for(const T& x : v) os << x << " ";
@@ -433,7 +442,7 @@ namespace CGLA
         
         /// Get from operator for ArithVec descendants.
         template <class T,class V, unsigned int N>
-        inline std::istream& operator>>(std::istream&is, ArithVec<T,V,N>& v)
+        constexpr std::istream& operator>>(std::istream&is, ArithVec<T,V,N>& v)
         {
             is >> std::ws;
             if (is.peek() == '[')
@@ -452,14 +461,14 @@ namespace CGLA
         /** Dot product for two vectors. The `*' operator is
          reserved for coordinatewise	multiplication of vectors. */
         template <class T,class V, unsigned int N>
-        inline T dot(const ArithVec<T,V,N>& v0, const ArithVec<T,V,N>& v1)
+        constexpr T dot(const ArithVec<T,V,N>& v0, const ArithVec<T,V,N>& v1)
         {
             return std::inner_product(v0.begin(), v0.end(), v1.begin(), T(0));
         }
         
         /** Compute the sqr length by taking dot product of vector with itself. */
         template <class T,class V, unsigned int N>
-        inline T sqr_length(const ArithVec<T,V,N>& v)
+        constexpr T sqr_length(const ArithVec<T,V,N>& v)
         {
             return dot(v,v);
         }
@@ -481,7 +490,7 @@ namespace CGLA
          */
         
         template<class T, class V, unsigned int N>
-        inline const V operator * (double k, const ArithVec<T,V,N>& v)
+        constexpr V operator * (double k, const ArithVec<T,V,N>& v)
         {
             return v * k;
         }
@@ -489,7 +498,7 @@ namespace CGLA
         /** Multiply float onto vector. See the note in the documentation
          regarding multiplication of a double onto a vector. */
         template<class T, class V, unsigned int N>
-        inline const V operator * (float k, const ArithVec<T,V,N>& v)
+        constexpr V operator * (float k, const ArithVec<T,V,N>& v)
         {
             return v * k;
         }
@@ -497,7 +506,7 @@ namespace CGLA
         /** Multiply unsigned int onto vector. See the note in the documentation
          regarding multiplication of a double onto a vector. */
         template<class T, class V, unsigned int N>
-        inline const V operator * (int k, const ArithVec<T,V,N>& v)
+        constexpr V operator * (int k, const ArithVec<T,V,N>& v)
         {
             return v * k;
         }
@@ -505,7 +514,7 @@ namespace CGLA
         /** Returns the vector containing for each coordinate the smallest
          value from two vectors. */
         template <class T,class V, unsigned int N>
-        inline V v_min(const ArithVec<T,V,N>& v0, const ArithVec<T,V,N>& v1)
+        constexpr V v_min(const ArithVec<T,V,N>& v0, const ArithVec<T,V,N>& v1)
         {
             V v;
             std::transform(v0.begin(), v0.end(), v1.begin(), v.begin(),
@@ -516,7 +525,7 @@ namespace CGLA
         /** Returns the vector containing for each coordinate the largest
          value from two vectors. */
         template <class T,class V, unsigned int N>
-        inline V v_max(const ArithVec<T,V,N>& v0, const ArithVec<T,V,N>& v1)
+        constexpr V v_max(const ArithVec<T,V,N>& v0, const ArithVec<T,V,N>& v1)
         {
             V v;
             std::transform(v0.begin(), v0.end(), v1.begin(), v.begin(),

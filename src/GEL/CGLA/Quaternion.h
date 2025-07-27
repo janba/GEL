@@ -8,13 +8,12 @@
  * @brief Quaternion is an alias for Quatf - float based quaternions.
  */
 
-#ifndef __CGLA_QUATERNION_H__
-#define __CGLA_QUATERNION_H__
+#ifndef CGLA_QUATERNION_H
+#define CGLA_QUATERNION_H
 
 #include <GEL/CGLA/Quatf.h>
 
 namespace CGLA {
-
-	typedef Quatf Quaternion;
+using Quaternion = Quatf;
 }
 #endif

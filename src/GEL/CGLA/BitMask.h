@@ -8,14 +8,14 @@
  * @brief BitMask class for selecting bit subsets ... possibly a bit dusty
  */
 
-#ifndef __CGLA__BITMASK_H__
-#define __CGLA__BITMASK_H__
+#ifndef CGLA__BITMASK_H
+#define CGLA__BITMASK_H
 
 #include <GEL/CGLA/Vec3i.h>
 
 namespace CGLA
 {
-	const int MASKS[33] = 
+	constexpr int MASKS[33] =
 		{
 			0x00000000,
 			0x00000001,

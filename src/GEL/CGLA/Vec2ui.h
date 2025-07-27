@@ -9,8 +9,8 @@
  * @brief 2D unsigned integer vector class.
  */
 
-#ifndef __CGLA_VEC2UI_H__
-#define __CGLA_VEC2UI_H__
+#ifndef CGLA_VEC2UI_H
+#define CGLA_VEC2UI_H
 
 #include <GEL/CGLA/ArithVec.h>
 
@@ -25,20 +25,20 @@ namespace CGLA
 	public:
 		
 		/// Construct 0 vector
-		Vec2ui() {}
+		constexpr Vec2ui() = default;
 
 		/// Construct 2D int vector
-		Vec2ui(unsigned int _a)
+		constexpr Vec2ui(unsigned int _a)
 		  : ArithVec<unsigned int,Vec2ui,2>(_a,_a) 
 		{}
 
 		/// Construct 2D int vector
-		Vec2ui(unsigned int _a, unsigned int _b)
+		constexpr Vec2ui(unsigned int _a, unsigned int _b)
 		  : ArithVec<unsigned int,Vec2ui,2>(_a,_b) 
 		{}
 
 		/// Convert from 2D float vector
-		explicit Vec2ui(const Vec2f& v);
+		constexpr explicit Vec2ui(const Vec2f& v);
   
 	};
 }

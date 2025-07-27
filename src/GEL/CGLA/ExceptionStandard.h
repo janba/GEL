@@ -9,36 +9,33 @@
  * @brief Exceptions are not much used in CGLA, but these classes define what we throw.
  * ----------------------------------------------------------------------- */
 
-#ifndef __CGLA_EXCEPTIONSTANDARD_H__
-#define __CGLA_EXCEPTIONSTANDARD_H__
+#ifndef CGLA_EXCEPTIONSTANDARD_H
+#define CGLA_EXCEPTIONSTANDARD_H
 
+#include <string_view>
 #include <string>
-#include <iostream>
+#include <ostream>
 
 namespace CGLA
 {
-    
-    class CGLAMotherException
+/// Base class of all CGLA exceptions
+class CGLAMotherException {
+    std::string str;
+
+public:
+    constexpr explicit CGLAMotherException(const std::string_view s) : str(s) {}
+
+    void print(std::ostream& os) const
     {
-        std::string str;
-    public:
-        CGLAMotherException(const std::string s)
-        {
-            str = s;
-        }
-        
-        void print(std::ostream& os) const
-        {
-            os << str << std::endl;
-        }
-    };
-    
-#define CGLA_DERIVEEXCEPTION(nameoe)															\
-class nameoe: public CGLAMotherException									\
-{																													\
-public:																										\
-nameoe(const std::string& s): CGLAMotherException(s) {}	\
-};																												\
+        os << str << "\n";
+    }
+};
+
+#define CGLA_DERIVEEXCEPTION(nameoe)                                               \
+class nameoe: public CGLAMotherException {                                         \
+public:                                                                            \
+    constexpr explicit nameoe(const std::string_view s): CGLAMotherException(s) {} \
+};
 
 }
 

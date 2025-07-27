@@ -8,8 +8,8 @@
  * @brief Double based quaternion class
  */
 
-#ifndef __CGLA_QUATD_H__
-#define __CGLA_QUATD_H__
+#ifndef CGLA_QUATD_H
+#define CGLA_QUATD_H
 
 #include <GEL/CGLA/ArithQuat.h>
 #include <GEL/CGLA/Vec3d.h>

@@ -8,8 +8,8 @@
  * @brief Unitvector coded with two angles - possibly not efficient.
  */
 
-#ifndef __CGLA_UNITVECTOR_H__
-#define __CGLA_UNITVECTOR_H__
+#ifndef CGLA_UNITVECTOR_H
+#define CGLA_UNITVECTOR_H
 
 #include <GEL/CGLA/CGLA-util.h>
 #include <GEL/CGLA/Vec3f.h>

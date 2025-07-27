@@ -8,34 +8,33 @@
  * @brief 2D float vector class.
  */
 
-#ifndef __CGLA_VEC2F_H__
-#define __CGLA_VEC2F_H__
+#ifndef CGLA_VEC2F_H
+#define CGLA_VEC2F_H
 
 #include <GEL/CGLA/ArithVec2Float.h>
-#include <GEL/CGLA/Vec2i.h>
 
+namespace CGLA
+{
 
-namespace CGLA {
+/// @brief 2D floating point vector
+class Vec2f : public ArithVec2Float<float, Vec2f> {
+public:
+    constexpr Vec2f() = default;
+    constexpr Vec2f(float _a, float _b): ArithVec2Float(_a, _b) {}
 
-	/** \brief 2D floating point vector */
+    template <class T, class V, unsigned int N>
+    constexpr explicit Vec2f(const ArithVec<T, V, N>& v):
+        ArithVec2Float<float, Vec2f>(static_cast<float>(v[0]),
+                                     static_cast<float>(v[1])) {}
 
-	class Vec2f: public ArithVec2Float<float,Vec2f>
-	{
-	public:
+    constexpr explicit Vec2f(float a): ArithVec2Float<float, Vec2f>(a, a) {}
+};
 
-		Vec2f() {}
-		Vec2f(float _a,float _b): ArithVec2Float<float,Vec2f>(_a,_b) {}
+class Mat2x2f;
 
-		template<class T, class V, unsigned int N>
-		explicit Vec2f(const ArithVec<T,V,N>& v): 
-			ArithVec2Float<float,Vec2f>(static_cast<float>(v[0]),
-																	static_cast<float>(v[1])) {}
-
-		explicit Vec2f(float a): ArithVec2Float<float,Vec2f>(a,a) {}
-	};
-
-    class Mat2x2f;
-    template<> struct VecT_to_MatT<Vec2f> {using MatT = Mat2x2f;};
-
+template <>
+struct VecT_to_MatT<Vec2f> {
+    using MatT = Mat2x2f;
+};
 }
 #endif
