@@ -73,8 +73,7 @@ namespace CGLA
     
     constexpr double sqrt3()
     {
-        constexpr auto sqrt3_val = std::sqrt(3.0);
-        return sqrt3_val;
+        return 1.7320508075688772935274463415058723669;
     }
     
 #define SQRT3 sqrt3()

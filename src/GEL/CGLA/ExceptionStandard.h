@@ -23,7 +23,7 @@ class CGLAMotherException {
     std::string str;
 
 public:
-    constexpr explicit CGLAMotherException(const std::string_view s) : str(s) {}
+    explicit CGLAMotherException(const std::string_view s) : str(s) {}
 
     void print(std::ostream& os) const
     {
@@ -34,7 +34,7 @@ public:
 #define CGLA_DERIVEEXCEPTION(nameoe)                                               \
 class nameoe: public CGLAMotherException {                                         \
 public:                                                                            \
-    constexpr explicit nameoe(const std::string_view s): CGLAMotherException(s) {} \
+    explicit nameoe(const std::string_view s): CGLAMotherException(s) {}           \
 };
 
 }
