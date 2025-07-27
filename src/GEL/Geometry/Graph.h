@@ -44,10 +44,10 @@ namespace Geometry {
         using AdjMap = std::map<NodeID, EdgeID>;
         
         /// Special ID value for invalid node
-		static const NodeID InvalidNodeID;// = std::numeric_limits<size_t>::max();
-        
+		static constexpr NodeID InvalidNodeID = std::numeric_limits<size_t>::max();
+
         /// Special ID value for invalid edge
-		static const EdgeID InvalidEdgeID;// = std::numeric_limits<size_t>::max();
+		static constexpr EdgeID InvalidEdgeID = std::numeric_limits<size_t>::max();
         
     protected:
         
@@ -130,6 +130,13 @@ namespace Geometry {
             for(auto edge : edge_map[n])
                 nbrs[i++] = edge.first;
             return nbrs;
+        }
+
+        /// Return the NodeIDs of nodes adjacent to a given node lazily
+        [[nodiscard]] std::ranges::borrowed_range
+        auto neighbors_lazy(const NodeID n) const
+        {
+            return edge_map[n] | std::views::keys;
         }
         
         /// Return the edges - map from NodeID to EdgeID of the current node.
