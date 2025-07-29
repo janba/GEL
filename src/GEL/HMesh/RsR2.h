@@ -2,15 +2,11 @@
 #define GEL_HMesh_RsR2_hpp
 #pragma once
 
-// TODO: unnecessary imports will negatively affect compile times
-#include <random>
 #include <vector>
 #include <ranges>
 
 #include <GEL/Geometry/Graph.h>
-#include <GEL/HMesh/Manifold.h>
 #include <GEL/Geometry/etf.h>
-#include <GEL/Geometry/KDTree.h>
 
 #include <GEL/HMesh/Collapse.h>
 
@@ -41,23 +37,6 @@ using Vec3 = Vec3d;
 using Point = Vec3;
 using TEdge = std::pair<NodeID, NodeID>;
 
-using Tree = Geometry::KDTree<Point, NodeID>;
-using Record = Geometry::KDTreeRecord<Point, NodeID>;
-
-struct NeighborInfo {
-    NodeID id;
-    double distance; // the added precision doesn't justify the usage of doubles
-
-    static constexpr NodeID invalid_id = -1;
-    NeighborInfo() = delete;
-
-    explicit NeighborInfo(const Record& record) noexcept : id(record.v), distance(std::sqrt(record.d))
-    {}
-};
-
-using NeighborArray = std::vector<NeighborInfo>;
-using NeighborMap = std::vector<NeighborArray>;
-
 double cal_radians_3d(const Vec3& branch, const Vec3& normal);
 
 double cal_radians_3d(const Vec3& branch_vec, const Vec3& normal,
@@ -82,15 +61,13 @@ struct RsROpts {
     bool is_face_loop = true;
 };
 
-/// A trivial wrapper over bool to avoid the std::vector<bool> specialization
-struct Boolean {
-    bool inner;
-};
-
 /*Graph definition. The RsR graph here is integrated with the rotation system based on AMGraph*/
 struct Vertex {
     NodeID id = 0;
-    int normal_rep = -1;
+    using NormalRep = std::int64_t;
+    static constexpr NormalRep InvalidNormalRep = -1;
+    static constexpr NormalRep CollisionRep = -2;
+    NormalRep normal_rep = InvalidNormalRep;
     Vec3 coords = Vec3(0., 0., 0.);
     Vec3 normal = Vec3(0., 0., 0.);
 
@@ -166,12 +143,7 @@ public:
 class RSGraph : public AMGraph {
 public:
     ETF etf;
-    double total_edge_length = 0.;
     int exp_genus = -1;
-    // These should be function parameters, not fields
-    bool is_euclidean = false;
-    bool is_final = false;
-    size_t current_no_edges = 0;
 
     ::Util::AttribVec<NodeID, Vertex> m_vertices;
     ::Util::AttribVec<AMGraph::EdgeID, Edge> m_edges;
@@ -188,11 +160,9 @@ public:
         const EdgeID id = this->connect_nodes(source, target);
         GEL_ASSERT_NEQ(id, InvalidEdgeID);
 
-        current_no_edges++;
         m_edges[id].weight = weight;
         m_edges[id].source = source;
         m_edges[id].target = target;
-        this->total_edge_length += weight;
         insert_neighbor(source, target);
         insert_neighbor(target, source);
 
@@ -202,23 +172,8 @@ public:
     NodeID add_node(const Vec3& p, const Vec3& in_normal = Vec3(0., 0., 0.))
     {
         const NodeID n = AMGraph::add_node();
-        m_vertices[n] = Vertex{.id = n, .normal_rep = -1, .coords = p, .normal = in_normal};
+        m_vertices[n] = Vertex{.id = n, .normal_rep = Vertex::InvalidNormalRep, .coords = p, .normal = in_normal};
         return n;
-    }
-
-    void init(const std::vector<Point>& vertices, const std::vector<Vec3>& normals)
-    {
-        for (size_t i = 0; i < vertices.size(); i++) {
-            const NodeID id = this->add_node(vertices[i]);
-            m_vertices[id].normal = normals[i];
-        }
-    }
-
-    void init(const std::vector<Point>& vertices)
-    {
-        for (const auto& vertex : vertices) {
-            this->add_node(vertex);
-        }
     }
 };
 
@@ -248,12 +203,6 @@ auto point_cloud_collapse_reexpand(
     const RsROpts& opts,
     int max_iterations,
     bool reexpand) -> ::HMesh::Manifold;
-
-auto collapse_points(
-    const std::vector<Point>& vertices,
-    const std::vector<Vec3>& normals,
-    size_t max_iterations
-) -> Collapse;
 } // namespace HMesh::RSR
 
 
