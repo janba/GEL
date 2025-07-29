@@ -8,16 +8,22 @@
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/Util/Assert.h>
 #include <GEL/Util/ParallelAdapters.h>
+
+#include <GEL/Geometry/KDTree.h>
+#include <GEL/Geometry/Graph.h>
+
 #include <span>
 #include <unordered_map>
 #include <vector>
 #include <numbers>
 
-namespace HMesh {
+namespace HMesh::RSR {
 
     using Vec3 = CGLA::Vec3d;
     using Point = Vec3;
     using NodeID = size_t;
+    using Geometry::AMGraph;
+    using Geometry::AMGraph3D;
 
     struct ReexpandOptions {
         double angle_factor = 0.008 * 0.0; // TODO
@@ -38,7 +44,6 @@ namespace HMesh {
     };
 
     struct Collapse {
-        friend struct CollapseTest;
         std::vector<NodeID> m_remaining;
 
     private:
@@ -163,6 +168,174 @@ namespace HMesh {
     static_assert(std::ranges::viewable_range<Collapse&>);
     static_assert(std::ranges::viewable_range<const Collapse&>);
 
+using Tree = Geometry::KDTree<Point, NodeID>;
+using Record = Geometry::KDTreeRecord<Point, NodeID>;
+
+struct NeighborInfo {
+    NodeID id;
+    double distance; // the added precision doesn't justify the usage of doubles
+
+    static constexpr NodeID invalid_id = -1;
+    NeighborInfo() = delete;
+
+    explicit NeighborInfo(const Record& record) noexcept : id(record.v), distance(std::sqrt(record.d))
+    {}
+};
+
+using NeighborArray = std::vector<NeighborInfo>;
+using NeighborMap = std::vector<NeighborArray>;
+
+template <typename Indices>
+Tree build_kd_tree_of_indices(const std::vector<Point>& vertices, const Indices& indices)
+{
+    Tree kd_tree;
+    for (const auto idx : indices) {
+        kd_tree.insert(vertices.at(idx), idx);
+    }
+    kd_tree.build();
+    return kd_tree;
+}
+
+/**
+    * @brief k nearest neighbor search
+    *
+    * @param query: the coordinate of the point to be queried
+    * @param kdTree: kd-tree for knn query
+    * @param num: number of nearest neighbors to be queried
+    * @param neighbors: [OUT] indices of k nearest neighbors
+    *
+    * @return None
+    */
+inline void knn_search(const Point& query, const Tree& kdTree, const int num, NeighborArray& neighbors)
+{
+    // It might be a better idea for the caller to handle this to reduce some clutter
+    std::vector<Record> records = kdTree.m_closest(num + 1, query, INFINITY);
+    std::sort_heap(records.begin(), records.end());
+
+    for (auto record : records) {
+        neighbors.emplace_back(record);
+    }
+}
+
+template <typename Indices>
+auto calculate_neighbors(
+    Util::IExecutor& pool,
+    const std::vector<Point>& vertices,
+    const Indices& indices,
+    const Tree& kdTree,
+    const int k,
+    NeighborMap&& neighbors_memoized = NeighborMap())
+    -> NeighborMap
+{
+    if (neighbors_memoized.empty()) {
+        neighbors_memoized = NeighborMap(indices.size());
+        for (auto& neighbors : neighbors_memoized) {
+            neighbors.reserve(k);
+        }
+    } else if (neighbors_memoized.at(0).capacity() < k) {
+        // TODO: this seems to lose performance because calls to reserve block yet the allocator is multithreaded
+        // for (auto &neighbors : neighbors_memoized) {
+        //     neighbors.reserve(k);
+        // }
+    }
+
+    auto cache_kNN_search = [&kdTree, k, &vertices](auto index, auto& neighbor) {
+        auto vertex = vertices.at(index);
+        knn_search(vertex, kdTree, k, neighbor);
+    };
+    Util::Parallel::foreach2(pool, indices, neighbors_memoized, cache_kNN_search);
+    return neighbors_memoized;
+}
+
+inline auto calculate_neighbors(
+    Util::IExecutor& pool,
+    const std::vector<Point>& vertices,
+    const Tree& kdTree,
+    const int k,
+    NeighborMap&& neighbors_memoized = NeighborMap())
+    -> NeighborMap
+{
+    const auto indices = std::ranges::iota_view(0UL, vertices.size());
+    return calculate_neighbors(pool, vertices, indices, kdTree, k, std::move(neighbors_memoized));
+}
+
+// TODO: move to cpp file
+inline auto collapse_points(
+    const std::vector<Point>& vertices,
+    const std::vector<Vec3>& normals,
+    const size_t max_iterations
+) -> Collapse
+{
+    GEL_ASSERT_EQ(vertices.size(), normals.size());
+    Util::ImmediatePool pool;
+    AMGraph3D graph;
+
+    for (auto& vertex : vertices) {
+        graph.add_node(vertex);
+    }
+
+    auto indices = [&vertices] {
+        std::vector<NodeID> temp(vertices.size());
+        std::iota(temp.begin(), temp.end(), 0);
+        return temp;
+    }();
+    const auto kd_tree = build_kd_tree_of_indices(vertices, indices);
+    const auto neighbor_map = calculate_neighbors(pool, vertices, kd_tree, 9);
+    Collapse collapse{std::move(indices)};
+
+    for (auto& neighbors : neighbor_map) {
+        const NodeID this_id = neighbors[0].id;
+        for (auto& neighbor : std::ranges::subrange(neighbors.begin() + 1, neighbors.end())) {
+            // kNN connection
+            graph.connect_nodes(this_id, neighbor.id);
+        }
+    }
+
+    struct EdgeElem {
+        NodeID n0;
+        NodeID n1;
+        double dist;
+
+        bool operator<(const EdgeElem& other) const
+        {
+            return dist < other.dist;
+        }
+    };
+    std::priority_queue<EdgeElem> queue;
+    auto priority = [&](NodeID a, NodeID b) { return -graph.sqr_dist(a, b) * dot(normals[a], normals[b]); };
+
+    size_t count = 0;
+    for (size_t iter = 0; iter < max_iterations; ++iter) {
+        Collapse::ActivityMap activity_map;
+
+        Util::AttribVec<NodeID, uint8_t> visited(graph.no_nodes(), 0);
+        for (auto n0 : graph.node_ids()) {
+            for (auto n1 : graph.neighbors(n0)) {
+                double pri = priority(n0, n1);
+                queue.emplace(EdgeElem(n0, n1, pri));
+            }
+        }
+        while (!queue.empty()) {
+            auto shortest_edge = queue.top();
+            queue.pop();
+
+            if (visited[shortest_edge.n0] || visited[shortest_edge.n1]) continue;
+
+            visited[shortest_edge.n0] = 1;
+            visited[shortest_edge.n1] = 1;
+            count++;
+
+            // TODO: handle average_pos case
+            graph.merge_nodes(shortest_edge.n0, shortest_edge.n1, false);
+            activity_map.insert(shortest_edge.n1, shortest_edge.n0);
+        }
+        collapse.insert_collapse(activity_map);
+    }
+    std::cout << "collapsed: " << count << std::endl;
+
+    return collapse;
+}
+
     struct PointHash {
         size_t operator()(const Point& point) const
         {
@@ -233,7 +406,6 @@ namespace HMesh {
     inline double optimize_valency(const HMesh::Manifold& m, const HMesh::HalfEdgeID h_out,
                                    const HMesh::HalfEdgeID h_in_opp, const ReexpandOptions& opts)
     {
-        constexpr auto inf = std::numeric_limits<double>::infinity();
         const auto original_valency = m.valency(m.walker(h_out).opp().vertex());
         // we count the number of edges steps to go from h_in_opp to h_out
         auto steps = 0;
