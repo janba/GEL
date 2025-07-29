@@ -312,7 +312,7 @@ inline auto collapse_points(
         for (auto n0 : graph.node_ids()) {
             for (auto n1 : graph.neighbors(n0)) {
                 double pri = priority(n0, n1);
-                queue.emplace(EdgeElem(n0, n1, pri));
+                queue.emplace(n0, n1, pri);
             }
         }
         while (!queue.empty()) {
