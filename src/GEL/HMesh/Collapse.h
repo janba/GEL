@@ -301,6 +301,7 @@ inline auto collapse_points(
             return dist < other.dist;
         }
     };
+    static_assert(std::movable<EdgeElem>);
     std::priority_queue<EdgeElem> queue;
     auto priority = [&](NodeID a, NodeID b) { return -graph.sqr_dist(a, b) * dot(normals[a], normals[b]); };
 
@@ -312,7 +313,10 @@ inline auto collapse_points(
         for (auto n0 : graph.node_ids()) {
             for (auto n1 : graph.neighbors(n0)) {
                 double pri = priority(n0, n1);
-                queue.emplace(n0, n1, pri);
+                // TODO: It seems that Util::Range returns a i64 regardless which is probably not what we want
+                // TODO: Since I will most likely remove that in exchange for iota_view (despite the apparent downsides)
+                // TODO: This will likely not be a problem later.
+                queue.emplace(EdgeElem{.n0 = static_cast<NodeID>(n0), .n1 = n1, .dist = pri});
             }
         }
         while (!queue.empty()) {
