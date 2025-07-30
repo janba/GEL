@@ -3,7 +3,6 @@
 #pragma once
 
 #include <vector>
-#include <ranges>
 
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/etf.h>
@@ -76,7 +75,7 @@ struct Vertex {
     struct Neighbor {
         double angle;
         uint v;
-        mutable uint tree_id = 0;
+        uint tree_id = 0;
 
         Neighbor(const Vertex& u, const Vertex& v, const uint id)
         {
@@ -174,6 +173,52 @@ public:
         const NodeID n = AMGraph::add_node();
         m_vertices[n] = Vertex{.id = n, .normal_rep = Vertex::InvalidNormalRep, .coords = p, .normal = in_normal};
         return n;
+    }
+
+    /// @brief Get last neighbor information
+    /// @param root: root vertex index
+    /// @param branch: current outgoing branch
+    ///
+    /// @return reference to last neighbor struct
+    [[nodiscard]]
+    const Neighbor& predecessor(const NodeID& root, const NodeID& branch) const
+    {
+        const auto& u = m_vertices.at(root);
+        const auto& v = m_vertices.at(branch);
+        auto iter = u.ordered_neighbors.lower_bound({u, v, static_cast<uint>(branch)});
+        // TODO: Issue #105
+        // GEL_ASSERT_NEQ(iter, u.ordered_neighbors.end()); // no predecessor exists
+        if (iter == u.ordered_neighbors.begin()) iter = u.ordered_neighbors.end(); // Wrap around
+        return (*(std::prev(iter)));
+    }
+
+    Neighbor& predecessor(const NodeID& root, const NodeID& branch)
+    {
+        const auto& u = m_vertices.at(root);
+        const auto& v = m_vertices.at(branch);
+        auto iter = u.ordered_neighbors.lower_bound({u, v, static_cast<uint>(branch)});
+        // TODO: Issue #105
+        //GEL_ASSERT_NEQ(iter, u.ordered_neighbors.end()); // no predecessor exists
+        if (iter == u.ordered_neighbors.begin()) iter = u.ordered_neighbors.end(); // Wrap around
+        return const_cast<Neighbor&>(*(std::prev(iter)));
+    }
+
+    /// @brief Get the next neighbor information
+    ///
+    /// @param root: root vertex index
+    /// @param branch: current outgoing branch
+    ///
+    /// @return reference to the next neighbor struct
+    [[nodiscard]]
+    const Neighbor& successor(const NodeID& root, const NodeID& branch) const
+    {
+        const auto& u = m_vertices.at(root);
+        const auto& v = m_vertices.at(branch);
+        auto iter = u.ordered_neighbors.upper_bound(Neighbor(u, v, branch));
+        // TODO: Issue #105
+        //GEL_ASSERT_NEQ(iter, u.ordered_neighbors.end()); // no successor exists
+        if (iter == u.ordered_neighbors.end()) iter = u.ordered_neighbors.begin(); // Wrap around
+        return (*iter); // This is honestly not good practice - ONLY modification of tree_id
     }
 };
 
