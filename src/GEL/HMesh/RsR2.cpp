@@ -778,6 +778,7 @@ bool vanilla_check(const RSGraph& mst, const TEdge& candidate, const Tree& kdTre
     const auto [this_v, neighbor] = candidate;
 
     // Topology check
+    // TODO: crash!
     const auto this_v_tree = mst.predecessor(this_v, neighbor).tree_id;
     const auto neighbor_tree = mst.predecessor(neighbor, this_v).tree_id;
 
@@ -904,10 +905,12 @@ bool register_face(RSGraph& mst, const NodeID v1, const NodeID v2, std::vector<F
         return true;
     }
 
+    // TODO: crash!
     const auto possible_root1 = mst.predecessor(v1, v2).v;
     const auto angle1 = cal_radians_3d(p1 - mst.m_vertices[possible_root1].coords,
                                        mst.m_vertices[possible_root1].normal,
                                        p2 - mst.m_vertices[possible_root1].coords);
+    // TODO: crash!
     const auto possible_root2 = mst.predecessor(v2, v1).v;
     const auto angle2 = cal_radians_3d(p2 - mst.m_vertices[possible_root2].coords,
                                        mst.m_vertices[possible_root2].normal,
@@ -919,7 +922,9 @@ bool register_face(RSGraph& mst, const NodeID v1, const NodeID v2, std::vector<F
         FaceType triangle{v1, v2, v3};
         if (v3 == possible_root1 && angle1 < M_PI) {
             if (routine_check(mst, triangle) ||
+                // TODO: crash!
                 mst.successor(v2, v1).v != v3 ||
+                // TODO: crash
                 mst.successor(possible_root1, v2).v != v1) {
                 isValid = false;
                 break;
@@ -929,7 +934,9 @@ bool register_face(RSGraph& mst, const NodeID v1, const NodeID v2, std::vector<F
 
         if (v3 == possible_root2 && angle2 < M_PI) {
             if (routine_check(mst, triangle) ||
+                // TODO: crash
                 mst.successor(v1, v2).v != v3 ||
+                // TODO: crash
                 mst.successor(possible_root2, v1).v != v2) {
                 isValid = false;
                 break;
@@ -1024,8 +1031,10 @@ void connect_handle(
             TEdge candidate(this_v, neighbor.id);
             if (mst.find_edge(this_v, neighbor.id) != AMGraph::InvalidEdgeID)
                 continue;
-            tree = mst.etf.representative(mst.predecessor(this_v, neighbor.id).tree_id);
-            to_tree = mst.etf.representative(mst.predecessor(neighbor.id, this_v).tree_id);
+            // TODO: crash!
+            tree = mst.etf.representative(mst.tree_id(this_v));
+            // TODO: crash
+            to_tree = mst.etf.representative(mst.tree_id(neighbor.id));
             if (geometry_check(mst, candidate, kd_tree) && tree != to_tree) {
                 validIdx = j;
                 break;
@@ -1115,6 +1124,7 @@ bool explore(
     bool isFound = false;
     for (auto& neighbor : G.m_vertices[i].ordered_neighbors) {
         const NodeID v_u = neighbor.v;
+        // TODO: crash
         const NodeID v_w = G.successor(i, v_u).v;
 
         Point w_pos = G.m_vertices[v_w].coords;
@@ -1165,7 +1175,7 @@ Vec3 triangle_mean_normal(const Vec3& normal1, const Vec3& normal2, const Vec3& 
     return output;
 }
 
-bool check_branch_validity(RSGraph& G, const NodeID root, const NodeID branch1, const NodeID branch2)
+bool check_branch_validity(const RSGraph& G, const NodeID root, const NodeID branch1, const NodeID branch2)
 {
     constexpr auto angle_thresh = 0. / 180. * M_PI;
 
@@ -1195,7 +1205,9 @@ bool check_branch_validity(RSGraph& G, const NodeID root, const NodeID branch1, 
     // Check u's RS validity
     {
         const auto this_radian = cal_radians_3d(pos_w - pos_u, normal_u);
+        // TODO: crash!
         const auto& former = G.predecessor(branch1, branch2);
+        // TODO: crash!
         const auto& next = G.successor(branch1, branch2);
         if (!is_valid(this_radian, former, next))
             return false;
@@ -1211,7 +1223,9 @@ bool check_branch_validity(RSGraph& G, const NodeID root, const NodeID branch1, 
     // Check w's RS validity
     {
         const auto this_radian = cal_radians_3d(pos_u - pos_w, normal_w);
+        // TODO: crash!
         const auto& former = G.predecessor(branch2, branch1);
+        // TODO: crash!
         const auto& next = G.successor(branch2, branch1);
         if (!is_valid(this_radian, former, next))
             return false;
@@ -1228,7 +1242,7 @@ bool check_branch_validity(RSGraph& G, const NodeID root, const NodeID branch1, 
 
 // TODO: validity of what?
 bool check_validity(
-    RSGraph& G,
+    const RSGraph& G,
     const std::pair<FaceType, float>& item)
 {
     const NodeID v_i = item.first[0];
@@ -1248,6 +1262,7 @@ bool check_validity(
         return false;
 
     // Check this rotation system
+    // TODO: crash!
     if (!G.successor(v_i, v_u).v == v_w)
         return false;
     const auto angle = cal_radians_3d(pos_w - pos_i, normal_i, pos_u - pos_i);
@@ -1264,7 +1279,7 @@ bool check_validity(
 
 void triangulate(
     std::vector<FaceType>& faces,
-    RSGraph& G,
+    RSGraph& graph,
     const bool is_euclidean,
     const std::vector<float>& length_thresh,
     const std::vector<NodeID>& connected_handle_root)
@@ -1273,12 +1288,12 @@ void triangulate(
     FacePriorityQueue queue;
 
     // Init priority queue
-    for (auto i = 0UL; i < G.no_nodes(); i++) {
+    for (auto i = 0UL; i < graph.no_nodes(); i++) {
         to_visit.insert(i);
     }
 
     for (const auto i : connected_handle_root) {
-        explore(G, i, queue, length_thresh, is_euclidean);
+        explore(graph, i, queue, length_thresh, is_euclidean);
         to_visit.erase(i);
     }
 
@@ -1289,60 +1304,60 @@ void triangulate(
             std::pair<FaceType, float> item = queue.top();
             queue.pop();
 
-            if (item.second >= 0) {
-                if (!check_validity(G, item))
-                    continue;
+            if (item.second >= 0 && !check_validity(graph, item)) {
+                continue;
             }
 
             // Add the edge
             const NodeID v_i = item.first[0];
             const NodeID v_u = item.first[1];
             const NodeID v_w = item.first[2];
-            const Point pos_u = G.m_vertices[v_u].coords;
-            const Point pos_w = G.m_vertices[v_w].coords;
+            const Point pos_u = graph.m_vertices[v_u].coords;
+            const Point pos_w = graph.m_vertices[v_w].coords;
 
             Vec3 edge = pos_u - pos_w;
             const auto distance =
                 (is_euclidean)
                     ? edge.length()
-                    : cal_proj_dist(edge, G.m_vertices[v_u].normal, G.m_vertices[v_w].normal);
+                    : cal_proj_dist(edge, graph.m_vertices[v_u].normal, graph.m_vertices[v_w].normal);
 
-            if (G.find_edge(v_u, v_w) == AMGraph::InvalidEdgeID) {
-                G.add_edge(v_u, v_w, distance);
-                add_face(G, item.first, faces);
-            } else
+            if (graph.find_edge(v_u, v_w) == InvalidEdgeID) {
+                graph.add_edge(v_u, v_w, distance);
+                add_face(graph, item.first, faces);
+            } else {
                 continue;
+            }
 
             // Deal with incident triangles
             std::vector<NodeID> share_neighbors;
-            find_common_neighbor(G, v_u, v_w, share_neighbors);
+            find_common_neighbor(graph, v_u, v_w, share_neighbors);
             for (const NodeID incident_root : share_neighbors) {
                 if (incident_root == v_i)
                     continue;
                 std::array face{incident_root, v_w, v_u};
 
                 // Non-manifold edge check
-                const auto time1 = G.m_edges[G.find_edge(incident_root, v_u)].ref_time;
-                const auto time2 = G.m_edges[G.find_edge(incident_root, v_w)].ref_time;
-                const auto time3 = G.m_edges[G.find_edge(v_u, v_w)].ref_time;
+                const auto time1 = graph.m_edges[graph.find_edge(incident_root, v_u)].ref_time;
+                const auto time2 = graph.m_edges[graph.find_edge(incident_root, v_w)].ref_time;
+                const auto time3 = graph.m_edges[graph.find_edge(v_u, v_w)].ref_time;
                 if (time1 == 2 || time2 == 2 || time3 == 2)
                     continue;
 
-                add_face(G, face, faces);
+                add_face(graph, face, faces);
             }
 
             to_visit.erase(v_u);
             to_visit.erase(v_w);
 
             // Explore and sanity check
-            explore(G, v_u, queue, length_thresh, is_euclidean);
-            explore(G, v_w, queue, length_thresh, is_euclidean);
+            explore(graph, v_u, queue, length_thresh, is_euclidean);
+            explore(graph, v_w, queue, length_thresh, is_euclidean);
         }
 
         if (!to_visit.empty()) {
             NodeID pick = *to_visit.begin();
             to_visit.erase(pick);
-            explore(G, pick, queue, length_thresh, is_euclidean);
+            explore(graph, pick, queue, length_thresh, is_euclidean);
         }
     }
 }
@@ -1416,16 +1431,18 @@ void build_mst(
         out_mst.add_node(temp.m_vertices[i].coords, temp.m_vertices[i].normal);
     }
     for (int i = 0; i < temp.m_edges.size(); i++) {
-        const Vec3 edge = out_mst.m_vertices[temp.m_edges[i].source].coords -
-            out_mst.m_vertices[temp.m_edges[i].target].coords;
+        const auto source = temp.m_edges[i].source;
+        const auto target = temp.m_edges[i].target;
+        const Vec3 edge = out_mst.m_vertices[source].coords -
+            out_mst.m_vertices[target].coords;
 
         const double distance =
             (isEuclidean)
                 ? edge.length()
-                : cal_proj_dist(edge, out_mst.m_vertices[temp.m_edges[i].source].normal,
-                                out_mst.m_vertices[temp.m_edges[i].target].normal);
+                : cal_proj_dist(edge, out_mst.m_vertices[source].normal,
+                                out_mst.m_vertices[target].normal);
 
-        out_mst.add_edge(temp.m_edges[i].source, temp.m_edges[i].target, distance);
+        out_mst.add_edge(source, target, distance);
     }
 }
 
@@ -1587,7 +1604,7 @@ auto split_components(
     // Construct graph
     for (auto& neighbors : neighbor_map) {
         // TODO: commenting this out crashes
-        filter_out_cross_connection(neighbors, normals, this_idx, cross_conn_thresh, isEuclidean);
+        // filter_out_cross_connection(neighbors, normals, this_idx, cross_conn_thresh, isEuclidean);
 
         for (auto& neighbor : neighbors) {
             NodeID idx = neighbor.id;
