@@ -147,13 +147,6 @@ public:
     ::Util::AttribVec<NodeID, Vertex> m_vertices;
     ::Util::AttribVec<AMGraph::EdgeID, Edge> m_edges;
 
-    void insert_neighbor(const NodeID root, const NodeID neighbor)
-    {
-        const auto& u = m_vertices[root];
-        const auto& v = m_vertices[neighbor];
-        m_vertices[root].ordered_neighbors.insert(Neighbor(u, v, neighbor));
-    }
-
     EdgeID add_edge(const NodeID source, const NodeID target, const double weight = 0.)
     {
         const EdgeID id = this->connect_nodes(source, target);
@@ -162,8 +155,10 @@ public:
         m_edges[id].weight = weight;
         m_edges[id].source = source;
         m_edges[id].target = target;
-        insert_neighbor(source, target);
-        insert_neighbor(target, source);
+
+        // insert neighbors
+        m_vertices[source].ordered_neighbors.insert(Neighbor(m_vertices[source], m_vertices[target], target));
+        m_vertices[target].ordered_neighbors.insert(Neighbor(m_vertices[target], m_vertices[source], source));
 
         return id;
     }
@@ -181,26 +176,24 @@ public:
     ///
     /// @return reference to last neighbor struct
     [[nodiscard]]
-    const Neighbor& predecessor(const NodeID& root, const NodeID& branch) const
+    Neighbor& predecessor(const NodeID root, const NodeID branch) const
     {
+        GEL_ASSERT(m_vertices.size() > root);
+        GEL_ASSERT(m_vertices.size() > branch);
         const auto& u = m_vertices.at(root);
         const auto& v = m_vertices.at(branch);
-        auto iter = u.ordered_neighbors.lower_bound({u, v, static_cast<uint>(branch)});
-        // TODO: Issue #105
-        // GEL_ASSERT_NEQ(iter, u.ordered_neighbors.end()); // no predecessor exists
-        if (iter == u.ordered_neighbors.begin()) iter = u.ordered_neighbors.end(); // Wrap around
-        return (*(std::prev(iter)));
-    }
-
-    Neighbor& predecessor(const NodeID& root, const NodeID& branch)
-    {
-        const auto& u = m_vertices.at(root);
-        const auto& v = m_vertices.at(branch);
-        auto iter = u.ordered_neighbors.lower_bound({u, v, static_cast<uint>(branch)});
-        // TODO: Issue #105
-        //GEL_ASSERT_NEQ(iter, u.ordered_neighbors.end()); // no predecessor exists
+        GEL_ASSERT(!u.ordered_neighbors.empty()); // we need at least one neighbor to return
+        Neighbor temp = {u, v, static_cast<uint>(branch)};
+        auto iter = u.ordered_neighbors.lower_bound(temp);
         if (iter == u.ordered_neighbors.begin()) iter = u.ordered_neighbors.end(); // Wrap around
         return const_cast<Neighbor&>(*(std::prev(iter)));
+    }
+
+    [[nodiscard]]
+    uint tree_id(const NodeID& root) const
+    {
+        auto final = m_vertices.at(root).ordered_neighbors.end();
+        return (--final)->tree_id;
     }
 
     /// @brief Get the next neighbor information
@@ -214,9 +207,8 @@ public:
     {
         const auto& u = m_vertices.at(root);
         const auto& v = m_vertices.at(branch);
+        // GEL_ASSERT(!u.ordered_neighbors.empty()); // we need at least one neighbor to return
         auto iter = u.ordered_neighbors.upper_bound(Neighbor(u, v, branch));
-        // TODO: Issue #105
-        //GEL_ASSERT_NEQ(iter, u.ordered_neighbors.end()); // no successor exists
         if (iter == u.ordered_neighbors.end()) iter = u.ordered_neighbors.begin(); // Wrap around
         return (*iter); // This is honestly not good practice - ONLY modification of tree_id
     }
