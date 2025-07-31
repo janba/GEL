@@ -19,7 +19,6 @@
 
 using HMesh::RSR::point_cloud_to_mesh;
 using namespace HMesh::RSR;
-using HMesh::RSR::Collapse;
 
 static constexpr auto FILE_CAPITAL_A = "../../../../data/PointClouds/Capital_A.obj";
 static constexpr auto FILE_BUNNY_SIMPLE = "../../../../data/bunny.obj";
@@ -381,9 +380,11 @@ auto test_reconstruct_legacy(const std::string_view file_name, const HMesh::RSR:
     std::cout << "obj vertices: " << input.vertices.size() << "\n";
     std::cout << "obj normals: " << input.normals.size() << "\n";
 
+    auto result = point_cloud_normal_estimate(input.vertices, {}, true);
+
     HMesh::Manifold output;
     input.normals = {};
-    reconstruct_single(output, input.vertices, input.normals, opts.dist == Distance::EUCLIDEAN,  opts.genus, opts.k, opts.r, opts.theta, opts.n);
+    reconstruct_single(output, result.vertices, result.normals, opts.dist == Distance::EUCLIDEAN,  opts.genus, opts.k, opts.r, opts.theta, opts.n);
     // k: 70 is too large
     // r: needs isEuclidean false
     std::cout << output.positions.size() << "\n";
@@ -558,7 +559,7 @@ auto reconstruct_assertions(const HMesh::Manifold& manifold) -> void
     auto faces = manifold.no_faces();
     auto cost = manifold_cost(manifold);
     auto average_edge = manifold_average_edge_length(manifold);
-    auto normed_cost = cost / faces / average_edge;
+    auto normed_cost = cost / static_cast<double>(faces) / average_edge;
     auto valencies = manifold_valency_histogram(manifold);
     auto valencies_nb = manifold_valency_histogram_non_boundary(manifold);
     auto dihedral_cost = manifold_dihedral_cost(manifold);
@@ -755,50 +756,4 @@ TEST_CASE("reexpand-basic")
     HMesh::obj_save("debug_hex3.obj", m);
     CHECK(HMesh::valid(m));
     //reconstruct_assertions(m);
-}
-
-HMesh::Manifold create_rectangular_manifold(const size_t x_size, const size_t y_size)
-{
-    std::vector<size_t> faces;
-    std::vector<CGLA::Vec3d> vertices;
-    faces.reserve((x_size - 1) * (y_size -1) * 4);
-    vertices.reserve(x_size * y_size);
-
-    for (size_t i = 0; i < y_size; ++i) {
-        for (size_t j = 0; j < x_size; ++j) {
-            auto x = 10.0 * static_cast<double>(j) / static_cast<double>(x_size);
-            auto y = 10.0 * static_cast<double>(i) / static_cast<double>(y_size);
-            vertices.emplace_back(x, y, 0.0);
-        }
-    }
-    for (size_t i = 0; i < y_size - 1; ++i) {
-        for (size_t j = 0; j < x_size - 1; ++j) {
-            auto top_left = i * y_size + j;
-            auto top_right = top_left + 1;
-            auto bottom_left = top_left + x_size;
-            auto bottom_right = bottom_left + 1;
-            faces.emplace_back(top_left);
-            faces.emplace_back(top_right);
-            faces.emplace_back(bottom_right);
-            faces.emplace_back(bottom_left);
-        }
-    }
-
-    HMesh::Manifold m;
-    HMesh::build_manifold(m, vertices, faces, 4);
-
-    auto collapse = Collapse({0, 1});
-    for (auto i: std::views::iota(1UL, y_size - 1)) {
-        for (auto j: std::views::iota(1UL, x_size - 1)) {
-            // we put
-        }
-    }
-
-    return m;
-}
-
-TEST_CASE("reexpand-grid")
-{
-    HMesh::Manifold m = create_rectangular_manifold(10, 10);
-
 }
