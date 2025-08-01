@@ -8,15 +8,10 @@
  * Abstract matrix class
  */
 
-#ifndef __CGLA_ARITHMATFLOAT_H__
-#define __CGLA_ARITHMATFLOAT_H__
+#ifndef CGLA_ARITHMATFLOAT_H
+#define CGLA_ARITHMATFLOAT_H
 
-#include <vector>
-#include <iostream>
 #include <numeric>
-
-#include <GEL/CGLA/CGLA-util.h>
-
 
 namespace CGLA
 {
@@ -37,13 +32,13 @@ namespace CGLA
     public:
         
         /// Horizontal vector type
-        typedef HVT HVectorType;
+        using HVectorType = HVT;
         
         /// Vertical vector type
-        typedef VVT VVectorType;
+        using VVectorType = VVT;
         
         /// The type of a matrix element
-        typedef typename HVT::ScalarType ScalarType;
+        using ScalarType = typename HVT::ScalarType;
 		
     protected:
         
@@ -53,46 +48,44 @@ namespace CGLA
     protected:
         
         /// Construct 0 matrix
-        ArithMatFloat()
+        constexpr ArithMatFloat()
         {
-#ifndef NDEBUG
             std::fill_n(data, ROWS, HVT(CGLA_INIT_VALUE));
-#endif
         }
         
         /// Construct a matrix where all entries are the same.
-        explicit ArithMatFloat(ScalarType x)
+        explicit constexpr ArithMatFloat(ScalarType x)
         {
             std::fill_n(data, ROWS, HVT(x));
         }
         
         /// Construct a matrix where all rows are the same.
-        explicit ArithMatFloat(HVT _a)
+        explicit constexpr ArithMatFloat(HVT _a)
         {
             std::fill_n(data, ROWS, _a);
         }
         
         /// Construct a matrix with two rows.
-        ArithMatFloat(HVT _a, HVT _b)
+        constexpr ArithMatFloat(HVT _a, HVT _b)
         {
-            assert(ROWS==2);
+            static_assert(ROWS==2);
             data[0] = _a;
             data[1] = _b;
         }
         
         /// Construct a matrix with three rows.
-        ArithMatFloat(HVT _a, HVT _b, HVT _c)
+        constexpr ArithMatFloat(HVT _a, HVT _b, HVT _c)
         {
-            assert(ROWS==3);
+            static_assert(ROWS==3);
             data[0] = _a;
             data[1] = _b;
             data[2] = _c;
         }
         
         /// Construct a matrix with four rows.
-        ArithMatFloat(HVT _a, HVT _b, HVT _c, HVT _d)
+        constexpr ArithMatFloat(HVT _a, HVT _b, HVT _c, HVT _d)
         {
-            assert(ROWS==4);
+            static_assert(ROWS==4);
             data[0] = _a;
             data[1] = _b;
             data[2] = _c;
@@ -100,7 +93,10 @@ namespace CGLA
         }
 		
     public:
-        
+
+        /// @name C API
+        /// @{
+
         /// Get vertical dimension of matrix
         static constexpr unsigned int get_v_dim() {return VVT::get_dim();}
         
@@ -111,7 +107,7 @@ namespace CGLA
         /** Get const pointer to data array.
          This function may be useful when interfacing with some other API
          such as OpenGL (TM). */
-        const ScalarType* get() const
+        constexpr const ScalarType* get() const
         {
             return data[0].get();
         }
@@ -119,48 +115,52 @@ namespace CGLA
         /** Get pointer to data array.
          This function may be useful when interfacing with some other API
          such as OpenGL (TM). */
-        ScalarType* get()
+        constexpr ScalarType* get()
         {
             return data[0].get();
         }
-        
-        //----------------------------------------------------------------------
-        // index operators
-        //----------------------------------------------------------------------
+
+        /// @}
+        /// @name Index operators
+        /// @{
         
         /// Const index operator. Returns i'th row of matrix.
-        const HVT& operator [] ( unsigned int i ) const
+        constexpr const HVT& operator [] ( unsigned int i ) const
         {
             assert(i<ROWS);
             return data[i];
         }
         
         /// Non-const index operator. Returns i'th row of matrix.
-        HVT& operator [] ( unsigned int i )
+        constexpr HVT& operator [] ( unsigned int i )
         {
             assert(i<ROWS);
             return data[i];
         }
-        
-        //----------------------------------------------------------------------
+
+        /// @}
+        /// @name Partial equality
+        /// @{
         
         /// Equality operator.
-        bool operator==(const MT& v) const
+        constexpr bool operator==(const MT& v) const
         {
             return std::inner_product(data, &data[ROWS], &v[0], true,
-                                      std::logical_and<bool>(), std::equal_to<HVT>());
+                                      std::logical_and<>(), std::equal_to<HVT>());
         }
         
         /// Inequality operator.
-        bool operator!=(const MT& v) const
+        constexpr bool operator!=(const MT& v) const
         {
             return !(*this==v);
         }
         
-        //----------------------------------------------------------------------
+        /// @}
+        /// @name Arithmetic operations
+        /// @{
         
         /// Multiply scalar onto matrix. All entries are multiplied by scalar.
-        const MT operator * (ScalarType k) const
+        constexpr MT operator *(ScalarType k) const
         {
             MT v_new;
             for(std::size_t i = 0; i < ROWS; ++i)
@@ -169,7 +169,7 @@ namespace CGLA
         }
         
         /// Divide all entries in matrix by scalar.
-        const MT operator / (ScalarType k) const
+        constexpr MT operator / (ScalarType k) const
         {
             MT v_new;
             for(std::size_t i = 0; i < ROWS; ++i)
@@ -178,7 +178,7 @@ namespace CGLA
         }
         
         /// Assignment multiplication of matrix by scalar.
-        const MT& operator *=(ScalarType k)
+        constexpr const MT& operator *=(ScalarType k)
         {
             for(auto& x: data)
                 x *= k;
@@ -186,7 +186,7 @@ namespace CGLA
         }
         
         /// Assignment division of matrix by scalar.
-        const MT& operator /=(ScalarType k)
+        constexpr const MT& operator /=(ScalarType k)
         {
             for(auto& x: data)
                 x /= k;
@@ -196,7 +196,7 @@ namespace CGLA
         //----------------------------------------------------------------------
         
         /// Add two matrices.
-        const MT operator + (const MT& m1) const
+        constexpr MT operator + (const MT& m1) const
         {
             MT v_new;
             std::transform(data, &data[ROWS], &m1[0], &v_new[0], std::plus<HVT>());
@@ -204,7 +204,7 @@ namespace CGLA
         }
         
         /// Subtract two matrices.
-        const MT operator - (const MT& m1) const
+        constexpr MT operator - (const MT& m1) const
         {
             MT v_new;
             std::transform(data, &data[ROWS], &m1[0], &v_new[0], std::minus<HVT>());
@@ -212,14 +212,14 @@ namespace CGLA
         }
         
         /// Assigment addition of matrices.
-        const MT& operator +=(const MT& v)
+        constexpr const MT& operator +=(const MT& v)
         {
             std::transform(data, &data[ROWS], &v[0], data, std::plus<HVT>());
             return static_cast<const MT&>(*this);
         }
         
         /// Assigment subtraction of matrices.
-        const MT& operator -=(const MT& v)
+        constexpr const MT& operator -=(const MT& v)
         {
             std::transform(data, &data[ROWS], &v[0], data, std::minus<HVT>());
             return static_cast<const MT&>(*this);
@@ -228,67 +228,77 @@ namespace CGLA
         //----------------------------------------------------------------------
         
         /// Negate matrix.
-        const MT operator - () const
+        constexpr MT operator - () const
         {
             MT v_new;
             std::transform(data, &data[ROWS], &v_new[0], std::negate<HVT>());
             return v_new;
         }
+
+        /// @}
     };
+
+    /// @}
+    /// @name Arithmetic with scalars
+    /// @related ArithMatFloat
+    /// @{
     
     /// Multiply scalar onto matrix
     template <class VVT, class HVT, class MT, unsigned int ROWS>
-    inline const MT operator * (double k, const ArithMatFloat<VVT,HVT,MT,ROWS>& v)
+    constexpr MT operator * (double k, const ArithMatFloat<VVT,HVT,MT,ROWS>& v)
     {
         return v * k;
     }
     
     /// Multiply scalar onto matrix
     template <class VVT, class HVT, class MT, unsigned int ROWS>
-    inline const MT operator * (float k, const ArithMatFloat<VVT,HVT,MT,ROWS>& v)
+    constexpr MT operator * (float k, const ArithMatFloat<VVT,HVT,MT,ROWS>& v)
     {
         return v * k;
     }
     
     /// Multiply scalar onto matrix
     template <class VVT, class HVT, class MT, unsigned int ROWS>
-    inline const MT operator * (int k, const ArithMatFloat<VVT,HVT,MT,ROWS>& v)
+    constexpr MT operator * (int k, const ArithMatFloat<VVT,HVT,MT,ROWS>& v)
     {
         return v * k;
     }
     
     /// Multiply vector onto matrix
     template <class VVT, class HVT, class MT, unsigned int ROWS>
-    inline VVT operator*(const ArithMatFloat<VVT,HVT,MT,ROWS>& m,const HVT& v)
+    constexpr VVT operator*(const ArithMatFloat<VVT,HVT,MT,ROWS>& m,const HVT& v)
     {
         VVT v2;
         for(unsigned int i=0;i<ROWS;i++) v2[i] = dot(m[i], v);
             return v2;
     }
-    
+
+    /// @}
+    /// @name Matrix operations
+    /// @related ArithMatFloat
+    /// @{
     
 #ifndef WIN32
-    /** Multiply two arbitrary matrices.
-     In principle, this function could return a matrix, but in general
-     the new matrix will be of a type that is different from either of
-     the two matrices that are multiplied together. We do not want to
-     return an ArithMatFloat - so it seems best to let the return value be
-     a reference arg.
-     
-     This template can only be instantiated if the dimensions of the
-     matrices match -- i.e. if the multiplication can actually be
-     carried out. This is more type safe than the win32 version below.
-     */
-    
+    /// @brief Multiply two arbitrary matrices.
+    /// @details In principle, this function could return a matrix, but in general
+    /// the new matrix will be of a type that is different from either of
+    /// the two matrices that are multiplied together. We do not want to
+    /// return an ArithMatFloat - so it seems best to let the return value be
+    /// a reference arg.
+    ///
+    /// This template can only be instantiated if the dimensions of the
+    /// matrices match -- i.e. if the multiplication can actually be
+    /// carried out. This is more type safe than the win32 version below.
+    /// @related ArithMatFloat
     template <class VVT, class HVT,
     class HV1T, class VV2T,
     class MT1, class MT2, class MT,
     unsigned int ROWS1, unsigned int ROWS2>
-    inline void mul(const ArithMatFloat<VVT,HV1T,MT1,ROWS1>& m1,
+    constexpr void mul(const ArithMatFloat<VVT,HV1T,MT1,ROWS1>& m1,
                     const ArithMatFloat<VV2T,HVT,MT2,ROWS2>& m2,
                     ArithMatFloat<VVT,HVT,MT,ROWS1>& m)
     {
-        unsigned int cols = ArithMatFloat<VVT,HVT,MT,ROWS1>::get_h_dim();
+        constexpr auto cols = ArithMatFloat<VVT,HVT,MT,ROWS1>::get_h_dim();
         for(unsigned int i=0;i<ROWS1;i++)
             for(unsigned int j=0;j<cols;j++)
             {
@@ -299,10 +309,12 @@ namespace CGLA
     }
     
     
-    /** Transpose. See the discussion on mul if you are curious as to why
-     I don't simply return the transpose. */
+    /// Transpose. See the discussion on mul if you are curious as to why
+    /// I don't simply return the transpose.
+    /// @sa CGLA::mul
+    /// @related ArithMatFloat
     template <class VVT, class HVT, class M1T, class M2T, unsigned int ROWS, unsigned int COLS>
-    inline void transpose(const ArithMatFloat<VVT,HVT,M1T,ROWS>& m,
+    constexpr void transpose(const ArithMatFloat<VVT,HVT,M1T,ROWS>& m,
                           ArithMatFloat<HVT,VVT,M2T,COLS>& m_new)
     {
         for(unsigned int i=0;i<M2T::get_v_dim();++i)
@@ -318,11 +330,11 @@ namespace CGLA
     // matrices of wrong dimension.
     
     template <class M1, class M2, class M>
-    inline void mul(const M1& m1, const M2& m2, M& m)
+    constexpr void mul(const M1& m1, const M2& m2, M& m)
     {
-        unsigned int cols = M::get_h_dim();
-        unsigned int rows1 = M1::get_v_dim();
-        unsigned int rows2 = M2::get_v_dim();
+        constexpr auto cols = M::get_h_dim();
+        constexpr auto rows1 = M1::get_v_dim();
+        constexpr auto rows2 = M2::get_v_dim();
         
         for(unsigned int i=0;i<rows1;++i)
             for(unsigned int j=0;j<cols;++j)
@@ -337,7 +349,7 @@ namespace CGLA
     /** Transpose. See the discussion on mul if you are curious as to why
      I don't simply return the transpose. */
     template <class M1, class M2>
-    inline void transpose(const M1& m1, M2& m2)
+    constexpr void transpose(const M1& m1, M2& m2)
     {
         for(unsigned int i=0;i<M2::get_v_dim();++i)
             for(unsigned int j=0;j<M2::get_h_dim();++j)
@@ -349,11 +361,11 @@ namespace CGLA
     /** Compute the outer product of a and b: a * transpose(b). This is
      a matrix with a::rows and b::columns. */
     template <class VVT, class HVT, class MT, unsigned int ROWS>
-    void outer_product(const VVT& a, const HVT& b,
+    constexpr void outer_product(const VVT& a, const HVT& b,
                        ArithMatFloat<VVT,HVT,MT,ROWS>& m)
     {
-        unsigned int R = VVT::get_dim();
-        unsigned int C = HVT::get_dim();
+        constexpr auto R = VVT::get_dim();
+        constexpr auto C = HVT::get_dim();
         for(unsigned int i=0;i<R;++i)
             for(unsigned int j=0;j<C;++j)
             {
@@ -366,7 +378,7 @@ namespace CGLA
      binary operation: op(a, transpose(b)). This is
      a matrix with a::rows and b::columns. */
     template <class VVT, class HVT, class MT, int ROWS, class BinOp>
-    void outer_product(const VVT& a, const HVT& b,
+    constexpr void outer_product(const VVT& a, const HVT& b,
                        ArithMatFloat<VVT,HVT,MT,ROWS>& m, BinOp op)
     {
         int R = VVT::get_dim();
@@ -392,9 +404,8 @@ namespace CGLA
      An obvious use of this function is to copy a 3x3 rotation matrix
      into a 4x4 transformation matrix.
      */
-    
     template <class M1, class M2>
-    void copy_matrix(const M1& inmat, M2& outmat)
+    constexpr void copy_matrix(const M1& inmat, M2& outmat)
     {
         const unsigned int R = std::min(inmat.get_v_dim(), outmat.get_v_dim());
         const unsigned int C = std::min(inmat.get_h_dim(), outmat.get_h_dim());
@@ -402,10 +413,15 @@ namespace CGLA
             for(unsigned int j=0;j<C;++j)
                 outmat[i][j] = inmat[i][j];
     }
-    
-    /** Put to operator */
+
+    /// @}
+    /// @name stdio operations
+    /// @related ArithMatFloat
+    /// @{
+
+    /// Put to operator
     template <class VVT, class HVT, class MT, unsigned int ROWS>
-    inline std::ostream& 
+    std::ostream&
     operator<<(std::ostream&os, const ArithMatFloat<VVT,HVT,MT,ROWS>& m)
     {
         os << "[\n";
@@ -414,13 +430,15 @@ namespace CGLA
         return os;
         }
         
-        /** Get from operator */
-        template <class VVT, class HVT, class MT, unsigned int ROWS>
-        inline std::istream& operator>>(std::istream&is, 
-                                        const ArithMatFloat<VVT,HVT,MT,ROWS>& m)
-        {
-            for(unsigned int i=0;i<ROWS;i++) is>>m[i];
-            return is;
-        }
-        }
+    /// Get from operator
+    template <class VVT, class HVT, class MT, unsigned int ROWS>
+    std::istream& operator>>(std::istream&is,
+                                    const ArithMatFloat<VVT,HVT,MT,ROWS>& m)
+    {
+        for(unsigned int i=0;i<ROWS;i++) is>>m[i];
+        return is;
+    }
+
+    /// @}
+}
 #endif

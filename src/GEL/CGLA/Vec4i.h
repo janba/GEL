@@ -8,8 +8,8 @@
  * @brief 4D integer vector class.
  */
 
-#ifndef __CGLA_VEC4I_H__
-#define __CGLA_VEC4I_H__
+#ifndef CGLA_VEC4I_H
+#define CGLA_VEC4I_H
 
 #include <GEL/CGLA/ArithVec4Int.h>
 
@@ -29,13 +29,13 @@ namespace CGLA
 	public:
   
 		/// Construct 0 vector.
-		Vec4i() {}
+		constexpr Vec4i() = default;
 
 		/// Construct a 4D integer vector.
-		Vec4i(int _a,int _b,int _c, int _d): ArithVec4Int<int,Vec4i>(_a,_b,_c,_d) {}
+		constexpr Vec4i(int _a,int _b,int _c, int _d): ArithVec4Int<int,Vec4i>(_a,_b,_c,_d) {}
 
 		/// Construct a 4D integer vector with 4 identical coordinates.
-		explicit Vec4i(int a): ArithVec4Int<int,Vec4i>(a,a,a,a) {}
+		constexpr explicit Vec4i(int a): ArithVec4Int<int,Vec4i>(a,a,a,a) {}
 	
 		/// Construct from a Vec4f.
 		explicit Vec4i(const Vec4f& v);

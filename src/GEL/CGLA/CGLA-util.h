@@ -8,8 +8,8 @@
  * @brief CGLA main header: contains a number of constants and function decs.
  */
 
-#ifndef __CGLA_CGLA_util__
-#define __CGLA_CGLA_util__
+#ifndef CGLA_CGLA_UTIL
+#define CGLA_CGLA_UTIL
 
 #if (_MSC_VER >= 1200)
 #pragma warning (disable: 4244 4800)
@@ -38,9 +38,9 @@
 
 namespace CGLA
 {
-    inline float cgla_nan()
+    constexpr float cgla_nan()
     {
-        static const float cgla_nan_value = log(-1.0f);
+        constexpr auto cgla_nan_value = std::numeric_limits<float>::quiet_NaN();
         return cgla_nan_value;
     }
     
@@ -53,28 +53,27 @@ namespace CGLA
     
     /** Numerical constant representing something large.
      value is a bit arbitrary */
-    const double BIG=10e+30;
+    constexpr double BIG=10e+30;
     
     /** Numerical constant represents something extremely small.
      value is a bit arbitrary */
-    const double MINUTE=10e-30;
+    constexpr double MINUTE=10e-30;
     
     /** Numerical constant represents something very small.
      value is a bit arbitrary */
-    const double TINY=3e-7;
+    constexpr double TINY=3e-7;
     
     /** Numerical constant represents something small.
      value is a bit arbitrary */
-    const double SMALL=10e-2;
+    constexpr double SMALL=10e-2;
     
     /** The GEL pseudo-random number generator uses
      UINT_MAX as RAND_MAX to avoid mod operations. */
-    const unsigned int GEL_RAND_MAX=UINT_MAX;
+    constexpr unsigned int GEL_RAND_MAX=UINT_MAX;
     
-    inline double sqrt3()
+    constexpr double sqrt3()
     {
-        static const double sqrt3_val = sqrt(3.0);
-        return sqrt3_val;
+        return 1.7320508075688772935274463415058723669;
     }
     
 #define SQRT3 sqrt3()
@@ -84,23 +83,23 @@ namespace CGLA
         
     /// Template for a function that squares the argument.
     template <class Scalar>
-    inline Scalar sqr(Scalar x) {///
+    constexpr Scalar sqr(Scalar x) {///
         return x*x;}
     
     /// Scalar template for a function that returns the cube of the argument.
     template <class Scalar>
-    inline Scalar qbe(Scalar x) {///
+    constexpr Scalar qbe(Scalar x) {///
         return x*x*x;}
     
     template <class Scalar>
-    inline bool is_zero(Scalar x)	{return (x > -MINUTE && x < MINUTE);}
+    constexpr bool is_zero(Scalar x)	{return (x > -MINUTE && x < MINUTE);}
     
     template <class Scalar>
-    inline bool is_tiny(Scalar x)	{return (x > -TINY && x < TINY);}
+    constexpr bool is_tiny(Scalar x)	{return (x > -TINY && x < TINY);}
     
     /** What power of 2 ?. if x is the argument, find the largest
      y so that 2^y <= x */
-    inline int two_to_what_power(unsigned int x)
+    constexpr int two_to_what_power(unsigned int x)
     {
         if (x<1)
             return -1;
@@ -110,17 +109,17 @@ namespace CGLA
     }
     
 #ifdef __sgi
-    inline int round(float x) {return int(rint(x));}
+    int round(float x) {return int(rint(x));}
 #else
-    inline int round(float x) {return int(x+0.5);}
+    constexpr int round(float x) {return int(x+0.5);}
 #endif
     
     template<class T>
-    inline T sign(T x) {return x>=T(0) ? 1 : -1;}
+    constexpr T sign(T x) {return x>=T(0) ? 1 : -1;}
     
     /// Integer power function with O(log(n)) complexity
     template<class T>
-    inline T int_pow(T a, unsigned int n)
+    constexpr T int_pow(T a, unsigned int n)
     {
         T result = static_cast<T>(1);
         for(; n > 0; n >>= 1)

@@ -8,90 +8,93 @@
  * @brief Abstract 2D floating point vector class
  */
 
-#ifndef __CGLA__ARITHVECFLOAT_H__
-#define __CGLA__ARITHVECFLOAT_H__
+#ifndef CGLA__ARITHVECFLOAT_H
+#define CGLA__ARITHVECFLOAT_H
 
 #include <GEL/CGLA/ArithVec.h>
 
-namespace CGLA {
-    
-    template<class T, class V, unsigned int N>
-    class ArithVecFloat: public ArithVec<T,V,N>
+namespace CGLA
+{
+template <class T, class V, unsigned int N>
+class ArithVecFloat : public ArithVec<T, V, N> {
+public:
+    constexpr ArithVecFloat()
     {
-    public:
-        
-        ArithVecFloat() 
-        {
-#ifndef NDEBUG
-            std::fill_n(this->data.begin(), N, CGLA_INIT_VALUE);
-#endif
-        }
-        
-        ArithVecFloat(T a): 
-        ArithVec<T,V,N>(a) {}
-        
-        ArithVecFloat(T a, T b): 
-        ArithVec<T,V,N>(a,b) {}
-        
-        ArithVecFloat(T a, T b, T c): 
-        ArithVec<T,V,N>(a,b,c) {}
-        
-        ArithVecFloat(T a, T b, T c, T d): 
-        ArithVec<T,V,N>(a,b,c,d) {}
-        
-        /// Compute Euclidean length.
-        T length() const 
-        {
-            return sqrt(sqr_length(*this));
-        }
-        
-        /// Normalize vector.
-        void normalize() 
-        {
-            (*this) /= this->length();
-        }
-        
-        /// Conditionally normalize vector. The condition being that the vector has non-zero length
-        void cond_normalize() 
-        {
-            T sql = sqr_length(*this);
-            if(sql > 0)
-                (*this) /= sqrt(sql);
-        }
-        
-    };
-    
-    /// Returns length of vector
-    template<class T, class V, unsigned int N>
-    inline T length(const ArithVecFloat<T,V,N>& v) 
-    {
-        return v.length();
+        std::fill_n(this->data.begin(), N, CGLA_INIT_VALUE);
     }
-	
-	
-    /// Returns normalized vector
-    template<class T, class V, unsigned int N>
-    inline V normalize(const ArithVecFloat<T,V,N>& v) 
-    {
-        return v/v.length();
-    }
-    
-    /// Returns normalized vector if the vector has non-zero length - otherwise the 0 vector.
-    template<class T, class V, unsigned int N>
-    inline V cond_normalize(const ArithVecFloat<T,V,N>& v) 
-    {
-        T sql = sqr_length(v);
-        if(sql > 0)
-            return v/sqrt(sql);
-        return v*1.0;
-    }
-    
-    /** The template below is used to map vector types to matrix types. In each of the floating point vector classes
-     the template is specialized such that when the template argument is that particular vector class, the appropriate
-     matrix class is represented by MatT. For instance, VecT_to_MatT<Vec3d>::MatT is the type Mat3x3d */
-    template<typename V> class VecT_to_MatT {using MatT = void;};
 
+    constexpr explicit ArithVecFloat(T a):
+        ArithVec<T, V, N>(a) {}
+
+    constexpr ArithVecFloat(T a, T b):
+        ArithVec<T, V, N>(a, b) {}
+
+    constexpr ArithVecFloat(T a, T b, T c):
+        ArithVec<T, V, N>(a, b, c) {}
+
+    constexpr ArithVecFloat(T a, T b, T c, T d):
+        ArithVec<T, V, N>(a, b, c, d) {}
+
+    /// Compute Euclidean length.
+    constexpr T length() const
+    {
+        return sqrt(sqr_length(*this));
+    }
+
+    /// Normalize vector.
+    constexpr void normalize()
+    {
+        (*this) /= this->length();
+    }
+
+    /// Conditionally normalize vector. The condition being that the vector has non-zero length
+    constexpr void cond_normalize()
+    {
+        T sql = sqr_length(*this);
+        if (sql > 0)
+            (*this) /= sqrt(sql);
+    }
+};
+
+/// @name Non-member operations
+/// @related ArithVecFloat
+/// @{
+
+/// Returns length of vector
+template <class T, class V, unsigned int N>
+constexpr T length(const ArithVecFloat<T, V, N>& v)
+{
+    return v.length();
+}
+
+
+/// Returns normalized vector
+template <class T, class V, unsigned int N>
+constexpr V normalize(const ArithVecFloat<T, V, N>& v)
+{
+    return v / v.length();
+}
+
+/// Returns normalized vector if the vector has non-zero length - otherwise the 0 vector.
+template <class T, class V, unsigned int N>
+constexpr V cond_normalize(const ArithVecFloat<T, V, N>& v)
+{
+    T sql = sqr_length(v);
+    if (sql > 0)
+        return v / sqrt(sql);
+    return v * 1.0;
+}
+
+/// @}
+
+/** The template below is used to map vector types to matrix types. In each of the floating point vector classes
+ the template is specialized such that when the template argument is that particular vector class, the appropriate
+ matrix class is represented by MatT. For instance, VecT_to_MatT<Vec3d>::MatT is the type Mat3x3d */
+/// @related ArithVecFloat
+template <typename V>
+struct VecT_to_MatT {
+    using MatT = void;
+};
 }
 
 #endif
-

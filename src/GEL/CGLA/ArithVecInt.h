@@ -13,29 +13,25 @@
 
 #include <GEL/CGLA/ArithVec.h>
 
-namespace CGLA {
+namespace CGLA
+{
+template <class T, class V, unsigned int N>
+class ArithVecInt : public ArithVec<T, V, N> {
+public:
+    constexpr ArithVecInt() = default;
 
-	template<class T, class V, unsigned int N>
-	class ArithVecInt: public ArithVec<T,V,N>
-	{
-	public:
+    constexpr explicit ArithVecInt(T a):
+        ArithVec<T, V, N>(a) {}
 
-		ArithVecInt() {}
+    constexpr ArithVecInt(T a, T b):
+        ArithVec<T, V, N>(a, b) {}
 
-		ArithVecInt(T a): 
-			ArithVec<T,V,N>(a) {}
+    constexpr ArithVecInt(T a, T b, T c):
+        ArithVec<T, V, N>(a, b, c) {}
 
-		ArithVecInt(T a, T b): 
-			ArithVec<T,V,N>(a,b) {}
-
-		ArithVecInt(T a, T b, T c): 
-			ArithVec<T,V,N>(a,b,c) {}
-
-		ArithVecInt(T a, T b, T c, T d): 
-			ArithVec<T,V,N>(a,b,c,d) {}
-
-	};
+    constexpr ArithVecInt(T a, T b, T c, T d):
+        ArithVec<T, V, N>(a, b, c, d) {}
+};
 }
 
 #endif
-

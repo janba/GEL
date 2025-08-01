@@ -8,8 +8,8 @@
  * @brief Tabulated trigonometry - not certain this is useful.
  */
 
-#ifndef __CGLA_TABLETRIGONOMETRY_H__
-#define __CGLA_TABLETRIGONOMETRY_H__
+#ifndef CGLA_TABLETRIGONOMETRY_H
+#define CGLA_TABLETRIGONOMETRY_H
 
 #include <vector>
 #include <GEL/CGLA/CGLA-util.h>

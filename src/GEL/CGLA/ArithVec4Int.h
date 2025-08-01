@@ -9,8 +9,8 @@
  * @brief Abstract 4D integer vector class
  */
 
-#ifndef __CGLA__ARITHVEC4INT_H__
-#define __CGLA__ARITHVEC4INT_H__
+#ifndef CGLA__ARITHVEC4INT_H
+#define CGLA__ARITHVEC4INT_H
 
 #include <GEL/CGLA/ArithVecInt.h>
 
@@ -22,10 +22,10 @@ namespace CGLA {
 	public:
 
 		/// Construct a 4D int vector.
-		ArithVec4Int(T a, T b, T c, T d): ArithVecInt<T,V,4>(a,b,c,d) {}
+		constexpr ArithVec4Int(T a, T b, T c, T d): ArithVecInt<T,V,4>(a,b,c,d) {}
 
 		/// Construct a 4D int vector.
-		ArithVec4Int() {}
+		constexpr ArithVec4Int() = default;
 		
 	};
 }

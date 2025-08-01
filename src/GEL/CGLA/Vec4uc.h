@@ -9,8 +9,8 @@
  * @brief 4D unsigned char vector
  */
 
-#ifndef __CGLA_VEC4UC_H__
-#define __CGLA_VEC4UC_H__
+#ifndef CGLA_VEC4UC_H
+#define CGLA_VEC4UC_H
 
 #include <GEL/CGLA/Vec4f.h>
 
@@ -24,10 +24,10 @@ namespace CGLA {
 	public:
 		
 		/// Construct 0 vector
-		Vec4uc() {}
+		constexpr Vec4uc() = default;
 
-		/// Construct 0 vector
-		Vec4uc(unsigned char a): ArithVec<UChar,Vec4uc,4>(a,a,a,a) {}
+		/// Construct a 4D unsigned char vector with 4 identical coordinates.
+		constexpr Vec4uc(unsigned char a): ArithVec<UChar,Vec4uc,4>(a,a,a,a) {}
 
 		/// Construct 4D uchar vector
 		Vec4uc(UChar _a, UChar _b, UChar _c,UChar _d): 

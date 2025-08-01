@@ -8,8 +8,8 @@
  * @brief float based quaternion class
  */
 
-#ifndef __CGLA_QUATF_H__
-#define __CGLA_QUATF_H__
+#ifndef CGLA_QUATF_H
+#define CGLA_QUATF_H
 
 #include <GEL/CGLA/ArithQuat.h>
 #include <GEL/CGLA/Vec3f.h>

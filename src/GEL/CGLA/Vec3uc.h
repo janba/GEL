@@ -8,33 +8,28 @@
  * @brief 3D unsigned char vector.
  */
 
-#ifndef __CGLA_VEC3UC_H__
-#define __CGLA_VEC3UC_H__
+#ifndef CGLA_VEC3UC_H
+#define CGLA_VEC3UC_H
 
 #include <GEL/CGLA/Vec3i.h>
 
-namespace CGLA {
-	typedef unsigned char UChar;
+namespace CGLA
+{
+typedef unsigned char UChar;
 
-	/** \brief 3D unsigned char vector. */
-	class Vec3uc: public ArithVec3Int<UChar,Vec3uc>
-	{
+/// @brief 3D unsigned char vector.
+class Vec3uc : public ArithVec3Int<UChar, Vec3uc> {
+public:
+    /// Construct 0 vector
+    constexpr Vec3uc() = default;
 
-	public:
-		
-		/// Construct 0 vector
-		Vec3uc() {}
+    /// Construct 3D uchar vector
+    constexpr Vec3uc(UChar a, UChar b, UChar c):
+        ArithVec3Int(a, b, c) {}
 
-		/// Construct 3D uchar vector
-		Vec3uc(UChar a, UChar b, UChar c): 
-			ArithVec3Int<UChar,Vec3uc>(a,b,c) {}
-
-		/// Convert from int vector. 
-		explicit Vec3uc(const Vec3i& v): 
-			ArithVec3Int<UChar,Vec3uc>(v[0]&0xff, v[1]&0xff, v[2]&0xff) {}
-	};
-
-
+    /// Convert from int vector.
+    constexpr explicit Vec3uc(const Vec3i& v):
+        ArithVec3Int(v[0] & 0xff, v[1] & 0xff, v[2] & 0xff) {}
+};
 }
 #endif
-

@@ -9,8 +9,8 @@
  * @brief Parsing various entites from a string.
  */
 
-#ifndef __UTIL_PARSE_H__
-#define __UTIL_PARSE_H__
+#ifndef UTIL_PARSE_H
+#define UTIL_PARSE_H
 
 #include <string>
 #include <sstream>
@@ -18,6 +18,7 @@
 #include <GEL/CGLA/Vec4f.h>
 #include <GEL/CGLA/Vec3f.h>
 #include <GEL/CGLA/Vec2f.h>
+#include <GEL/CGLA/Vec2i.h>
 
 namespace Util {
 	std::string floatToString(float value);
@@ -37,4 +38,4 @@ namespace Util {
 	void parseSMPT(const char* str, float& x);
 }
 
-#endif // __PARSE_H__
+#endif // UTIL_PARSE_H

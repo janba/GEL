@@ -8,8 +8,8 @@
  * Compute mean and covariance of CGLA vectors - simple multivariate statistics.
  */
 
-#ifndef __CGLA_STATISTICS_H__
-#define __CGLA_STATISTICS_H__
+#ifndef CGLA_STATISTICS_H
+#define CGLA_STATISTICS_H
 
 #if (_MSC_VER >= 1200)
 #pragma warning (disable: 4018 4244 4800)
