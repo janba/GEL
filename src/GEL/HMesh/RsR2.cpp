@@ -178,7 +178,7 @@ auto filter_out_cross_connection(
 )
 {
     const Vec3 this_normal = normals[this_idx];
-    std::erase_if(neighbors, [&](auto& neighbor_info) {
+    std::erase_if(neighbors, [&](const auto& neighbor_info) {
         const Vec3 neighbor_normal = normals[neighbor_info.id];
         const double cos_theta = dot(this_normal, neighbor_normal) /
             this_normal.length() / neighbor_normal.length();
@@ -220,43 +220,43 @@ void init_graph(
     ThreadPool pool;
     auto neighbor_map = calculate_neighbors(pool, vertices, kdTree, k);
 
-    NodeID i = 0;
-    for (auto& vertex : vertices) {
-        Vec3 this_normal = normals[i];
-        auto& neighbors = neighbor_map[i];
+    // TODO: parallelization idea: precalculate the distances and then nodes to connect
+    for (NodeID id_this = 0UL; id_this < vertices.size(); ++id_this) {
+        const Point vertex = vertices[id_this];
+        const Vec3 this_normal = normals[id_this];
+        auto& neighbors = neighbor_map[id_this];
 
-        pre_max_length[i] = neighbors[static_cast<size_t>(k * 2. / 3.)].distance;
+        pre_max_length[id_this] = neighbors[static_cast<size_t>(k * 2. / 3.)].distance;
 
         // Filter out the cross-connection
-        filter_out_cross_connection(neighbors, normals, i, cross_conn_thresh, is_euclidean);
-
-        // TODO: once again, connect_nodes can be run in parallel with one protected variable
+        filter_out_cross_connection(neighbors, normals, id_this, cross_conn_thresh, is_euclidean);
+        // TODO: we can run in parallel up to this point
         for (const auto& neighbor : std::ranges::subrange(neighbors.begin() + 1, neighbors.end())) {
-            const auto idx = neighbor.id;
-            if (dist_graph.find_edge(i, idx) != AMGraph::InvalidEdgeID)
+            const auto id_other = neighbor.id;
+            if (dist_graph.find_edge(id_this, id_other) != AMGraph::InvalidEdgeID)
                 continue;
-            if (idx == i) {
-                std::cerr << __func__ << ": Vertex " << idx << " connect back to its own." << std::endl;
+            if (id_other == id_this) {
+                std::cerr << __func__ << ": Vertex " << id_other << " connect back to its own." << std::endl;
                 continue;
             }
-            const Vec3 neighbor_normal = normals[idx];
-            const Point neighbor_pos = vertices[idx];
+            const Vec3 neighbor_normal = normals[id_other];
+            const Point neighbor_pos = vertices[id_other];
             const Vec3 edge = neighbor_pos - vertex;
             const auto weight =
                 (is_euclidean)
                     ? static_cast<float>(edge.length())
                     : static_cast<float>(cal_proj_dist(edge, this_normal, neighbor_normal));
-            if (weight > max_length[i])
-                max_length[i] = weight;
-            if (weight > max_length[idx])
-                max_length[idx] = weight;
+            if (weight > max_length[id_this])
+                max_length[id_this] = weight;
+            // TODO: Can we move this elsewhere in some way?
+            if (weight > max_length[id_other])
+                max_length[id_other] = weight;
 
             if (weight < 1e-8) [[unlikely]]
                 std::cerr << __func__ << ": error" << std::endl;
 
-            dist_graph.connect_nodes(i, idx, weight);
+            dist_graph.connect_nodes(id_this, id_other, weight);
         }
-        i++;
     }
 }
 
@@ -686,11 +686,11 @@ bool is_intersecting(const RSGraph& mst, const NodeID v1, const NodeID v2, const
     *
     * @param mst: graph and vertex information
     * @param candidate: the edge to be examed
-    * @param kdTree: kd-tree for knn query
+    * @param kd_tree: kd-tree for knn query
     *
     * @return if the candidate pass the check
     */
-bool geometry_check(const RSGraph& mst, const TEdge& candidate, const Tree& kdTree)
+bool geometry_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_tree)
 {
     const NodeID v1 = candidate.first;
     const NodeID v2 = candidate.second;
@@ -704,27 +704,22 @@ bool geometry_check(const RSGraph& mst, const TEdge& candidate, const Tree& kdTr
     const Point search_center = p1 + (p2 - p1) / 2.0;
     const double radius = (p2 - p1).length() / 2.0;
     std::vector<NodeID> neighbors;
-    nn_search(search_center, kdTree, radius * 3., neighbors);
+    nn_search(search_center, kd_tree, radius * 3., neighbors);
     UnorderedSet<NodeID> rejection_neighbor_set;
-    for (const unsigned long neighbor : neighbors) {
-        if (neighbor == v1 || neighbor == v2)
-            continue;
-        if (CGLA::dot(mst.m_vertices[neighbor].normal, mean_normal) > std::cos(60. / 180. * M_PI))
-            rejection_neighbor_set.insert(neighbor);
-    }
     for (const auto neighbor : neighbors) {
-        if (!rejection_neighbor_set.contains(neighbor))
-            continue;
-
+        if (neighbor != v1 &&
+            neighbor != v2 &&
+            CGLA::dot(mst.m_vertices[neighbor].normal, mean_normal) > std::cos(60. / 180. * M_PI)) {
+            rejection_neighbor_set.insert(neighbor);
+        }
+    }
+    for (const auto neighbor : rejection_neighbor_set) {
         for (const auto& rej_neighbor_neighbor : mst.m_vertices[neighbor].ordered_neighbors) {
-            if (!rejection_neighbor_set.contains(rej_neighbor_neighbor.v))
-                continue;
-
-            if (is_intersecting(mst, v1, v2, neighbor, rej_neighbor_neighbor.v)) {
+            if (rejection_neighbor_set.contains(rej_neighbor_neighbor.v) &&
+                is_intersecting(mst, v1, v2, neighbor, rej_neighbor_neighbor.v)) {
                 return false;
             }
         }
-        rejection_neighbor_set.erase(neighbor);
     }
     return true;
 }
@@ -979,9 +974,7 @@ void connect_handle(
             TEdge candidate(this_v, neighbor.id);
             if (mst.find_edge(this_v, neighbor.id) != AMGraph::InvalidEdgeID)
                 continue;
-            // TODO: crash!
             tree = mst.etf.representative(mst.tree_id(this_v));
-            // TODO: crash
             to_tree = mst.etf.representative(mst.tree_id(neighbor.id));
             if (geometry_check(mst, candidate, kd_tree) && tree != to_tree) {
                 validIdx = j;
@@ -1020,7 +1013,7 @@ void connect_handle(
         sorted_face.emplace_back(length, key);
     }
     std::ranges::sort(sorted_face, face_comparator);
-    for (auto& val : sorted_face | std::views::values) {
+    for (const auto& val : sorted_face | std::views::values) {
         const std::vector<int>& idx_vec = face_connections[val];
         if (idx_vec.size() <= 5 || (mst.exp_genus >= 0 && num >= mst.exp_genus))
             break;
@@ -1031,6 +1024,7 @@ void connect_handle(
             Point query = mst.m_vertices[this_v].coords;
             NodeID connected_neighbor = to_connect_p[idx];
             std::vector<NodeID> path;
+            // TODO: path and step_thresh are both dead
             const int steps = find_shortest_path(mst, this_v, connected_neighbor, step_thresh, path);
             if (steps > step_thresh) {
                 isFind = true;
@@ -1070,34 +1064,32 @@ bool explore(
 {
     const NodeID v_i = i;
     bool isFound = false;
-    for (auto& neighbor : G.m_vertices[i].ordered_neighbors) {
+    for (const auto& neighbor : G.m_vertices[i].ordered_neighbors) {
         const NodeID v_u = neighbor.v;
-        // TODO: crash
         const NodeID v_w = G.successor(i, v_u).v;
 
-        Point w_pos = G.m_vertices[v_w].coords;
-        Point u_pos = G.m_vertices[v_u].coords;
-        Point i_pos = G.m_vertices[v_i].coords;
-        Vec3 i_normal = G.m_vertices[v_i].normal;
-        Vec3 u_normal = G.m_vertices[v_u].normal;
-        Vec3 w_normal = G.m_vertices[v_w].normal;
+        const Point w_pos = G.m_vertices[v_w].coords;
+        const Point u_pos = G.m_vertices[v_u].coords;
+        const Point i_pos = G.m_vertices[v_i].coords;
+        const Vec3 i_normal = G.m_vertices[v_i].normal;
+        const Vec3 u_normal = G.m_vertices[v_u].normal;
+        const Vec3 w_normal = G.m_vertices[v_w].normal;
         const auto angle = cal_radians_3d(w_pos - i_pos, i_normal,
                                           u_pos - i_pos);
         const bool isLargerThanPi = angle < M_PI;
-        FaceType face_vector{v_i, v_u, v_w};
-        if (v_u != v_w && isLargerThanPi) {
-            if (G.find_edge(v_u, v_w) == AMGraph::InvalidEdgeID) {
-                const auto score = (is_euclidean)
-                                       ? (G.m_vertices[v_u].coords - G.m_vertices[v_w].coords).length()
-                                       : cal_proj_dist(G.m_vertices[v_u].coords - G.m_vertices[v_w].coords,
-                                                       u_normal, w_normal);
-                if (score > length_thresh[v_u] || score > length_thresh[v_w])
-                    continue;
-                if (score >= 0) {
-                    std::pair<FaceType, float> queue_item(face_vector, score);
-                    queue.push(queue_item);
-                    isFound = true;
-                }
+        const FaceType face_vector{v_i, v_u, v_w};
+        if (v_u != v_w &&
+            isLargerThanPi &&
+            G.find_edge(v_u, v_w) == AMGraph::InvalidEdgeID) {
+            const auto score = (is_euclidean)
+                                   ? (G.m_vertices[v_u].coords - G.m_vertices[v_w].coords).length()
+                                   : cal_proj_dist(G.m_vertices[v_u].coords - G.m_vertices[v_w].coords,
+                                   u_normal, w_normal);
+            if (score > length_thresh[v_u] || score > length_thresh[v_w])
+                continue;
+            else if (score >= 0) {
+                queue.emplace(face_vector, score);
+                isFound = true;
             }
         }
     }
@@ -1153,9 +1145,7 @@ bool check_branch_validity(const RSGraph& G, const NodeID root, const NodeID bra
     // Check u's RS validity
     {
         const auto this_radian = cal_radians_3d(pos_w - pos_u, normal_u);
-        // TODO: crash!
         const auto& former = G.predecessor(branch1, branch2);
-        // TODO: crash!
         const auto& next = G.successor(branch1, branch2);
         if (!is_valid(this_radian, former, next))
             return false;
@@ -1171,9 +1161,7 @@ bool check_branch_validity(const RSGraph& G, const NodeID root, const NodeID bra
     // Check w's RS validity
     {
         const auto this_radian = cal_radians_3d(pos_u - pos_w, normal_w);
-        // TODO: crash!
         const auto& former = G.predecessor(branch2, branch1);
-        // TODO: crash!
         const auto& next = G.successor(branch2, branch1);
         if (!is_valid(this_radian, former, next))
             return false;
@@ -1210,7 +1198,6 @@ bool check_validity(
         return false;
 
     // Check this rotation system
-    // TODO: crash!
     if (!G.successor(v_i, v_u).v == v_w)
         return false;
     const auto angle = cal_radians_3d(pos_w - pos_i, normal_i, pos_u - pos_i);
@@ -1687,13 +1674,11 @@ auto component_to_manifold(
     // Edge connection
     inner_timer.start("edge_connection");
     for (auto& [edge_len, this_edge] : edge_length) {
-        if (mst.find_edge(this_edge.first, this_edge.second) == AMGraph::InvalidEdgeID) {
-            if (vanilla_check(mst, this_edge, kdTree)) {
-                register_face(mst, this_edge.first, this_edge.second, faces, edge_len);
-            }
+        if (mst.find_edge(this_edge.first, this_edge.second) == AMGraph::InvalidEdgeID &&
+            vanilla_check(mst, this_edge, kdTree)) {
+            register_face(mst, this_edge.first, this_edge.second, faces, edge_len);
         }
     }
-    //Util::Parallel::foreach(pool, edge_length, lambda);
     inner_timer.end("edge_connection");
 
     // Create handles & Triangulation
@@ -1824,7 +1809,7 @@ auto point_cloud_collapse_reexpand(
     auto normals_copy = normals;
 
     [[maybe_unused]]
-    auto _unused = estimate_normals_and_smooth(pool, vertices, normals_copy, opts.dist);
+        auto _unused = estimate_normals_and_smooth(pool, vertices, normals_copy, opts.dist);
 
     const auto indices = std::ranges::iota_view(0UL, vertices.size());
     const Tree kd_tree = build_kd_tree_of_indices(vertices, indices);
@@ -1835,7 +1820,7 @@ auto point_cloud_collapse_reexpand(
     const auto vertices_new = indexed_select(vertices, collapse.m_remaining);
     // TODO: Issue #105. This in combination with the cross_connection causes a crash
     const auto normals_new = std::vector<Vec3>();
-        //indexed_select(normals_copy, collapse.m_remaining);
+    //indexed_select(normals_copy, collapse.m_remaining);
 
     auto manifold = point_cloud_to_mesh(vertices_new, normals_new, opts);
 
