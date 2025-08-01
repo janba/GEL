@@ -357,7 +357,7 @@ inline auto collapse_points(
         }
     };
 
-    inline CGLA::Vec3d half_edge_direction(const HMesh::Manifold& m, HMesh::HalfEdgeID h)
+    inline Vec3 half_edge_direction(const HMesh::Manifold& m, HMesh::HalfEdgeID h)
     {
         const auto w = m.walker(h);
         const auto current = w.vertex();
@@ -365,7 +365,7 @@ inline auto collapse_points(
         return CGLA::normalize(m.positions[opposing] - m.positions[current]);
     }
 
-    inline Vec3d triangle_normal(const Vec3d& p1, const Vec3d& p2, const Vec3d& p3)
+    inline Vec3 triangle_normal(const Vec3& p1, const Vec3& p2, const Vec3& p3)
     {
         const auto v1 = p2 - p1;
         const auto v2 = p3 - p1;
@@ -373,14 +373,14 @@ inline auto collapse_points(
     }
 
     // returns 0 at 180 degrees, 1 at 90 (or 270) degrees
-    inline double optimize_dihedral(const Vec3d n1, const Vec3d n2)
+    inline double optimize_dihedral(const Vec3& n1, const Vec3& n2)
     {
         const auto angle = CGLA::dot(CGLA::normalize(n1), CGLA::normalize(n2)) - 1.0;
         return std::abs(angle);
     }
 
     // returns 0 for an equilateral triangle,
-    inline double optimize_angle(const Vec3d& p1, const Vec3d& p2, const Vec3d& p3, const ReexpandOptions& opts)
+    inline double optimize_angle(const Vec3& p1, const Vec3& p2, const Vec3& p3, const ReexpandOptions& opts)
     {
         const auto e1 = CGLA::normalize(p2 - p1);
         const auto e2 = CGLA::normalize(p3 - p1);
@@ -438,16 +438,16 @@ inline auto collapse_points(
     }
 
     inline std::array<HMesh::HalfEdgeID, 2> find_edge_pair(const HMesh::Manifold& m, const HMesh::VertexID center_idx,
-                                                           const CGLA::Vec3d& to_insert_position, const ReexpandOptions& opts)
+                                                           const Vec3& to_insert_position, const ReexpandOptions& opts)
     {
         std::array edges = {HMesh::InvalidHalfEdgeID, HMesh::InvalidHalfEdgeID};
         const auto center_position = m.positions[center_idx];
 
         struct Candidate {
             HalfEdgeID h;
-            Vec3d normal;
+            Vec3 normal;
             double score;
-            Vec3d points;
+            Vec3 points;
             std::weak_ordering operator<=>(const Candidate& other) const
             {
                 return this->score == other.score  ? std::weak_ordering::equivalent
