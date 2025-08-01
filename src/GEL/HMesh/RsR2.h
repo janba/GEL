@@ -11,42 +11,37 @@
 
 #include <GEL/Util/ParallelAdapters.h>
 
-/// @namespace HMesh::RSR
+/// @brief Rotation System Reconstruction
 namespace HMesh::RSR
 {
-using namespace CGLA;
-using namespace Geometry;
-
-inline const auto InvalidNodeID = AMGraph::InvalidNodeID;
-inline const auto InvalidEdgeID = AMGraph::InvalidEdgeID;
-
-using NodeID = AMGraph::NodeID;
-using FaceType = std::array<NodeID, 3>;
-
-template <typename T>
-using OrderedSet = std::set<T>;
-
-template <typename T>
-using UnorderedSet = std::unordered_set<T>;
-
-template <typename K, typename V, typename Hash>
-using Map = std::unordered_map<K, V, Hash>;
-
-using Vec3 = Vec3d;
+using Vec3 = CGLA::Vec3d;
 using Point = Vec3;
-using TEdge = std::pair<NodeID, NodeID>;
+using NodeID = AMGraph::NodeID;
+
+inline const NodeID InvalidNodeID = AMGraph::InvalidNodeID;
+inline const NodeID InvalidEdgeID = AMGraph::InvalidEdgeID;
+
+namespace detail
+{
+    template <typename T>
+    using OrderedSet = std::set<T>;
+
+    template <typename T>
+    using UnorderedSet = std::unordered_set<T>;
+
+    template <typename K, typename V, typename Hash>
+    using Map = std::unordered_map<K, V, Hash>;
+}
+
 
 double cal_radians_3d(const Vec3& branch, const Vec3& normal);
-
-double cal_radians_3d(const Vec3& branch_vec, const Vec3& normal,
-                      const Vec3& ref_vec);
+double cal_radians_3d(const Vec3& branch, const Vec3& normal, const Vec3& ref_vec);
 
 enum struct Distance {
     EUCLIDEAN,
     NEIGHBORS
 };
 
-///
 /// TODO: documentation
 struct RsROpts {
     int32_t genus = -1;
@@ -60,7 +55,7 @@ struct RsROpts {
     bool is_face_loop = true;
 };
 
-/*Graph definition. The RsR graph here is integrated with the rotation system based on AMGraph*/
+/// Graph definition. The RsR graph here is integrated with the rotation system based on AMGraph
 struct Vertex {
     NodeID id = 0;
     using NormalRep = std::int64_t;
@@ -97,7 +92,7 @@ struct Vertex {
     };
 
     // TODO: mutable elements inside std::set is potentially unsound
-    OrderedSet<Neighbor> ordered_neighbors;
+    detail::OrderedSet<Neighbor> ordered_neighbors;
 };
 
 
@@ -141,7 +136,7 @@ public:
 
 class RSGraph : public AMGraph {
 public:
-    ETF etf;
+    Geometry::ETF etf;
     int exp_genus = -1;
 
     ::Util::AttribVec<NodeID, Vertex> m_vertices;
@@ -221,7 +216,8 @@ public:
 /// @param normals normals of the point cloud or empty vector
 /// @param opts collapse options
 /// @return reconstructed manifold mesh
-auto point_cloud_to_mesh(const std::vector<Point>& vertices, const std::vector<Vec3>& normals,
+auto point_cloud_to_mesh(const std::vector<Point>& vertices,
+                         const std::vector<Vec3>& normals,
                          const RsROpts& opts) -> ::HMesh::Manifold;
 
 struct NormalEstimationResult {
@@ -231,7 +227,8 @@ struct NormalEstimationResult {
 };
 
 auto point_cloud_normal_estimate(const std::vector<Point>& vertices,
-                                 const std::vector<Vec3>& normals, bool isEuclidean) -> NormalEstimationResult;
+                                 const std::vector<Vec3>& normals,
+                                 bool is_euclidean) -> NormalEstimationResult;
 
 
 auto point_cloud_collapse_reexpand(
@@ -241,6 +238,5 @@ auto point_cloud_collapse_reexpand(
     int max_iterations,
     bool reexpand) -> ::HMesh::Manifold;
 } // namespace HMesh::RSR
-
 
 #endif // GEL_HMesh_RsR2_hpp
