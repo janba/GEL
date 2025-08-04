@@ -12,34 +12,6 @@
 #ifndef CGLA_VEC2UI_H
 #define CGLA_VEC2UI_H
 
-#include <GEL/CGLA/ArithVec.h>
+#include <GEL/CGLA/Vec.h>
 
-namespace CGLA 
-{
-	class Vec2f;
-
-	/** \brief 2D Integer vector. */
-	
-	class Vec2ui: public ArithVec<unsigned int,Vec2ui,2>
-	{
-	public:
-		
-		/// Construct 0 vector
-		constexpr Vec2ui() = default;
-
-		/// Construct 2D int vector
-		constexpr Vec2ui(unsigned int _a)
-		  : ArithVec<unsigned int,Vec2ui,2>(_a,_a) 
-		{}
-
-		/// Construct 2D int vector
-		constexpr Vec2ui(unsigned int _a, unsigned int _b)
-		  : ArithVec<unsigned int,Vec2ui,2>(_a,_b) 
-		{}
-
-		/// Convert from 2D float vector
-		constexpr explicit Vec2ui(const Vec2f& v);
-  
-	};
-}
 #endif
