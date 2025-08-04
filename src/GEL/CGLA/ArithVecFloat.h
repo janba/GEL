@@ -8,8 +8,8 @@
  * @brief Abstract 2D floating point vector class
  */
 
-#ifndef CGLA__ARITHVECFLOAT_H
-#define CGLA__ARITHVECFLOAT_H
+#ifndef CGLA_ARITHVECFLOAT_H
+#define CGLA_ARITHVECFLOAT_H
 
 #include <GEL/CGLA/ArithVec.h>
 
