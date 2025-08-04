@@ -131,6 +131,13 @@ namespace Geometry {
                 nbrs[i++] = edge.first;
             return nbrs;
         }
+
+        /// Return the NodeIDs of nodes adjacent to a given node lazily
+        [[nodiscard]] std::ranges::borrowed_range
+        auto neighbors_lazy(const NodeID n) const
+        {
+            return edge_map[n] | std::views::keys;
+        }
         
         /// Return the edges - map from NodeID to EdgeID of the current node.
         const AdjMap& edges(NodeID n) const {
