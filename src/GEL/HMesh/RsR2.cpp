@@ -1037,16 +1037,6 @@ bool explore(
     return isFound;
 }
 
-/// @brief Calculate the local surface normal (averaged direction of normals of 3 vertices in the triangle)
-/// @return local surface normal
-Vec3 triangle_mean_normal(const Vec3& normal1, const Vec3& normal2, const Vec3& normal3)
-{
-    const Vec3 normal1_norm = CGLA::normalize(normal1);
-    const Vec3 normal2_norm = CGLA::normalize(normal2);
-    const Vec3 normal3_norm = CGLA::normalize(normal3);
-    return CGLA::normalize(normal1_norm + normal2_norm + normal3_norm);
-}
-
 bool check_branch_validity(const RSGraph& G, const NodeID root, const NodeID branch1, const NodeID branch2)
 {
     constexpr auto angle_thresh = 0. / 180. * M_PI;
