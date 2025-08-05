@@ -14,8 +14,8 @@ using Geometry::estimateNormal;
 using FaceType = std::array<NodeID, 3>;
 
 struct FaceComparator {
-    bool operator()(const std::pair<FaceType, float>& left,
-                    const std::pair<FaceType, float>& right) const
+    constexpr bool operator()(const std::pair<FaceType, float>& left,
+                              const std::pair<FaceType, float>& right) const
     {
         return (left.second) > (right.second);
     }
@@ -33,7 +33,7 @@ struct FaceConnectionKey {
     uint tree_id;
     uint to_tree_id;
 
-    bool operator==(const FaceConnectionKey& other) const noexcept
+    constexpr bool operator==(const FaceConnectionKey& other) const noexcept
     {
         return tree_id == other.tree_id && to_tree_id == other.to_tree_id;
     }
@@ -54,17 +54,17 @@ using namespace ::HMesh;
 using ::Util::AttribVec;
 using ::HMesh::Manifold;
 
-inline bool edge_comparator(const PEdgeLength& l, const PEdgeLength& r)
+constexpr bool edge_comparator(const PEdgeLength& l, const PEdgeLength& r)
 {
     return l.first < r.first;
 }
 
-inline bool face_comparator(const FacePair& l, const FacePair& r)
+constexpr bool face_comparator(const FacePair& l, const FacePair& r)
 {
     return l.first > r.first;
 }
 
-inline bool neighbor_comparator(const NeighborPair& l, const NeighborPair& r)
+constexpr bool neighbor_comparator(const NeighborPair& l, const NeighborPair& r)
 {
     return l.first > r.first;
 }
@@ -73,7 +73,7 @@ inline bool neighbor_comparator(const NeighborPair& l, const NeighborPair& r)
 /// @brief Calculate the reference vector for the rotation system
 /// @param normal: normal direction for the target vertex
 /// @return the reference vector
-Vec3 calculate_ref_vec(const Vec3& normal)
+constexpr Vec3 calculate_ref_vec(const Vec3& normal)
 {
     constexpr double eps = 1e-6;
     const double second = (normal[1] == 0.) ? normal[1] + eps : normal[1];
@@ -382,7 +382,7 @@ void weighted_smooth(
     Util::Parallel::enumerate_map2(pool, vertices, neighbors_, smoothed_v, lambda);
 }
 
-auto normalize_normals(std::vector<Vec3>& normals) -> void
+constexpr auto normalize_normals(std::vector<Vec3>& normals) -> void
 {
     for (auto& normal : normals) {
         normal.normalize();
@@ -422,7 +422,7 @@ void estimate_normal_no_normals_memoized(
     *
     * @return angle weight calculated
     */
-double cal_angle_based_weight(const Vec3& this_normal, const Vec3& neighbor_normal)
+constexpr double cal_angle_based_weight(const Vec3& this_normal, const Vec3& neighbor_normal)
 {
     const double dot_pdt = std::abs(
         dot(this_normal, neighbor_normal) / (this_normal.length() * neighbor_normal.length()));
@@ -598,7 +598,7 @@ void correct_normal_orientation(
 
 void init_face_loop_label(RSGraph& g)
 {
-    const NodeID start_v = 0;
+    constexpr NodeID start_v = 0;
     NodeID last_vertex = start_v;
     auto loop_step = 0UL;
     NodeID current_vertex = g.m_vertices[start_v].ordered_neighbors.begin()->v;
