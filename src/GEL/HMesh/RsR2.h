@@ -9,8 +9,6 @@
 
 #include <GEL/HMesh/Collapse.h>
 
-#include <GEL/Util/ParallelAdapters.h>
-
 /// @brief Rotation System Reconstruction
 namespace HMesh::RSR
 {
@@ -20,8 +18,8 @@ using NodeID = AMGraph::NodeID;
 
 using uint = Geometry::uint;
 
-inline const NodeID InvalidNodeID = AMGraph::InvalidNodeID;
-inline const NodeID InvalidEdgeID = AMGraph::InvalidEdgeID;
+inline constexpr NodeID InvalidNodeID = AMGraph::InvalidNodeID;
+inline constexpr NodeID InvalidEdgeID = AMGraph::InvalidEdgeID;
 
 namespace detail
 {
@@ -59,10 +57,9 @@ struct RsROpts {
 
 /// Graph definition. The RsR graph here is integrated with the rotation system based on AMGraph
 struct Vertex {
-    NodeID id = 0;
     using NormalRep = std::int64_t;
-    static constexpr NormalRep InvalidNormalRep = -1;
-    static constexpr NormalRep CollisionRep = -2;
+
+    NodeID id = 0;
     NormalRep normal_rep = InvalidNormalRep;
     Vec3 coords = Vec3(0., 0., 0.);
     Vec3 normal = Vec3(0., 0., 0.);
@@ -93,7 +90,11 @@ struct Vertex {
         }
     };
 
-    detail::OrderedSet<Neighbor> ordered_neighbors;
+    static constexpr NormalRep InvalidNormalRep = -1;
+    static constexpr NormalRep CollisionRep = -2;
+    friend class RSGraph;
+
+    detail::OrderedSet<Neighbor> ordered_neighbors = {};
 };
 
 
@@ -108,9 +109,9 @@ struct Edge {
 using Neighbor = Vertex::Neighbor;
 
 class SimpGraph : public AMGraph {
-public:
-    ::Util::AttribVec<AMGraph::EdgeID, Edge> m_edges;
+    Util::AttribVec<EdgeID, Edge> m_edges;
 
+public:
     EdgeID connect_nodes(const NodeID source, const NodeID target, const double weight = 0.)
     {
         const EdgeID id = AMGraph::connect_nodes(source, target);
@@ -123,9 +124,9 @@ public:
         return m_edges[find_edge(n1, n2)].weight;
     }
 
-    /** Disconnect nodes. This operation removes the edge from the edge maps of the two formerly connected
-         vertices, but the number of edges reported by the super class AMGraph is not decremented, so the edge is only
-         invalidated. Call cleanup to finalize removal. */
+    /// Disconnect nodes. This operation removes the edge from the edge maps of the two formerly connected
+    /// vertices, but the number of edges reported by the super class AMGraph is not decremented, so the edge is only
+    /// invalidated. Call cleanup to finalize removal. */
     void disconnect_nodes(const NodeID n0, const NodeID n1)
     {
         if (valid_node_id(n0) && valid_node_id(n1)) {
@@ -157,17 +158,16 @@ public:
     NodeID add_node(const Vec3& p, const Vec3& in_normal = Vec3(0., 0., 0.))
     {
         const NodeID n = AMGraph::add_node();
-        m_vertices[n] = Vertex{.id = n, .normal_rep = Vertex::InvalidNormalRep, .coords = p, .normal = in_normal};
+        m_vertices[n] = Vertex(n, Vertex::InvalidNormalRep, p, in_normal);
         return n;
     }
 
     /// @brief Get last neighbor information
     /// @param root: root vertex index
     /// @param branch: current outgoing branch
-    ///
     /// @return reference to last neighbor struct
-    [[nodiscard]]
     // TODO: const correctness
+    [[nodiscard]]
     Neighbor& predecessor(const NodeID& root, const NodeID& branch) const
     {
         GEL_ASSERT(m_vertices.size() > root);
@@ -199,7 +199,7 @@ public:
     {
         const auto& u = m_vertices.at(root);
         const auto& v = m_vertices.at(branch);
-        // GEL_ASSERT(!u.ordered_neighbors.empty()); // we need at least one neighbor to return
+        GEL_ASSERT(!u.ordered_neighbors.empty()); // we need at least one neighbor to return
         auto iter = u.ordered_neighbors.upper_bound(Neighbor(u, v, branch));
         if (iter == u.ordered_neighbors.end()) iter = u.ordered_neighbors.begin(); // Wrap around
         return (*iter); // This is honestly not good practice - ONLY modification of tree_id
