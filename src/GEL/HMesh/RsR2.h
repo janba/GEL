@@ -158,7 +158,7 @@ public:
     NodeID add_node(const Vec3& p, const Vec3& in_normal = Vec3(0., 0., 0.))
     {
         const NodeID n = AMGraph::add_node();
-        m_vertices[n] = Vertex(n, Vertex::InvalidNormalRep, p, in_normal);
+        m_vertices[n] = Vertex{.id = n, .normal_rep = Vertex::InvalidNormalRep, .coords = p, .normal = in_normal };
         return n;
     }
 
