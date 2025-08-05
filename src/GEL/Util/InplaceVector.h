@@ -206,7 +206,7 @@ public:
 
     [[nodiscard]] constexpr bool empty() const
     {
-        return (size == 0);
+        return (m_size == 0);
     }
 
     [[nodiscard]] constexpr size_type size() const
