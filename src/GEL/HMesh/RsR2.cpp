@@ -51,8 +51,8 @@ using FacePair = std::pair<int, FaceConnectionKey>;
 using NeighborPair = std::pair<double, NodeID>;
 
 using namespace ::HMesh;
-using ::Util::AttribVec;
-using ::HMesh::Manifold;
+using Util::AttribVec;
+using HMesh::Manifold;
 
 constexpr bool edge_comparator(const PEdgeLength& l, const PEdgeLength& r)
 {
@@ -160,8 +160,8 @@ double cal_proj_dist(const Vec3& edge, const Vec3& this_normal, const Vec3& neig
     const double Euclidean_dist = edge.length();
     const double neighbor_normal_length = dot(edge, normalize(neighbor_normal));
     const double normal_length = dot(edge, normalize(this_normal));
-    double projection_dist = sqrt((Euclidean_dist * Euclidean_dist) - (normal_length * normal_length));
-    projection_dist += sqrt((Euclidean_dist * Euclidean_dist) -
+    double projection_dist = std::sqrt((Euclidean_dist * Euclidean_dist) - (normal_length * normal_length));
+    projection_dist += std::sqrt((Euclidean_dist * Euclidean_dist) -
         (neighbor_normal_length * neighbor_normal_length));
     projection_dist /= 2.;
     if (std::abs(dot(normalize(this_normal), normalize(neighbor_normal))) < std::cos(15. / 180. * M_PI))
@@ -729,7 +729,6 @@ bool vanilla_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_tr
     const auto [this_v, neighbor] = candidate;
 
     // Topology check
-    // TODO: crash!
     const auto this_v_tree = mst.predecessor(this_v, neighbor).tree_id;
     const auto neighbor_tree = mst.predecessor(neighbor, this_v).tree_id;
 
@@ -775,7 +774,7 @@ void find_common_neighbor(
     *
     * @return reference to the neighbor struct
     */
-Neighbor& get_neighbor_info(RSGraph& g, const NodeID& root, const NodeID& branch)
+Neighbor& get_neighbor_info(const RSGraph& g, const NodeID& root, const NodeID& branch)
 {
     const auto& u = g.m_vertices.at(root);
     const auto& v = g.m_vertices.at(branch);
@@ -998,7 +997,7 @@ void connect_handle(
         uint to_tree = to_tree_id[i];
         if (to_tree > tree)
             std::swap(tree, to_tree);
-        auto key = FaceConnectionKey{tree, to_tree};
+        const auto key = FaceConnectionKey{tree, to_tree};
         if (!face_connections.contains(key))
             face_connections[key] = std::vector<int>{i};
         else {
