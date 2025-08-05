@@ -80,8 +80,10 @@ public:
 
     constexpr ~InplaceVector()
     {
-        for (size_type i = 0; i < m_size; ++i) {
-            m_data[i].~T();
+        if constexpr (!std::is_trivially_destructible_v<T>) {
+            for (size_type i = 0; i < m_size; ++i) {
+                m_data[i].~T();
+            }
         }
     }
 
@@ -253,10 +255,11 @@ public:
     }
 
     template < class... Args >
-    constexpr void emplace_back(Args... args)
+    constexpr void emplace_back(Args&&... args)
     {
         GEL_ASSERT(m_size < N);
-        m_data[m_size++] = std::move(std::forward<Args(args)>...);
+        new (m_data + m_size) T(std::forward<Args>(args)...);
+        m_size++;
     }
 };
     static_assert(std::ranges::viewable_range<InplaceVector<int>&>);
