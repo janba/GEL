@@ -17,6 +17,8 @@
 #include <vector>
 #include <numbers>
 
+#include "GEL/CGLA/Mat4x4d.h"
+
 namespace HMesh::RSR {
 
     using Vec3 = CGLA::Vec3d;
@@ -67,18 +69,18 @@ namespace HMesh::RSR {
             friend struct Collapse;
 
         private:
-            std::unordered_map<ActiveNodeID, LatentNodeID> activity;
+            std::unordered_map<ActiveNodeID, std::pair<LatentNodeID, Point>> activity;
 
         public:
-            auto insert(ActiveNodeID active, LatentNodeID latent) -> void
+            auto insert(ActiveNodeID active, LatentNodeID latent, const Point& latent_point_coords) -> void
             {
                 GEL_ASSERT_NEQ(active, latent);
                 GEL_ASSERT_NEQ(active, InvalidNodeID);
                 GEL_ASSERT_NEQ(latent, InvalidNodeID);
                 GEL_ASSERT(!activity.contains(active));
                 GEL_ASSERT(!activity.contains(latent));
-                activity.emplace(active, latent);
-                activity.emplace(latent, Collapse::InvalidNodeID);
+                activity.emplace(active, std::make_pair(latent, latent_point_coords));
+                activity.emplace(latent, std::make_pair(Collapse::InvalidNodeID, Point()));
             }
 
             auto is_used(const NodeID id) const -> bool { return activity.contains(id); }
@@ -86,7 +88,7 @@ namespace HMesh::RSR {
             auto is_active(const ActiveNodeID id) const -> bool
             {
                 if (const auto maybe = activity.find(id); maybe != activity.end()) {
-                    return maybe->second != Collapse::InvalidNodeID;
+                    return maybe->second.first != Collapse::InvalidNodeID;
                 }
                 return false;
             }
@@ -141,9 +143,9 @@ namespace HMesh::RSR {
             const auto begin_idx = m_collapses.size();
             // const auto end_idx = begin_idx + activity_map.activity.size();
             size_t items = 0;
-            for (auto [active, latent]: activity_map.activity) {
-                if (latent != InvalidNodeID) {
-                    m_collapses.emplace_back(active, latent);
+            for (auto [active, latent ]: activity_map.activity) {
+                if (latent.first != InvalidNodeID) {
+                    m_collapses.emplace_back(active, latent.first);
                     ++items;
                 }
             }
@@ -152,7 +154,7 @@ namespace HMesh::RSR {
             // update remaining indices
             auto [fst, snd] = std::ranges::remove_if(m_remaining, [&](const NodeID id) {
                 const auto maybe = activity_map.activity.find(id);
-                return (maybe != activity_map.activity.end() && maybe->second == Collapse::InvalidNodeID);
+                return (maybe != activity_map.activity.end() && maybe->second.first == Collapse::InvalidNodeID);
             });
             m_remaining.erase(fst, snd);
         }
@@ -259,6 +261,95 @@ inline auto calculate_neighbors(
     return calculate_neighbors(pool, vertices, indices, kdTree, k, std::move(neighbors_memoized));
 }
 
+inline auto quadratic_error(const CGLA::Mat4x4d& qem) -> std::pair<CGLA::Vec3d, double>
+{
+    auto q = CGLA::Mat4x4d(
+        qem[0],
+        qem[1],
+        qem[2],
+        CGLA::Vec4d(0.0, 0.0, 0.0, 1.0));
+    auto det = CGLA::determinant(q);
+    if (CGLA::is_tiny(det)) {
+        GEL_ASSERT(false, "shit");
+        return std::make_pair(CGLA::Vec3d(), 0.0);
+    } else {
+        auto v_bar = CGLA::invert(q) * CGLA::Vec4d(0.0, 0.0, 0.0, 1.0);
+        CGLA::Vec4d temp;
+        for (int i = 0; i < 4; ++i) {
+            auto column = CGLA::Vec4d(qem[i][0], qem[i][1], qem[i][2], qem[i][3]);
+            temp[i] = CGLA::dot(column, v_bar);
+        }
+        auto score = CGLA::dot(temp, v_bar);
+        return std::make_pair(CGLA::Vec3d(v_bar), score);
+    }
+}
+
+struct QuadraticCollapseGraph: AMGraph {
+    struct Vertex {
+        Point position;
+        Vec3 normal;
+        CGLA::Mat4x4d qem;
+    };
+
+    Util::AttribVec<NodeID, Vertex> m_vertices;
+
+    auto add_node(const Point& position, const Vec3& normal) -> NodeID
+    {
+        const NodeID n = AMGraph::add_node();
+        m_vertices[n] = Vertex{.position = position, .normal = normal};
+        return n;
+    }
+
+    auto calculate_qem() -> void
+    {
+        for (auto i = 0UL; i < m_vertices.size(); ++i) {
+            auto& vertex = m_vertices[i];
+            auto p = CGLA::Vec4d(vertex.normal, CGLA::dot(-vertex.normal, vertex.position));
+            CGLA::outer_product(p, p, vertex.qem);
+        }
+    }
+
+    auto merge_nodes(const NodeID n0, const NodeID n1, const Point& position) -> NodeID
+    {
+        if (n0 == n1) {
+            edge_map[n1].erase(n1);
+        }
+        else {
+            m_vertices[n0].position = Point(std::numeric_limits<double>::quiet_NaN());
+            m_vertices[n1].position = position;
+            m_vertices[n1].normal = m_vertices[n0].normal;
+            m_vertices[n1].qem += m_vertices[n0].qem;
+
+            for(const auto n:  neighbors(n0)) {
+                edge_map[n].erase(n0);
+                if(n != n1 && n != n0)
+                    connect_nodes(n, n1);
+            }
+            edge_map[n0].clear();
+        }
+        return n1;
+    }
+
+    /// Compute sqr distance between two nodes - not necessarily connected.
+    [[nodiscard]]
+    double sqr_dist(const NodeID n0, const NodeID n1) const {
+        if(valid_node_id(n0) && valid_node_id(n1))
+            return CGLA::sqr_length(m_vertices[n0].position-m_vertices[n1].position);
+        else
+            return  CGLA::CGLA_NAN;
+    }
+
+    [[nodiscard]]
+    std::pair<CGLA::Vec3d, double> quadratic_distance(NodeID n0, NodeID n1) const
+    {
+        if (valid_node_id(n0) && valid_node_id(n1)) {
+            return quadratic_error(m_vertices[n0].qem + m_vertices[n1].qem);
+        } else {
+            return std::make_pair(CGLA::Vec3d(), CGLA::CGLA_NAN);
+        }
+    }
+};
+
 // TODO: move to cpp file
 inline auto collapse_points(
     const std::vector<Point>& vertices,
@@ -268,10 +359,10 @@ inline auto collapse_points(
 {
     GEL_ASSERT_EQ(vertices.size(), normals.size());
     Util::ImmediatePool pool;
-    AMGraph3D graph;
+    QuadraticCollapseGraph graph;
 
-    for (auto& vertex : vertices) {
-        graph.add_node(vertex);
+    for (auto i = 0UL; i < vertices.size(); ++i) {
+        graph.add_node(vertices[i], normals[i]);
     }
 
     auto indices = [&vertices] {
@@ -294,6 +385,7 @@ inline auto collapse_points(
     struct EdgeElem {
         NodeID n0;
         NodeID n1;
+        Point v_bar;
         double dist;
 
         bool operator<(const EdgeElem& other) const
@@ -303,7 +395,7 @@ inline auto collapse_points(
     };
     static_assert(std::movable<EdgeElem>);
     std::priority_queue<EdgeElem> queue;
-    auto priority = [&](NodeID a, NodeID b) { return -graph.sqr_dist(a, b) * dot(normals[a], normals[b]); };
+    auto priority = [&](NodeID a, NodeID b) { return graph.quadratic_distance(a, b); };
 
     size_t count = 0;
     for (size_t iter = 0; iter < max_iterations; ++iter) {
@@ -312,11 +404,11 @@ inline auto collapse_points(
         Util::AttribVec<NodeID, uint8_t> visited(graph.no_nodes(), 0);
         for (auto n0 : graph.node_ids()) {
             for (auto n1 : graph.neighbors(n0)) {
-                double pri = priority(n0, n1);
+                auto [v_bar, pri] = priority(n0, n1);
                 // TODO: It seems that Util::Range returns a i64 regardless which is probably not what we want
                 // TODO: Since I will most likely remove that in exchange for iota_view (despite the apparent downsides)
                 // TODO: This will likely not be a problem later.
-                queue.emplace(EdgeElem{.n0 = static_cast<NodeID>(n0), .n1 = n1, .dist = pri});
+                queue.emplace(EdgeElem{.n0 = static_cast<NodeID>(n0), .n1 = n1, .v_bar = v_bar, .dist = -pri});
             }
         }
         while (!queue.empty()) {
@@ -328,10 +420,10 @@ inline auto collapse_points(
             visited[shortest_edge.n0] = 1;
             visited[shortest_edge.n1] = 1;
             count++;
-
-            // TODO: handle average_pos case
-            graph.merge_nodes(shortest_edge.n0, shortest_edge.n1, false);
-            activity_map.insert(shortest_edge.n1, shortest_edge.n0);
+            // TODO: need to store both coordinates
+            //const auto old_coordinate
+            graph.merge_nodes(shortest_edge.n0, shortest_edge.n1, shortest_edge.v_bar);
+            activity_map.insert(shortest_edge.n1, shortest_edge.n0, Point());
         }
         collapse.insert_collapse(activity_map);
     }
