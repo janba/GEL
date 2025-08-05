@@ -359,7 +359,7 @@ void weighted_smooth(
     Util::Parallel::enumerate_map2(pool, vertices, neighbors_map, smoothed_v, lambda);
 }
 
-constexpr auto normalize_normals(std::vector<Vec3>& normals) -> void
+auto normalize_normals(std::vector<Vec3>& normals) -> void
 {
     for (auto& normal : normals) {
         normal.normalize();
