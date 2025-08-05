@@ -192,53 +192,43 @@ auto filter_out_cross_connection(
 /// @param vertices: vertices of the componnet
 /// @param smoothed_v: smoothed vertices of the component
 /// @param normals: normal of the component vertices
-/// @param kdTree: kd-tree for neighbor query
-/// @param dist_graph: [OUT] a light-weight graph with essential connection for building MST
+/// @param neighbor_map
 /// @param max_length: [OUT] the distance of the longest connection each vertex involved
 /// @param pre_max_length: [OUT] the maximum length of connection before connecting handles (conservative connection)
-/// @param cross_conn_thresh: angle threshold to avoid connecting vertices on different surface
 /// @param k
 /// @param is_euclidean
-void init_graph(
+/// @return a light-weight graph with essential connection for building MST
+SimpGraph init_graph(
     const std::vector<Point>& vertices,
     const std::vector<Point>& smoothed_v,
     const std::vector<Vec3>& normals,
-    const Tree& kdTree,
-    SimpGraph& dist_graph,
+    const NeighborMap& neighbor_map,
     std::vector<float>& max_length,
     std::vector<float>& pre_max_length,
-    const float cross_conn_thresh,
     const int k,
     const bool is_euclidean)
 {
+    SimpGraph dist_graph;
     GEL_ASSERT_EQ(vertices.size(), smoothed_v.size());
     GEL_ASSERT_EQ(vertices.size(), normals.size());
 
     for (int i = 0; i < vertices.size(); i++) {
         dist_graph.add_node();
     }
-    ThreadPool pool;
-    auto neighbor_map = calculate_neighbors(pool, vertices, kdTree, k);
 
     // TODO: parallelization idea: precalculate the distances and then nodes to connect
     for (NodeID id_this = 0UL; id_this < vertices.size(); ++id_this) {
         const Point vertex = vertices[id_this];
         const Vec3 this_normal = normals[id_this];
-        auto& neighbors = neighbor_map[id_this];
+        const auto& neighbors = neighbor_map[id_this];
 
         pre_max_length[id_this] = neighbors[static_cast<size_t>(k * 2. / 3.)].distance;
 
-        // Filter out the cross-connection
-        filter_out_cross_connection(neighbors, normals, id_this, cross_conn_thresh, is_euclidean);
-        // TODO: we can run in parallel up to this point
-        for (const auto& neighbor : std::ranges::subrange(neighbors.begin() + 1, neighbors.end())) {
+        for (const auto& neighbor : neighbors | std::views::drop(1)) {
             const auto id_other = neighbor.id;
             if (dist_graph.find_edge(id_this, id_other) != AMGraph::InvalidEdgeID)
                 continue;
-            if (id_other == id_this) {
-                std::cerr << __func__ << ": Vertex " << id_other << " connect back to its own." << std::endl;
-                continue;
-            }
+            GEL_ASSERT_NEQ(id_other, id_this, "Vertex connects back to its own");
             const Vec3 neighbor_normal = normals[id_other];
             const Point neighbor_pos = vertices[id_other];
             const Vec3 edge = neighbor_pos - vertex;
@@ -258,6 +248,7 @@ void init_graph(
             dist_graph.connect_nodes(id_this, id_other, weight);
         }
     }
+    return dist_graph;
 }
 
 /**
@@ -436,7 +427,7 @@ template <std::derived_from<AMGraph> TargetGraph,
     std::invocable<TargetGraph&, NodeID> NodeInserter, // TargetGraph -> NodeID -> ()
     std::invocable<const SourceGraph&, NodeID, NodeID> DistanceFunc, // SourceGraph -> NodeID -> NodeID -> double
     std::invocable<TargetGraph&, NodeID, NodeID> EdgeInserterFunc> // TargetGraph -> NodeID -> NodeID -> ()
-TargetGraph mst(
+TargetGraph make_mst(
     const SourceGraph& g,
     NodeID root,
     NodeInserter&& node_inserter,
@@ -484,7 +475,7 @@ RSGraph minimum_spanning_tree(
     const bool isEuclidean)
 {
     GEL_ASSERT_NEQ(root, AMGraph::InvalidNodeID);
-    auto gn = mst<RSGraph>(
+    auto gn = make_mst<RSGraph>(
         g, root,
         [&](RSGraph& graph, NodeID n) { graph.add_node(vertices[n], normals[n]); },
         [&](const SimpGraph& graph, NodeID n, NodeID m) {
@@ -505,10 +496,10 @@ RSGraph minimum_spanning_tree(
 
 SimpGraph minimum_spanning_tree(const SimpGraph& g, NodeID root)
 {
-    auto gn = mst<SimpGraph>(g, root,
-                             [](SimpGraph& gn, NodeID n) { gn.add_node(); },
-                             [](const SimpGraph& g, NodeID n, NodeID m) { return g.get_weight(n, m); },
-                             [](SimpGraph& gn, NodeID n, NodeID m) { gn.connect_nodes(n, m); });
+    auto gn = make_mst<SimpGraph>(g, root,
+                                  [](SimpGraph& gn, NodeID n) { gn.add_node(); },
+                                  [](const SimpGraph& g, NodeID n, NodeID m) { return g.get_weight(n, m); },
+                                  [](SimpGraph& gn, NodeID n, NodeID m) { gn.connect_nodes(n, m); });
     return gn;
 }
 
@@ -910,6 +901,7 @@ bool register_face(RSGraph& mst, const NodeID v1, const NodeID v2, std::vector<F
     * @param connected_handle_root: [OUT] log the connected handles
     * @param k: number of kNN search
     * @param isEuclidean: if to use Euclidean distance
+    * @param expected_genus expected genus of the mesh
     * @param step_thresh: step threshold for shortest distance path early stop
     *
     * @return None
@@ -921,7 +913,8 @@ void connect_handle(
     std::vector<NodeID>& connected_handle_root,
     const int k,
     const int step_thresh,
-    const bool isEuclidean)
+    const bool isEuclidean,
+    const int expected_genus)
 {
     std::vector<NodeID> imp_node;
     size_t num = 0;
@@ -1014,7 +1007,7 @@ void connect_handle(
     std::ranges::sort(sorted_face, face_comparator);
     for (const auto& val : sorted_face | std::views::values) {
         const std::vector<int>& idx_vec = face_connections[val];
-        if (idx_vec.size() <= 5 || (mst.exp_genus >= 0 && num >= mst.exp_genus))
+        if (idx_vec.size() <= 5 || (expected_genus >= 0 && num >= expected_genus))
             break;
 
         bool isFind = false;
@@ -1083,7 +1076,7 @@ bool explore(
             const auto score = (is_euclidean)
                                    ? (G.m_vertices[v_u].coords - G.m_vertices[v_w].coords).length()
                                    : cal_proj_dist(G.m_vertices[v_u].coords - G.m_vertices[v_w].coords,
-                                   u_normal, w_normal);
+                                                   u_normal, w_normal);
             if (score > length_thresh[v_u] || score > length_thresh[v_w])
                 continue;
             else if (score >= 0) {
@@ -1498,7 +1491,7 @@ struct Components {
     * @param vertices: vertices of the point cloud
     * @param smoothed_v: smoothed vertices of the point cloud
     * @param normals: normal of the point cloud vertices
-    * @param kd_tree: kd-tree for the neighbor query
+    * @param neighbor_map
     * @param opts: theta: (cross-connection threshold) angle threshold to avoid connecting vertices on different surface
     *              r: (outlier_thresh) threshold distance(?) to remove an outlier
     *              k
@@ -1508,7 +1501,7 @@ struct Components {
 [[nodiscard]]
 auto split_components(
     Util::IExecutor& pool,
-    const Tree& kd_tree,
+    const NeighborMap& neighbor_map,
     std::vector<Point>&& vertices,
     std::vector<Vec3>&& normals,
     std::vector<Point>&& smoothed_v,
@@ -1522,10 +1515,7 @@ auto split_components(
     std::vector<std::vector<Vec3>> component_normals;
 
     // Identifies clusters of vertices which are reconstructed to disparate meshes
-    const double cross_conn_thresh = opts.theta;
     const double outlier_thresh = opts.r;
-    const int k = opts.k;
-    const bool isEuclidean = opts.dist == Distance::EUCLIDEAN;
     double total_edge_length = 0;
     // TODO: can't we cache this?
     AMGraph::NodeSet sets;
@@ -1533,29 +1523,21 @@ auto split_components(
     for (int i = 0; i < vertices.size(); i++) {
         sets.insert(components.add_node());
     }
-    auto neighbor_map = calculate_neighbors(pool, vertices, kd_tree, k);
-    NodeID this_idx = 0;
+
     // Construct graph
-    for (auto& neighbors : neighbor_map) {
-        // TODO: commenting this out crashes
-        filter_out_cross_connection(neighbors, normals, this_idx, cross_conn_thresh, isEuclidean);
-
-        for (const auto& neighbor : neighbors) {
-            NodeID idx = neighbor.id;
-            double length = neighbor.distance;
-
-            if (this_idx == idx)
-                continue;
+    for (const auto& neighbors : neighbor_map) {
+        const NodeID this_idx = neighbors[0].id;
+        for (const auto& neighbor : neighbors | std::views::drop(1)) {
+            const NodeID idx = neighbor.id;
+            const double length = neighbor.distance;
+            GEL_ASSERT_NEQ(this_idx, idx);
 
             total_edge_length += length;
 
-            for (int j = 0; j < k; j++) {
-                if (components.find_edge(this_idx, idx) != AMGraph::InvalidEdgeID)
-                    continue;
+            if (components.find_edge(this_idx, idx) == AMGraph::InvalidEdgeID) {
                 components.connect_nodes(this_idx, idx);
             }
         }
-        this_idx++;
     }
     const double thresh_r = (total_edge_length * outlier_thresh) / static_cast<double>(components.no_edges());
     // Remove Edges Longer than the threshold
@@ -1573,10 +1555,8 @@ auto split_components(
         components.disconnect_nodes(fst, snd);
     }
     // Find Components
-    std::vector<AMGraph::NodeSet> components_vec;
-    components_vec = connected_components(components, sets);
-    const auto num = components_vec.size();
-    std::cout << "The input contains " << num << " connected components." << std::endl;
+    const std::vector<AMGraph::NodeSet> components_vec = connected_components(components, sets);
+    std::cout << "The input contains " << components_vec.size() << " connected components." << std::endl;
     // Valid Components and create new vectors for components
     const auto threshold = std::min<size_t>(vertices.size(), 100);
     for (auto& component : components_vec) {
@@ -1611,12 +1591,13 @@ auto component_to_manifold(
     const RsROpts& opts,
     const std::vector<Point>& vertices,
     const std::vector<Vec3>& normals,
-    const std::vector<Point>& smoothed_v) -> ::HMesh::Manifold
+    const std::vector<Point>& smoothed_v,
+    const Tree& kd_tree,
+    const NeighborMap& neighbor_map
+) -> ::HMesh::Manifold
 {
     Util::RSRTimer inner_timer;
     // Insert the number_of_data_points in the tree
-    const auto indices = std::ranges::iota_view(0UL, smoothed_v.size());
-    Tree kdTree = build_kd_tree_of_indices(smoothed_v, indices);
 
     std::cout << "Init mst" << std::endl;
 
@@ -1624,16 +1605,13 @@ auto component_to_manifold(
     RSGraph mst;
     /*mst.init(vertices.size());*/
     std::vector<PEdgeLength> edge_length;
+    // TODO: combine these
     std::vector<float> connection_max_length(vertices.size(), 0.);
     std::vector<float> pre_max_length(vertices.size(), 0.);
-    mst.exp_genus = opts.genus;
     {
         inner_timer.start("init_graph");
-        SimpGraph g;
-        init_graph(smoothed_v, smoothed_v, normals,
-                   kdTree, g, connection_max_length,
-                   pre_max_length, opts.theta, opts.k, opts.dist == Distance::EUCLIDEAN);
-
+        SimpGraph g = init_graph(smoothed_v, smoothed_v, normals, neighbor_map, connection_max_length,
+                   pre_max_length, opts.k, opts.dist == Distance::EUCLIDEAN);
         inner_timer.end("init_graph");
         // Generate MST
         inner_timer.start("build_mst");
@@ -1674,7 +1652,7 @@ auto component_to_manifold(
     inner_timer.start("edge_connection");
     for (auto& [edge_len, this_edge] : edge_length) {
         if (mst.find_edge(this_edge.first, this_edge.second) == AMGraph::InvalidEdgeID &&
-            vanilla_check(mst, this_edge, kdTree)) {
+            vanilla_check(mst, this_edge, kd_tree)) {
             register_face(mst, this_edge.first, this_edge.second, faces, edge_len);
         }
     }
@@ -1684,8 +1662,8 @@ auto component_to_manifold(
     inner_timer.start("triangulation");
     if (opts.genus != 0) {
         std::vector<NodeID> connected_handle_root;
-        connect_handle(smoothed_v, kdTree, mst, connected_handle_root, opts.k, opts.n,
-                       opts.dist == Distance::EUCLIDEAN);
+        connect_handle(smoothed_v, kd_tree, mst, connected_handle_root, opts.k, opts.n,
+                       opts.dist == Distance::EUCLIDEAN, opts.genus);
         triangulate(faces, mst, opts.dist == Distance::EUCLIDEAN, connection_max_length, connected_handle_root);
     }
     inner_timer.end("triangulation");
@@ -1711,21 +1689,21 @@ auto component_to_manifold(
 }
 
 auto point_cloud_to_mesh(
-    const std::vector<Point>& vertices,
-    const std::vector<Vec3>& normals,
-    const RsROpts& opts) -> ::HMesh::Manifold
+    const std::vector<Point>& vertices_in,
+    const std::vector<Vec3>& normals_in,
+    const RsROpts& opts) -> HMesh::Manifold
 {
     auto opts2 = opts;
-    ::HMesh::Manifold output;
+    HMesh::Manifold output;
     Util::RSRTimer timer;
 
     timer.start("Whole process");
 
-    auto vertices_copy = vertices;
-    auto normals_copy = normals;
+    auto vertices_copy = vertices_in;
+    auto normals_copy = normals_in;
     ThreadPool pool;
-    if (!normals.empty()) {
-        GEL_ASSERT_EQ(vertices.size(), normals.size(), "Vertices and normals must be the same size");
+    if (!normals_in.empty()) {
+        GEL_ASSERT_EQ(vertices_in.size(), normals_in.size(), "Vertices and normals must be the same size");
     }
 
     // Estimate normals & orientation & weighted smoothing
@@ -1737,21 +1715,33 @@ auto point_cloud_to_mesh(
 
     timer.start("Correct normal orientation");
     const auto indices = std::ranges::iota_view(0UL, in_smoothed_v.size());
-    const Tree kdTree = build_kd_tree_of_indices(in_smoothed_v, indices);
+    const Tree kd_tree = build_kd_tree_of_indices(in_smoothed_v, indices);
     std::cout << "correct normal orientation\n";
 
-    if (normals.empty()) {
-        correct_normal_orientation(pool, kdTree, in_smoothed_v, normals_copy, opts2.k);
+    if (normals_in.empty()) {
+        correct_normal_orientation(pool, kd_tree, in_smoothed_v, normals_copy, opts2.k);
     }
     timer.end("Correct normal orientation");
 
     // Find components
     timer.start("Split components");
     std::cout << "find components\n";
+
+    // TODO: the cross connection filtering needs to be synced with the inner loop, else there are issues
+    // TODO: it might be better to
+    auto neighbor_map = calculate_neighbors(pool, vertices_copy, kd_tree, opts.k);
+    Util::Parallel::foreach(pool, std::views::iota(0UL, vertices_copy.size()), [&](const NodeID idx) {
+        filter_out_cross_connection(neighbor_map[idx], normals_copy, idx, opts.theta, opts.dist == Distance::EUCLIDEAN);
+    });
+
     auto [component_vertices,
             component_smoothed_v,
             component_normals] =
-        split_components(pool, kdTree, std::move(vertices_copy), std::move(normals_copy), std::move(in_smoothed_v),
+        split_components(pool,
+                         neighbor_map,
+                         std::move(vertices_copy),
+                         std::move(normals_copy),
+                         std::move(in_smoothed_v),
                          opts2);
     timer.end("Split components");
     // There is no guarantee that there is more than one component, and components can
@@ -1765,12 +1755,24 @@ auto point_cloud_to_mesh(
         std::vector<Vec3> normals_of_this = std::move(component_normals[component_id]);
         std::vector<Point> smoothed_v_of_this = std::move(component_smoothed_v[component_id]);
 
+        // TODO: move this further up
+        const auto indices_of_this = std::ranges::iota_view(0UL, smoothed_v_of_this.size());
+        Tree kd_tree_of_this = build_kd_tree_of_indices(smoothed_v_of_this, indices_of_this);
+
+        auto neighbor_map = calculate_neighbors(pool, smoothed_v_of_this, kd_tree_of_this, opts.k);
+        Util::Parallel::foreach(pool, std::views::iota(0UL, smoothed_v_of_this.size()), [&](NodeID idx) {
+            filter_out_cross_connection(neighbor_map[idx], normals_of_this, idx, opts.theta,
+                                        opts.dist == Distance::EUCLIDEAN);
+        });
+
         auto res = component_to_manifold(
             pool,
             opts2,
             vertices_of_this,
             normals_of_this,
-            smoothed_v_of_this);
+            smoothed_v_of_this,
+            kd_tree_of_this,
+            neighbor_map);
 
         output.merge(res);
     }
