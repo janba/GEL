@@ -169,6 +169,36 @@ namespace HMesh
         VertexAttributeVector<CGLA::Vec3d>& max_curv_direction,
         VertexAttributeVector<CGLA::Vec2d>& curvature);
 
+
+    class ManifoldOperatorMatrix {
+        public:
+
+        using IndexType = std::pair<HMesh::VertexID::IndexType, HMesh::VertexID::IndexType>;
+        
+        private:
+        std::unordered_map<IndexType, double> mat;
+        
+        public:
+
+        void set(HMesh::VertexID v, HMesh::VertexID w, double val) {
+            auto ij = make_pair(v.get_index(), w.get_index());
+            if (val != 0.0)
+                mat[ij] = val;
+            else 
+                mat.erase(ij);
+        }
+
+        double get(HMesh::VertexID v, HMesh::VertexID w) {
+            auto ij = make_pair(v.get_index(), w.get_index());
+            auto iter = mat.find(ij); 
+            if (iter == mat.end())
+                return 0.0;
+            return iter->second;
+        }
+    };
+
+    std::pair<ManifoldOperatorMatrix, ManifoldOperatorMatrix> create_LBO(const HMesh::Manifold& m);
+
 }
 
 #endif

@@ -137,6 +137,10 @@ extern "C" {
 
     DLLEXPORT int count_boundary_curves(Manifold_ptr _m_ptr);
 
+    DLLEXPORT void create_LBO(Manifold_ptr _m_ptr, 
+                                size_t L_count, size_t* L_i, size_t* L_j, double* L, 
+                                size_t M_count, size_t* M_i, size_t* M_j, double* M);
+
 #ifdef __cplusplus
 }
 #endif

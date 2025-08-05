@@ -45,7 +45,7 @@ for t in linspace(0, 1, 1500):
     fixed_indices = where(fixed)[0]
     tree = cKDTree(pos[fixed])
     not_fixed_indices = where(~fixed)[0]
-    nbors = tree.query_ball_point(pos[~fixed], 0.4*k, workers=-1)
+    nbors = tree.query_ball_point(pos[~fixed], 0.2*k, workers=-1)
     for i, nbor_list in zip(not_fixed_indices, nbors):
         if len(nbor_list) > 0:
             fixed[i] = True
