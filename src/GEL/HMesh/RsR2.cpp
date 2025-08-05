@@ -4,12 +4,17 @@
 #include <GEL/Util/ParallelAdapters.h>
 #include <ranges> // std::views
 
+#include "GEL/Util/InplaceVector.h"
+
 namespace HMesh::RSR
 {
 using namespace detail;
 
 using ThreadPool = Util::ImmediatePool;
 using Geometry::estimateNormal;
+using namespace ::HMesh;
+using Util::AttribVec;
+using HMesh::Manifold;
 
 using FaceType = std::array<NodeID, 3>;
 
@@ -49,10 +54,6 @@ struct FaceConnectionKeyHasher {
 
 using FacePair = std::pair<int, FaceConnectionKey>;
 using NeighborPair = std::pair<double, NodeID>;
-
-using namespace ::HMesh;
-using Util::AttribVec;
-using HMesh::Manifold;
 
 constexpr bool edge_comparator(const PEdgeLength& l, const PEdgeLength& r)
 {
@@ -117,35 +118,28 @@ double cal_radians_3d(const Vec3& branch, const Vec3& normal)
     return cal_radians_3d(branch, normal, ref_vec);
 }
 
-
-/**
-    * @brief neighbor search within a specific radius
-    *
-    * @param query: the coordinate of the point to be queried
-    * @param kdTree: kd-tree for knn query
-    * @param dist: the radius of the search ball
-    * @param neighbors: [OUT] indices of k nearest neighbors
-    *
-    * @return None
-    */
-void nn_search(const Point& query, const Tree& kdTree,
+/// @brief neighbor search within a specific radius
+/// @param query: the coordinate of the point to be queried
+/// @param kd_tree: kd-tree for knn query
+/// @param dist: the radius of the search ball
+/// @param neighbors: [OUT] indices of k nearest neighbors
+void nn_search(const Point& query, const Tree& kd_tree,
                const double dist, std::vector<NodeID>& neighbors)
 {
+    // TODO: this still performs two small allocations
     std::vector<Point> neighbor_coords;
-    std::vector<double> neighbor_dist;
-    kdTree.in_sphere(query, dist, neighbor_coords, neighbors);
+    kd_tree.in_sphere(query, dist, neighbor_coords, neighbors);
 
     std::vector<NeighborPair> paired;
     auto i = 0UL;
     for (const auto& neighbor_coord : neighbor_coords) {
-        neighbor_dist.push_back((neighbor_coord - query).length());
-        paired.emplace_back(neighbor_dist[i], neighbors[i]);
+        const auto neighbor_dist = (neighbor_coord - query).length();
+        paired.emplace_back(neighbor_dist, neighbors[i]);
         i++;
     }
 
     std::ranges::sort(paired, neighbor_comparator);
     for (size_t idx = 0; idx < paired.size(); ++idx) {
-        neighbor_dist[idx] = paired[idx].first;
         neighbors[idx] = paired[idx].second;
     }
 }
@@ -169,13 +163,12 @@ double cal_proj_dist(const Vec3& edge, const Vec3& this_normal, const Vec3& neig
     return projection_dist;
 }
 
-auto filter_out_cross_connection(
+void filter_out_cross_connection(
     NeighborArray& neighbors,
     const std::vector<Vec3>& normals,
     const NodeID this_idx,
     const double cross_conn_thresh,
-    const bool isEuclidean
-)
+    const bool is_euclidean)
 {
     const Vec3 this_normal = normals[this_idx];
     std::erase_if(neighbors, [&](const auto& neighbor_info) {
@@ -183,28 +176,33 @@ auto filter_out_cross_connection(
         const double cos_theta = dot(this_normal, neighbor_normal) /
             this_normal.length() / neighbor_normal.length();
         const double cos_thresh =
-            (isEuclidean) ? 0.0 : cos(cross_conn_thresh / 180. * M_PI);
+            (is_euclidean) ? 0.0 : cos(cross_conn_thresh / 180. * M_PI);
         return cos_theta < cos_thresh;
     });
 }
 
+struct ConnectionLength {
+    /// the distance of the longest connection each vertex involved
+    double max_length = 0.0;
+    /// the maximum length of connection before connecting handles (conservative connection)
+    double pre_max_length = 0.0;
+};
+
 /// @brief initialize the graph and related information
-/// @param vertices: vertices of the componnet
+/// @param vertices: vertices of the component
 /// @param smoothed_v: smoothed vertices of the component
-/// @param normals: normal of the component vertices
+/// @param normals: normals of this component
 /// @param neighbor_map
-/// @param max_length: [OUT] the distance of the longest connection each vertex involved
-/// @param pre_max_length: [OUT] the maximum length of connection before connecting handles (conservative connection)
+/// @param connection_lengths [OUT] Distance of each vertex's longest connection and the maximum length before connecting handles
 /// @param k
 /// @param is_euclidean
-/// @return a light-weight graph with essential connection for building MST
+/// @return a light-weight graph with the essential connections for building MST
 SimpGraph init_graph(
     const std::vector<Point>& vertices,
     const std::vector<Point>& smoothed_v,
     const std::vector<Vec3>& normals,
     const NeighborMap& neighbor_map,
-    std::vector<float>& max_length,
-    std::vector<float>& pre_max_length,
+    std::vector<ConnectionLength>& connection_lengths,
     const int k,
     const bool is_euclidean)
 {
@@ -222,7 +220,7 @@ SimpGraph init_graph(
         const Vec3 this_normal = normals[id_this];
         const auto& neighbors = neighbor_map[id_this];
 
-        pre_max_length[id_this] = neighbors[static_cast<size_t>(k * 2. / 3.)].distance;
+        connection_lengths[id_this].pre_max_length = neighbors[static_cast<size_t>(k * 2. / 3.)].distance;
 
         for (const auto& neighbor : neighbors | std::views::drop(1)) {
             const auto id_other = neighbor.id;
@@ -236,11 +234,12 @@ SimpGraph init_graph(
                 (is_euclidean)
                     ? static_cast<float>(edge.length())
                     : static_cast<float>(cal_proj_dist(edge, this_normal, neighbor_normal));
-            if (weight > max_length[id_this])
-                max_length[id_this] = weight;
+            if (weight > connection_lengths[id_this].max_length)
+                connection_lengths[id_this].max_length = weight;
             // TODO: Can we move this elsewhere in some way?
-            if (weight > max_length[id_other])
-                max_length[id_other] = weight;
+            // TODO: We can also make this atomic maybe
+            if (weight > connection_lengths[id_other].max_length)
+                connection_lengths[id_other].max_length = weight;
 
             if (weight < 1e-8) [[unlikely]]
                 std::cerr << __func__ << ": error" << std::endl;
@@ -251,23 +250,15 @@ SimpGraph init_graph(
     return dist_graph;
 }
 
-/**
-    * @brief Find the shortest path from one vertex to another in the graph
-    *
-    * @param mst: the graph
-    * @param start: the source vertex
-    * @param target: the target vertex
-    * @param threshold: the step threshold, if longer than this threshold, the algorithm early stop (never used?)
-    * @param path: stores the indices of vertex in the shortest path (for visualization)
-    *
-    * @return the number of steps of the shortest path
-    */
-int find_shortest_path(const RSGraph& mst, const NodeID start, const NodeID target, const int threshold,
-                       std::vector<NodeID>& path)
+/// @brief Find the shortest path from one vertex to another in the graph
+/// @param mst: the graph
+/// @param start: the source vertex
+/// @param target: the target vertex
+/// @return number of steps in the shortest path
+int find_shortest_path(const RSGraph& mst, const NodeID start, const NodeID target)
 {
     std::queue<NodeID> q;
     std::vector<int> dist(mst.no_nodes(), -1); // Distance from the start to each node
-    std::vector<NodeID> pred(mst.no_nodes(), -1); // Predecessor array for path reconstruction
     UnorderedSet<NodeID> visited;
 
     dist[start] = 0;
@@ -287,11 +278,10 @@ int find_shortest_path(const RSGraph& mst, const NodeID start, const NodeID targ
         visited.insert(u);
 
         // Explore neighbors
-        for (const auto& v : mst.neighbors(u)) {
+        for (const auto& v : mst.neighbors_lazy(u)) {
             if (dist[v] == -1) {
                 // If the node hasn't been visited
                 dist[v] = dist[u] + 1; // Increment distance
-                pred[v] = u; // Record predecessor
                 q.push(v);
             }
         }
@@ -300,22 +290,17 @@ int find_shortest_path(const RSGraph& mst, const NodeID start, const NodeID targ
     return dist[target];
 }
 
-/**
-* @brief weighted smoothing method using defined neighborhood with tangential distance weighted
-*
-* @param pool thread pool
-* @param vertices: vertices of the point cloud
-* @param normals: normal of the point cloud
-* @param neighbors_
-* @param smoothed_v: [OUT] vertices after smoothing
-*
-* @return None
-*/
+/// @brief weighted smoothing method using defined neighborhood with tangential distance weighted
+/// @param pool thread pool
+/// @param vertices: vertices of the point cloud
+/// @param normals: normal of the point cloud
+/// @param neighbors_map
+/// @param smoothed_v: [OUT] vertices after smoothing
 void weighted_smooth(
     Util::IExecutor& pool,
     const std::vector<Point>& vertices,
     const std::vector<Vec3>& normals,
-    const NeighborMap& neighbors_,
+    const NeighborMap& neighbors_map,
     std::vector<Point>& smoothed_v)
 {
     auto lambda = [&normals, &vertices](const size_t idx, const Point& vertex, const NeighborArray& neighbors) {
@@ -325,13 +310,14 @@ void weighted_smooth(
         double amp_sum = 0.;
         double max_dist = 0.;
 
-        std::vector<double> vertical_length;
-        std::vector<double> weights;
+        struct LengthWeight {
+            double vert_length = 0.0;
+            double weight = 0.0;
+        };
+        Util::InplaceVector<LengthWeight, 192> length_weights;
         const std::intptr_t limit = (neighbors.size() < 192) ? static_cast<intptr_t>(neighbors.size()) : 192;
-        vertical_length.reserve(limit);
-        weights.reserve(limit);
-        for (auto begin = neighbors.cbegin(); begin != neighbors.cbegin() + limit; ++begin) {
-            const auto& neighbor = *begin;
+        length_weights.reserve(limit);
+        for (const auto& neighbor: neighbors | std::views::take(192)) {
 
             const Point neighbor_pos = vertices[neighbor.id];
             const Vec3 n2this = neighbor_pos - vertex;
@@ -354,13 +340,13 @@ void weighted_smooth(
             if (tangential_dist > max_dist)
                 max_dist = tangential_dist;
 
-            weights.push_back(weight);
-            vertical_length.push_back(vertical);
+            length_weights.emplace_back(vertical, weight);
+            weight_sum += weight;
         }
-        for (int i = 0; i < vertical_length.size(); i++) {
-            amp_sum += vertical_length[i] * (weights[i] + max_dist);
-            weight_sum += weights[i] + max_dist;
+        for (const auto& length_weight : length_weights) {
+            amp_sum += length_weight.vert_length * (length_weight.weight + max_dist);
         }
+        weight_sum += (max_dist * static_cast<double>(length_weights.size()));
 
         weight_sum = (weight_sum == 0.) ? 1. : weight_sum;
 
@@ -370,7 +356,7 @@ void weighted_smooth(
         const Vec3 move = amp_sum * normal;
         return vertex + move;
     };
-    Util::Parallel::enumerate_map2(pool, vertices, neighbors_, smoothed_v, lambda);
+    Util::Parallel::enumerate_map2(pool, vertices, neighbors_map, smoothed_v, lambda);
 }
 
 constexpr auto normalize_normals(std::vector<Vec3>& normals) -> void
@@ -405,14 +391,10 @@ void estimate_normal_no_normals_memoized(
     Util::Parallel::map(pool, neighbors, normals, lambda);
 }
 
-/**
-    * @brief Calculate cos angle weight for correcting normal orientation
-    *
-    * @param this_normal: normal of current vertex
-    * @param neighbor_normal: normal of its neighbor vertex
-    *
-    * @return angle weight calculated
-    */
+/// @brief Calculate cos angle weight for correcting normal orientation
+/// @param this_normal: normal of current vertex
+/// @param neighbor_normal: normal of its neighbor vertex
+/// @return angle weight calculated
 constexpr double cal_angle_based_weight(const Vec3& this_normal, const Vec3& neighbor_normal)
 {
     const double dot_pdt = std::abs(
@@ -444,7 +426,7 @@ TargetGraph make_mst(
     AttribVec<NodeID, unsigned char> in_tree(gn.no_nodes(), false);
 
     std::priority_queue<QElem, std::vector<QElem>, std::greater<>> queue;
-    for (auto neighbor : g.neighbors(root)) {
+    for (auto neighbor : g.neighbors_lazy(root)) {
         const auto distance = distance_function(g, neighbor, root);
         queue.emplace(distance, root, neighbor);
     }
@@ -458,7 +440,7 @@ TargetGraph make_mst(
 
             edge_insertion(gn, id1, id2);
 
-            for (auto neighbor : g.neighbors(id2)) {
+            for (auto neighbor : g.neighbors_lazy(id2)) {
                 const auto distance2 = distance_function(g, neighbor, id2);
                 queue.emplace(distance2, id2, neighbor);
             }
@@ -503,17 +485,12 @@ SimpGraph minimum_spanning_tree(const SimpGraph& g, NodeID root)
     return gn;
 }
 
-/**
-    * @brief Determine the normal orientation
-    *
-    * @param pool Thread pool
-    * @param kdTree
-    * @param in_smoothed_v
-    * @param normals: [OUT] normal of the point cloud with orientation corrected
-    * @param k
-    *
-    * @return None
-    */
+/// @brief Determine the normal orientation
+/// @param pool Thread pool
+/// @param kdTree
+/// @param in_smoothed_v
+/// @param normals: [OUT] normal of the point cloud with orientation corrected
+/// @param k
 void correct_normal_orientation(
     Util::IExecutor& pool,
     const Tree& kdTree,
@@ -574,7 +551,7 @@ void correct_normal_orientation(
 
             visited_vertex[node_id].inner = true;
             const Vec3 this_normal = normals[node_id];
-            for (auto vd : mst_angle.neighbors(node_id)) {
+            for (auto vd : mst_angle.neighbors_lazy(node_id)) {
                 if (!visited_vertex[vd].inner) {
                     to_visit.push(vd);
                     const Vec3 neighbor_normal = normals[vd];
@@ -607,31 +584,23 @@ void init_face_loop_label(RSGraph& g)
     std::cout << "Loop step initialization finished after " + std::to_string(loop_step) + " steps." << std::endl;
 }
 
-/**
-    * @brief Project a vector to a plane
-    *
-    * @param input: Vector to be projected
-    * @param normal: normal to the plane
-    *
-    * @return projected Vector
-    */
+/// @brief Project a vector to a plane
+/// @param input: Vector to be projected
+/// @param normal: normal to the plane
+/// @return projected Vector
 Vec3 projected_vector(const Vec3& input, const Vec3& normal)
 {
     const auto normal_normed = CGLA::normalize(normal);
     return input - CGLA::dot(input, normal_normed) * normal_normed;
 }
 
-/**
-    * @brief Check if two segments are intersecting on both planes (defined by their normal) they belong
-    *
-    * @param mst: graph and vertex information
-    * @param v1: 1st vertex of segment 1
-    * @param v2: 2nd vertex of segment 1
-    * @param v3: 1st vertex of segment 2
-    * @param v4: 2nd vertex of segment 2
-    *
-    * @return if they are intersecting with each other
-    */
+/// @brief Check if two segments are intersecting on both planes (defined by their normal) they belong
+/// @param mst: graph and vertex information
+/// @param v1: 1st vertex of segment 1
+/// @param v2: 2nd vertex of segment 1
+/// @param v3: 1st vertex of segment 2
+/// @param v4: 2nd vertex of segment 2
+/// @return if they are intersecting with each other
 bool is_intersecting(const RSGraph& mst, const NodeID v1, const NodeID v2, const NodeID v3, const NodeID v4)
 {
     const Point p1 = mst.m_vertices[v1].coords;
@@ -672,15 +641,11 @@ bool is_intersecting(const RSGraph& mst, const NodeID v1, const NodeID v2, const
     return false;
 }
 
-/**
-    * @brief Geometry check for connection
-    *
-    * @param mst: graph and vertex information
-    * @param candidate: the edge to be examed
-    * @param kd_tree: kd-tree for knn query
-    *
-    * @return if the candidate pass the check
-    */
+/// @brief Geometry check for connection
+/// @param mst: graph and vertex information
+/// @param candidate: the edge to be checked
+/// @param kd_tree: kd-tree for knn query
+/// @return if the candidate pass the check
 bool geometry_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_tree)
 {
     const NodeID v1 = candidate.first;
@@ -730,16 +695,12 @@ bool vanilla_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_tr
     return geometry_check(mst, candidate, kd_tree);
 }
 
-/**
-    * @brief Find the common neighbors that two vertices are sharing
-    *
-    * @param g: current graph
-    * @param neighbor: one vertex
-    * @param root: the other vertex
-    * @param shared_neighbors: [OUT] common neighbors these two vertices share
-    *
-    * @return reference to last neighbor struct
-    */
+/// @brief Find the common neighbors that two vertices are sharing
+/// @param g: current graph
+/// @param neighbor: one vertex
+/// @param root: the other vertex
+/// @param shared_neighbors: [OUT] common neighbors these two vertices share
+/// @return reference to last neighbor struct
 void find_common_neighbor(
     const RSGraph& g,
     const NodeID neighbor,
@@ -756,15 +717,11 @@ void find_common_neighbor(
     });
 }
 
-/**
-    * @brief Get the neighbor information
-    *
-    * @param g: current graph
-    * @param root: root vertex index
-    * @param branch: the outgoing branch
-    *
-    * @return reference to the neighbor struct
-    */
+/// @brief Get the neighbor information
+/// @param g: current graph
+/// @param root: root vertex index
+/// @param branch: the outgoing branch
+/// @return reference to the neighbor struct
 Neighbor& get_neighbor_info(const RSGraph& g, const NodeID& root, const NodeID& branch)
 {
     const auto& u = g.m_vertices.at(root);
@@ -814,7 +771,6 @@ bool routine_check(const RSGraph& mst, const FaceType& triangle)
     else
         return false;
 }
-
 
 void add_face(RSGraph& G, const FaceType& item,
               std::vector<FaceType>& faces)
@@ -892,20 +848,15 @@ bool register_face(RSGraph& mst, const NodeID v1, const NodeID v2, std::vector<F
     }
 }
 
-/**
-    * @brief Connect handle to raise the genus number
-    *
-    * @param smoothed_v: smoothed vertices of the point cloud
-    * @param mst: graph and vertex information
-    * @param kd_tree: kd-tree for knn query
-    * @param connected_handle_root: [OUT] log the connected handles
-    * @param k: number of kNN search
-    * @param isEuclidean: if to use Euclidean distance
-    * @param expected_genus expected genus of the mesh
-    * @param step_thresh: step threshold for shortest distance path early stop
-    *
-    * @return None
-    */
+/// @brief Connect handle to raise the genus number
+/// @param smoothed_v: smoothed vertices of the point cloud
+/// @param mst: graph and vertex information
+/// @param kd_tree: kd-tree for knn query
+/// @param connected_handle_root: [OUT] log the connected handles
+/// @param k: number of kNN search
+/// @param isEuclidean: if to use Euclidean distance
+/// @param expected_genus expected genus of the mesh
+/// @param step_thresh: step threshold for shortest distance path early stop
 void connect_handle(
     const std::vector<Point>& smoothed_v,
     const Tree& kd_tree,
@@ -920,20 +871,18 @@ void connect_handle(
     size_t num = 0;
     size_t edge_num = 0;
     // Collect vertices w/ an open angle larger than pi
-    {
-        for (int i = 0; i < mst.no_nodes(); i++) {
-            const auto& neighbors = mst.m_vertices[i].ordered_neighbors;
-            auto last_angle = (--neighbors.end())->angle;
+    for (int i = 0; i < mst.no_nodes(); i++) {
+        const auto& neighbors = mst.m_vertices[i].ordered_neighbors;
+        auto last_angle = (--neighbors.end())->angle;
 
-            for (const auto& neighbor : neighbors) {
-                auto this_angle = neighbor.angle;
-                auto angle_diff = this_angle - last_angle;
-                if (angle_diff < 0)
-                    angle_diff += 2 * M_PI;
-                if (angle_diff > M_PI)
-                    imp_node.push_back(i);
-                last_angle = this_angle;
-            }
+        for (const auto& neighbor : neighbors) {
+            auto this_angle = neighbor.angle;
+            auto angle_diff = this_angle - last_angle;
+            if (angle_diff < 0)
+                angle_diff += 2 * M_PI;
+            if (angle_diff > M_PI)
+                imp_node.push_back(i);
+            last_angle = this_angle;
         }
     }
 
@@ -1015,9 +964,8 @@ void connect_handle(
             NodeID this_v = connect_p[idx];
             Point query = mst.m_vertices[this_v].coords;
             NodeID connected_neighbor = to_connect_p[idx];
-            std::vector<NodeID> path;
             // TODO: path and step_thresh are both dead
-            const int steps = find_shortest_path(mst, this_v, connected_neighbor, step_thresh, path);
+            const int steps = find_shortest_path(mst, this_v, connected_neighbor);
             if (steps > step_thresh) {
                 isFind = true;
                 const auto candidate = TEdge(this_v, connected_neighbor);
@@ -1051,7 +999,7 @@ bool explore(
     const RSGraph& G,
     const NodeID i,
     FacePriorityQueue& queue,
-    const std::vector<float>& length_thresh,
+    const std::vector<ConnectionLength>& length_thresh,
     const bool is_euclidean)
 {
     const NodeID v_i = i;
@@ -1077,7 +1025,7 @@ bool explore(
                                    ? (G.m_vertices[v_u].coords - G.m_vertices[v_w].coords).length()
                                    : cal_proj_dist(G.m_vertices[v_u].coords - G.m_vertices[v_w].coords,
                                                    u_normal, w_normal);
-            if (score > length_thresh[v_u] || score > length_thresh[v_w])
+            if (score > length_thresh[v_u].max_length || score > length_thresh[v_w].max_length)
                 continue;
             else if (score >= 0) {
                 queue.emplace(face_vector, score);
@@ -1089,22 +1037,14 @@ bool explore(
     return isFound;
 }
 
-/**
-    * @brief Calculate the local surface normal (averaged direction of normals of 3 vertices in the triangle)
-    *
-    * @return local surface normal
-    */
+/// @brief Calculate the local surface normal (averaged direction of normals of 3 vertices in the triangle)
+/// @return local surface normal
 Vec3 triangle_mean_normal(const Vec3& normal1, const Vec3& normal2, const Vec3& normal3)
 {
-    Vec3 normal1_norm = normal1;
-    normal1_norm.normalize();
-    Vec3 normal2_norm = normal2;
-    normal2_norm.normalize();
-    Vec3 normal3_norm = normal3;
-    normal3_norm.normalize();
-    Vec3 output = normal1_norm + normal2_norm + normal3_norm;
-    output.normalize();
-    return output;
+    const Vec3 normal1_norm = CGLA::normalize(normal1);
+    const Vec3 normal2_norm = CGLA::normalize(normal2);
+    const Vec3 normal3_norm = CGLA::normalize(normal3);
+    return CGLA::normalize(normal1_norm + normal2_norm + normal3_norm);
 }
 
 bool check_branch_validity(const RSGraph& G, const NodeID root, const NodeID branch1, const NodeID branch2)
@@ -1208,7 +1148,7 @@ void triangulate(
     std::vector<FaceType>& faces,
     RSGraph& graph,
     const bool is_euclidean,
-    const std::vector<float>& length_thresh,
+    const std::vector<ConnectionLength>& length_thresh,
     const std::vector<NodeID>& connected_handle_root)
 {
     UnorderedSet<NodeID> to_visit;
@@ -1231,7 +1171,7 @@ void triangulate(
             std::pair<FaceType, float> item = queue.top();
             queue.pop();
 
-            if (item.second >= 0 && !check_validity(graph, item)) {
+            if (item.second >= 0.0 && !check_validity(graph, item)) {
                 continue;
             }
 
@@ -1264,10 +1204,9 @@ void triangulate(
                 std::array face{incident_root, v_w, v_u};
 
                 // Non-manifold edge check
-                const auto time1 = graph.m_edges[graph.find_edge(incident_root, v_u)].ref_time;
-                const auto time2 = graph.m_edges[graph.find_edge(incident_root, v_w)].ref_time;
-                const auto time3 = graph.m_edges[graph.find_edge(v_u, v_w)].ref_time;
-                if (time1 == 2 || time2 == 2 || time3 == 2)
+                if (graph.m_edges[graph.find_edge(incident_root, v_u)].ref_time == 2 ||
+                    graph.m_edges[graph.find_edge(incident_root, v_w)].ref_time == 2 ||
+                    graph.m_edges[graph.find_edge(v_u, v_w)].ref_time == 2)
                     continue;
 
                 add_face(graph, face, faces);
@@ -1289,18 +1228,13 @@ void triangulate(
     }
 }
 
-/**
- * @brief Build minimum spanning tree (MST)
- *
- * @param out_mst: [OUT] constructed MST
- * @param g: connection information of the mst
- * @param root root node
- * @param is_euclidean: if to use Euclidean distance
- * @param vertices: coordinates of the point cloud
- * @param normals: normal of the point cloud
- *
- * @return None
- */
+/// @brief Build minimum spanning tree (MST)
+/// @param out_mst: [OUT] constructed MST
+/// @param g: connection information of the mst
+/// @param root root node
+/// @param is_euclidean: if to use Euclidean distance
+/// @param vertices: coordinates of the point cloud
+/// @param normals: normal of the point cloud
 void build_mst(
     const SimpGraph& g,
     const NodeID root,
@@ -1336,7 +1270,7 @@ void build_mst(
                     parent = source;
                 }
 
-                for (const auto neighbor : temp.neighbors(parent)) {
+                for (const auto neighbor : temp.neighbors_lazy(parent)) {
                     if (temp.m_vertices[neighbor].normal_rep == Vertex::InvalidNormalRep) {
                         // this conversion is fine since we need 10^18 vertices for it to matter
                         temp.m_vertices[neighbor].normal_rep = parent;
@@ -1484,20 +1418,17 @@ struct Components {
     Components(Components& other) = delete;
 };
 
-/**
-    * @brief Find the number of connected components and separate them
-    *
-    * @param pool: Thread pool to use
-    * @param vertices: vertices of the point cloud
-    * @param smoothed_v: smoothed vertices of the point cloud
-    * @param normals: normal of the point cloud vertices
-    * @param neighbor_map
-    * @param opts: theta: (cross-connection threshold) angle threshold to avoid connecting vertices on different surface
-    *              r: (outlier_thresh) threshold distance(?) to remove an outlier
-    *              k
-    *              isEuclidean
-    * @return None
-    */
+/// @brief Find the number of connected components and separate them
+/// @param pool: Thread pool to use
+/// @param vertices: vertices of the point cloud
+/// @param smoothed_v: smoothed vertices of the point cloud
+/// @param normals: normal of the point cloud vertices
+/// @param neighbor_map
+/// @param opts: theta: (cross-connection threshold) angle threshold to avoid connecting vertices on different surface
+///              r: (outlier_thresh) threshold distance(?) to remove an outlier
+///              k
+///              isEuclidean
+/// @return Split components
 [[nodiscard]]
 auto split_components(
     Util::IExecutor& pool,
@@ -1543,7 +1474,7 @@ auto split_components(
     // Remove Edges Longer than the threshold
     std::vector<std::pair<NodeID, NodeID>> edge_rm_v;
     for (NodeID vertex1 = 0; vertex1 < components.no_nodes(); ++vertex1) {
-        for (const auto& vertex2 : components.neighbors(vertex1)) {
+        for (const auto& vertex2 : components.neighbors_lazy(vertex1)) {
             const double edge_length = (vertices[vertex1] - vertices[vertex2]).length();
 
             if (edge_length > thresh_r) {
@@ -1606,12 +1537,13 @@ auto component_to_manifold(
     /*mst.init(vertices.size());*/
     std::vector<PEdgeLength> edge_length;
     // TODO: combine these
-    std::vector<float> connection_max_length(vertices.size(), 0.);
-    std::vector<float> pre_max_length(vertices.size(), 0.);
+    std::vector<ConnectionLength> connection_lengths(vertices.size(), ConnectionLength());
+    // std::vector<float> connection_max_length(vertices.size(), 0.);
+    // std::vector<float> pre_max_length(vertices.size(), 0.);
     {
         inner_timer.start("init_graph");
-        SimpGraph g = init_graph(smoothed_v, smoothed_v, normals, neighbor_map, connection_max_length,
-                   pre_max_length, opts.k, opts.dist == Distance::EUCLIDEAN);
+        SimpGraph g = init_graph(smoothed_v, smoothed_v, normals, neighbor_map, connection_lengths, opts.k,
+                                 opts.dist == Distance::EUCLIDEAN);
         inner_timer.end("init_graph");
         // Generate MST
         inner_timer.start("build_mst");
@@ -1621,15 +1553,15 @@ auto component_to_manifold(
         // Edge arrays and sort
         inner_timer.start("edge_length");
         for (NodeID node : g.node_ids()) {
-            for (NodeID node_neighbor : g.neighbors(node)) {
+            for (NodeID node_neighbor : g.neighbors_lazy(node)) {
                 if (node < node_neighbor) {
                     const Vec3 edge = smoothed_v[node] - smoothed_v[node_neighbor];
                     const double len = (opts.dist == Distance::EUCLIDEAN)
                                            ? edge.length()
                                            : cal_proj_dist(edge, normals[node], normals[node_neighbor]);
 
-                    if (len > pre_max_length[node] ||
-                        len > pre_max_length[node_neighbor])
+                    if (len > connection_lengths[node].pre_max_length ||
+                        len > connection_lengths[node_neighbor].pre_max_length)
                         continue;
                     edge_length.emplace_back(len, std::make_pair(node, node_neighbor));
                 }
@@ -1664,7 +1596,7 @@ auto component_to_manifold(
         std::vector<NodeID> connected_handle_root;
         connect_handle(smoothed_v, kd_tree, mst, connected_handle_root, opts.k, opts.n,
                        opts.dist == Distance::EUCLIDEAN, opts.genus);
-        triangulate(faces, mst, opts.dist == Distance::EUCLIDEAN, connection_max_length, connected_handle_root);
+        triangulate(faces, mst, opts.dist == Distance::EUCLIDEAN, connection_lengths, connected_handle_root);
     }
     inner_timer.end("triangulation");
 
