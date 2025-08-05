@@ -750,7 +750,7 @@ TEST_CASE("reexpand-basic")
     // let's say we collapsed 7 into 0
     auto collapse = Collapse({0, 1, 2, 3, 4, 5, 6, 7});
     Collapse::ActivityMap a;
-    a.insert(2, 7);
+    a.insert(2, 7, Point());
     collapse.insert_collapse(a);
     reexpand_points(m, std::move(collapse), points);
     HMesh::obj_save("debug_hex3.obj", m);
