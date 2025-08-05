@@ -18,6 +18,8 @@ using Vec3 = CGLA::Vec3d;
 using Point = Vec3;
 using NodeID = AMGraph::NodeID;
 
+using uint = Geometry::uint;
+
 inline const NodeID InvalidNodeID = AMGraph::InvalidNodeID;
 inline const NodeID InvalidEdgeID = AMGraph::InvalidEdgeID;
 
@@ -91,7 +93,6 @@ struct Vertex {
         }
     };
 
-    // TODO: mutable elements inside std::set is potentially unsound
     detail::OrderedSet<Neighbor> ordered_neighbors;
 };
 
@@ -137,19 +138,14 @@ public:
 class RSGraph : public AMGraph {
 public:
     Geometry::ETF etf;
-    int exp_genus = -1;
+    Util::AttribVec<NodeID, Vertex> m_vertices;
+    Util::AttribVec<EdgeID, Edge> m_edges;
 
-    ::Util::AttribVec<NodeID, Vertex> m_vertices;
-    ::Util::AttribVec<AMGraph::EdgeID, Edge> m_edges;
-
-    EdgeID add_edge(const NodeID source, const NodeID target, const double weight = 0.)
+    EdgeID add_edge(const NodeID source, const NodeID target, const double weight = 0.0)
     {
         const EdgeID id = this->connect_nodes(source, target);
         GEL_ASSERT_NEQ(id, InvalidEdgeID);
-
-        m_edges[id].weight = weight;
-        m_edges[id].source = source;
-        m_edges[id].target = target;
+        m_edges[id] = Edge {.source = source, .target = target, .weight = weight};
 
         // insert neighbors
         m_vertices[source].ordered_neighbors.insert(Neighbor(m_vertices[source], m_vertices[target], target));
@@ -171,7 +167,8 @@ public:
     ///
     /// @return reference to last neighbor struct
     [[nodiscard]]
-    Neighbor& predecessor(const NodeID root, const NodeID branch) const
+    // TODO: const correctness
+    Neighbor& predecessor(const NodeID& root, const NodeID& branch) const
     {
         GEL_ASSERT(m_vertices.size() > root);
         GEL_ASSERT(m_vertices.size() > branch);
@@ -212,12 +209,12 @@ public:
 // Algorithm
 
 /// Convert point cloud to a Manifold
-/// @param vertices vertices of the point cloud
-/// @param normals normals of the point cloud or empty vector
+/// @param vertices_in vertices of the point cloud
+/// @param normals_in normals of the point cloud or empty vector
 /// @param opts collapse options
 /// @return reconstructed manifold mesh
-auto point_cloud_to_mesh(const std::vector<Point>& vertices,
-                         const std::vector<Vec3>& normals,
+auto point_cloud_to_mesh(const std::vector<Point>& vertices_in,
+                         const std::vector<Vec3>& normals_in,
                          const RsROpts& opts) -> ::HMesh::Manifold;
 
 struct NormalEstimationResult {
