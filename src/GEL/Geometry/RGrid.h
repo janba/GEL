@@ -10,12 +10,12 @@
  might want different types of voxel grids.
  */
 
-#ifndef __GEOMETRY_RGRID_H
-#define __GEOMETRY_RGRID_H
+#ifndef GEOMETRY_RGRID_H
+#define GEOMETRY_RGRID_H
 
 #include <memory>
 #include <vector>
-#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/AncestorGrid.h>
 
 namespace Geometry

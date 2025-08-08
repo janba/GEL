@@ -1,5 +1,5 @@
-#ifndef __PATHTRACER_METAL__H__
-#define __PATHTRACER_METAL__H__
+#ifndef PATHTRACER_METAL_H
+#define PATHTRACER_METAL_H
 
 #include "material.h"
 

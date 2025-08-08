@@ -9,12 +9,10 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#ifndef __GLGRAPHICS_TrackBall_H__
-#define __GLGRAPHICS_TrackBall_H__
+#ifndef GLGRAPHICS_TrackBall_H
+#define GLGRAPHICS_TrackBall_H
 
-#include <GEL/CGLA/Vec2i.h>
-#include <GEL/CGLA/Vec2f.h>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/CGLA/Quatf.h>
 
 namespace GLGraphics

@@ -7,7 +7,6 @@
 #include <GEL/Geometry/load.h>
 #include <GEL/Geometry/obj_load.h>
 #include <GEL/Geometry/ply_load.h>
-#include <GEL/CGLA/Vec3i.h>
 
 using namespace std;
 using namespace CGLA;

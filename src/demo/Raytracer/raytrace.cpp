@@ -11,11 +11,8 @@
 #include <GL/glut.h>
 #endif
 
-#include <GEL/CGLA/Vec2f.h>
-#include <GEL/CGLA/Vec3i.h>
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Vec3d.h>
-#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/CGLA/Vec.h>
+#include <GEL/CGLA/Mat.h>
 
 #include <GEL/HMesh/Manifold.h>
 

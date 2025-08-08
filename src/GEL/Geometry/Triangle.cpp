@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include <GEL/CGLA/Vec4f.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/Triangle.h>
 
 

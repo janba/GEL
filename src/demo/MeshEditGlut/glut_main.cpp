@@ -36,12 +36,8 @@
 #include <GEL/GLGraphics/MeshEditor.h>
 
 #include <GEL/CGLA/eigensolution.h>
-#include <GEL/CGLA/Vec2d.h>
-#include <GEL/CGLA/Vec3d.h>
-#include <GEL/CGLA/Mat3x3d.h>
-#include <GEL/CGLA/Mat2x2d.h>
-#include <GEL/CGLA/Mat2x3d.h>
-#include <GEL/CGLA/Mat4x4d.h>
+#include <GEL/CGLA/Vec.h>
+#include <GEL/CGLA/Mat.h>
 
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/HMesh/AttributeVector.h>

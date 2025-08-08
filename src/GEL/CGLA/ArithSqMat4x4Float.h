@@ -13,7 +13,7 @@
 #define __CGLA_ARITHSQMAT4X4FLOAT_H
 
 #include <GEL/CGLA/ExceptionStandard.h>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/CGLA/ArithSqMatFloat.h>
 
 

@@ -9,11 +9,10 @@
  * @brief A ray class for ray tracing.
  */
 
-#ifndef __GEOMETRY_RAY_H__
-#define __GEOMETRY_RAY_H__
+#ifndef GEOMETRY_RAY_H
+#define GEOMETRY_RAY_H
 
-#include <GEL/CGLA/Vec3i.h>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/TriMesh.h>
 #include <GEL/Geometry/Material.h>
 

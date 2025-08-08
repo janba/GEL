@@ -16,17 +16,7 @@
 #include <cstdlib>
 #include <climits>
 
-#include <GEL/CGLA/Vec2d.h>
-#include <GEL/CGLA/Vec2f.h>
-#include <GEL/CGLA/Vec2i.h>
-#include <GEL/CGLA/Vec3i.h>
-#include <GEL/CGLA/Vec3f.h> 
-#include <GEL/CGLA/Vec3d.h> 
-#include <GEL/CGLA/Vec3uc.h>
-#include <GEL/CGLA/Vec3usi.h>
-#include <GEL/CGLA/Vec4f.h>
-#include <GEL/CGLA/Vec4d.h>
-#include <GEL/CGLA/Vec4uc.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/CGLA/Quatf.h>
 #include <GEL/CGLA/Quatd.h>
 #include <GEL/Util/Timer.h>

@@ -9,12 +9,12 @@
  * @brief Binary space partitioning tree.
  */
 
-#ifndef __GEOMETRY_BSPTREE_H__
-#define __GEOMETRY_BSPTREE_H__
+#ifndef GEOMETRY_BSPTREE_H
+#define GEOMETRY_BSPTREE_H
 
 #include <vector>
 
-#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/CGLA/Mat.h>
 #include <GEL/Geometry/TriMesh.h>
 
 #include <GEL/Geometry/BBox.h>

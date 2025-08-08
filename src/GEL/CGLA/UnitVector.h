@@ -12,7 +12,7 @@
 #define CGLA_UNITVECTOR_H
 
 #include <GEL/CGLA/CGLA-util.h>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/CGLA/TableTrigonometry.h>
 
 namespace CGLA

@@ -13,7 +13,7 @@
 #define __GLGRAPHICS_SINGLE_PASS_WIREFRAME__
 
 #include <GEL/GL/glew.h>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 
 namespace GLGraphics
 {

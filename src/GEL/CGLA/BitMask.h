@@ -11,7 +11,7 @@
 #ifndef CGLA__BITMASK_H
 #define CGLA__BITMASK_H
 
-#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec.h>
 
 namespace CGLA
 {

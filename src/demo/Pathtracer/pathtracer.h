@@ -1,5 +1,5 @@
-#ifndef __PATHTRACER_X__H__
-#define __PATHTRACER_X__H__
+#ifndef PATHTRACER_X_H
+#define PATHTRACER_X_H
 
 #include "scene.h"
 

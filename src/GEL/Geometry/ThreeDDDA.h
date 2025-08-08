@@ -8,8 +8,8 @@
  * @file ThreeDDDA.h
  * @brief a class for traversing cells in a regular grid pierced by a ray.
  */
-#ifndef __GEOMETRY_THREEDDDA_H
-#define __GEOMETRY_THREEDDDA_H
+#ifndef GEOMETRY_THREEDDDA_H
+#define GEOMETRY_THREEDDDA_H
 
 #ifdef _MSC_VER 
 typedef __int64 Integer64Bits;
@@ -18,8 +18,7 @@ typedef int64_t Integer64Bits;
 #endif
 
 
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec.h>
 
 namespace Geometry
 {

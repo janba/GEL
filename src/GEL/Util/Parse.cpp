@@ -5,8 +5,10 @@
  * ----------------------------------------------------------------------- */
 
 #include <GEL/Util/Parse.h>
+#include <GEL/CGLA/Vec.h>
+
 #include <cstring>
-#include <cstdlib>
+#include <sstream>
 #include <iostream>
 
 using namespace std;

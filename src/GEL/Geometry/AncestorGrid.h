@@ -9,10 +9,10 @@
  * @brief Abstract class for voxel grids.
  */
 
-#ifndef __GEOMETRY_ANCESTORGRID_H
-#define __GEOMETRY_ANCESTORGRID_H
+#ifndef GEOMETRY_ANCESTORGRID_H
+#define GEOMETRY_ANCESTORGRID_H
 
-#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec.h>
 
 namespace Geometry 
 {
