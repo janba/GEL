@@ -106,6 +106,53 @@ public:
     constexpr Mat3x2() = default;
 };
 
+template <typename Matrix>
+constexpr Matrix identity()
+{
+    Matrix m(0.0);
+    static_assert(m.get_v_dim() == m.get_h_dim(), "Matrix must be square");
+    for (int i = 0; i < m.get_v_dim(); ++i) {
+        m[i][i] = 1.0;
+    }
+    return m;
+}
+
+constexpr Mat4x4f identity_Mat4x4f()
+{
+    return identity<Mat4x4f>();
+}
+
+constexpr Mat4x4d identity_Mat4x4d()
+{
+    return identity<Mat4x4d>();
+}
+
+constexpr Mat3x3f identity_Mat3x3f()
+{
+    return identity<Mat3x3f>();
+}
+
+constexpr Mat3x3d identity_Mat3x3d()
+{
+    return identity<Mat3x3d>();
+}
+
+Mat4x4d rotation_Mat4x4d(Axis axis, float angle);
+Mat4x4d translation_Mat4x4d(const Vec3d& v);
+Mat4x4d scaling_Mat4x4d(const Vec3d& v);
+
+Mat4x4f rotation_Mat4x4f(Axis axis, float angle);
+Mat4x4f translation_Mat4x4f(const Vec3f& v);
+Mat4x4f scaling_Mat4x4f(const Vec3f& v);
+
+// FIXME: inconsistent types
+Mat3x3d rotation_Mat3x3d(Axis axis, double angle);
+Mat3x3d scaling_Mat3x3d(const Vec3d& v);
+
+Mat3x3f rotation_Mat3x3f(Axis axis, float angle);
+Mat3x3f scaling_Mat3x3f(const Vec3f& v);
+
+
 }
 
 #endif //GEL_MAT_H
