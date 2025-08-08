@@ -33,36 +33,39 @@ all of the functionality of GEL.
 __all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial"]
 
 import os
-import numpy as np
+import sys
+import glob
+import importlib
+import importlib.util
+import numpy as np  # kept for API compatibility; modules import this symbol
 
 def _get_script_path():
     return os.path.dirname(__file__)
 
+def _import_pybind_from_package_dir():
+    try:
+        module_path = _get_script_path()
+        module_name = "PyGEL"
+        spec = importlib.util.spec_from_file_location(module_name, module_path)
+        PyGEL = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(PyGEL)
+        return PyGEL
+    except Exception as e:
+        print(f"Error importing {module_name}: {e}")
+    raise ImportError(
+        "Could not locate the PyGEL pybind11 extension next to pygel3d. "
+        "Expected a file like 'PyGEL*.so' (Unix/macOS) or 'PyGEL*.pyd' (Windows) "
+        "in the same directory as pygel3d/__init__.py."
+    )
+
+# Import only the pybind11 extension located alongside this package in site-packages.
+lib_py_gel = _import_pybind_from_package_dir()
+
+# Expose InvalidIndex if provided by the extension
 try:
-    # Try to import the pybind11 PyGEL module
-    from . import PyGEL as lib_py_gel
-    # Set InvalidIndex from the module
     InvalidIndex = lib_py_gel.InvalidIndex
-except ImportError:
-    # Fallback to ctypes if pybind11 module not available
-    import ctypes as ct
-    from numpy.ctypeslib import ndpointer
-    from sys import platform
-    
-    def _get_lib_name():
-        if platform == "darwin":
-            return "libPyGEL.dylib"
-        if platform == "win32":
-            return "PyGEL.dll"
-        return "libPyGEL.so"
-
-    # Load PyGEL the Python GEL bridge library
-    lib_py_gel = ct.cdll.LoadLibrary(_get_script_path() + "/" + _get_lib_name())
-
-    # An InvalidIndex is just a special integer value.
-    InvalidIndex = ct.c_size_t.in_dll(lib_py_gel, "InvalidIndex").value
-    
-    # Note: Ctypes definitions would go here, but we're using pybind11 now
+except AttributeError:
+    InvalidIndex = None
 
 class IntVector:
     """ Vector of integer values.

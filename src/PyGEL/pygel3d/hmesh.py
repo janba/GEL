@@ -94,7 +94,7 @@ class Manifold:
         of the created face.
         """
         pts = np.asarray(pts,dtype=np.float64, order='C')
-        return lib_py_gel.Manifold_add_face(self.obj, len(pts), pts)
+        return lib_py_gel.Manifold_add_face(self.obj, pts)
     def positions(self):
         """ Retrieve an array containing the vertex positions of the Manifold.
         It is not a copy: any changes are made to the actual vertex positions. """
@@ -432,8 +432,7 @@ def obj_load(fn):
     """ Load and return Manifold from Wavefront obj file.
     Returns None if loading failed. """
     m = Manifold()
-    s = ct.c_char_p(fn.encode('utf-8'))
-    if lib_py_gel.obj_load(s, m.obj):
+    if lib_py_gel.obj_load(fn, m.obj):
         return m
     return None
 

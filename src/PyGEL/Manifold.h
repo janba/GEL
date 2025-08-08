@@ -37,7 +37,7 @@ namespace PyGEL {
     size_t Manifold_circulate_vertex(Manifold_ptr self, size_t v, char mode, IntVector& nverts);
     size_t Manifold_circulate_face(Manifold_ptr self, size_t f, char mode, IntVector& nverts);
     
-    size_t Manifold_add_face(Manifold_ptr self, size_t no_verts, const std::vector<double>& pos);
+    size_t Manifold_add_face(Manifold_ptr self, const std::vector<double>& pos);
     bool Manifold_remove_face(Manifold_ptr self, size_t fid);
     bool Manifold_remove_edge(Manifold_ptr self, size_t hid);
     bool Manifold_remove_vertex(Manifold_ptr self, size_t vid);
@@ -69,11 +69,11 @@ namespace PyGEL {
     double length(const Manifold_ptr m_ptr, size_t _h);
     bool boundary_edge(const Manifold_ptr m_ptr, size_t _v, size_t _h);
     size_t valency(const Manifold_ptr m_ptr, size_t _v);
-    std::vector<double> vertex_normal(const Manifold_ptr m_ptr, size_t _v);
+    HMesh::Manifold::Vec vertex_normal(const Manifold_ptr _m_ptr, size_t _v);
     bool connected(const Manifold_ptr m_ptr, size_t _v0, size_t _v1);
     
     size_t no_edges(const Manifold_ptr m_ptr, size_t _f);
-    std::vector<double> face_normal(const Manifold_ptr m_ptr, size_t _f);
+    HMesh::Manifold::Vec face_normal(const Manifold_ptr m_ptr, size_t _f);
     double area(const Manifold_ptr m_ptr, size_t _f);
     double one_ring_area(const Manifold_ptr m_ptr, size_t _v);
     double mixed_area(const Manifold_ptr m_ptr, size_t _v);
@@ -81,7 +81,7 @@ namespace PyGEL {
     double mean_curvature(const Manifold_ptr m_ptr, size_t _v);
     std::vector<double> principal_curvatures(const Manifold_ptr m_ptr, size_t _v);
     double perimeter(const Manifold_ptr m_ptr, size_t _f);
-    std::vector<double> centre(const Manifold_ptr m_ptr, size_t _f);
+    HMesh::Manifold::Vec centre(const Manifold_ptr m_ptr, size_t _f);
     double total_area(const Manifold_ptr);
     double volume(const Manifold_ptr);
     

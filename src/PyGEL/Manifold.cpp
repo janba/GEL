@@ -83,83 +83,78 @@ size_t Manifold_no_allocated_halfedges(Manifold_ptr _self) {
 }
 
 
-size_t Manifold_vertices(Manifold_ptr _self, IntVector_ptr _verts) {
+size_t Manifold_vertices(Manifold_ptr _self, IntVector& verts) {
     Manifold* self = _self;
-    IntVector_ptr verts = (verts);
     auto N = self->no_vertices();
-    verts->resize(N);
-    size_t i=0;
-    for(auto v: self->vertices())
-        (*verts)[i++] = v.get_index();
+    verts.resize(N);
+    size_t i = 0;
+    for (auto v : self->vertices())
+        verts[i++] = v.get_index();
     return N;
 }
 
-size_t Manifold_faces(Manifold_ptr _self, IntVector_ptr _faces) {
+size_t Manifold_faces(Manifold_ptr _self, IntVector& faces) {
     Manifold* self = _self;
-    IntVector_ptr faces = (faces);
     auto N = self->no_faces();
-    faces->resize(N);
-    size_t i=0;
-    for(auto f: self->faces())
-        (*faces)[i++] = f.get_index();
+    faces.resize(N);
+    size_t i = 0;
+    for (auto f : self->faces())
+        faces[i++] = f.get_index();
     return N;
 }
 
-size_t Manifold_halfedges(Manifold_ptr _self, IntVector_ptr _hedges) {
+size_t Manifold_halfedges(Manifold_ptr _self, IntVector& hedges) {
     Manifold* self = _self;
-    IntVector_ptr hedges = (hedges);
     auto N = self->no_halfedges();
-    hedges->resize(N);
-    size_t i=0;
-    for(auto h: self->halfedges())
-        (*hedges)[i++] = h.get_index();
+    hedges.resize(N);
+    size_t i = 0;
+    for (auto h : self->halfedges())
+        hedges[i++] = h.get_index();
     return N;    
 }
 
-size_t Manifold_circulate_vertex(Manifold_ptr _self, size_t _v, char mode, IntVector_ptr _nbrs) {
+size_t Manifold_circulate_vertex(Manifold_ptr _self, size_t _v, char mode, IntVector& nbrs) {
     Manifold* self = _self;
-    IntVector_ptr nbrs = (nbrs);
     VertexID v(_v);
     size_t N = circulate_vertex_ccw(*self, v, [&](Walker w){
         switch(mode) {
             case 'v':
-                nbrs->push_back(w.vertex().get_index());
+                nbrs.push_back(w.vertex().get_index());
                 break;
             case 'f':
-                nbrs->push_back(w.face().get_index());
+                nbrs.push_back(w.face().get_index());
                 break;
             case 'h':
-                nbrs->push_back(w.halfedge().get_index());
+                nbrs.push_back(w.halfedge().get_index());
                 break;
         }
     });
     return N;
 }
 
-size_t Manifold_circulate_face(Manifold_ptr _self, size_t _f, char mode, IntVector_ptr _nbrs) {
+size_t Manifold_circulate_face(Manifold_ptr _self, size_t _f, char mode, IntVector& nbrs) {
     Manifold* self = _self;
-    IntVector_ptr nbrs = (nbrs);
     FaceID f(_f);
     size_t N = circulate_face_ccw(*self, f, [&](Walker w){
         switch(mode) {
             case 'v':
-                nbrs->push_back(w.vertex().get_index());
+                nbrs.push_back(w.vertex().get_index());
                 break;
             case 'f':
-                nbrs->push_back(w.opp().face().get_index());
+                nbrs.push_back(w.opp().face().get_index());
                 break;
             case 'h':
-                nbrs->push_back(w.halfedge().get_index());
+                nbrs.push_back(w.halfedge().get_index());
                 break;
         }
     });
     return N;
 }
 
-size_t Manifold_add_face(Manifold_ptr _self, size_t no_verts, double* pos) {
+size_t Manifold_add_face(Manifold_ptr _self, const std::vector<double>& pos) {
     Manifold* self = _self;
 
-    auto pts = std::views::iota(0UL, no_verts) |
+    auto pts = std::views::iota(0UL, pos.size() / 3) |
         std::views::transform([pos](size_t i) {
             return Vec3d(pos[3 * i], pos[3 * i + 1], pos[3 * i + 2]);
         });
@@ -310,10 +305,9 @@ size_t valency(const Manifold_ptr _m_ptr, size_t _v) {
     return valency(*m_ptr, VertexID(_v));
 }
 
-void vertex_normal(const Manifold_ptr _m_ptr, size_t _v, double* _n) {
+HMesh::Manifold::Vec vertex_normal(const Manifold_ptr _m_ptr, size_t _v) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
-    Vec3d& n = *reinterpret_cast<Vec3d*>(_n);
-    n = normal(*m_ptr, VertexID(_v));
+    return normal(*m_ptr, VertexID(_v));
 }
 
 bool connected(const Manifold_ptr _m_ptr, size_t _v0, size_t _v1) {
@@ -326,10 +320,9 @@ size_t no_edges(const Manifold_ptr _m_ptr, size_t _f) {
     return no_edges(*m_ptr,FaceID(_f));
 }
 
-void face_normal(const Manifold_ptr _m_ptr, size_t _f, double* _n) {
+HMesh::Manifold::Vec face_normal(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
-    Vec3d& n = *reinterpret_cast<Vec3d*>(_n);
-    n = normal(*m_ptr, FaceID(_f));
+    return normal(*m_ptr, FaceID(_f));
 }
 
 double area(const Manifold_ptr _m_ptr, size_t _f) {
@@ -357,9 +350,10 @@ double mean_curvature(const Manifold_ptr m_ptr, size_t _v){
     return mean_curvature(*m, VertexID(_v));
 }
 
-void principal_curvatures(const Manifold_ptr m_ptr, size_t _v, double* curv_info){
+std::vector<double> principal_curvatures(const Manifold_ptr m_ptr, size_t _v){
     Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
     PrincipalCurvatures pc = principal_curvatures(*m, VertexID(_v));
+    std::vector<double> curv_info(8);
     curv_info[0] = pc.min_curvature;
     curv_info[1] = pc.max_curvature;
     curv_info[2] = pc.min_curv_direction[0];
@@ -368,16 +362,16 @@ void principal_curvatures(const Manifold_ptr m_ptr, size_t _v, double* curv_info
     curv_info[5] = pc.max_curv_direction[0];
     curv_info[6] = pc.max_curv_direction[1];
     curv_info[7] = pc.max_curv_direction[2];
+    return curv_info;
 }
 
 double perimeter(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return perimeter(*m_ptr,FaceID(_f));
 }
-void centre(const Manifold_ptr _m_ptr, size_t _f, double* _c) {
+HMesh::Manifold::Vec centre(const Manifold_ptr _m_ptr, size_t _f) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
-    Vec3d& c = *reinterpret_cast<Vec3d*>(_c);
-    c = centre(*m_ptr,FaceID(_f));
+    return centre(*m_ptr,FaceID(_f));
 }
 
 double total_area(const Manifold_ptr _m_ptr) {

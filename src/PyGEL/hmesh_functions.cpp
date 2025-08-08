@@ -35,53 +35,57 @@ bool closed(const Manifold_ptr m_ptr) {
     return closed(*(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
-void bbox(const Manifold_ptr m_ptr, double* pmin, double* pmax) {
-    bbox(*(reinterpret_cast<Manifold*>(m_ptr)),
-         *(reinterpret_cast<Vec3d*>(pmin)),
-         *(reinterpret_cast<Vec3d*>(pmax)));
+std::pair<std::vector<double>, std::vector<double>> bbox(const Manifold_ptr m_ptr) {
+    Vec3d pmin, pmax;
+    bbox(*(reinterpret_cast<Manifold*>(m_ptr)), pmin, pmax);
+    std::vector<double> vmin{pmin[0], pmin[1], pmin[2]};
+    std::vector<double> vmax{pmax[0], pmax[1], pmax[2]};
+    return {vmin, vmax};
 }
-void bsphere(const Manifold_ptr m_ptr, double* c, double* _r) {
-    float r;
-    bsphere(*(reinterpret_cast<Manifold*>(m_ptr)), *reinterpret_cast<Vec3d*>(c), r);
-    *_r = r;
+
+std::pair<std::vector<double>, double> bsphere(const Manifold_ptr m_ptr) {
+    Vec3d c; float r = 0.0f;
+    bsphere(*(reinterpret_cast<Manifold*>(m_ptr)), c, r);
+    std::vector<double> vc{c[0], c[1], c[2]};
+    return {vc, static_cast<double>(r)};
 }
 
 int stitch_mesh(Manifold_ptr m_ptr, double rad) {
     return stitch_mesh(*(reinterpret_cast<Manifold*>(m_ptr)), rad);
 }
 
-bool load(const char* fn, Manifold_ptr m_ptr) {
-    return load(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
+bool load(const std::string& fn, Manifold_ptr m_ptr) {
+    return load(fn, *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
 
-bool obj_load(const char* fn, Manifold_ptr m_ptr) {
-    return obj_load(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
+bool obj_load(const std::string& fn, Manifold_ptr m_ptr) {
+    return obj_load(fn, *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
-bool off_load(const char* fn, Manifold_ptr m_ptr) {
-    return off_load(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
+bool off_load(const std::string& fn, Manifold_ptr m_ptr) {
+    return off_load(fn, *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
-bool ply_load(const char* fn, Manifold_ptr m_ptr) {
-    return ply_load(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
+bool ply_load(const std::string& fn, Manifold_ptr m_ptr) {
+    return ply_load(fn, *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
-bool x3d_load(const char* fn, Manifold_ptr m_ptr) {
-    return x3d_load(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
+bool x3d_load(const std::string& fn, Manifold_ptr m_ptr) {
+    return x3d_load(fn, *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
 
-bool obj_save(const char* fn, Manifold_ptr m_ptr) {
-    return obj_save(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
+bool obj_save(const std::string& fn, Manifold_ptr m_ptr) {
+    return obj_save(fn, *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
-bool off_save(const char* fn, Manifold_ptr m_ptr) {
-    return off_save(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
+bool off_save(const std::string& fn, Manifold_ptr m_ptr) {
+    return off_save(fn, *(reinterpret_cast<Manifold*>(m_ptr)));
 
 }
-bool x3d_save(const char* fn, Manifold_ptr m_ptr) {
-    return x3d_save(string(fn), *(reinterpret_cast<Manifold*>(m_ptr)));
+bool x3d_save(const std::string& fn, Manifold_ptr m_ptr) {
+    return x3d_save(fn, *(reinterpret_cast<Manifold*>(m_ptr)));
 }
 
 
@@ -202,35 +206,42 @@ void anisotropic_smooth(Manifold_ptr m_ptr, float sharpness, int iter) {
     anisotropic_smooth(*(reinterpret_cast<Manifold*>(m_ptr)), iter, sharpness);
 }
 
-void volumetric_isocontour(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim, float* data,
-                           double* _pmin, double* _pmax, float tau, 
-                           bool make_triangles,
+void volumetric_isocontour(Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim,
+                           const std::vector<float>& data,
+                           const std::vector<double>& pmin_v,
+                           const std::vector<double>& pmax_v,
+                           float tau, bool make_triangles,
                            bool high_is_inside,
                            bool dual_connectivity) {
     Vec3i dims(x_dim, y_dim, z_dim);
-    const Vec3d pmin = *(reinterpret_cast<Vec3d*>(_pmin));
-    const Vec3d pmax = *(reinterpret_cast<Vec3d*>(_pmax));
+    Vec3d pmin(pmin_v.size() > 0 ? pmin_v[0] : 0.0,
+               pmin_v.size() > 1 ? pmin_v[1] : 0.0,
+               pmin_v.size() > 2 ? pmin_v[2] : 0.0);
+    Vec3d pmax(pmax_v.size() > 0 ? pmax_v[0] : 0.0,
+               pmax_v.size() > 1 ? pmax_v[1] : 0.0,
+               pmax_v.size() > 2 ? pmax_v[2] : 0.0);
     XForm xform(pmin, pmax, dims, 0.0);
     RGrid<float> grid(dims);
-    memcpy(grid.get(), data, grid.get_size() * sizeof(float));
+    // Expect data.size() == grid.get_size()
+    if (!data.empty())
+        memcpy(grid.get(), data.data(), std::min<size_t>(grid.get_size(), data.size()) * sizeof(float));
     Manifold& m_ref = *(reinterpret_cast<Manifold*>(m_ptr));
     m_ref = volume_polygonize(xform, grid, tau, make_triangles, high_is_inside, dual_connectivity);
 }
 
 
-void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, double *node_radii, bool symmetrize, bool use_graph_radii) {
+void graph_to_feq(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, const std::vector<double>& node_radii, bool symmetrize, bool use_graph_radii) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     vector<double> node_rs;
-    const size_t N = g_ptr->no_nodes();
-    node_rs.resize(N);
-
-    if (use_graph_radii)
-        for(auto n : g_ptr->node_ids()) 
-             node_rs[n] = g_ptr->node_color[n][1];
-    else 
-        for(auto n : g_ptr->node_ids())
-            node_rs[n] = node_radii[n];
+    if (use_graph_radii) {
+        const size_t N = g_ptr->no_nodes();
+        node_rs.resize(N);
+        for (auto n : g_ptr->node_ids())
+            node_rs[n] = g_ptr->node_color[n][1];
+    } else {
+        node_rs = node_radii; // copy provided radii
+    }
 
     *m_ptr = graph_to_FEQ(*g_ptr, node_rs, symmetrize);
 }
@@ -242,40 +253,38 @@ void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
     ::non_rigid_registration(*m_ptr, *m_ref_ptr);
 }
 
-void rsr_recon(Manifold_ptr m_ptr, double* verts, double* normals, int v_num, int n_num,
-    bool isEuclidean, int genus, int k, int r, int theta, int n) {
-
+void rsr_recon(Manifold_ptr m_ptr,
+               const std::vector<double>& verts,
+               const std::vector<double>& normals,
+               int v_num, int n_num,
+               bool isEuclidean, int genus, int k, int r, int theta, int n) {
     vector<Vec3d> vertices;
     vector<Vec3d> norm;
     vertices.reserve(v_num);
     norm.reserve(n_num);
+    // Expecting packed as [x0,y0,z0,x1,y1,z1,...]
     for (int i = 0; i < v_num; i++) {
-        vertices.emplace_back(verts[i], verts[i + v_num], verts[i + 2 * v_num]);
+        size_t base = static_cast<size_t>(3 * i);
+        if (base + 2 < verts.size())
+            vertices.emplace_back(verts[base], verts[base + 1], verts[base + 2]);
     }
-
     for (int i = 0; i < n_num; i++) {
-        norm.emplace_back(normals[i], normals[i + n_num], normals[i + 2 * n_num]);
+        size_t base = static_cast<size_t>(3 * i);
+        if (base + 2 < normals.size())
+            norm.emplace_back(normals[base], normals[base + 1], normals[base + 2]);
     }
-
-    reconstruct_single(*(reinterpret_cast<Manifold*>(m_ptr)), vertices, norm, 
-        isEuclidean, genus, k, r, theta, n);
-
-    return; 
+    reconstruct_single(*(reinterpret_cast<Manifold*>(m_ptr)), vertices, norm,
+                       isEuclidean, genus, k, r, theta, n);
 }
 
-using IntVector = vector<size_t>;
-
-void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr) {
+void extrude_faces(Manifold_ptr _m_ptr, const std::vector<int>& faces, IntVector& fidx_ref) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
-    IntVector* fidx_ptr = reinterpret_cast<IntVector*>(_fidx_ptr);
-
     FaceSet fset;
-    for (int i=0;i<no_faces; ++i) 
-        fset.insert(FaceID(faces[i]));
-
+    for (int fid : faces)
+        fset.insert(FaceID(fid));
     FaceSet floop = extrude_face_set(*m_ptr, fset);
-    for (auto f: floop)
-        fidx_ptr->push_back(f.index);
+    for (auto f : floop)
+        fidx_ref.push_back(f.index);
 }
 
 void kill_face_loop(Manifold_ptr _m_ptr) {

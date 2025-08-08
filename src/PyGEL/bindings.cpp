@@ -27,7 +27,8 @@ PYBIND11_MODULE(PyGEL, m) {
     py::class_<Geometry::AMGraph3D>(m, "Graph_ptr");
     py::class_<HMesh::Manifold>(m, "Manifold_ptr");
     py::class_<std::vector<size_t>>(m, "IntVector");
-    py::class_<std::vector<CGLA::Vec3d>>(m, "Vec3dVector");  
+    py::class_<std::vector<CGLA::Vec3d>>(m, "Vec3dVector");
+    py::class_<std::vector<Manifold_ptr>>(m, "MeshVec_ptr");  
     
     // Constants
     m.attr("InvalidIndex") = PyGEL::InvalidIndex;
@@ -98,6 +99,123 @@ PYBIND11_MODULE(PyGEL, m) {
     // Additional Manifold creation functions
     m.def("Manifold_copy", [](Manifold_ptr self) -> Manifold_ptr {
         return Manifold_copy(self);
+    });
+    
+    m.def("Manifold_from_triangles", [](int NV, int NF, const std::vector<double>& vertices, const std::vector<int>& faces) -> Manifold_ptr {
+        return Manifold_from_triangles(NV, NF, vertices, faces);
+    });
+    
+    m.def("Manifold_from_points", [](int N, const std::vector<double>& pts, const std::vector<double>& X_axis, const std::vector<double>& Y_axis) -> Manifold_ptr {
+        return Manifold_from_points(N, pts, X_axis, Y_axis);
+    });
+    
+    m.def("Manifold_merge", [](Manifold_ptr self, Manifold_ptr other) {
+        Manifold_merge(self, other);
+    });
+    
+    m.def("Manifold_positions", [](Manifold_ptr self) -> std::vector<double> {
+        return Manifold_positions(self);
+    });
+    
+    m.def("Manifold_vertices", [](Manifold_ptr self, IntVector_ptr verts) -> size_t {
+        auto N = self->no_vertices();
+        verts->resize(N);
+        size_t i = 0;
+        for (auto v : self->vertices())
+            (*verts)[i++] = v.get_index();
+        return N;
+    });
+    
+    m.def("Manifold_faces", [](Manifold_ptr self, IntVector_ptr faces) -> size_t {
+        auto N = self->no_faces();
+        faces->resize(N);
+        size_t i = 0;
+        for (auto f : self->faces())
+            (*faces)[i++] = f.get_index();
+        return N;
+    });
+    
+    m.def("Manifold_halfedges", [](Manifold_ptr self, IntVector_ptr hedges) -> size_t {
+        auto N = self->no_halfedges();
+        hedges->resize(N);
+        size_t i = 0;
+        for (auto h : self->halfedges())
+            (*hedges)[i++] = h.get_index();
+        return N;
+    });
+    
+    m.def("Manifold_circulate_vertex", [](Manifold_ptr self, size_t v, const std::string& mode, IntVector_ptr nbrs) -> size_t {
+        char mchar = mode.empty() ? 'v' : mode[0];
+        VertexID vid(v);
+        size_t N = circulate_vertex_ccw(*self, vid, [&](Walker w){
+            switch(mchar) {
+                case 'v': nbrs->push_back(w.vertex().get_index()); break;
+                case 'f': nbrs->push_back(w.face().get_index()); break;
+                case 'h': nbrs->push_back(w.halfedge().get_index()); break;
+            }
+        });
+        return N;
+    });
+    
+    m.def("Manifold_circulate_face", [](Manifold_ptr self, size_t f, const std::string& mode, IntVector_ptr nbrs) -> size_t {
+        char mchar = mode.empty() ? 'v' : mode[0];
+        FaceID fid(f);
+        size_t N = circulate_face_ccw(*self, fid, [&](Walker w){
+            switch(mchar) {
+                case 'v': nbrs->push_back(w.vertex().get_index()); break;
+                case 'f': nbrs->push_back(w.opp().face().get_index()); break;
+                case 'h': nbrs->push_back(w.halfedge().get_index()); break;
+            }
+        });
+        return N;
+    });
+    
+    m.def("Manifold_add_face", [](Manifold_ptr self, py::buffer pos_buf) -> size_t {
+        py::buffer_info info = pos_buf.request();
+        
+        // Ensure it's a double buffer
+        if (info.format != py::format_descriptor<double>::format()) {
+            throw std::runtime_error("Incompatible buffer format: expected double array");
+        }
+        
+        // Create vector from buffer
+        std::vector<double> pos(static_cast<double*>(info.ptr), 
+                               static_cast<double*>(info.ptr) + info.size);
+        
+        return Manifold_add_face(self, pos);
+    });
+    
+    m.def("Manifold_split_face_by_edge", [](Manifold_ptr self, size_t f, size_t v0, size_t v1) -> size_t {
+        return Manifold_split_face_by_edge(self, f, v0, v1);
+    });
+    
+    m.def("Manifold_split_face_by_vertex", [](Manifold_ptr self, size_t f) -> size_t {
+        return Manifold_split_face_by_vertex(self, f);
+    });
+    
+    m.def("Manifold_stitch_boundary_edges", [](Manifold_ptr self, size_t h0, size_t h1) -> bool {
+        return Manifold_stitch_boundary_edges(self, h0, h1);
+    });
+    
+    m.def("Manifold_merge_faces", [](Manifold_ptr self, size_t f, size_t h) -> bool {
+        return Manifold_merge_faces(self, f, h);
+    });
+    
+    // Additional geometry functions
+    m.def("vertex_normal", [](Manifold_ptr self, size_t v) -> HMesh::Manifold::Vec {
+        return vertex_normal(self, v);
+    });
+    
+    m.def("face_normal", [](Manifold_ptr self, size_t f) -> HMesh::Manifold::Vec {
+        return face_normal(self, f);
+    });
+    
+    m.def("principal_curvatures", [](Manifold_ptr self, size_t v) -> std::vector<double> {
+        return principal_curvatures(self, v);
+    });
+    
+    m.def("centre", [](Manifold_ptr self, size_t f) -> HMesh::Manifold::Vec {
+        return centre(self, f);
     });
     
     m.def("Manifold_no_vertices", [](Manifold_ptr self) -> size_t {
@@ -390,15 +508,6 @@ PYBIND11_MODULE(PyGEL, m) {
         ear_clip_triangulate(self);
     });
     
-    // Mesh analysis functions
-    m.def("stitch_mesh", [](Manifold_ptr self, double rad) -> int {
-        return stitch_mesh(self, rad);
-    });
-    
-    m.def("count_boundary_curves", [](Manifold_ptr self) -> int {
-        return count_boundary_curves(self);
-    });
-    
     // GRAPH FUNCTIONS - Graph processing
     m.def("graph_from_mesh", [](Manifold_ptr m, Graph_ptr g) {
         graph_from_mesh(m, g);
@@ -461,21 +570,6 @@ PYBIND11_MODULE(PyGEL, m) {
         Vec3dVector_delete(self);
     });
     
-    // Additional Graph functions
-    m.def("graph_from_mesh", [](Manifold_ptr m, Graph_ptr g) {
-        graph_from_mesh(m, g);
-    });
-    
-    m.def("graph_load", [](Graph_ptr g, const std::string& filename) -> bool {
-        return graph_load(g, filename);
-    });
-    
-    m.def("graph_save", [](Graph_ptr g, const std::string& filename) -> bool {
-        return graph_save(g, filename);
-    });
-    
-    // Test functions
-    
     // Additional Manifold functions with wrapper functions
     m.def("Manifold_no_allocated_vertices", [](Manifold_ptr self) -> size_t {
         return Manifold_no_allocated_vertices(self);
@@ -487,6 +581,170 @@ PYBIND11_MODULE(PyGEL, m) {
     
     m.def("Manifold_no_allocated_halfedges", [](Manifold_ptr self) -> size_t {
         return Manifold_no_allocated_halfedges(self);
+    });
+    
+    // MISSING HMESH FUNCTIONS
+    
+    // File I/O functions
+    m.def("load", [](const std::string& filename, Manifold_ptr m_ptr) -> bool {
+        return load(filename, m_ptr);
+    });
+    
+    m.def("obj_load", [](const std::string& filename, Manifold_ptr m_ptr) -> bool {
+        return obj_load(filename, m_ptr);
+    });
+    
+    m.def("off_load", [](const std::string& filename, Manifold_ptr m_ptr) -> bool {
+        return off_load(filename, m_ptr);
+    });
+    
+    m.def("ply_load", [](const std::string& filename, Manifold_ptr m_ptr) -> bool {
+        return ply_load(filename, m_ptr);
+    });
+    
+    m.def("x3d_load", [](const std::string& filename, Manifold_ptr m_ptr) -> bool {
+        return x3d_load(filename, m_ptr);
+    });
+    
+    m.def("obj_save", [](const std::string& filename, Manifold_ptr m_ptr) -> bool {
+        return obj_save(filename, m_ptr);
+    });
+    
+    m.def("off_save", [](const std::string& filename, Manifold_ptr m_ptr) -> bool {
+        return off_save(filename, m_ptr);
+    });
+    
+    m.def("x3d_save", [](const std::string& filename, Manifold_ptr m_ptr) -> bool {
+        return x3d_save(filename, m_ptr);
+    });
+    
+    // Bounding box and sphere functions
+    m.def("bbox", [](Manifold_ptr m_ptr) -> std::pair<std::vector<double>, std::vector<double>> {
+        return bbox(m_ptr);
+    });
+    
+    m.def("bsphere", [](Manifold_ptr m_ptr) -> std::pair<std::vector<double>, double> {
+        return bsphere(m_ptr);
+    });
+    
+    // Additional smoothing function
+    m.def("regularize_quads", [](Manifold_ptr self, float weight, float shrink, int iter) {
+        regularize_quads(self, weight, shrink, iter);
+    });
+    
+    // Volumetric isocontour function
+    m.def("volumetric_isocontour", [](Manifold_ptr m_ptr, int x_dim, int y_dim, int z_dim, 
+                                      const std::vector<float>& data, const std::vector<double>& pmin, 
+                                      const std::vector<double>& pmax, float tau, bool make_triangles, 
+                                      bool high_is_inside, bool dual_connectivity) {
+        volumetric_isocontour(m_ptr, x_dim, y_dim, z_dim, data, pmin, pmax, tau, make_triangles, high_is_inside, dual_connectivity);
+    });
+    
+    // Graph to mesh conversion
+    m.def("graph_to_feq", [](Graph_ptr g_ptr, Manifold_ptr m_ptr, const std::vector<double>& node_radii, 
+                              bool symmetrize, bool use_graph_radii) {
+        graph_to_feq(g_ptr, m_ptr, node_radii, symmetrize, use_graph_radii);
+    });
+    
+    // Mesh registration and reconstruction
+    m.def("non_rigid_registration", [](Manifold_ptr m_ptr, Manifold_ptr m_ref_ptr) {
+        non_rigid_registration(m_ptr, m_ref_ptr);
+    });
+    
+    m.def("rsr_recon", [](Manifold_ptr m_ptr, const std::vector<double>& verts, const std::vector<double>& normals, 
+                          int v_num, int n_num, bool isEuclidean, int genus, int k, int r, int theta, int n) {
+        rsr_recon(m_ptr, verts, normals, v_num, n_num, isEuclidean, genus, k, r, theta, n);
+    });
+    
+    // Face extrusion and loop operations
+    m.def("extrude_faces", [](Manifold_ptr m_ptr, const std::vector<int>& faces, IntVector_ptr fidx_ptr) {
+        extrude_faces(m_ptr, faces, *fidx_ptr);
+    });
+    
+    m.def("kill_face_loop", [](Manifold_ptr m_ptr) {
+        kill_face_loop(m_ptr);
+    });
+    
+    m.def("kill_degenerate_face_loops", [](Manifold_ptr m_ptr, double thresh) {
+        kill_degenerate_face_loops(m_ptr, thresh);
+    });
+    
+    m.def("stable_marriage_registration", [](Manifold_ptr m_ptr, Manifold_ptr m_ref_ptr) {
+        stable_marriage_registration(m_ptr, m_ref_ptr);
+    });
+    
+    // Connected components
+    m.def("connected_components", [](Manifold_ptr m_ptr) -> MeshVec_ptr {
+        return connected_components(m_ptr);
+    });
+    
+    m.def("mesh_vec_size", [](MeshVec_ptr mv_ptr) -> size_t {
+        return mesh_vec_size(mv_ptr);
+    });
+    
+    m.def("mesh_vec_get", [](MeshVec_ptr mv_ptr, size_t i) -> Manifold_ptr {
+        return mesh_vec_get(mv_ptr, i);
+    });
+    
+    m.def("mesh_vec_del", [](MeshVec_ptr mv_ptr) {
+        mesh_vec_del(mv_ptr);
+    });
+    
+    // MISSING GRAPH FUNCTIONS
+    
+    // Graph to mesh functions
+    m.def("graph_to_mesh_iso", [](Graph_ptr g_ptr, Manifold_ptr m_ptr, float fudge, size_t grid_res) {
+        graph_to_mesh_iso(g_ptr, m_ptr, fudge, grid_res);
+    });
+    
+    // Skeletonization functions
+    m.def("graph_LS_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, bool sampling) {
+        graph_LS_skeleton(g_ptr, skel_ptr, *map_ptr, sampling);
+    });
+    
+    m.def("graph_MSLS_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, int grow_thresh) {
+        graph_MSLS_skeleton(g_ptr, skel_ptr, *map_ptr, grow_thresh);
+    });
+    
+    m.def("graph_front_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, 
+                                     int N_col, const std::vector<double>& colors, int intervals) {
+        graph_front_skeleton(g_ptr, skel_ptr, *map_ptr, N_col, colors, intervals);
+    });
+    
+    m.def("graph_combined_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, 
+                                        int N_col, const std::vector<double>& colors, int intervals) {
+        graph_combined_skeleton(g_ptr, skel_ptr, *map_ptr, N_col, colors, intervals);
+    });
+    
+    m.def("graph_minimum_spanning_tree", [](Graph_ptr g_ptr, Graph_ptr mst_ptr, int root) {
+        graph_minimum_spanning_tree(g_ptr, mst_ptr, root);
+    });
+    
+    m.def("graph_close_chordless_cycles", [](Graph_ptr g_ptr, int root, int hops, double rad) {
+        graph_close_chordless_cycles(g_ptr, root, hops, rad);
+    });
+    
+    // MISSING MESHDISTANCE FUNCTIONS
+    
+    // MeshDistance class functions - using opaque pointers
+    m.def("MeshDistance_new", [](Manifold_ptr m) -> void* {
+        return static_cast<void*>(MeshDistance_new(m));
+    });
+    
+    m.def("MeshDistance_delete", [](void* self) {
+        MeshDistance_delete(static_cast<MeshDistance_ptr>(self));
+    });
+    
+    m.def("MeshDistance_signed_distance", [](void* self, const std::vector<float>& p, float upper) -> std::vector<float> {
+        return MeshDistance_signed_distance(static_cast<MeshDistance_ptr>(self), p, upper);
+    });
+    
+    m.def("MeshDistance_ray_inside_test", [](void* self, const std::vector<float>& p, int no_rays) -> std::vector<int> {
+        return MeshDistance_ray_inside_test(static_cast<MeshDistance_ptr>(self), p, no_rays);
+    });
+    
+    m.def("MeshDistance_ray_intersect", [](void* self, const std::vector<float>& p, const std::vector<float>& d) -> std::pair<bool, float> {
+        return MeshDistance_ray_intersect(static_cast<MeshDistance_ptr>(self), p, d);
     });
     
     // Test functions
