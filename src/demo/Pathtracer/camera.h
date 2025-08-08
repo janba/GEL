@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <GEL/CGLA/Vec2f.h>
+#include <GEL/CGLA/Vec.h>
 
 #include "core.h"
 

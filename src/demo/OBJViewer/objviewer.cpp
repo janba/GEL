@@ -33,10 +33,8 @@
 #include <vector>
 
 #include <GEL/Util/ArgExtracter.h>
-#include <GEL/CGLA/Vec2i.h>
-#include <GEL/CGLA/Vec2f.h>
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/CGLA/Vec.h>
+#include <GEL/CGLA/Mat.h>
 #include <GEL/GLGraphics/glsl_shader.h>
 #include <GEL/GLGraphics/QuatTrackBall.h>
 #include <GEL/GLGraphics/draw.h>

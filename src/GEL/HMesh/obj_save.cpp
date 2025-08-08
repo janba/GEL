@@ -7,11 +7,10 @@
 #include <GEL/HMesh/obj_save.h>
 
 #include <fstream>
-#include <iostream>
 #include <string>
 #include <vector>
 
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/HMesh/AttributeVector.h>

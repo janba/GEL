@@ -10,7 +10,7 @@
 #include <string>
 #include <cstdlib>
 #include <GEL/Geometry/TriMesh.h>
-#include <GEL/CGLA/Mat3x3d.h>
+#include <GEL/CGLA/Mat.h>
 #include <GEL/GLGraphics/glsl_shader.h>
 #include <GEL/GLGraphics/draw.h>
 #include <GEL/HMesh/Manifold.h>

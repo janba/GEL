@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/HMesh/AttributeVector.h>
 #include <GEL/HMesh/Circulators.h>
 #include <GEL/HMesh/ConnectivityKernel.h>

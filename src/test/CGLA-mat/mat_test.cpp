@@ -1,17 +1,10 @@
 #include <iostream>
 #include <algorithm>
 
-#include <GEL/CGLA/Mat4x4d.h>
-#include <GEL/CGLA/Mat4x4f.h>
-#include <GEL/CGLA/Mat2x2f.h>
-#include <GEL/CGLA/Mat3x3f.h>
-#include <GEL/CGLA/Mat2x3f.h>
+#include <GEL/CGLA/Mat.h>
 #include <GEL/CGLA/eigensolution.h>
 
-#include <GEL/CGLA/Vec2f.h>
-#include <GEL/CGLA/Vec2i.h>
-#include <GEL/CGLA/Vec3i.h>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 
 using namespace std;
 using namespace CGLA;

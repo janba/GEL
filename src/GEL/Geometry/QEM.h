@@ -9,12 +9,11 @@
  * @brief Quadric Error Metrics. To be used when simplifying.
  */
 
-#ifndef __GEOMETRY_QEM_H
-#define __GEOMETRY_QEM_H
+#ifndef GEOMETRY_QEM_H
+#define GEOMETRY_QEM_H
 
-#include <cfloat>
-#include <GEL/CGLA/Vec3d.h>
-#include <GEL/CGLA/Mat3x3d.h>
+#include <GEL/CGLA/Vec.h>
+#include <GEL/CGLA/Mat.h>
 
 
 namespace

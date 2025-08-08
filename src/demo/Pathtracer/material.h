@@ -1,5 +1,5 @@
-#ifndef __PATHTRACER_MATERIAL__H__
-#define __PATHTRACER_MATERIAL__H__
+#ifndef PATHTRACER_MATERIAL_H
+#define PATHTRACER_MATERIAL_H
 
 #include "core.h"
 

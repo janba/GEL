@@ -9,7 +9,7 @@
 #ifndef PointReconstruction_XForm_h
 #define PointReconstruction_XForm_h
 
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 
 namespace Geometry
 {

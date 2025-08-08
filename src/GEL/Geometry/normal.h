@@ -1,10 +1,9 @@
-#ifndef Normal_h
-#define Normal_h
+#ifndef CGLA_Normal_h
+#define CGLA_Normal_h
 #pragma once
 
-#include <GEL/CGLA/Vec3d.h>
-#include <GEL/CGLA/eigensolution.h>
-#include <GEL/CGLA/Mat3x3d.h>
+#include <GEL/CGLA/Definitions.h>
+#include <vector>
 
 using namespace CGLA;
 

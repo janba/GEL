@@ -6,10 +6,10 @@
 //  Copyright (c) 2013 J. Andreas Bærentzen. All rights reserved.
 //
 
-#ifndef __PointReconstruction__Implicit__
-#define __PointReconstruction__Implicit__
+#ifndef PointReconstruction_Implicit_H
+#define PointReconstruction_Implicit_H
 
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/RGrid.h>
 #include <GEL/Geometry/XForm.h>
 

@@ -6,14 +6,14 @@
  *  Copyright 2008 __MyCompanyName__. All rights reserved.
  *
  */
-#ifndef __MESHEDIT_VISOBJ_H__
-#define __MESHEDIT_VISOBJ_H__
+#ifndef MESHEDIT_VISOBJ_H
+#define MESHEDIT_VISOBJ_H
 
 
 #include <string>
 #include <GEL/GL/glew.h>
 #include <GEL/HMesh/Manifold.h>
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/build_bbtree.h>
 #include <GEL/GLGraphics/draw.h>

@@ -6,13 +6,11 @@
  *  Copyright 2008 __MyCompanyName__. All rights reserved.
  *
  */
-#ifndef __SPHERE_DELAUNAY_H__
-#define __SPHERE_DELAUNAY_H__
+#ifndef SPHERE_DELAUNAY_H
+#define SPHERE_DELAUNAY_H
 
 #include <vector>
-#include <list>
-#include <GEL/CGLA/Vec3d.h>
-#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec.h>
 
 
 std::vector<CGLA::Vec3i>  SphereDelaunay(const std::vector<CGLA::Vec3d>& vertices);

@@ -8,7 +8,7 @@
 #include <cfloat>
 #include <GEL/CGLA/statistics.h>
 #include <GEL/CGLA/eigensolution.h>
-#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/CGLA/Mat.h>
 #include <GEL/Geometry/AABox.h>
 #include <GEL/Geometry/OBox.h>
 #include <GEL/Geometry/Triangle.h>

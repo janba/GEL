@@ -10,8 +10,8 @@
 #include <future>
 #include <vector>
 #include <algorithm>
-#include <GEL/CGLA/Mat3x3d.h>
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Mat.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/CGLA/Quatd.h>
 #include <GEL/Util/Timer.h>
 #include <GEL/Util/Range.h>

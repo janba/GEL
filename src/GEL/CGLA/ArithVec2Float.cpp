@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include <GEL/CGLA/Mat2x2d.h>
+#include <GEL/CGLA/Mat.h>
 
 namespace CGLA
 {

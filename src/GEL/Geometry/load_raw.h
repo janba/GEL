@@ -9,11 +9,11 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#ifndef __GEOMETRY_VOXELGRID_LOAD_RAW_H__
-#define __GEOMETRY_VOXELGRID_LOAD_RAW_H__
+#ifndef GEOMETRY_VOXELGRID_LOAD_RAW_H
+#define GEOMETRY_VOXELGRID_LOAD_RAW_H
 
 #include <string>
-#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/CGLA/Mat.h>
 #include <GEL/Geometry/RGrid.h>
 
 namespace Geometry

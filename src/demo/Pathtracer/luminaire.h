@@ -1,7 +1,7 @@
-#ifndef __PATHTRACER_LUMINAIRE__H__
-#define __PATHTRACER_LUMINAIRE__H__
+#ifndef PATHTRACER_LUMINAIRE_H
+#define PATHTRACER_LUMINAIRE_H
 
-#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/CGLA/Mat.h>
 
 #include "core.h"
 
