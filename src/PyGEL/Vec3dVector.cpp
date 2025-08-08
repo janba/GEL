@@ -14,21 +14,22 @@
 using namespace CGLA;
 using namespace std;
 
-using Vec3dVector = vector<Vec3d>;
+namespace PyGEL {
 
 Vec3dVector_ptr Vec3dVector_new(size_t s) {
-    return reinterpret_cast<Vec3dVector_ptr>(new Vec3dVector(s));
+    return new Vec3dVector(s);
 }
 
 size_t Vec3dVector_size(Vec3dVector_ptr self) {
-    return reinterpret_cast<Vec3dVector*>(self)->size();
+    return self->size();
 }
 
-
 double* Vec3dVector_get(Vec3dVector_ptr self, size_t idx) {
-    return (*reinterpret_cast<Vec3dVector*>(self))[idx].get();
+    return (*self)[idx].get();
 }
 
 void Vec3dVector_delete(Vec3dVector_ptr self) {
-    delete reinterpret_cast<Vec3dVector*>(self);
+    delete self;
 }
+
+} // namespace PyGEL

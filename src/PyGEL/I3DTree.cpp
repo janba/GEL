@@ -13,17 +13,20 @@
 #include <GEL/CGLA/Vec3d.h>
 #include <GEL/Geometry/KDTree.h>
 
+using namespace PyGEL;
+using namespace CGLA;
+using namespace Geometry;
+
 using namespace CGLA;
 using namespace std;
 
 template class Geometry::KDTree<CGLA::Vec3d, size_t>;
-using I3DTree = Geometry::KDTree<CGLA::Vec3d, size_t>;
 using Vec3dVector = vector<Vec3d>;
 using IntVector = vector<size_t>;
 
 I3DTree_ptr I3DTree_new() {
     I3DTree* ptr = new I3DTree();
-    return reinterpret_cast<char*>(ptr);
+    return ptr;
 }
 
 void I3DTree_delete(I3DTree_ptr self) {
@@ -31,17 +34,17 @@ void I3DTree_delete(I3DTree_ptr self) {
 }
 
 void I3DTree_insert(I3DTree_ptr tree, double x, double y, double z, size_t v) {
-    reinterpret_cast<I3DTree*>(tree)->insert(CGLA::Vec3d(x,y,z), v);
+    tree->insert(CGLA::Vec3d(x,y,z), v);
 }
 
 void I3DTree_build(I3DTree_ptr tree) {
-    reinterpret_cast<I3DTree*>(tree)->build();
+    tree->build();
 }
 
 size_t I3DTree_closest_point(I3DTree_ptr tree, double x, double y, double z, double r,
                                   double* key, size_t* val) {
     CGLA::Vec3d p(x,y,z);
-    if(reinterpret_cast<I3DTree*>(tree)->closest_point(p, r,
+    if(tree->closest_point(p, r,
                                                        *reinterpret_cast<Vec3d*>(key),
                                                        *val))
         return 1;
@@ -50,7 +53,7 @@ size_t I3DTree_closest_point(I3DTree_ptr tree, double x, double y, double z, dou
 
 size_t I3DTree_in_sphere(I3DTree_ptr tree, double x, double y, double z, double r,
                               Vec3dVector_ptr keys, IntVector_ptr vals) {
-    return reinterpret_cast<I3DTree*>(tree)->in_sphere(Vec3d(x,y,z), r,
+    return tree->in_sphere(Vec3d(x,y,z), r,
                                                        *reinterpret_cast<Vec3dVector*>(keys),
                                                        *reinterpret_cast<IntVector*>(vals));
 }
@@ -58,7 +61,7 @@ size_t I3DTree_in_sphere(I3DTree_ptr tree, double x, double y, double z, double 
 size_t I3DTree_m_closest_points(I3DTree_ptr tree, double x, double y, double z, double r, int m,
                                 Vec3dVector_ptr _keys, IntVector_ptr _vals){
     CGLA::Vec3d p(x,y,z);
-    auto records = reinterpret_cast<I3DTree*>(tree)->m_closest(m,p,r);
+    auto records = tree->m_closest(m,p,r);
     
     Vec3dVector& keys = *reinterpret_cast<Vec3dVector*>(_keys);
     IntVector& vals = *reinterpret_cast<IntVector*>(_vals);

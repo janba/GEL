@@ -9,27 +9,19 @@
 #ifndef Vec3dVector_hpp
 #define Vec3dVector_hpp
 
-#include <stddef.h>
-#include <stdbool.h>
+#include <vector>
+#include <cstddef>
+#include <GEL/CGLA/Vec3d.h>
 
-#if defined(__APPLE__) || defined(__linux__)
-#define DLLEXPORT __attribute__ ((visibility ("default")))
-#else
-#define DLLEXPORT __declspec(dllexport)
-#endif
-
-typedef char* Vec3dVector_ptr;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-    DLLEXPORT Vec3dVector_ptr Vec3dVector_new(size_t s);
-    DLLEXPORT double* Vec3dVector_get(Vec3dVector_ptr self, size_t idx);
-    DLLEXPORT size_t Vec3dVector_size(Vec3dVector_ptr self);
-    DLLEXPORT void Vec3dVector_delete(Vec3dVector_ptr self);
-
-#ifdef __cplusplus
+namespace PyGEL {
+    using namespace CGLA;
+    using Vec3dVector = std::vector<Vec3d>;
+    using Vec3dVector_ptr = Vec3dVector*; // C-style alias
+    
+    Vec3dVector_ptr Vec3dVector_new(size_t s);
+    double* Vec3dVector_get(Vec3dVector_ptr self, size_t idx);
+    size_t Vec3dVector_size(Vec3dVector_ptr self);
+    void Vec3dVector_delete(Vec3dVector_ptr self);
 }
-#endif
+
 #endif /* Vec3dVector_hpp */

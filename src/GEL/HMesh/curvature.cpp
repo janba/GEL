@@ -369,41 +369,38 @@ namespace HMesh
     }
 
 
-    std::pair<ManifoldOperatorMatrix, ManifoldOperatorMatrix> create_LBO(const Manifold& m) {
-        ManifoldOperatorMatrix L;
-        ManifoldOperatorMatrix M;
+    // // std::pair<ManifoldOperatorMatrix, ManifoldOperatorMatrix> create_LBO(const Manifold& m) {
+    // //     ManifoldOperatorMatrix L;
+    // //     ManifoldOperatorMatrix M;
 
-        for (auto v: m.vertices()) {
-            Vec3d p = m.positions[v];
-            circulate_vertex_ccw(m, v, [&](Walker& w) {
-                if (v < w.vertex()) {
-                    VertexID vn = w.vertex();
-                    Vec3d pn = m.positions[vn];
-                    Vec3d a = m.positions[w.next().vertex()];
-                    Vec3d b = m.positions[w.opp().next().vertex()];
-                    double cos_a = dot(p-a,pn-a);
-                    double cos_b = dot(p-b,pn-b);
-                    double sin_a = length(cross(p-a, pn-a));
-                    double sin_b = length(cross(p-b, pn-b));
-                    double cot_weight = 0.5 * (cos_a / (sin_a+1e-30) + cos_b / (sin_b+1e-30));
-                    L.set(v,vn, cot_weight);
-                    L.set(vn,v, cot_weight);
-                    L.set(v,v, L.get(v,v) - cot_weight);
-                    L.set(vn,vn, L.get(vn,vn) - cot_weight);
-                    double area_a = 0.5 * sin_a / (length(p-a)*length(pn-a)+1e-30);
-                    double area_b = 0.5 * sin_b / (length(p-b)*length(pn-b)+1e-30);
-                    double area_weight = (area_a + area_b) / 12.0;
-                    M.set(v,vn, area_weight);
-                    M.set(vn,v, area_weight);
-                    M.set(v,v, M.get(v,v) + area_weight);
-                    M.set(vn,vn, M.get(vn,vn) + area_weight);
-                }
-            });
-        }
-
-
-
-    }
+    // //     for (auto v: m.vertices()) {
+    // //         Vec3d p = m.positions[v];
+    // //         circulate_vertex_ccw(m, v, [&](Walker& w) {
+    // //             if (v < w.vertex()) {
+    // //                 VertexID vn = w.vertex();
+    // //                 Vec3d pn = m.positions[vn];
+    // //                 Vec3d a = m.positions[w.next().vertex()];
+    // //                 Vec3d b = m.positions[w.opp().next().vertex()];
+    // //                 double cos_a = dot(p-a,pn-a);
+    // //                 double cos_b = dot(p-b,pn-b);
+    // //                 double sin_a = length(cross(p-a, pn-a));
+    // //                 double sin_b = length(cross(p-b, pn-b));
+    // //                 double cot_weight = 0.5 * (cos_a / (sin_a+1e-30) + cos_b / (sin_b+1e-30));
+    // //                 L.set(v,vn, cot_weight);
+    // //                 L.set(vn,v, cot_weight);
+    // //                 L.set(v,v, L.get(v,v) - cot_weight);
+    // //                 L.set(vn,vn, L.get(vn,vn) - cot_weight);
+    // //                 double area_a = 0.5 * sin_a / (length(p-a)*length(pn-a)+1e-30);
+    // //                 double area_b = 0.5 * sin_b / (length(p-b)*length(pn-b)+1e-30);
+    // //                 double area_weight = (area_a + area_b) / 12.0;
+    // //                 M.set(v,vn, area_weight);
+    // //                 M.set(vn,v, area_weight);
+    // //                 M.set(v,v, M.get(v,v) + area_weight);
+    // //                 M.set(vn,vn, M.get(vn,vn) + area_weight);
+    // //             }
+    // //         });
+    // //     }
+    // }
 
 }
 

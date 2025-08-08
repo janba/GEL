@@ -11,21 +11,22 @@
 #include <iostream>
 using namespace std;
 
-using IntVector = vector<size_t>;
+namespace PyGEL {
 
 IntVector_ptr IntVector_new(size_t s) {
-    return reinterpret_cast<IntVector_ptr>(new IntVector(s));
+    return new IntVector(s);
 }
 
 size_t IntVector_size(IntVector_ptr self) {
-    return reinterpret_cast<IntVector*>(self)->size();
+    return self->size();
 }
 
-
 void IntVector_delete(IntVector_ptr self) {
-    delete reinterpret_cast<IntVector*>(self);
+    delete self;
 }
 
 size_t IntVector_get(IntVector_ptr self, size_t idx) {
-    return (*reinterpret_cast<IntVector*>(self))[idx];
+    return (*self)[idx];
 }
+
+} // namespace PyGEL

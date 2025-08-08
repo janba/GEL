@@ -18,6 +18,8 @@
 #include <GEL/GLGraphics/GLViewController.h>
 #include "Viewer.h"
 
+using namespace PyGEL;
+
 using namespace CGLA;
 using namespace Geometry;
 using namespace GLGraphics;
@@ -406,6 +408,8 @@ public:
     }
 };
 
+namespace PyGEL {
+
 void GLManifoldViewer_event_loop(bool once) {
     do {
         glfwWaitEvents();
@@ -478,5 +482,7 @@ void GLManifoldViewer_set_annotation_points(GLManifoldViewer_ptr _self, int n, d
         pts[i] = Vec3d(data[3*i], data[3*i+1], data[3*i+2]);
     self->set_annotation_points(pts);
 }
+
+} // namespace PyGEL
 
 

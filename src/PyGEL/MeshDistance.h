@@ -9,46 +9,23 @@
 #ifndef MeshDistance_hpp
 #define MeshDistance_hpp
 
-#if defined(__APPLE__) || defined(__linux__)
-#define DLLEXPORT __attribute__ ((visibility ("default")))
-#else
-#define DLLEXPORT __declspec(dllexport)
-#endif
+#include <vector>
+#include <utility>
+#include "Manifold.h"
 
-#include <stdbool.h>
+// Forward declaration for MeshDistance - this is a PyGEL-specific class
+class MeshDistance;
 
-typedef char* MeshDistance_ptr;
-typedef char* Manifold_ptr;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-DLLEXPORT MeshDistance_ptr MeshDistance_new(Manifold_ptr m);
-
-DLLEXPORT void MeshDistance_delete(MeshDistance_ptr);
-
-DLLEXPORT void MeshDistance_signed_distance(MeshDistance_ptr self,
-                                                int no_query_points,
-                                                const float* p,
-                                                float* d,
-                                                float upper);
-
-DLLEXPORT void MeshDistance_ray_inside_test(MeshDistance_ptr self,
-                                            int no_query_points,
-                                            const float* p,
-                                            int* d,
-                                            int no_rays);
-
-DLLEXPORT bool MeshDistance_ray_intersect(MeshDistance_ptr _self, 
-                                            float *p, 
-                                            float *d, 
-                                            float *t);
-
-
-#ifdef __cplusplus
+namespace PyGEL {
+    using MeshDistancePtr = MeshDistance*;
+    using MeshDistance_ptr = MeshDistancePtr; // C-style alias
+    
+    MeshDistance_ptr MeshDistance_new(Manifold_ptr m);
+    void MeshDistance_delete(MeshDistance_ptr self);
+    
+    std::vector<float> MeshDistance_signed_distance(MeshDistance_ptr self, const std::vector<float>& p, float upper);
+    std::vector<int> MeshDistance_ray_inside_test(MeshDistance_ptr self, const std::vector<float>& p, int no_rays);
+    std::pair<bool, float> MeshDistance_ray_intersect(MeshDistance_ptr self, const std::vector<float>& p, const std::vector<float>& d);
 }
-#endif
-
 
 #endif /* MeshDistance_hpp */

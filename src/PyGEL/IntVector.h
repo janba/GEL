@@ -9,26 +9,17 @@
 #ifndef IntVector_hpp
 #define IntVector_hpp
 
-#include <stddef.h>
-#include <stdbool.h>
+#include <vector>
+#include <cstddef>
 
-#if defined(__APPLE__) || defined(__linux__)
-#define DLLEXPORT __attribute__ ((visibility ("default")))
-#else
-#define DLLEXPORT __declspec(dllexport)
-#endif
-
-
-
-typedef char* IntVector_ptr;
-#ifdef __cplusplus
-extern "C" {
-#endif
-    DLLEXPORT IntVector_ptr IntVector_new(size_t s);
-    DLLEXPORT size_t IntVector_get(IntVector_ptr self, size_t idx);
-    DLLEXPORT size_t IntVector_size(IntVector_ptr self);
-    DLLEXPORT void IntVector_delete(IntVector_ptr self);
-#ifdef __cplusplus
+namespace PyGEL {
+    using IntVector = std::vector<size_t>;
+    using IntVector_ptr = IntVector*; // C-style alias
+    
+    IntVector_ptr IntVector_new(size_t s);
+    size_t IntVector_get(IntVector_ptr self, size_t idx);
+    size_t IntVector_size(IntVector_ptr self);
+    void IntVector_delete(IntVector_ptr self);
 }
-#endif
+
 #endif /* IntVector_hpp */

@@ -22,6 +22,8 @@ using namespace std;
 using namespace Geometry;
 using namespace HMesh;
 
+namespace PyGEL {
+
 void graph_from_mesh(Manifold_ptr _m_ptr, Graph_ptr _g_ptr) {
     AMGraph3D& g = *reinterpret_cast<AMGraph3D*>(_g_ptr);
     Manifold& m = *reinterpret_cast<Manifold*>(_m_ptr);
@@ -37,17 +39,15 @@ void graph_from_mesh(Manifold_ptr _m_ptr, Graph_ptr _g_ptr) {
 }
 
 
-bool graph_load(Graph_ptr _g_ptr, const char* _file_name) {
-    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
-    const string file_name(_file_name);
-    *g_ptr = graph_load(file_name);
+bool graph_load(Graph_ptr _g_ptr, const std::string& _file_name) {
+    AMGraph3D* g_ptr = _g_ptr;
+    *g_ptr = Geometry::graph_load(_file_name);
     return g_ptr->no_nodes()>0;
 }
 
-bool graph_save(Graph_ptr _g_ptr, const char* _file_name) {
-    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
-    const string file_name(_file_name);
-    return Geometry::graph_save(file_name, *g_ptr);
+bool graph_save(Graph_ptr _g_ptr, const std::string& _file_name) {
+    AMGraph3D* g_ptr = _g_ptr;
+    return Geometry::graph_save(_file_name, *g_ptr);
 }
 
 void graph_to_mesh_cyl(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, float fudge) {
@@ -114,7 +114,7 @@ void graph_saturate(Graph_ptr _g_ptr, int hops, double dist_frac, double rad) {
     saturate_graph(*g_ptr, hops, dist_frac, rad);
 }
 
-DLLEXPORT void graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map_ptr, int N_col, double* colors, int intervals){
+void graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map_ptr, int N_col, double* colors, int intervals){
     using IntVector = vector<size_t>;
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
@@ -139,7 +139,7 @@ DLLEXPORT void graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVe
         (*map_ptr)[n] = mapping[n];
 } 
 
-DLLEXPORT void graph_combined_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map_ptr, int N_col, double* colors, int intervals){ 
+void graph_combined_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector_ptr _map_ptr, int N_col, double* colors, int intervals){ 
     using IntVector = vector<size_t>;
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
@@ -166,15 +166,17 @@ DLLEXPORT void graph_combined_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, In
 
 
 
-DLLEXPORT void graph_minimum_spanning_tree(Graph_ptr _g_ptr, Graph_ptr _mst_ptr, int _root) {
+void graph_minimum_spanning_tree(Graph_ptr _g_ptr, Graph_ptr _mst_ptr, int _root) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* mst_ptr = reinterpret_cast<AMGraph3D*>(_mst_ptr);
     auto root = AMGraph3D::NodeID(_root);
     *mst_ptr = minimum_spanning_tree(*g_ptr, root);
 }
 
-DLLEXPORT void graph_close_chordless_cycles(Graph_ptr _g_ptr, int _root, int hops, double rad) {
+void graph_close_chordless_cycles(Graph_ptr _g_ptr, int _root, int hops, double rad) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     auto root = AMGraph3D::NodeID(_root);
     close_chordless_cycles(*g_ptr, root, hops, rad);
 }
+
+} // namespace PyGEL

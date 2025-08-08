@@ -39,6 +39,18 @@ if (Use_GLGraphics)
     endif ()
 endif ()
 
+# Find pybind11 for PyGEL
+find_package(pybind11 QUIET)
+if(NOT pybind11_FOUND)
+    include(FetchContent)
+    FetchContent_Declare(
+        pybind11
+        GIT_REPOSITORY https://github.com/pybind/pybind11.git
+        GIT_TAG v2.11.1
+    )
+    FetchContent_MakeAvailable(pybind11)
+endif()
+
 # Define the GEL library
 add_library(GEL STATIC)
 
@@ -85,7 +97,7 @@ file(GLOB_RECURSE PYG_SRC_LIST ./src/PyGEL/*.cpp)
 
 # Define the PyGEL library. Again two versions depending on use of GLGraphics
 if (Use_GLGraphics)
-    add_library(PyGEL SHARED ${PYG_SRC_LIST})
+    pybind11_add_module(PyGEL ${PYG_SRC_LIST})
     target_include_directories(PyGEL PRIVATE ./src)
     if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
         target_include_directories(PyGEL PRIVATE ${glfw_SOURCE_DIR}/include)
@@ -93,7 +105,7 @@ if (Use_GLGraphics)
     target_link_libraries(PyGEL PRIVATE GEL glfw ${GLFW_LIBRARIES})
 else ()
     list(REMOVE_ITEM PYG_SRC_LIST "./src/PyGEL/Viewer.cpp")
-    add_library(PyGEL SHARED ${PYG_SRC_LIST})
+    pybind11_add_module(PyGEL ${PYG_SRC_LIST})
     target_include_directories(PyGEL PRIVATE ./src)
     target_link_libraries(PyGEL PRIVATE GEL)
 endif ()

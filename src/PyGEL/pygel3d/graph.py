@@ -1,6 +1,5 @@
 """ This module provides a Graph class and functionality for skeletonization using graphs. """
 from __future__ import annotations
-import ctypes as ct
 from random import shuffle
 from typing import TYPE_CHECKING
 # If TYPE_CHECKING is True, we import Manifold from hmesh for type hints.
@@ -39,14 +38,13 @@ class Graph:
         """ Get the neighbors of node n. The final argument is either 'n' or 'e'. If it is 'n'
         the function returns all neighboring nodes, and if it is 'e' it returns incident edges."""
         nbors = IntVector()
-        lib_py_gel.Graph_neighbors(self.obj, n, nbors.obj, ct.c_char(mode.encode('ascii')))
+        lib_py_gel.Graph_neighbors(self.obj, n, nbors.obj, mode.encode('ascii'))
         return nbors
     def positions(self):
         """ Get the vertex positions by reference. You can assign to the
         positions. """
-        pos = ct.POINTER(ct.c_double)()
-        n = lib_py_gel.Graph_positions(self.obj, ct.byref(pos))
-        return np.ctypeslib.as_array(pos,(n,3))
+        positions = lib_py_gel.Graph_positions(self.obj)
+        return np.array(positions)
     def average_edge_length(self):
         """ Returns the average edge length. """
         ael = lib_py_gel.Graph_average_edge_length(self.obj)

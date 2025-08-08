@@ -16,19 +16,19 @@
 using namespace HMesh;
 using namespace CGLA;
 using namespace std;
-using IntVector = vector<size_t>;
+
+namespace PyGEL {
 
 Manifold_ptr Manifold_new()
 {
-    return reinterpret_cast<Manifold_ptr>(new Manifold());
+    return new Manifold();
 }
 
 Manifold_ptr Manifold_from_triangles(int NV, int NF, double* vertices, int* faces) {
     Manifold* m_ptr = new Manifold();
     vector<int> face_valencies(NF,3);
     build(*m_ptr, NV, vertices, NF, &face_valencies[0], faces);
-    return reinterpret_cast<Manifold_ptr>(m_ptr);
-    
+    return m_ptr;
 }
 
 Manifold_ptr Manifold_from_points(int N, double* pts, double* _X_axis, double* _Y_axis) {
@@ -37,20 +37,18 @@ Manifold_ptr Manifold_from_points(int N, double* pts, double* _X_axis, double* _
     Vec3d X_axis(_X_axis[0],_X_axis[1],_X_axis[2]);
     Vec3d Y_axis(_Y_axis[0],_Y_axis[1],_Y_axis[2]);
     Manifold* m_ptr = new Manifold(Delaunay_triangulate(pts3d, X_axis, Y_axis));
-    return reinterpret_cast<Manifold_ptr>(m_ptr);
+    return m_ptr;
 }
-
-
 
 Manifold_ptr Manifold_copy(Manifold_ptr _self)
 {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
-    return reinterpret_cast<Manifold_ptr>(new Manifold(*self));
+    Manifold* self = _self;
+    return new Manifold(*self);
 }
 
 void Manifold_merge(Manifold_ptr _self, Manifold_ptr _other)
 {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     Manifold* other = reinterpret_cast<Manifold*>(_other);
     self->merge(*other);
 }
@@ -58,36 +56,36 @@ void Manifold_merge(Manifold_ptr _self, Manifold_ptr _other)
 
 void Manifold_delete(Manifold_ptr _self)
 {
-    delete reinterpret_cast<Manifold*>(_self);
+    delete _self;
 }
 
 size_t Manifold_positions(Manifold_ptr _self, double** pos) {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     auto N = self->positions_attribute_vector().size();
     *pos = reinterpret_cast<double*>(self->positions.data());
     return N;
 }
 
 size_t Manifold_no_allocated_vertices(Manifold_ptr _self) {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->allocated_vertices();
 }
 
 size_t Manifold_no_allocated_faces(Manifold_ptr _self) {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->allocated_faces();
 
 }
 
 size_t Manifold_no_allocated_halfedges(Manifold_ptr _self) {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->allocated_halfedges();
 }
 
 
 size_t Manifold_vertices(Manifold_ptr _self, IntVector_ptr _verts) {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
-    IntVector* verts = reinterpret_cast<IntVector*>(_verts);
+    Manifold* self = _self;
+    IntVector_ptr verts = (verts);
     auto N = self->no_vertices();
     verts->resize(N);
     size_t i=0;
@@ -97,8 +95,8 @@ size_t Manifold_vertices(Manifold_ptr _self, IntVector_ptr _verts) {
 }
 
 size_t Manifold_faces(Manifold_ptr _self, IntVector_ptr _faces) {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
-    IntVector* faces = reinterpret_cast<IntVector*>(_faces);
+    Manifold* self = _self;
+    IntVector_ptr faces = (faces);
     auto N = self->no_faces();
     faces->resize(N);
     size_t i=0;
@@ -108,8 +106,8 @@ size_t Manifold_faces(Manifold_ptr _self, IntVector_ptr _faces) {
 }
 
 size_t Manifold_halfedges(Manifold_ptr _self, IntVector_ptr _hedges) {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
-    IntVector* hedges = reinterpret_cast<IntVector*>(_hedges);
+    Manifold* self = _self;
+    IntVector_ptr hedges = (hedges);
     auto N = self->no_halfedges();
     hedges->resize(N);
     size_t i=0;
@@ -119,8 +117,8 @@ size_t Manifold_halfedges(Manifold_ptr _self, IntVector_ptr _hedges) {
 }
 
 size_t Manifold_circulate_vertex(Manifold_ptr _self, size_t _v, char mode, IntVector_ptr _nbrs) {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
-    IntVector* nbrs = reinterpret_cast<IntVector*>(_nbrs);
+    Manifold* self = _self;
+    IntVector_ptr nbrs = (nbrs);
     VertexID v(_v);
     size_t N = circulate_vertex_ccw(*self, v, [&](Walker w){
         switch(mode) {
@@ -139,8 +137,8 @@ size_t Manifold_circulate_vertex(Manifold_ptr _self, size_t _v, char mode, IntVe
 }
 
 size_t Manifold_circulate_face(Manifold_ptr _self, size_t _f, char mode, IntVector_ptr _nbrs) {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
-    IntVector* nbrs = reinterpret_cast<IntVector*>(_nbrs);
+    Manifold* self = _self;
+    IntVector_ptr nbrs = (nbrs);
     FaceID f(_f);
     size_t N = circulate_face_ccw(*self, f, [&](Walker w){
         switch(mode) {
@@ -159,7 +157,7 @@ size_t Manifold_circulate_face(Manifold_ptr _self, size_t _f, char mode, IntVect
 }
 
 size_t Manifold_add_face(Manifold_ptr _self, size_t no_verts, double* pos) {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
 
     auto pts = std::views::iota(0UL, no_verts) |
         std::views::transform([pos](size_t i) {
@@ -170,36 +168,36 @@ size_t Manifold_add_face(Manifold_ptr _self, size_t no_verts, double* pos) {
 }
 
 bool Manifold_remove_face(Manifold_ptr _self,size_t fid) {
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->remove_face(FaceID(fid));
 }
 
 bool Manifold_remove_edge(Manifold_ptr _self,size_t hid){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->remove_edge(HalfEdgeID(hid));
 }
 bool Manifold_remove_vertex(Manifold_ptr _self,size_t vid){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->remove_vertex(VertexID(vid));
 }
 
 bool Manifold_vertex_in_use(Manifold_ptr _self,size_t id){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->in_use(VertexID(id));
 }
 
 bool Manifold_face_in_use(Manifold_ptr _self,size_t id){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->in_use(FaceID(id));
 }
 
 bool Manifold_halfedge_in_use(Manifold_ptr _self,size_t id){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->in_use(HalfEdgeID(id));
 }
 
 bool Manifold_flip_edge(Manifold_ptr _self,size_t _h){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     HalfEdgeID h(_h);
     if(precond_flip_edge(*self, h)) {
         self->flip_edge(h);
@@ -209,7 +207,7 @@ bool Manifold_flip_edge(Manifold_ptr _self,size_t _h){
 }
 
 bool Manifold_collapse_edge(Manifold_ptr _self,size_t _h, bool avg_vertices){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     HalfEdgeID h(_h);
     if(precond_collapse_edge(*self, h)) {
         self->collapse_edge(HalfEdgeID(h),avg_vertices);
@@ -219,36 +217,36 @@ bool Manifold_collapse_edge(Manifold_ptr _self,size_t _h, bool avg_vertices){
 }
 
 size_t Manifold_split_face_by_edge(Manifold_ptr _self,size_t f, size_t v0, size_t v1){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->split_face_by_edge(FaceID(f), VertexID(v0), VertexID(v1)).get_index();
 }
 
 size_t Manifold_split_face_by_vertex(Manifold_ptr _self,size_t f){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->split_face_by_vertex(FaceID(f)).get_index();
 }
 
 size_t Manifold_split_edge(Manifold_ptr _self,size_t h){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->split_edge(HalfEdgeID(h)).get_index();
 }
 
 bool Manifold_stitch_boundary_edges(Manifold_ptr _self,size_t h0, size_t h1){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->stitch_boundary_edges(HalfEdgeID(h0), HalfEdgeID(h1));
 }
 bool Manifold_merge_faces(Manifold_ptr _self,size_t f, size_t h){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->merge_faces(FaceID(f),HalfEdgeID(h));
 }
 
 size_t Manifold_close_hole(Manifold_ptr _self,size_t h){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     return self->close_hole(HalfEdgeID(h)).get_index();
 }
 
 void Manifold_cleanup(Manifold_ptr _self){
-    Manifold* self = reinterpret_cast<Manifold*>(_self);
+    Manifold* self = _self;
     self->cleanup();
 }
 
@@ -391,5 +389,8 @@ double volume(const Manifold_ptr _m_ptr){
     return volume(*m_ptr);
 }
 
+} // namespace PyGEL
 
-size_t InvalidIndex = InvalidVertexID.get_index();
+namespace PyGEL {
+    size_t InvalidIndex = InvalidVertexID.get_index();
+}

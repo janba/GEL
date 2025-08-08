@@ -26,6 +26,8 @@ using namespace HMesh;
 using namespace CGLA;
 using namespace Geometry;
 
+namespace PyGEL {
+
 bool valid(const Manifold_ptr m_ptr) {
     return valid(*(reinterpret_cast<Manifold*>(m_ptr)));
 }
@@ -237,7 +239,7 @@ void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     Manifold* m_ref_ptr = reinterpret_cast<Manifold*>(_m_ref_ptr);
 
-    non_rigid_registration(*m_ptr, *m_ref_ptr);
+    ::non_rigid_registration(*m_ptr, *m_ref_ptr);
 }
 
 void rsr_recon(Manifold_ptr m_ptr, double* verts, double* normals, int v_num, int n_num,
@@ -290,7 +292,7 @@ void kill_degenerate_face_loops(Manifold_ptr _m_ptr, double thresh) {
 void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     Manifold* m_ref_ptr = reinterpret_cast<Manifold*>(_m_ref_ptr);
-    stable_marriage_registration(*m_ptr, *m_ref_ptr);
+    ::stable_marriage_registration(*m_ptr, *m_ref_ptr);
 }
  
 using MeshVec = vector<Manifold*>;
@@ -323,4 +325,6 @@ int count_boundary_curves(Manifold_ptr _m_ptr) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return count_boundary_curves(*m_ptr);
 }
+
+} // namespace PyGEL
 

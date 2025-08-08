@@ -16,6 +16,8 @@ using namespace HMesh;
 using namespace CGLA;
 using namespace Geometry;
 
+namespace PyGEL {
+
 class MeshDistance
 {
     Geometry::AABBTree aabb_tree;
@@ -127,3 +129,5 @@ bool MeshDistance_ray_intersect(MeshDistance_ptr _self, float *_p, float *_d, fl
     _d[1] = d[1];
     _d[2] = d[2];
 }
+
+} // namespace PyGEL

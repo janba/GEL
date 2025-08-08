@@ -1,43 +1,35 @@
 //
-//  PyGEL.h
+//  I3DTree.h
 //  PyGEL
 //
 //  Created by Jakob Andreas Bærentzen on 02/10/2017.
 //  Copyright © 2017 Jakob Andreas Bærentzen. All rights reserved.
 //
 
-#ifndef PyGEL_h
-#define PyGEL_h
+#ifndef I3DTree_h
+#define I3DTree_h
 
-#if defined(__APPLE__) || defined(__linux__)
-#define DLLEXPORT __attribute__ ((visibility ("default")))
-#else
-#define DLLEXPORT __declspec(dllexport)
-#endif
-
-#include <stdbool.h>
-
+#include <vector>
+#include <utility>
 #include "IntVector.h"
 #include "Vec3dVector.h"
+#include <GEL/CGLA/Vec3d.h>
+#include <GEL/Geometry/KDTree.h>
 
-typedef char* I3DTree_ptr;
+// Define I3DTree as a specific KDTree type
+using I3DTree = Geometry::KDTree<CGLA::Vec3d, size_t>;
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-    DLLEXPORT I3DTree_ptr I3DTree_new();
-    DLLEXPORT void I3DTree_delete(I3DTree_ptr self);
-    DLLEXPORT void I3DTree_insert(I3DTree_ptr tree, double x, double y, double z, size_t v);
-    DLLEXPORT void I3DTree_build(I3DTree_ptr tree);
-    DLLEXPORT size_t I3DTree_closest_point(I3DTree_ptr tree, double x, double y, double z, double r,
-                                           double* key, size_t* val);
-    DLLEXPORT size_t I3DTree_in_sphere(I3DTree_ptr tree, double x, double y, double z, double r,
-                                       Vec3dVector_ptr keys, IntVector_ptr vals);
-    DLLEXPORT size_t I3DTree_m_closest_points(I3DTree_ptr tree, double x, double y, double z, double r, int m,
-                                              Vec3dVector_ptr keys, IntVector_ptr vals);
+namespace PyGEL {
+    using I3DTreePtr = I3DTree*;
+    using I3DTree_ptr = I3DTreePtr; // C-style alias
     
-#ifdef __cplusplus
+    I3DTree_ptr I3DTree_new();
+    void I3DTree_delete(I3DTree_ptr self);
+    void I3DTree_insert(I3DTree_ptr tree, double x, double y, double z, size_t v);
+    void I3DTree_build(I3DTree_ptr tree);
+    std::pair<std::vector<double>, size_t> I3DTree_closest_point(I3DTree_ptr tree, double x, double y, double z, double r);
+    std::pair<Vec3dVector, IntVector> I3DTree_in_sphere(I3DTree_ptr tree, double x, double y, double z, double r);
+    std::pair<Vec3dVector, IntVector> I3DTree_m_closest_points(I3DTree_ptr tree, double x, double y, double z, double r, int m);
 }
-#endif
 
-#endif /* PyGEL_h */
+#endif /* I3DTree_h */
