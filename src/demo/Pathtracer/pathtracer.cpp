@@ -5,8 +5,7 @@
 #include <GL/glut.h>
 #endif
 
-#include <GEL/CGLA/Vec2i.h>
-#include <GEL/CGLA/Vec3uc.h>
+#include <GEL/CGLA/Vec.h>
 
 #include "scene.h"
 #include "camera.h"

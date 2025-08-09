@@ -6,9 +6,9 @@
 //
 //
 
-#ifndef __GEL__glut_main__
-#define __GEL__glut_main__
+#ifndef GEL_glut_main
+#define GEL_glut_main
 
 #include <iostream>
 
-#endif /* defined(__GEL__glut_main__) */
+#endif

@@ -5,9 +5,7 @@
  * ----------------------------------------------------------------------- */
 
 #include <cmath>
-#include <stdlib.h>
-#include <iostream>
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/ThreeDDDA.h>
 
 using namespace std;

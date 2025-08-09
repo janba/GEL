@@ -13,12 +13,8 @@
 #define UTIL_PARSE_H
 
 #include <string>
-#include <sstream>
 #include <vector>
-#include <GEL/CGLA/Vec4f.h>
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Vec2f.h>
-#include <GEL/CGLA/Vec2i.h>
+#include <GEL/CGLA/Definitions.h>
 
 namespace Util {
 	std::string floatToString(float value);

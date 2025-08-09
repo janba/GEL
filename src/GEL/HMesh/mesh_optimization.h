@@ -9,12 +9,12 @@
  * @brief Functions for energy minimization based mesh optimization.
  */
 
-#ifndef __HMESH_MESH_OPTIMIZATION_H
-#define __HMESH_MESH_OPTIMIZATION_H
+#ifndef HMESH_MESH_OPTIMIZATION_H
+#define HMESH_MESH_OPTIMIZATION_H
 
 #include <algorithm>
 #include <GEL/HMesh/Manifold.h>
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/Implicit.h>
 
 namespace HMesh

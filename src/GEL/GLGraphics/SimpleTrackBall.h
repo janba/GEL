@@ -8,11 +8,11 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#ifndef __GLGRAPHICS_SIMPLETRACKBALL_H__
-#define __GLGRAPHICS_SIMPLETRACKBALL_H__
+#ifndef GLGRAPHICS_SIMPLETRACKBALL_H
+#define GLGRAPHICS_SIMPLETRACKBALL_H
 
 #include <GEL/CGLA/CGLA-util.h>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 
 
 namespace GLGraphics

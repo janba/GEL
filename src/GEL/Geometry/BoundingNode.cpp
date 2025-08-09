@@ -7,7 +7,8 @@
 #include <GEL/Geometry/BoundingNode.h>
 #include <GEL/Geometry/BoundingINode.h>
 #include <GEL/Geometry/BoundingLNode.h>
-
+#include <GEL/Geometry/AABox.h>
+#include <GEL/Geometry/OBox.h>
 
 using namespace std;
 using namespace CGLA;

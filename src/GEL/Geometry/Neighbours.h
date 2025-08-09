@@ -9,12 +9,10 @@
  * @brief A number of arrays with relative 3D voxel indices.
  */
 
-#ifndef __GEOMETRY_NEIGHBOURS_H
-#define __GEOMETRY_NEIGHBOURS_H
+#ifndef GEOMETRY_NEIGHBOURS_H
+#define GEOMETRY_NEIGHBOURS_H
 
-#include <GEL/CGLA/Vec3i.h>
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 
 namespace Geometry
 {

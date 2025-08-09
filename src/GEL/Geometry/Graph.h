@@ -15,7 +15,7 @@
 #include <unordered_set>
 #include <vector>
 #include <limits>
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Util/Range.h>
 #include <GEL/Util/AttribVec.h>
 

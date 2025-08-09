@@ -9,10 +9,10 @@
  * @brief Tessellation of a parametric surface. Based on algorithm by Velho.
  */
 
-#ifndef __GEOMETRY_TESSELATE_H
-#define __GEOMETRY_TESSELATE_H
+#ifndef GEOMETRY_TESSELATE_H
+#define GEOMETRY_TESSELATE_H
 
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Util/Grid2D.h>
 #include <GEL/Geometry/IndexedFaceSet.h>
 

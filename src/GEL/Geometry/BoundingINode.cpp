@@ -6,6 +6,7 @@
 
 #include <GEL/Geometry/AABox.h>
 #include <GEL/Geometry/BoundingINode.h>
+#include <GEL/Geometry/OBox.h>
 
 using namespace std;
 using namespace CGLA;

@@ -1,4 +1,6 @@
+#include <GEL/CGLA/eigensolution.h>
 #include <GEL/Geometry/normal.h>
+#include <GEL/CGLA/Mat.h>
 
 namespace Geometry {
 

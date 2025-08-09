@@ -1,5 +1,5 @@
-#ifndef __PATHTRACER_GLASS__H__
-#define __PATHTRACER_GLASS__H__
+#ifndef PATHTRACER_GLASS_H
+#define PATHTRACER_GLASS_H
 
 #include "material.h"
 

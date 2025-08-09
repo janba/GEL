@@ -8,7 +8,7 @@
 
 #include <fstream>
 #include <vector>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/HMesh/AttributeVector.h>

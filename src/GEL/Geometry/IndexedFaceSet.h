@@ -9,12 +9,11 @@
  * @brief Simple indexed triangle mesh data structure.
  */
 
-#ifndef __GEOMETRY_GEOMETRY_INDEXED_FACE_SET_H__
-#define __GEOMETRY_GEOMETRY_INDEXED_FACE_SET_H__
+#ifndef GEOMETRY_GEOMETRY_INDEXED_FACE_SET_H
+#define GEOMETRY_GEOMETRY_INDEXED_FACE_SET_H
 
 #include <vector>
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec.h>
 
 namespace Geometry
 {

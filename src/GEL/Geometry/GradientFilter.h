@@ -10,13 +10,12 @@
  * voxel grid and acts as a filter for gradient computation.
  */
 
-#ifndef __GEOMETRY_VOXELGRID_GRADIENTFILTER_H
-#define __GEOMETRY_VOXELGRID_GRADIENTFILTER_H
-// Author: J. Andreas Bærentzen,
+#ifndef GEOMETRY_VOXELGRID_GRADIENTFILTER_H
+#define GEOMETRY_VOXELGRID_GRADIENTFILTER_H
+// Author: J. Andreas Bï¿½rentzen,
 // Created: Wed Feb 13 11:00:1
 
-#include <GEL/CGLA/Vec3i.h>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 
 
 namespace Geometry

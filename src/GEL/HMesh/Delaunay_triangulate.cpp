@@ -10,7 +10,7 @@
 #include <GEL/Geometry/jrs_triangle.h>
 #include <GEL/HMesh/Delaunay_triangulate.h>
 #include <GEL/HMesh/HMesh.h>
-#include <GEL/CGLA/Vec2d.h>
+#include <GEL/CGLA/Vec.h>
 
 using namespace CGLA;
 using namespace std;

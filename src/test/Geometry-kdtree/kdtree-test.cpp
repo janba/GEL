@@ -8,7 +8,7 @@
 
 #include <cstdlib>
 #include <GEL/Geometry/KDTree.h>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 
 using namespace GEO;
 using namespace std;

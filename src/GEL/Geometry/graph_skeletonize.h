@@ -11,7 +11,7 @@
 
 #include <GEL/Util/AttribVec.h>
 #include <GEL/Geometry/Graph.h>
-#include "GEL/CGLA/Vec3d.h"
+#include <GEL/CGLA/Vec.h>
 
 namespace Geometry {
 

@@ -9,10 +9,10 @@
  * @brief Trilinear filter to apply to voxel grids.
  */
 
-#ifndef __GEOMETRY_VOXELGRID_TRILINFILTER_H
-#define __GEOMETRY_VOXELGRID_TRILINFILTER_H
+#ifndef GEOMETRY_VOXELGRID_TRILINFILTER_H
+#define GEOMETRY_VOXELGRID_TRILINFILTER_H
 
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/RGrid.h>
 #include <GEL/Geometry/Neighbours.h>
 

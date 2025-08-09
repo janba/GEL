@@ -8,15 +8,14 @@
  * @brief Tool for rendering a HMesh Manifold.
  */
 
-#ifndef __MESHEDIT_RENDERER_H__
-#define __MESHEDIT_RENDERER_H__
+#ifndef MESHEDIT_RENDERER_H
+#define MESHEDIT_RENDERER_H
 
-#include <GEL/CGLA/Vec2d.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/GL/glew.h>
 #include <GEL/GLGraphics/draw.h>
 #include <GEL/GLGraphics/Console.h>
 #include <GEL/GLGraphics/IDBufferWireFrameRenderer.h>
-#include <GEL/CGLA/Vec4d.h>
 
 namespace HMesh
 {

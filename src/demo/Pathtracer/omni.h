@@ -1,5 +1,5 @@
-#ifndef __PATHTRACER_OMNI__H__
-#define __PATHTRACER_OMNI__H__
+#ifndef PATHTRACER_OMNI_H
+#define PATHTRACER_OMNI_H
 
 #include "luminaire.h"
 

@@ -11,7 +11,7 @@
 #include <map>
 #include <random>
 
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 #include "SphereDelaunay.h"
 
 using namespace std;

@@ -6,12 +6,7 @@
 
 #include <GEL/CGLA/eigensolution.h>
 
-#include <GEL/CGLA/Mat2x2f.h>
-#include <GEL/CGLA/Mat3x3f.h>
-#include <GEL/CGLA/Mat4x4f.h>
-#include <GEL/CGLA/Mat2x2d.h>
-#include <GEL/CGLA/Mat3x3d.h>
-#include <GEL/CGLA/Mat4x4d.h>
+#include <GEL/CGLA/Mat.h>
 
 #include <iostream>
 

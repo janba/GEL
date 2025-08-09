@@ -9,12 +9,11 @@
  * @brief Render a Manifold in wireframe. Not fast - but general.
  */
 
-#ifndef __GLGRAPHICS_IDBUFFERWIREFRAMERENDERER_H__
-#define __GLGRAPHICS_IDBUFFERWIREFRAMERENDERER_H__
+#ifndef GLGRAPHICS_IDBUFFERWIREFRAMERENDERER_H
+#define GLGRAPHICS_IDBUFFERWIREFRAMERENDERER_H
 
 #include <GEL/GL/glew.h>
-#include <GEL/CGLA/Vec3uc.h>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/HMesh/Manifold.h>
 
 namespace GLGraphics

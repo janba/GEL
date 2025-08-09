@@ -9,11 +9,12 @@
  * @brief A simple 2D grid template that is often useful.
  */
 
-#ifndef __UTIL_GRID2D_H
-#define __UTIL_GRID2D_H
+#ifndef UTIL_GRID2D_H
+#define UTIL_GRID2D_H
 
 #include <vector>
-#include <GEL/CGLA/Vec2i.h>
+#include <cassert>
+#include <GEL/CGLA/Vec.h>
 
 namespace Util
 {
