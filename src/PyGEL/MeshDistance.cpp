@@ -94,40 +94,33 @@ void MeshDistance_delete(MeshDistance_ptr _self)
     delete self;
 }
 
-void MeshDistance_signed_distance(MeshDistance_ptr _self,
-                                  int no_query_points,
-                                  const float *p,
-                                  float *d,
-                                  float upper)
+std::vector<float> MeshDistance_signed_distance(MeshDistance_ptr _self, const std::vector<float>& p, float upper)
+
 {
     MeshDistance *self = reinterpret_cast<MeshDistance *>(_self);
-    for (int i = 0; i < no_query_points; ++i)
+    std::vector<float> d(p.size() / 3);
+    for (size_t i = 0; i < p.size() / 3; ++i)
         d[i] = self->signed_distance(Vec3f(p[3 * i], p[3 * i + 1], p[3 * i + 2]), upper);
+    return d;
 }
 
-void MeshDistance_ray_inside_test(MeshDistance_ptr _self,
-                                  int no_query_points,
-                                  const float *p,
-                                  int *s,
-                                  int no_rays)
+std::vector<int> MeshDistance_ray_inside_test(MeshDistance_ptr self, const std::vector<float>& p, int no_rays)
 {
-    MeshDistance *self = reinterpret_cast<MeshDistance *>(_self);
-    for (int i = 0; i < no_query_points; ++i)
-        s[i] = self->ray_inside_test(Vec3f(p[3 * i], p[3 * i + 1], p[3 * i + 2]), no_rays);
+    MeshDistance *dist = reinterpret_cast<MeshDistance *>(self);
+    std::vector<int> results;
+    for (size_t i = 0; i < p.size() / 3; ++i)
+    {
+        CGLA::Vec3f point(p[3 * i], p[3 * i + 1], p[3 * i + 2]);
+        results.push_back(dist->ray_inside_test(point, no_rays));
+    }
+    return results;
 }
 
-bool MeshDistance_ray_intersect(MeshDistance_ptr _self, float *_p, float *_d, float *t)
+
+bool MeshDistance_ray_intersect(MeshDistance_ptr _self, CGLA::Vec3f& p, CGLA::Vec3f& d, float *t)
 {
     MeshDistance *self = reinterpret_cast<MeshDistance *>(_self);
-    Vec3f p(_p[0], _p[1], _p[2]);
-    Vec3f d(_d[0], _d[1], _d[2]);
     return self->ray_intersect(p, d, *t);
-    _p[0] = p[0];
-    _p[1] = p[1];
-    _p[2] = p[2];
-    _d[0] = d[0];
-    _d[1] = d[1];
-    _d[2] = d[2];
 }
 
 } // namespace PyGEL

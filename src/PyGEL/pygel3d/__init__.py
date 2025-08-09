@@ -34,7 +34,7 @@ __all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial"]
 
 import os
 import sys
-import glob
+from glob import glob
 import importlib
 import importlib.util
 import numpy as np  # kept for API compatibility; modules import this symbol
@@ -44,8 +44,8 @@ def _get_script_path():
 
 def _import_pybind_from_package_dir():
     try:
-        module_path = _get_script_path()
         module_name = "PyGEL"
+        module_path = glob(_get_script_path() + "/" + module_name + "*.so")[0]
         spec = importlib.util.spec_from_file_location(module_name, module_path)
         PyGEL = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(PyGEL)

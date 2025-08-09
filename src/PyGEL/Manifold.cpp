@@ -16,6 +16,8 @@
 using namespace HMesh;
 using namespace CGLA;
 using namespace std;
+namespace py = pybind11;
+
 
 namespace PyGEL {
 
@@ -24,18 +26,17 @@ Manifold_ptr Manifold_new()
     return new Manifold();
 }
 
-Manifold_ptr Manifold_from_triangles(int NV, int NF, double* vertices, int* faces) {
+Manifold_ptr Manifold_from_triangles(const std::vector<double>& vertices, const std::vector<int>& faces) {
     Manifold* m_ptr = new Manifold();
-    vector<int> face_valencies(NF,3);
-    build(*m_ptr, NV, vertices, NF, &face_valencies[0], faces);
+    vector<int> face_valencies(faces.size() / 3, 3);
+    build(*m_ptr, vertices.size() / 3, vertices.data(), 
+    faces.size() / 3, &face_valencies[0], faces.data());
     return m_ptr;
 }
 
-Manifold_ptr Manifold_from_points(int N, double* pts, double* _X_axis, double* _Y_axis) {
+Manifold_ptr Manifold_from_points(int N, const std::vector<double>& pts, const Vec& X_axis, const Vec& Y_axis) {
     vector<Vec3d> pts3d(N);
-    memcpy(pts3d.data(), pts, N * 3 * sizeof(double));
-    Vec3d X_axis(_X_axis[0],_X_axis[1],_X_axis[2]);
-    Vec3d Y_axis(_Y_axis[0],_Y_axis[1],_Y_axis[2]);
+    memcpy(pts3d.data(), pts.data(), N * 3 * sizeof(double));
     Manifold* m_ptr = new Manifold(Delaunay_triangulate(pts3d, X_axis, Y_axis));
     return m_ptr;
 }
@@ -59,11 +60,11 @@ void Manifold_delete(Manifold_ptr _self)
     delete _self;
 }
 
-size_t Manifold_positions(Manifold_ptr _self, double** pos) {
+py::array_t<Scalar> Manifold_positions(Manifold_ptr _self) {
     Manifold* self = _self;
     auto N = self->positions_attribute_vector().size();
-    *pos = reinterpret_cast<double*>(self->positions.data());
-    return N;
+    py::array_t<Scalar> data(N*3, reinterpret_cast<Scalar*>(self->positions.data()));
+    return data;
 }
 
 size_t Manifold_no_allocated_vertices(Manifold_ptr _self) {

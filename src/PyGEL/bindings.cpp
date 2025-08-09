@@ -13,6 +13,7 @@
 #include "Vec3dVector.h"
 #include "IntVector.h"
 #include "MeshDistance.h"
+#include "Viewer.h"
 
 namespace py = pybind11;
 using namespace PyGEL;
@@ -26,6 +27,7 @@ PYBIND11_MODULE(PyGEL, m) {
     // Register opaque types for Python compatibility
     py::class_<Geometry::AMGraph3D>(m, "Graph_ptr");
     py::class_<HMesh::Manifold>(m, "Manifold_ptr");
+    py::class_<GLManifoldViewer>(m, "GLManifoldViewer_ptr");
     py::class_<std::vector<size_t>>(m, "IntVector");
     py::class_<std::vector<CGLA::Vec3d>>(m, "Vec3dVector");
     py::class_<std::vector<Manifold_ptr>>(m, "MeshVec_ptr");  
@@ -86,7 +88,7 @@ PYBIND11_MODULE(PyGEL, m) {
     m.def("Graph_no_edges", [](Graph_ptr self) -> size_t {
         return self->no_edges();
     });
-    
+
     // MANIFOLD FUNCTIONS - Using existing wrapper functions where available
     m.def("Manifold_new", []() -> Manifold_ptr {
         return Manifold_new();
@@ -101,19 +103,19 @@ PYBIND11_MODULE(PyGEL, m) {
         return Manifold_copy(self);
     });
     
-    m.def("Manifold_from_triangles", [](int NV, int NF, const std::vector<double>& vertices, const std::vector<int>& faces) -> Manifold_ptr {
-        return Manifold_from_triangles(NV, NF, vertices, faces);
+    m.def("Manifold_from_triangles", [](const std::vector<double>& vertices, const std::vector<int>& faces) -> Manifold_ptr {
+        return Manifold_from_triangles(vertices, faces);
     });
     
     m.def("Manifold_from_points", [](int N, const std::vector<double>& pts, const std::vector<double>& X_axis, const std::vector<double>& Y_axis) -> Manifold_ptr {
-        return Manifold_from_points(N, pts, X_axis, Y_axis);
+        return Manifold_from_points(N, pts, Vec(X_axis[0], X_axis[1], X_axis[2]), Vec(Y_axis[0], Y_axis[1], Y_axis[2]));
     });
     
     m.def("Manifold_merge", [](Manifold_ptr self, Manifold_ptr other) {
         Manifold_merge(self, other);
     });
     
-    m.def("Manifold_positions", [](Manifold_ptr self) -> std::vector<double> {
+    m.def("Manifold_positions", [](Manifold_ptr self) -> py::array_t<Scalar> {
         return Manifold_positions(self);
     });
     
@@ -743,8 +745,12 @@ PYBIND11_MODULE(PyGEL, m) {
         return MeshDistance_ray_inside_test(static_cast<MeshDistance_ptr>(self), p, no_rays);
     });
     
-    m.def("MeshDistance_ray_intersect", [](void* self, const std::vector<float>& p, const std::vector<float>& d) -> std::pair<bool, float> {
-        return MeshDistance_ray_intersect(static_cast<MeshDistance_ptr>(self), p, d);
+    m.def("MeshDistance_ray_intersect", [](void* self, const std::vector<float>& _p, const std::vector<float>& _d) -> std::pair<bool, float> {
+        CGLA::Vec3f p(_p[0], _p[1], _p[2]);
+        CGLA::Vec3f d(_d[0], _d[1], _d[2]);
+        float t;
+        bool result = MeshDistance_ray_intersect(static_cast<MeshDistance_ptr>(self), p, d, &t);
+        return {result, t};
     });
     
     // Test functions
@@ -770,4 +776,38 @@ PYBIND11_MODULE(PyGEL, m) {
         Manifold_delete(m);
         return result;
     });
+
+    // VIEWER (GLManifoldViewer) bindings (only if built with GLGraphics)
+    m.def("GLManifoldViewer_new", []() -> GLManifoldViewer_ptr { return GLManifoldViewer_new(); });
+
+
+    m.def("GLManifoldViewer_delete", [](GLManifoldViewer_ptr v) { GLManifoldViewer_delete(v); });
+
+    m.def("GLManifoldViewer_clone_controller", [](GLManifoldViewer_ptr self, GLManifoldViewer_ptr other) {
+        GLManifoldViewer_clone_controller(self, other);
+    });
+
+    m.def("GLManifoldViewer_display", [](GLManifoldViewer_ptr self,
+                                          Manifold_ptr m_ptr,
+                                          Graph_ptr g_ptr,
+                                          const std::string& mode,
+                                          bool smooth_shading,
+                                          const std::vector<float>& bg_color,
+                                          std::vector<double>& attrib_vec,
+                                          bool reset_view,
+                                          bool once) {
+        char c = mode.empty() ? 'n' : mode[0];
+        Vec3f bg(bg_color[0], bg_color[1], bg_color[2]);
+        GLManifoldViewer_display(self, m_ptr, g_ptr, c, smooth_shading, bg, attrib_vec, reset_view, once);
+    }, py::arg("viewer"), py::arg("manifold")=nullptr, py::arg("graph")=nullptr, py::arg("mode")="n",
+       py::arg("smooth_shading")=true, py::arg("bg_color")=std::vector<float>{0.1f,0.1f,0.1f},
+       py::arg("attrib_vec")=std::vector<double>{}, py::arg("reset_view")=false, py::arg("once")=false);
+
+    // m.def("GLManifoldViewer_get_annotation_points", [](GLManifoldViewer_ptr self) -> std::vector<double> {
+    //     return GLManifoldViewer_get_annotation_points(self);
+    // });
+
+    // m.def("GLManifoldViewer_set_annotation_points", [](GLManifoldViewer_ptr self, const std::vector<double>& data) {
+    //     GLManifoldViewer_set_annotation_points(self, data);
+    // });
 }

@@ -26,92 +26,6 @@ using namespace GLGraphics;
 using namespace HMesh;
 using namespace std;
 
-struct DisplayParameters {
-    Manifold* m_ptr = 0;
-    AMGraph3D* g_ptr = 0;
-    char mode;
-    bool smooth_shading;
-    Vec3f* bg_color;
-    double* attrib_vec;
-    bool reset_view;
-};
-
-class GLManifoldViewer {
-    GLFWwindow* window = 0;
-    std::vector<CGLA::Vec3d> annotation_points;
-    bool active_annotation = false;
-    bool do_pick = false;
-    bool mouse_down = false;
-    std::shared_ptr<GLGraphics::GLViewController> glv = nullptr;
-    GLGraphics::ManifoldRenderer* renderer = 0;
-    GLuint graph_display_list = 0;
-    bool escaping = false;
-    float xscale, yscale;
-
-public:
-    GLManifoldViewer();
-    ~GLManifoldViewer();
-    
-    bool was_initialized() const {return glv != nullptr;}
-    
-    DisplayParameters display_parameters;
-
-    void display_init();
-
-    void clone_controller(const GLManifoldViewer* other) {
-        glv = other->glv;
-    }
-    
-    void display();
-    
-    CGLA::Vec2i mouse_pos;
-
-    void roll_ball() {
-        if(mouse_down)
-            glv->roll_ball(mouse_pos);
-    }
-    void grab_ball(GLGraphics::TrackBallAction tba) {
-        glv->grab_ball(tba, mouse_pos);
-        mouse_down = true;
-    }
-    void release_ball() {
-        glv->release_ball();
-        mouse_down = false;
-    }
-    
-    void set_picking_true() {
-        do_pick = true;
-    }
-    
-    void set_escaping_true() {
-        escaping = true;
-        
-    }
-    
-    bool get_escaping() {
-        if(escaping) {
-            escaping = false;
-            return true;
-        }
-        return false;
-    }
-    
-    void clear_annotation() {
-        annotation_points.clear();
-        active_annotation = false;
-    }
-    
-    std::vector<CGLA::Vec3d>& get_annotation_points() {
-        return annotation_points;
-    }
-    
-    void set_annotation_points(const std::vector<CGLA::Vec3d>& pts) {
-        active_annotation = pts.size()>0 ? true : false;
-        annotation_points = pts;
-    }
-
-};
-
 
 const vector<Vec3f> kelly_colors = {
     Vec3f(255, 179, 0)/255.0,
@@ -141,7 +55,8 @@ const vector<Vec3f> kelly_colors = {
 map<GLFWwindow*,GLManifoldViewer*> wv_map;
 
 /** Here we create a renderer for a mesh */
-ManifoldRenderer* render_factory(char mode, Manifold& m, bool smooth_shading, double *_attrib_vec) {
+ManifoldRenderer* render_factory(char mode, Manifold& m, bool smooth_shading, 
+    const vector<double>& _attrib_vec) {
     ManifoldRenderer* renderer = 0;
     switch(mode) {
         case 'w':
@@ -268,7 +183,7 @@ void GLManifoldViewer::display_init() {
     glfwMakeContextCurrent(window);
     glEnable(GL_DEPTH_TEST);
 
-    const Vec3f& c = *(display_parameters.bg_color);
+    const Vec3f& c = display_parameters.bg_color;
     glClearColor(c[0],c[1],c[2],1.0);
     Vec3d ctr;
     float rad;
@@ -295,7 +210,7 @@ void GLManifoldViewer::display_init() {
         renderer = render_factory(display_parameters.mode,
                                   *(display_parameters.m_ptr),
                                   display_parameters.smooth_shading,
-                                  display_parameters.attrib_vec);
+                                  (display_parameters.attrib_vec ? *display_parameters.attrib_vec : std::vector<double>()));
     
     if (display_parameters.g_ptr != 0) {
         graph_display_list = glGenLists(1);
@@ -431,29 +346,27 @@ void GLManifoldViewer_event_loop(bool once) {
 
 GLManifoldViewer_ptr GLManifoldViewer_new() {
     static GLFWResource glfw_resource;
-    return reinterpret_cast<GLManifoldViewer_ptr>(new GLManifoldViewer);
+    return new GLManifoldViewer;
 }
 
 
 void GLManifoldViewer_display(GLManifoldViewer_ptr _self,
-                              Manifold_ptr _m,
-                              Graph_ptr _g,
-                              char mode,
-                              bool smooth_shading,
-                              float* _bg_color,
-                              double* attrib_vec,
-                              bool reset_view,
-                              bool once) {
+                            Manifold_ptr _m,
+                            Graph_ptr _g,
+                            char mode,
+                            bool smooth_shading,
+                            const CGLA::Vec3f& bg_color, 
+                            std::vector<double>& attrib_vec, 
+                            bool reset_view,
+                            bool once) {
     GLManifoldViewer* self = reinterpret_cast<GLManifoldViewer*>(_self);
-    self->display_parameters = {
-        reinterpret_cast<Manifold*>(_m),
-        reinterpret_cast<AMGraph3D*>(_g),
-        mode,
-        smooth_shading,
-        reinterpret_cast<Vec3f*>(_bg_color),
-        attrib_vec,
-        reset_view
-    };
+    self->display_parameters.m_ptr = reinterpret_cast<Manifold*>(_m);
+    self->display_parameters.g_ptr = reinterpret_cast<AMGraph3D*>(_g);
+    self->display_parameters.mode = mode;
+    self->display_parameters.smooth_shading = smooth_shading;
+    self->display_parameters.bg_color = bg_color;
+    self->display_parameters.attrib_vec = &attrib_vec;
+    self->display_parameters.reset_view = reset_view;
     self->display_init();
     GLManifoldViewer_event_loop(once);
 }
@@ -467,21 +380,18 @@ void GLManifoldViewer_delete(GLManifoldViewer_ptr _self) {
     delete reinterpret_cast<GLManifoldViewer*>(_self);
 }
 
-size_t GLManifoldViewer_get_annotation_points(GLManifoldViewer_ptr _self, double** data) {
-    GLManifoldViewer* self = reinterpret_cast<GLManifoldViewer*>(_self);
-    auto& ap = self->get_annotation_points();
-    size_t N = ap.size();
-    *data = reinterpret_cast<double*>(&ap[0]);
-    return N;
-}
+// std::vector<double>& GLManifoldViewer_get_annotation_points(GLManifoldViewer_ptr _self) {
+//     GLManifoldViewer* self = reinterpret_cast<GLManifoldViewer*>(_self);
+//     return self->get_annotation_points();
+// }
 
-void GLManifoldViewer_set_annotation_points(GLManifoldViewer_ptr _self, int n, double* data) {
-    GLManifoldViewer* self = reinterpret_cast<GLManifoldViewer*>(_self);
-    vector<Vec3d> pts(n);
-    for(int i = 0; i<n;++i)
-        pts[i] = Vec3d(data[3*i], data[3*i+1], data[3*i+2]);
-    self->set_annotation_points(pts);
-}
+// void GLManifoldViewer_set_annotation_points(GLManifoldViewer_ptr _self, int n, double* data) {
+//     GLManifoldViewer* self = reinterpret_cast<GLManifoldViewer*>(_self);
+//     vector<Vec3d> pts(n);
+//     for(int i = 0; i<n;++i)
+//         pts[i] = Vec3d(data[3*i], data[3*i+1], data[3*i+2]);
+//     self->set_annotation_points(pts);
+// }
 
 } // namespace PyGEL
 

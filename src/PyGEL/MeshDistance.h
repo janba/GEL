@@ -25,7 +25,7 @@ namespace PyGEL {
     
     std::vector<float> MeshDistance_signed_distance(MeshDistance_ptr self, const std::vector<float>& p, float upper);
     std::vector<int> MeshDistance_ray_inside_test(MeshDistance_ptr self, const std::vector<float>& p, int no_rays);
-    std::pair<bool, float> MeshDistance_ray_intersect(MeshDistance_ptr self, const std::vector<float>& p, const std::vector<float>& d);
+    bool MeshDistance_ray_intersect(MeshDistance_ptr self, CGLA::Vec3f& _p, CGLA::Vec3f& _d, float *t);
 }
 
 #endif /* MeshDistance_hpp */

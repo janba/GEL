@@ -64,13 +64,14 @@ try:
             window has been closed by the user. If True, the function returns immediately.
             If False, the viewer enters an event loop and will return when the user closes
             the window. default=True. """
-            if len(data) > 1:
-                data_np = np.array(data, dtype=np.float64)
-                bg_col_np = np.array(bg_col, dtype=np.float32) if len(bg_col) == 3 else np.array([0,0,0], dtype=np.float32)
-                lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, g.obj, mode.encode('ascii'), smooth, bg_col_np, data_np, reset_view, once)
-            else:
-                bg_col_np = np.array(bg_col, dtype=np.float32) if len(bg_col) == 3 else np.array([0,0,0], dtype=np.float32)
-                lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, g.obj, mode.encode('ascii'), smooth, bg_col_np, None, reset_view, once)
+            lib_py_gel.GLManifoldViewer_display(self.obj, m.obj)
+            # if len(data) > 1:
+            #     data_np = np.array(data, dtype=np.float64)
+            #     bg_col_np = np.array(bg_col, dtype=np.float32) if len(bg_col) == 3 else np.array([0,0,0], dtype=np.float32)
+            #     lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, g.obj, mode.encode('ascii'), smooth, bg_col_np, data_np, reset_view, once)
+            # else:
+            #     bg_col_np = np.array(bg_col, dtype=np.float32) if len(bg_col) == 3 else np.array([0,0,0], dtype=np.float32)
+            #     lib_py_gel.GLManifoldViewer_display(self.obj, m.obj, g.obj, mode.encode('ascii'), smooth, bg_col_np, None, reset_view, once)
 
         def get_annotation_points(self):
             """ Get the annotation points. It is possible to add points to the
