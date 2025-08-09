@@ -129,7 +129,7 @@ namespace HMesh
         HalfEdgeID he = kernel.out(hov);
         HalfEdgeID last = he;
 		do {
-			assert(kernel.vert(kernel.opp(he)) == hov);
+			GEL_ASSERT_EQ(kernel.vert(kernel.opp(he)), hov);
             kernel.set_vert(kernel.opp(he), hv);
             he = kernel.next(kernel.opp(he));
         }
@@ -204,7 +204,7 @@ namespace HMesh
             h = kernel.next(h);
         }
         kernel.set_face(h, f2);
-        assert(h != h1);
+        GEL_ASSERT_NEQ(h, h1);
 
         // create a new halfedge hb to connect v0 and v1.
         HalfEdgeID hb = kernel.add_halfedge();
@@ -218,11 +218,11 @@ namespace HMesh
         glue(ha, hb);
 
         // assert sanity of operation
-        assert(kernel.next(kernel.opp(kernel.prev(h1))) == h0);
-        assert(kernel.next(kernel.opp(kernel.prev(h0))) == h1);
-        assert(kernel.face(kernel.next(hb)) == f2);
-        assert(kernel.face(kernel.next(kernel.next(hb))) == f2);
-        assert(kernel.face(hb) == f2);
+        GEL_ASSERT_EQ(kernel.next(kernel.opp(kernel.prev(h1))), h0);
+        GEL_ASSERT_EQ(kernel.next(kernel.opp(kernel.prev(h0))), h1);
+        GEL_ASSERT_EQ(kernel.face(kernel.next(hb)), f2);
+        GEL_ASSERT_EQ(kernel.face(kernel.next(kernel.next(hb))), f2);
+        GEL_ASSERT_EQ(kernel.face(hb), f2);
 
         // return handle to newly created face
         return f2;
@@ -709,7 +709,7 @@ namespace HMesh
     bool Manifold::merge_faces(FaceID f, HalfEdgeID h)
     {
         //assert that we're merging a valid face with the corresponding halfedge
-        assert(kernel.face(h) == f);
+        GEL_ASSERT_EQ(kernel.face(h), f);
         
         HalfEdgeID ho = kernel.opp(h);
         FaceID fo = kernel.face(ho);
@@ -739,7 +739,7 @@ namespace HMesh
         
         HalfEdgeID hx = hon;
         
-        assert(kernel.face(hx) == fo);
+        GEL_ASSERT_EQ(kernel.face(hx), fo);
         while(kernel.face(hx) != f){
             kernel.set_face(hx, f);
             hx = kernel.next(hx);
@@ -1025,9 +1025,9 @@ namespace HMesh
             VertexID hnv = kernel.vert(hn);
             FaceID f = kernel.face(h);
             
-            assert(ho != hn);
-            assert(h != hno);
-            assert(hv != hnv);
+            GEL_ASSERT_NEQ(ho, hn);
+            GEL_ASSERT_NEQ(h , hno);
+            GEL_ASSERT_NEQ(hv, hnv);
             
             // glue opposite halfedge to halfedge opposite next halfedge, obsoleting h and hn from loop
             glue(ho, hno);
