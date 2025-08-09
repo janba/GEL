@@ -7,14 +7,16 @@ FetchContent_Declare(
     nanobench
     GIT_REPOSITORY https://github.com/martinus/nanobench.git
     GIT_TAG v4.1.0
-    GIT_SHALLOW TRUE)
+    GIT_SHALLOW TRUE
+    EXCLUDE_FROM_ALL)
 
 # Add testing library
 FetchContent_Declare(
     doctest
     GIT_REPOSITORY https://github.com/doctest/doctest.git
     GIT_TAG v2.4.12
-    GIT_SHALLOW TRUE)
+    GIT_SHALLOW TRUE
+    EXCLUDE_FROM_ALL)
 
 FetchContent_MakeAvailable(nanobench)
 # # Add nanobench to a project with:
