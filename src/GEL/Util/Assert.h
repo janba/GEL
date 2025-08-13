@@ -1,7 +1,6 @@
 //
 // Created by Cem Akarsubasi on 5/28/25.
 //
-// Assertion macros
 
 #ifndef GEL_ASSERT_H
 #define GEL_ASSERT_H
@@ -22,9 +21,7 @@
 /// See @link GEL/Util/Assert.h Assert.h @endlink for the actual macros.
 
 namespace Util::Assert::detail {
-    /// @privatesection
 
-    /// @private
     template<typename T> concept has_to_str_operator = requires(T t, std::stringstream& os) {
         { os << t };
     };
@@ -141,10 +138,10 @@ namespace Util::Assert::detail {
         }
     }
 
-    template<typename Left, typename Right, typename... Args>
+    template<typename Left, typename Right, typename... Args> requires has_eq<Right, Left>
     constexpr auto gel_assert_eq_impl(Left&& l, Right&& r, auto expr_l, auto expr_r, auto file, auto line, auto func,
                             Args... args) -> void
-    requires has_eq<Right, Left>
+
     {
 
         if (l != r) [[unlikely]] {
@@ -152,10 +149,9 @@ namespace Util::Assert::detail {
         }
     }
 
-    template<typename Left, typename Right, typename... Args>
+    template<typename Left, typename Right, typename... Args> requires has_eq<Right, Left>
     constexpr auto gel_assert_neq_impl(Left&& l, Right&& r, auto expr_l, auto expr_r, auto file, auto line, auto func,
                              Args... args) -> void
-    requires has_eq<Right, Left>
     {
         if (l == r) [[unlikely]] {
             gel_assert_neq_failure(file, line, func, expr_l, expr_r, l, r, args...);
