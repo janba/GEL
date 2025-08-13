@@ -10,6 +10,7 @@
 #include <thread>
 #include <unordered_set>
 #include <unordered_map>
+#include <map>
 #include <queue>
 #include <vector>
 #include <iostream>
@@ -21,7 +22,6 @@
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/Geometry/GridAlgorithm.h>
 #include <GEL/Geometry/bounding_sphere.h>
-#include <GEL/HMesh/HMesh.h>
 #include <GEL/Geometry/graph_util.h>
 
 using namespace std;
@@ -30,30 +30,16 @@ using namespace Util;
 using namespace HMesh;
 
 namespace Geometry {
-
     using NodeID = AMGraph::NodeID;
-    using NodeSet = AMGraph::NodeSet;
-    using NodeSetUnordered = unordered_set<NodeID>;
-    using NodeQueue = queue<NodeID>;
-    using NodeSetVec = vector<pair<double,NodeSet>>;
-    using ExpansionMap = std::vector<std::vector<AMGraph::NodeID>>;
-    using CapacityVecVec = std::vector<std::vector<size_t>>;
 
     SkeletonPQElem::SkeletonPQElem(double _pri, AMGraph3D::NodeID _n0, AMGraph3D::NodeID _n1): pri(_pri), n0(_n0), n1(_n1) {}
 
-    int test_intersection (const NodeSet& set1, const NodeSet& set2)
+    int test_intersection(const NodeSet& set1, const NodeSet& set2)
     {
-        auto first1 = begin(set1);
-        auto first2 = begin(set2);
-        int matches=0;
-        while (first1!=end(set1) && first2!=end(set2))
-        {
-            if (*first1<*first2) ++first1;
-            else if (*first2<*first1) ++first2;
-            else {
+        int matches = 0;
+        for (auto& n: set1) {
+            if (set2.contains(n)) {
                 ++matches;
-                ++first1;
-                ++first2;
             }
         }
         return matches;
@@ -73,15 +59,9 @@ namespace Geometry {
         return nbors;
     }
 
-
-
     NodeSet order(const NodeSetUnordered& s) {
-        NodeSet _s;
-        for(const auto n : s)
-            _s.insert(n);
-        return _s;
+        return NodeSet(s.begin(), s.end());
     }
-
 
     Vec3d node_set_barycenter(const AMGraph3D& g, const NodeSet& ns) {
         Vec3d b(0);

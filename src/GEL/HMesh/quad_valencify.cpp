@@ -7,14 +7,14 @@
 //
 
 #include "quad_valencify.h"
-#include <array>
+
+#include <map>
 #include <queue>
 #include <algorithm>
 #include <random>
 
 #include <GEL/CGLA/CGLA.h>
 #include <GEL/HMesh/HMesh.h>
-#include <GEL/Util/Range.h>
 
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/graph_util.h>
