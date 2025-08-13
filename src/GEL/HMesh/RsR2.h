@@ -4,6 +4,8 @@
 
 #include <vector>
 
+#include <GEL/Util/AssociativeContainers.h>
+
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/etf.h>
 
@@ -24,10 +26,10 @@ inline constexpr NodeID InvalidEdgeID = AMGraph::InvalidEdgeID;
 namespace detail
 {
     template <typename T>
-    using OrderedSet = std::set<T>;
+    using OrderedSet = Util::BTreeSet<T>;
 
     template <typename T>
-    using UnorderedSet = std::unordered_set<T>;
+    using UnorderedSet = Util::HashSet<T>;
 
     template <typename K, typename V, typename Hash>
     using Map = std::unordered_map<K, V, Hash>;
@@ -184,6 +186,8 @@ public:
     [[nodiscard]]
     uint tree_id(const NodeID& root) const
     {
+        GEL_ASSERT(m_vertices.size() > root);
+        GEL_ASSERT(!m_vertices.at(root).ordered_neighbors.empty()); // we need at least one neighbor to return
         auto final = m_vertices.at(root).ordered_neighbors.end();
         return (--final)->tree_id;
     }
@@ -231,9 +235,9 @@ auto point_cloud_normal_estimate(const std::vector<Point>& vertices,
 auto point_cloud_collapse_reexpand(
     const std::vector<Point>& vertices,
     const std::vector<Vec3>& normals,
-    const RsROpts& opts,
-    int max_iterations,
-    bool reexpand) -> ::HMesh::Manifold;
+    const CollapseOpts& collapse_options,
+    const RsROpts& reconstruction_options,
+    bool reexpand) -> HMesh::Manifold;
 } // namespace HMesh::RSR
 
 #endif // GEL_HMesh_RsR2_hpp
