@@ -70,6 +70,26 @@ constexpr bool neighbor_comparator(const NeighborPair& l, const NeighborPair& r)
     return l.first > r.first;
 }
 
+template <std::ranges::viewable_range Range>
+std::ranges::viewable_range auto slide2_wraparound(Range&& range)
+{
+    using Elem = std::ranges::range_value_t<Range>;
+    const auto size = range.size();
+    auto ptr = range.begin();
+    const auto end = range.end();
+    return std::views::iota(0UL, (size > 1) ? size : 0UL)
+    | std::views::transform([=, &range]([[maybe_unused]] const auto& _i) mutable -> std::pair<Elem, Elem> {
+        const auto current = ptr;
+        ++ptr;
+        const auto next = (ptr == end) ? range.begin() : ptr;
+        return std::make_pair(*current, *next);
+    });
+}
+
+struct Slide2Wraparound {
+
+
+};
 
 /// @brief Calculate the reference vector for the rotation system
 /// @param normal: normal direction for the target vertex
@@ -303,7 +323,8 @@ void weighted_smooth(
     const NeighborMap& neighbors_map,
     std::vector<Point>& smoothed_v)
 {
-    auto lambda = [&normals, &vertices](const size_t idx, const Point& vertex, const NeighborArray& neighbors) {
+    auto _debug = __func__;
+    auto lambda = [_debug, &normals, &vertices](const size_t idx, const Point& vertex, const NeighborArray& neighbors) {
         const Vec3 normal = normals[idx];
 
         double weight_sum = 0.;
@@ -333,7 +354,7 @@ void weighted_smooth(
 
             if (!std::isfinite(tangential_dist)) [[unlikely]] {
                 std::cerr << n_dist << " " << vertical << std::endl;
-                std::cerr << "error" << std::endl;
+                std::cerr << _debug << ": error" << std::endl;
             }
 
             const double weight = -tangential_dist;
@@ -352,7 +373,7 @@ void weighted_smooth(
 
         amp_sum /= weight_sum;
         if (!std::isfinite(amp_sum)) [[unlikely]]
-            std::cout << "error" << std::endl;
+            std::cout << _debug << ": error" << std::endl;
         const Vec3 move = amp_sum * normal;
         return vertex + move;
     };
@@ -374,6 +395,7 @@ void estimate_normal_no_normals_memoized(
 {
     normals.clear();
     // Data type transfer & Cal diagonal size
+    auto _debug = __func__;
     auto lambda = [&](const NeighborArray& neighbors_of_this) {
         // need id, distance and coords anyway
 
@@ -383,8 +405,8 @@ void estimate_normal_no_normals_memoized(
         const Vec3 normal = estimateNormal(neighbor_coords);
 
         if (std::isnan(normal.length())) [[unlikely]] {
+            std::cerr << _debug << ": error" << std::endl;
             std::cerr << neighbors_of_this.size() << std::endl;
-            std::cerr << "error" << std::endl;
         }
         return normal;
     };
@@ -515,7 +537,7 @@ void correct_normal_orientation(
             const auto& neighbors = all_neighbors[i];
             const Vec3 this_normal = normals[i];
 
-            for (const auto neighbor : std::ranges::subrange(neighbors.begin() + 1, neighbors.end())) {
+            for (const auto neighbor : neighbors | std::views::drop(1)) {
                 if (g_angle_temp.find_edge(i, neighbor.id) != AMGraph::InvalidEdgeID)
                     continue;
                 const Vec3 neighbor_normal = normals[neighbor.id];
@@ -569,6 +591,7 @@ void init_face_loop_label(RSGraph& g)
     constexpr NodeID start_v = 0;
     NodeID last_vertex = start_v;
     auto loop_step = 0UL;
+    // TODO: unsafe access
     NodeID current_vertex = g.m_vertices[start_v].ordered_neighbors.begin()->v;
     do {
         auto& next_neighbor = g.predecessor(current_vertex, last_vertex);
@@ -695,28 +718,6 @@ bool vanilla_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_tr
     return geometry_check(mst, candidate, kd_tree);
 }
 
-/// @brief Find the common neighbors that two vertices are sharing
-/// @param g: current graph
-/// @param neighbor: one vertex
-/// @param root: the other vertex
-/// @param shared_neighbors: [OUT] common neighbors these two vertices share
-/// @return reference to last neighbor struct
-void find_common_neighbor(
-    const RSGraph& g,
-    const NodeID neighbor,
-    const NodeID root,
-    std::vector<NodeID>& shared_neighbors)
-{
-    shared_neighbors = g.neighbors(neighbor);
-    UnorderedSet<NodeID> neighbor_neighbors(shared_neighbors.begin(), shared_neighbors.end());
-    shared_neighbors = g.neighbors(root);
-
-    // set_intersection
-    std::erase_if(shared_neighbors, [&](const auto& i) {
-        return !neighbor_neighbors.contains(i);
-    });
-}
-
 /// @brief Get the neighbor information
 /// @param g: current graph
 /// @param root: root vertex index
@@ -794,9 +795,8 @@ bool register_face(RSGraph& mst, const NodeID v1, const NodeID v2, std::vector<F
     if (mst.find_edge(v1, v2) != AMGraph::InvalidEdgeID)
         return false;
 
-    std::vector<NodeID> share_neighbors;
-    find_common_neighbor(mst, v1, v2, share_neighbors);
-    if (share_neighbors.empty()) {
+    auto shared_neighbors = mst.shared_neighbors_lazy(v1, v2);
+    if (shared_neighbors.empty()) {
         // only mst mutated
         mst.add_edge(v1, v2, edge_length);
         maintain_face_loop(mst, v1, v2);
@@ -814,7 +814,7 @@ bool register_face(RSGraph& mst, const NodeID v1, const NodeID v2, std::vector<F
                                            p1 - mst.m_vertices[possible_root2].coords);
 
         std::vector<FaceType> temp;
-        for (const auto v3 : share_neighbors) {
+        for (const auto v3 : shared_neighbors) {
             FaceType triangle{v1, v2, v3};
             if (v3 == possible_root1 && angle1 < M_PI) {
                 if (routine_check(mst, triangle) ||
@@ -873,16 +873,15 @@ void connect_handle(
     // Collect vertices w/ an open angle larger than pi
     for (int i = 0; i < mst.no_nodes(); i++) {
         const auto& neighbors = mst.m_vertices[i].ordered_neighbors;
-        auto last_angle = (--neighbors.end())->angle;
 
-        for (const auto& neighbor : neighbors) {
-            auto this_angle = neighbor.angle;
+        for (const auto& [neighbor_old, neighbor_next] : slide2_wraparound(neighbors)) {
+            auto last_angle = neighbor_old.angle;
+            auto this_angle = neighbor_next.angle;
             auto angle_diff = this_angle - last_angle;
             if (angle_diff < 0)
                 angle_diff += 2 * M_PI;
             if (angle_diff > M_PI)
                 imp_node.push_back(i);
-            last_angle = this_angle;
         }
     }
 
@@ -894,9 +893,6 @@ void connect_handle(
     ThreadPool pool;
     const auto neighbors_map = calculate_neighbors(pool, smoothed_v, imp_node, kd_tree, k);
 
-    double last_dist = INFINITY;
-    Point last_v(0., 0., 0.);
-
     GEL_ASSERT_EQ(imp_node.size(), neighbors_map.size());
     for (auto i = 0UL; i < imp_node.size(); i++) {
         const auto& this_v = imp_node[i];
@@ -905,10 +901,6 @@ void connect_handle(
         // Potential handle collection
         uint tree, to_tree;
         NodeID validIdx = -1;
-
-        last_dist += (smoothed_v[this_v] - last_v).length();
-        last_dist = neighbors[neighbors.size() - 1].distance;
-        last_v = smoothed_v[this_v];
 
         for (size_t j = 0; j < neighbors.size(); j++) {
             auto& neighbor = neighbors[j];
@@ -1120,7 +1112,7 @@ bool check_validity(
         return false;
 
     // Check this rotation system
-    if (!G.successor(v_i, v_u).v == v_w)
+    if (G.successor(v_i, v_u).v != v_w)
         return false;
     const auto angle = cal_radians_3d(pos_w - pos_i, normal_i, pos_u - pos_i);
     if (angle > M_PI)
@@ -1186,9 +1178,7 @@ void triangulate(
             }
 
             // Deal with incident triangles
-            std::vector<NodeID> share_neighbors;
-            find_common_neighbor(graph, v_u, v_w, share_neighbors);
-            for (const NodeID incident_root : share_neighbors) {
+            for (const NodeID incident_root : graph.shared_neighbors_lazy(v_u, v_w)) {
                 if (incident_root == v_i)
                     continue;
                 std::array face{incident_root, v_w, v_u};
@@ -1618,15 +1608,22 @@ auto point_cloud_to_mesh(
     auto opts2 = opts;
     HMesh::Manifold output;
     Util::RSRTimer timer;
-
+    if (!normals_in.empty()) {
+        GEL_ASSERT_EQ(vertices_in.size(), normals_in.size(), "Vertices and normals must be the same size");
+    }
     timer.start("Whole process");
+    for (const auto& point: vertices_in) {
+        GEL_ASSERT_FALSE(std::isnan(point[0]) || std::isnan(point[1]) || std::isnan(point[2]), "Bad point input");
+    }
+    for (const auto& normal: normals_in) {
+        GEL_ASSERT_FALSE(std::isnan(normal[0]) || std::isnan(normal[1]) || std::isnan(normal[2]), "Bad normal input");
+        GEL_ASSERT_NEQ(normal, Vec3(0.0), "Bad normal input");
+    }
 
     auto vertices_copy = vertices_in;
     auto normals_copy = normals_in;
     ThreadPool pool;
-    if (!normals_in.empty()) {
-        GEL_ASSERT_EQ(vertices_in.size(), normals_in.size(), "Vertices and normals must be the same size");
-    }
+
 
     // Estimate normals & orientation & weighted smoothing
     timer.start("Estimate and smooth normals");
@@ -1724,28 +1721,25 @@ auto indexed_select(const Collection& collection,
 auto point_cloud_collapse_reexpand(
     const std::vector<Point>& vertices,
     const std::vector<Vec3>& normals,
-    const RsROpts& opts,
-    const int max_iterations,
+    const CollapseOpts& collapse_options,
+    const RsROpts& reconstruction_options,
     const bool reexpand) -> Manifold
 {
     ThreadPool pool;
     auto normals_copy = normals;
 
     [[maybe_unused]]
-        auto _unused = estimate_normals_and_smooth(pool, vertices, normals_copy, opts.dist);
+    auto smoothed_points = estimate_normals_and_smooth(pool, vertices, normals_copy, reconstruction_options.dist);
 
-    const auto indices = std::ranges::iota_view(0UL, vertices.size());
-    const Tree kd_tree = build_kd_tree_of_indices(vertices, indices);
-    const auto neighbor_map = calculate_neighbors(pool, vertices, kd_tree, 30);
+    auto collapse = collapse_points(vertices, normals_copy, collapse_options);
 
-    auto collapse = collapse_points(vertices, normals_copy, max_iterations);
-
-    const auto vertices_new = indexed_select(vertices, collapse.m_remaining);
-    // TODO: Issue #105. This in combination with the cross_connection causes a crash
-    const auto normals_new = std::vector<Vec3>();
+    //const auto vertices_new = indexed_select(vertices, collapse.m_remaining);
+    auto [points_collapsed, normals_collapsed] = collapse.remaining();
+    // const auto vertices_new = collapse.remaining().points;
+    //const auto normals_new = std::vector<Vec3>();
     //indexed_select(normals_copy, collapse.m_remaining);
-
-    auto manifold = point_cloud_to_mesh(vertices_new, normals_new, opts);
+    // TODO: normal weirdness
+    auto manifold = point_cloud_to_mesh(points_collapsed, {}, reconstruction_options);
 
     if (reexpand)
         reexpand_points(manifold, std::move(collapse), vertices);
