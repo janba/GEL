@@ -1,4 +1,6 @@
 #include <sstream>
+#include <map>
+#include <unordered_set>
 #include "RsR.h"
 
 namespace HMesh::detail

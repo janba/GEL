@@ -1,16 +1,15 @@
-//
-//  graph_abstraction.hpp
-//  MeshEditE
-//
-//  Created by Jakob Andreas Bærentzen on 30/04/2018.
-//  Copyright © 2018 J. Andreas Bærentzen. All rights reserved.
-//
+///
+/// @file graph_util.h
+/// MeshEditE
+///
+/// Created by Jakob Andreas Bærentzen on 30/04/2018.
+/// Copyright © 2018 J. Andreas Bærentzen. All rights reserved.
+///
 
-#ifndef graph_abstraction_hpp
-#define graph_abstraction_hpp
+#ifndef GEOMETRY_GRAPH_UTIL_H
+#define GEOMETRY_GRAPH_UTIL_H
 
 #include <vector>
-#include <unordered_set>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/HMesh/Manifold.h>
@@ -18,11 +17,12 @@
 
 namespace Geometry {
     using AttribVecDouble = Util::AttribVec<AMGraph::NodeID, double>;
-    using NodeSetUnordered = std::unordered_set<AMGraph::NodeID>;
+    using NodeSetUnordered = Util::HashSet<AMGraph::NodeID>;
     using NodeSet = AMGraph::NodeSet;
     using NodeSetVec = std::vector<std::pair<double,NodeSet>>;
     using ExpansionMap = std::vector<std::vector<AMGraph::NodeID>>;
     using CapacityVecVec = std::vector<std::vector<size_t>>;
+    using NodeQueue = std::queue<AMGraph::NodeID>;
 
     /// Linear time counting of the number of shared members of set1 and set2.
     int test_intersection (const AMGraph3D::NodeSet& set1, const AMGraph3D::NodeSet& set2);
