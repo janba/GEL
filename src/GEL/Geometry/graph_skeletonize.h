@@ -11,17 +11,10 @@
 
 #include <GEL/Util/AttribVec.h>
 #include <GEL/Geometry/Graph.h>
-#include "GEL/CGLA/Vec3d.h"
+#include <GEL/Geometry/graph_util.h> // graph related typedefs
 
 namespace Geometry {
-
     using NodeID = AMGraph::NodeID;
-    using NodeSet = AMGraph::NodeSet;
-    using NodeSetUnordered = std::unordered_set<NodeID>;
-    using NodeSetVec = std::vector<std::pair<double, NodeSet>>;
-    using AttribVecDouble = Util::AttribVec<NodeID, double>;
-    using ExpansionMap = std::vector<std::vector<AMGraph::NodeID>>;
-    using CapacityVecVec = std::vector<std::vector<size_t>>;
 
     // A set of graphs of different sizes representing the same original graph.
     struct MultiScaleGraph {
