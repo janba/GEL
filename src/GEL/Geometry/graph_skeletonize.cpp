@@ -10,7 +10,6 @@
 #include <thread>
 #include <unordered_set>
 #include <queue>
-#include <list>
 #include <vector>
 #include <iostream>
 #include <random>
@@ -62,9 +61,7 @@ namespace Geometry {
 
     using hrc = chrono::high_resolution_clock;
     using NodeID = AMGraph::NodeID;
-    using NodeSetUnordered = unordered_set<NodeID>;
-    using NodeQueue = queue<NodeID>;
-    using SepVec = vector<Separator>;
+    using SepVec = std::vector<Separator>;
 
     // Convert vector<Separator> to the simpler output data structure which is simply
     // a vector of pairs consisting of quality measure and the separator itself.

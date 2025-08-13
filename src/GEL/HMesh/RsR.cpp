@@ -1,4 +1,6 @@
 #include <sstream>
+#include <map>
+#include <unordered_set>
 #include "RsR.h"
 static bool isGTNormal = true;
 static bool isEuclidean = true;

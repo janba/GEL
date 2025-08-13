@@ -6,18 +6,16 @@
 //  Copyright © 2016 J. Andreas Bærentzen. All rights reserved.
 //
 
-#ifndef Graph_h
-#define Graph_h
+#ifndef GEOMETRY_GRAPH_H
+#define GEOMETRY_GRAPH_H
 
 #include <queue>
-#include <map>
-#include <set>
-#include <unordered_set>
 #include <vector>
 #include <limits>
 #include <GEL/CGLA/Vec3d.h>
 #include <GEL/Util/Range.h>
 #include <GEL/Util/AttribVec.h>
+#include <GEL/Util/AssociativeContainers.h>
 
 namespace Geometry {
     
@@ -35,14 +33,15 @@ namespace Geometry {
         using NodeID = size_t;
         
         /// Node Set type
-        using NodeSet = std::set<NodeID>;
+        // FIXME: Ensure we don't rely on ordering and replace this with Util::HashSet
+        using NodeSet = Util::BTreeSet<NodeID>;
 
         /// ID type for edges
         using EdgeID = size_t;
         
         /// The adjacency map class
-        using AdjMap = std::map<NodeID, EdgeID>;
-        
+        using AdjMap = Util::HashMap<NodeID, EdgeID>;
+
         /// Special ID value for invalid node
 		static constexpr NodeID InvalidNodeID = std::numeric_limits<size_t>::max();
 
@@ -91,25 +90,25 @@ namespace Geometry {
 
         /// Add a node to the graph
         NodeID add_node() {
-            NodeID id = edge_map.size();
-            edge_map.push_back(AdjMap());
+            const NodeID id = edge_map.size();
+            edge_map.emplace_back();
             return id;
         }
         
         /// Find an edge in the graph given two nodes. Returns InvalidEdgeID if no such edge found.
-        EdgeID find_edge(NodeID n0, NodeID n1) const
+        [[nodiscard]]
+        EdgeID find_edge(const NodeID n0, const NodeID n1) const
         {
             if(valid_node_id(n0) && valid_node_id(n1)) {
-                auto it = edge_map[n0].find(n1);
-                if (it != edge_map[n0].end())
+                if (const auto it = edge_map[n0].find(n1); it != edge_map[n0].end())
                     return it->second;
             }
             return InvalidEdgeID;
         }
         
-        /** Connect two nodes. Returns the id of the created edge or InvalidEdgeID if either the nodes
-         were not valid or the edge already existed. */
-        EdgeID connect_nodes(NodeID n0, NodeID n1)
+        /// Connect two nodes. Returns the id of the existing or created edge. Returns InvalidEdgeID if either of
+        /// the nodes were not valid.
+        EdgeID connect_nodes(const NodeID n0, const NodeID n1)
         {
             if(valid_node_id(n0) && valid_node_id(n1)) {
                 size_t id = find_edge(n0, n1);
@@ -122,36 +121,45 @@ namespace Geometry {
             }
             return InvalidEdgeID;
         }
-        
-        /// Return the NodeIDs of nodes adjacent to a given node
-        std::vector<NodeID> neighbors(NodeID n) const {
-            std::vector<NodeID> nbrs(edge_map[n].size());
-            unsigned i=0;
-            for(auto edge : edge_map[n])
-                nbrs[i++] = edge.first;
-            return nbrs;
-        }
 
         /// Return the NodeIDs of nodes adjacent to a given node lazily
-        [[nodiscard]] std::ranges::borrowed_range
+        [[nodiscard]] std::ranges::input_range
         auto neighbors_lazy(const NodeID n) const
         {
+            GEL_ASSERT(valid_node_id(n));
             return edge_map[n] | std::views::keys;
+        }
+
+        /// Return the NodeIDs of nodes adjacent to a given node
+        [[nodiscard]]
+        std::vector<NodeID> neighbors(const NodeID n) const {
+            auto iter = neighbors_lazy(n);
+            return {iter.begin(), iter.end()};
         }
         
         /// Return the edges - map from NodeID to EdgeID of the current node.
-        const AdjMap& edges(NodeID n) const {
+        [[nodiscard]]
+        const AdjMap& edges(const NodeID n) const {
+            GEL_ASSERT(valid_node_id(n));
             return edge_map[n];
+        }
+
+        [[nodiscard]] std::ranges::input_range
+        auto shared_neighbors_lazy(const NodeID n0, const NodeID n1) const
+        {
+            GEL_ASSERT(valid_node_id(n0) && valid_node_id(n1));
+            return edge_map[n0]
+                | std::views::keys
+                | std::views::filter([this, n1](const auto& e) { return edge_map[n1].contains(e); });
         }
         
         /// Return a vector of shared neighbors.
-        std::vector<NodeID> shared_neighbors(AMGraph::NodeID n0, AMGraph::NodeID n1) {
-            auto nbrs0 = neighbors(n0);
-            auto nbrs1 = neighbors(n1);
-            std::vector<AMGraph::NodeID> nbr_isect;
-            set_intersection(begin(nbrs0), end(nbrs0), begin(nbrs1), end(nbrs1), back_inserter(nbr_isect));
-            return nbr_isect;
-        };
+        [[nodiscard]]
+        std::vector<NodeID> shared_neighbors(const NodeID n0, const NodeID n1) const
+        {
+            auto iter = shared_neighbors_lazy(n0, n1);
+            return {iter.begin(), iter.end()};
+        }
         
         /// Return the number of edges incident on a given node.
         size_t valence(NodeID n) const { return edge_map[n].size(); }
@@ -162,7 +170,7 @@ namespace Geometry {
     /** AMGraph3D extends the AMGraph class by providing attributes for position, edge and node
      colors. This is mostly for convenience as these attributes could be stored outside the class,
      but it gives us a concrete 3D graph structure that has many applications. */
-    class AMGraph3D: public AMGraph
+    class AMGraph3D final: public AMGraph
     {
     public:        
         /// position attribute for each node
