@@ -67,13 +67,6 @@ namespace Geometry {
         pos[n_new] /= ns.size();
         return n_new;
     }
-
-    
-    /// Special ID value for invalid node
-    const AMGraph3D::NodeID AMGraph::InvalidNodeID = std::numeric_limits<size_t>::max();
-    
-    /// Special ID value for invalid edge
-    const AMGraph3D::EdgeID AMGraph::InvalidEdgeID = std::numeric_limits<size_t>::max();
     
     AMGraph3D clean_graph(const AMGraph3D& g)
     {

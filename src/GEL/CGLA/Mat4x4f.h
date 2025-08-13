@@ -13,28 +13,26 @@
 
 #include <GEL/CGLA/ExceptionStandard.h>
 #include <GEL/CGLA/CGLA-util.h>
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Vec4f.h>
-#include <GEL/CGLA/ArithSqMat4x4Float.h>
+#include <GEL/CGLA/Mat.h>
 
 
 namespace CGLA
 {
-/** \brief 4x4 float matrix.
-    This class is useful for transformations such as perspective projections
-    or translation where 3x3 matrices do not suffice. */
-class Mat4x4f : public ArithSqMat4x4Float<Vec4f, Mat4x4f> {
-public:
-    /// Construct a Mat4x4f from four Vec4f vectors
-    constexpr Mat4x4f(Vec4f _a, Vec4f _b, Vec4f _c, Vec4f _d):
-        ArithSqMat4x4Float(_a, _b, _c, _d) {}
-
-    /// Construct the NaN matrix
-    constexpr Mat4x4f() = default;
-
-    /// Construct a matrix with identical elements.
-    constexpr explicit Mat4x4f(float a) : ArithSqMat4x4Float(a) {}
-};
+// /** \brief 4x4 float matrix.
+//     This class is useful for transformations such as perspective projections
+//     or translation where 3x3 matrices do not suffice. */
+// class Mat4x4f : public ArithSqMat4x4Float<Vec4f, Mat4x4f> {
+// public:
+//     /// Construct a Mat4x4f from four Vec4f vectors
+//     constexpr Mat4x4f(Vec4f _a, Vec4f _b, Vec4f _c, Vec4f _d):
+//         ArithSqMat4x4Float(_a, _b, _c, _d) {}
+//
+//     /// Construct the NaN matrix
+//     constexpr Mat4x4f() = default;
+//
+//     /// Construct a matrix with identical elements.
+//     constexpr explicit Mat4x4f(float a) : ArithSqMat4x4Float(a) {}
+// };
 
 /// Create a rotation _matrix. Rotates about one of the major axes.
 Mat4x4f rotation_Mat4x4f(CGLA::Axis axis, float angle);

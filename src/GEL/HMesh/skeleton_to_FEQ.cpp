@@ -1,6 +1,7 @@
 #include <array>
 #include <cmath>
 #include <algorithm>
+#include <map>
 #include <unordered_map>
 
 #include <GEL/CGLA/CGLA.h>
@@ -8,7 +9,6 @@
 #include <GEL/Geometry/Graph.h>
 #include <GEL/HMesh/HMesh.h>
 #include <GEL/Geometry/GridAlgorithm.h>
-#include <GEL/Geometry/graph_io.h>
 #include <GEL/Geometry/graph_util.h>
 #include <GEL/Geometry/SphereDelaunay.h>
 #include <GEL/HMesh/quad_valencify.h>
@@ -39,6 +39,7 @@ struct BranchMeshInfo {
     HMesh::VertexID vertex;
 };
 
+// FIXME: Consider replacing these maps with Util::HashMap or Util::BTreeMap
 using BranchMeshMap = map<pair<NodeID,NodeID>,BranchMeshInfo>;
 using Face2VertexMap = map<FaceID, VertexID>;
 

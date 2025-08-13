@@ -12,27 +12,26 @@
 #define CGLA_MAT3X3F_H
 
 #include <GEL/CGLA/CGLA-util.h>
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/ArithSqMat3x3Float.h>
+#include <GEL/CGLA/Mat.h>
 
 namespace CGLA
 {
-/** \brief 3 by 3 float matrix.
-
-    This class will typically be used for rotation or
-    scaling matrices for 3D vectors. */
-class Mat3x3f : public ArithSqMat3x3Float<Vec3f, Mat3x3f> {
-public:
-    /// Construct matrix from 3 Vec3f vectors.
-    constexpr Mat3x3f(Vec3f _a, Vec3f _b, Vec3f _c):
-        ArithSqMat3x3Float(_a, _b, _c) {}
-
-    /// Construct the 0 matrix
-    constexpr Mat3x3f() = default;
-
-    /// Construct a matrix from a single scalar value.
-    constexpr explicit Mat3x3f(float a): ArithSqMat3x3Float(a) {}
-};
+// /** \brief 3 by 3 float matrix.
+//
+//     This class will typically be used for rotation or
+//     scaling matrices for 3D vectors. */
+// class Mat3x3f : public ArithSqMat3x3Float<Vec3f, Mat3x3f> {
+// public:
+//     /// Construct matrix from 3 Vec3f vectors.
+//     constexpr Mat3x3f(Vec3f _a, Vec3f _b, Vec3f _c):
+//         ArithSqMat3x3Float(_a, _b, _c) {}
+//
+//     /// Construct the 0 matrix
+//     constexpr Mat3x3f() = default;
+//
+//     /// Construct a matrix from a single scalar value.
+//     constexpr explicit Mat3x3f(float a): ArithSqMat3x3Float(a) {}
+// };
 
 /// @name Non-member operations
 /// @related Mat3x3f
