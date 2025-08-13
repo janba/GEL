@@ -98,6 +98,26 @@ else ()
     target_link_libraries(PyGEL PRIVATE GEL)
 endif ()
 
+# TODO: this one needs to be specifically modified so we do not install it globally, but rather
+# TODO: inside our own directories. It should probably live in include/GEL/Util/phmap
+## Include the parallel-hashmap library
+#include(FetchContent)
+## Our headers depend on it, so we need to it alongside GEL
+#set(PHMAP_INSTALL TRUE CACHE INTERNAL "Install parallel_hashmap")
+#FetchContent_Declare(
+#    parallel-hashmap
+#    GIT_REPOSITORY https://github.com/greg7mdp/parallel-hashmap.git
+#    GIT_TAG        v2.0.0    # adjust tag/branch/commit as needed
+#)
+#FetchContent_MakeAvailable(parallel-hashmap)
+## Pass the directory to GEL during a build
+#target_include_directories(
+#    GEL PUBLIC
+#    $<BUILD_INTERFACE:${parallel-hashmap_SOURCE_DIR}>
+#    $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
+#    )
+
+
 # Install GEL library
 install(TARGETS GEL LIBRARY DESTINATION lib)
 
