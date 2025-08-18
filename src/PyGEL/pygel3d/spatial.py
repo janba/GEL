@@ -21,19 +21,17 @@ class I3DTree:
         """ Build the tree. This function call makes the tree searchable. It is
         assumed that all calls to insert come before calling this function."""
         lib_py_gel.I3DTree_build(self.obj)
-    def closest_point(self,p,r):
-        """ Search for point closest to p within a max radius r.
-        This function should only be called after build. """
-        key = (ct.c_double * 3)()
-        val = ct.c_size_t()
-        n = lib_py_gel.I3DTree_closest_point(self.obj, p[0],p[1],p[2],r,ct.byref(key),ct.byref(val))
-        if n==1:
-            return ([key[0],key[1],key[2]],val.value)
+    def closest_point(self, p, r):
+        """ Search for point closest to p within a max radius r. """
+        key, val = lib_py_gel.I3DTree_closest_point(self.obj, p[0], p[1], p[2], r)
+        if key and len(key) == 3:
+            return (list(key), val)
         return None
     def in_sphere(self, p, r):
-        """ Retrieve all points within a radius r of p.
-        This function should only be called after build. """
-        keys = Vec3dVector()
-        vals = IntVector()
-        n = lib_py_gel.I3DTree_in_sphere(self.obj, p[0],p[1],p[2],r,keys.obj,vals.obj)
-        return (keys,vals)
+        """ Retrieve all points within a radius r of p. """
+        keys, vals = lib_py_gel.I3DTree_in_sphere(self.obj, p[0], p[1], p[2], r)
+        return (list(keys), list(vals))
+    def m_closest_points(self, p, r, m):
+        """ Retrieve m closest points to p within radius r. """
+        keys, vals = lib_py_gel.I3DTree_m_closest_points(self.obj, p[0], p[1], p[2], r, m)
+        return (list(keys), list(vals))

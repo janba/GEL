@@ -77,34 +77,28 @@ void graph_prune(Graph_ptr _g_ptr) {
     prune(*g_ptr);
 }
 
-void graph_LS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector& map_ref, bool sampling) {
-    using IntVector = vector<size_t>;
-
+std::vector<size_t> graph_LS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, bool sampling) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
-    map_ref.resize(g_ptr->no_nodes());
-
+    std::vector<size_t> map_ref(g_ptr->no_nodes());
     auto seps = local_separators(*g_ptr, sampling);
     auto [skel, mapping]  = skeleton_from_node_set_vec(*g_ptr, seps);
     *skel_ptr = skel;
-
     for (auto n : g_ptr->node_ids())
         map_ref[n] = mapping[n];
+    return map_ref;
 }
 
-void graph_MSLS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector& map_ref, int grow_thresh) {
-    using IntVector = vector<size_t>;
-
+std::vector<size_t> graph_MSLS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, int grow_thresh) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
-    map_ref.resize(g_ptr->no_nodes());
-
+    std::vector<size_t> map_ref(g_ptr->no_nodes());
     auto seps = multiscale_local_separators(*g_ptr, Geometry::SamplingType::Advanced, grow_thresh, 0.1);
     auto [skel, mapping]  = skeleton_from_node_set_vec(*g_ptr, seps);
     *skel_ptr = skel;
-
     for (auto n : g_ptr->node_ids())
         map_ref[n] = mapping[n];
+    return map_ref;
 }
 
 void graph_saturate(Graph_ptr _g_ptr, int hops, double dist_frac, double rad) {
@@ -112,52 +106,42 @@ void graph_saturate(Graph_ptr _g_ptr, int hops, double dist_frac, double rad) {
     saturate_graph(*g_ptr, hops, dist_frac, rad);
 }
 
-void graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector& map_ref, int N_col, const std::vector<double>& colors, int intervals){
-    using IntVector = vector<size_t>;
+std::vector<size_t> graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, int N_col, const std::vector<double>& colors, int intervals){
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
-
     const size_t N = g_ptr->no_nodes();
-    map_ref.resize(N);
-    
-    vector<AttribVecDouble> dvv(N_col);
+    std::vector<size_t> map_ref(N);
+    std::vector<AttribVecDouble> dvv(N_col);
     for(int i=0;i<N_col; ++i) {
         dvv[i] = AttribVecDouble(g_ptr->no_nodes());
         for(auto n: g_ptr->node_ids())
             dvv[i][n] = colors[N_col*n+i];
     }
-    
     auto seps = front_separators(*g_ptr, dvv, intervals);
-
     auto [skel, mapping]  = skeleton_from_node_set_vec(*g_ptr, seps);
     *skel_ptr = skel;
-
     for(auto n: g_ptr->node_ids())
         map_ref[n] = mapping[n];
-} 
+    return map_ref;
+}
 
-void graph_combined_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, IntVector& map_ref, int N_col, const std::vector<double>& colors, int intervals){ 
-    using IntVector = vector<size_t>;
+std::vector<size_t> graph_combined_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, int N_col, const std::vector<double>& colors, int intervals){ 
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
-
     const size_t N = g_ptr->no_nodes();
-    map_ref.resize(N);
-    
-    vector<AttribVecDouble> dvv(N_col);
+    std::vector<size_t> map_ref(N);
+    std::vector<AttribVecDouble> dvv(N_col);
     for(int i=0;i<N_col; ++i) {
         dvv[i] = AttribVecDouble(g_ptr->no_nodes());
         for(auto n: g_ptr->node_ids())
             dvv[i][n] = colors[N_col*n+i];
     }
-    
     auto seps = combined_separators(*g_ptr, Geometry::SamplingType::Advanced, 256, 0.1, 0, dvv, intervals);
-
     auto [skel, mapping]  = skeleton_from_node_set_vec(*g_ptr, seps);
     *skel_ptr = skel;
-
     for(auto n: g_ptr->node_ids())
         map_ref[n] = mapping[n];
+    return map_ref;
 }
 
 

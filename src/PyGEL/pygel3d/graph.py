@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from pygel3d.hmesh import Manifold
 import numpy as np
-from pygel3d import lib_py_gel, IntVector
+from pygel3d import lib_py_gel
 
 
 class Graph:
@@ -30,16 +30,11 @@ class Graph:
         gap in the index range. """
         lib_py_gel.Graph_cleanup(self.obj)
     def nodes(self):
-        """ Get all nodes as an iterable range """
-        nodes = IntVector()
-        lib_py_gel.Graph_nodes(self.obj, nodes.obj)
-        return nodes
+        """ Get all nodes as a list of indices """
+        return lib_py_gel.Graph_nodes(self.obj)
     def neighbors(self, n, mode='n'):
-        """ Get the neighbors of node n. The final argument is either 'n' or 'e'. If it is 'n'
-        the function returns all neighboring nodes, and if it is 'e' it returns incident edges."""
-        nbors = IntVector()
-        lib_py_gel.Graph_neighbors(self.obj, n, nbors.obj, mode.encode('ascii'))
-        return nbors
+        """ Get the neighbors of node n as a list of indices. mode='n' for nodes, 'e' for edges."""
+        return lib_py_gel.Graph_neighbors(self.obj, n, mode)
     def positions(self):
         """ Get the vertex positions by reference. You can assign to the
         positions. """
@@ -142,116 +137,65 @@ def saturate(g: Graph, hops=2, dist_frac=1.001, rad=1e300):
     lib_py_gel.graph_saturate(g.obj, hops, dist_frac, rad)
     
 def LS_skeleton(g: Graph, sampling=True):
-    """ Skeletonize a graph using the local separators approach. The first argument,
-        g, is the graph, and, sampling indicates whether we try to use all vertices
-        (False) as starting points for finding separators or just a sampling (True).
-        The function returns a new graph which is the skeleton of the input graph. """
+    """ Skeletonize a graph using the local separators approach. Returns (skel, mapping). """
     skel = Graph()
-    mapping = IntVector()
-    lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, mapping.obj, sampling)
-    return skel
+    mapping = lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, sampling)
+    return skel, mapping
     
 def LS_skeleton_and_map(g: Graph, sampling=True):
-    """ Skeletonize a graph using the local separators approach. The first argument,
-        g, is the graph, and, sampling indicates whether we try to use all vertices
-        (False) as starting points for finding separators or just a sampling (True).
-        The function returns a tuple containing a new graph which is the skeleton of
-        the input graph and a map from the graph nodes to the skeletal nodes. """
+    """ Skeletonize a graph using the local separators approach. Returns (skel, mapping). """
     skel = Graph()
-    mapping = IntVector()
-    lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, mapping.obj, sampling)
+    mapping = lib_py_gel.graph_LS_skeleton(g.obj, skel.obj, sampling)
     return skel, mapping
 
 def MSLS_skeleton(g: Graph, grow_thresh=64):
-    """ Skeletonize a graph using the multi-scale local separators approach. The first argument,
-        g, is the graph, and, sampling indicates whether we try to use all vertices
-        (False) as starting points for finding separators or just a sampling (True).
-        The function returns a new graph which is the skeleton of the input graph. """
+    """ Skeletonize a graph using the multi-scale local separators approach. Returns (skel, mapping). """
     skel = Graph()
-    mapping = IntVector()
-    lib_py_gel.graph_MSLS_skeleton(g.obj, skel.obj, mapping.obj, grow_thresh)
-    return skel
+    mapping = lib_py_gel.graph_MSLS_skeleton(g.obj, skel.obj, grow_thresh)
+    return skel, mapping
     
 def MSLS_skeleton_and_map(g: Graph, grow_thresh=64):
-    """ Skeletonize a graph using the multi-scale local separators approach. The first argument,
-        g, is the graph, and, sampling indicates whether we try to use all vertices
-        (False) as starting points for finding separators or just a sampling (True).
-        The function returns a tuple containing a new graph which is the skeleton of
-        the input graph and a map from the graph nodes to the skeletal nodes. """
+    """ Skeletonize a graph using the multi-scale local separators approach. Returns (skel, mapping). """
     skel = Graph()
-    mapping = IntVector()
-    lib_py_gel.graph_MSLS_skeleton(g.obj, skel.obj, mapping.obj, grow_thresh)
+    mapping = lib_py_gel.graph_MSLS_skeleton(g.obj, skel.obj, grow_thresh)
     return skel, mapping
 
 
 def front_skeleton_and_map(g: Graph, colors, intervals=100):
-    """ Skeletonize a graph using the front separators approach. The first argument,
-        g, is the graph, and, colors is an nD array where each column contains a sequence
-        of floating point values - one for each node. We can have as many columns as needed
-        for the front separator computation. We can think of this as a coloring
-        of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
-        of the nodes or some other function that indicates something about the structure of the
-        graph. The function returns a tuple containing a new graph which is the
-        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
+    """ Skeletonize a graph using the front separators approach. Returns (skel, mapping). """
     skel = Graph()
-    mapping = IntVector()
     colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
     print("N_col:", N_col)
-    pos = g.positions()
-    lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
+    mapping = lib_py_gel.graph_front_skeleton(g.obj, skel.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel, mapping
 
 def front_skeleton(g: Graph, colors, intervals=100):
-    """ Skeletonize a graph using the front separators approach. The first argument,
-        g, is the graph, and, colors is a nD array where each column contains a sequence
-        of floating point values - one for each node. We can have as many columns as needed
-        for the front separator computation. We can think of this as a coloring
-        of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
-        of the nodes or some other function that indicates something about the structure of the
-        graph. The function returns a tuple containing a new graph which is the
-        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
+    """ Skeletonize a graph using the front separators approach. Returns (skel, mapping). """
     skel = Graph()
-    mapping = IntVector()
     colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
     print("N_col:", N_col)
-    lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
-    return skel
+    mapping = lib_py_gel.graph_front_skeleton(g.obj, skel.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
+    return skel, mapping
 
 def combined_skeleton_and_map(g: Graph, colors, intervals=100):
-    """ Skeletonize a graph using both the front separators approach and the multi scale local separators.
-        The first argument, g, is the graph, and, colors is an nD array where each column contains a sequence
-        of floating point values - one for each node. We can have as many columns as needed
-        for the front separator computation. We can think of this as a coloring
-        of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
-        of the nodes or some other function that indicates something about the structure of the
-        graph. The function returns a tuple containing a new graph which is the
-        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
+    """ Skeletonize a graph using both the front separators approach and the multi scale local separators. Returns (skel, mapping). """
     skel = Graph()
-    mapping = IntVector()
     colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
     print("N_col:", N_col)
-    lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
+    mapping = lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel, mapping
 
 def combined_skeleton(g: Graph, colors, intervals=100):
-    """ Skeletonize a graph using both the front separators approach and the multi scale local separators.
-        The first argument, g, is the graph, and, colors is an nD array where each column contains a sequence
-        of floating point values - one for each node. We can have as many columns as needed
-        for the front separator computation. We can think of this as a coloring
-        of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
-        of the nodes or some other function that indicates something about the structure of the
-        graph. The function returns a new graph which is the
-        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
+    """ Skeletonize a graph using both the front separators approach and the multi scale local separators. Returns (skel, mapping). """
     skel = Graph()
-    mapping = IntVector()
     colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
     print("N_col:", N_col)
-    lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
-    return skel
+    mapping = lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
+    return skel, mapping
 
 def minimum_spanning_tree(g: Graph, root_node=0):
     """ Compute the minimum spanning tree of g using Prim's algorithm.

@@ -11,7 +11,8 @@
 #include "hmesh_functions.h"
 #include "graph_functions.h"
 #include "Vec3dVector.h"
-#include "IntVector.h"
+
+#include "I3DTree.h"
 #include "MeshDistance.h"
 #include "Viewer.h"
 
@@ -28,7 +29,6 @@ PYBIND11_MODULE(PyGEL, m) {
     py::class_<Geometry::AMGraph3D>(m, "Graph_ptr");
     py::class_<HMesh::Manifold>(m, "Manifold_ptr");
     py::class_<GLManifoldViewer>(m, "GLManifoldViewer_ptr");
-    py::class_<std::vector<size_t>>(m, "IntVector");
     py::class_<std::vector<CGLA::Vec3d>>(m, "Vec3dVector");
     py::class_<std::vector<Manifold_ptr>>(m, "MeshVec_ptr");  
     
@@ -64,6 +64,15 @@ PYBIND11_MODULE(PyGEL, m) {
         Graph_remove_node(self, n);
     });
     
+    m.def("Graph_nodes", [](Graph_ptr self) -> std::vector<size_t> {
+        return Graph_nodes(self);
+    });
+
+    m.def("Graph_neighbors", [](Graph_ptr self, size_t n, const std::string& mode) -> std::vector<size_t> {
+        char mchar = mode.empty() ? 'n' : mode[0];
+        return Graph_neighbors(self, n, mchar);
+    });
+
     m.def("Graph_node_in_use", [](Graph_ptr self, size_t n) -> bool {
         return Graph_node_in_use(self, n);
     });
@@ -119,57 +128,26 @@ PYBIND11_MODULE(PyGEL, m) {
         return Manifold_positions(self);
     });
     
-    m.def("Manifold_vertices", [](Manifold_ptr self, IntVector_ptr verts) -> size_t {
-        auto N = self->no_vertices();
-        verts->resize(N);
-        size_t i = 0;
-        for (auto v : self->vertices())
-            (*verts)[i++] = v.get_index();
-        return N;
+    m.def("Manifold_vertices", [](Manifold_ptr self) -> std::vector<size_t> {
+        return Manifold_vertices(self);
     });
-    
-    m.def("Manifold_faces", [](Manifold_ptr self, IntVector_ptr faces) -> size_t {
-        auto N = self->no_faces();
-        faces->resize(N);
-        size_t i = 0;
-        for (auto f : self->faces())
-            (*faces)[i++] = f.get_index();
-        return N;
+
+    m.def("Manifold_faces", [](Manifold_ptr self) -> std::vector<size_t> {
+        return Manifold_faces(self);
     });
-    
-    m.def("Manifold_halfedges", [](Manifold_ptr self, IntVector_ptr hedges) -> size_t {
-        auto N = self->no_halfedges();
-        hedges->resize(N);
-        size_t i = 0;
-        for (auto h : self->halfedges())
-            (*hedges)[i++] = h.get_index();
-        return N;
+
+    m.def("Manifold_halfedges", [](Manifold_ptr self) -> std::vector<size_t> {
+        return Manifold_halfedges(self);
     });
-    
-    m.def("Manifold_circulate_vertex", [](Manifold_ptr self, size_t v, const std::string& mode, IntVector_ptr nbrs) -> size_t {
+
+    m.def("Manifold_circulate_vertex", [](Manifold_ptr self, size_t v, const std::string& mode) -> std::vector<size_t> {
         char mchar = mode.empty() ? 'v' : mode[0];
-        VertexID vid(v);
-        size_t N = circulate_vertex_ccw(*self, vid, [&](Walker w){
-            switch(mchar) {
-                case 'v': nbrs->push_back(w.vertex().get_index()); break;
-                case 'f': nbrs->push_back(w.face().get_index()); break;
-                case 'h': nbrs->push_back(w.halfedge().get_index()); break;
-            }
-        });
-        return N;
+        return Manifold_circulate_vertex(self, v, mchar);
     });
-    
-    m.def("Manifold_circulate_face", [](Manifold_ptr self, size_t f, const std::string& mode, IntVector_ptr nbrs) -> size_t {
+
+    m.def("Manifold_circulate_face", [](Manifold_ptr self, size_t f, const std::string& mode) -> std::vector<size_t> {
         char mchar = mode.empty() ? 'v' : mode[0];
-        FaceID fid(f);
-        size_t N = circulate_face_ccw(*self, fid, [&](Walker w){
-            switch(mchar) {
-                case 'v': nbrs->push_back(w.vertex().get_index()); break;
-                case 'f': nbrs->push_back(w.opp().face().get_index()); break;
-                case 'h': nbrs->push_back(w.halfedge().get_index()); break;
-            }
-        });
-        return N;
+        return Manifold_circulate_face(self, f, mchar);
     });
     
     m.def("Manifold_add_face", [](Manifold_ptr self, py::buffer pos_buf) -> size_t {
@@ -270,24 +248,24 @@ PYBIND11_MODULE(PyGEL, m) {
         return Manifold_remove_edge(self, hid);
     });
     
-    m.def("Manifold_in_use_vertex", [](Manifold_ptr self, size_t vid) -> bool {
+    m.def("Manifold_vertex_in_use", [](Manifold_ptr self, size_t vid) -> bool {
         return Manifold_vertex_in_use(self, vid);
     });
     
-    m.def("Manifold_in_use_face", [](Manifold_ptr self, size_t fid) -> bool {
+    m.def("Manifold_face_in_use", [](Manifold_ptr self, size_t fid) -> bool {
         return Manifold_face_in_use(self, fid);
     });
     
-    m.def("Manifold_in_use_halfedge", [](Manifold_ptr self, size_t hid) -> bool {
+    m.def("Manifold_halfedge_in_use", [](Manifold_ptr self, size_t hid) -> bool {
         return Manifold_halfedge_in_use(self, hid);
     });
     
     // Basic topology queries - using wrapper functions where available
-    m.def("Manifold_boundary_vertex", [](Manifold_ptr self, size_t vid) -> bool {
+    m.def("Manifold_is_vertex_at_boundary", [](Manifold_ptr self, size_t vid) -> bool {
         return is_vertex_at_boundary(self, vid);
     });
     
-    m.def("Manifold_boundary_halfedge", [](Manifold_ptr self, size_t hid) -> bool {
+    m.def("Manifold_is_halfedge_at_boundary", [](Manifold_ptr self, size_t hid) -> bool {
         return is_halfedge_at_boundary(self, hid);
     });
     
@@ -543,22 +521,7 @@ PYBIND11_MODULE(PyGEL, m) {
         graph_saturate(g, hops, dist_frac, rad);
     });
     
-    // VECTOR FUNCTIONS - IntVector and Vec3dVector utilities  
-    m.def("IntVector_new", [](size_t s) -> IntVector_ptr {
-        return IntVector_new(s);
-    });
-    
-    m.def("IntVector_size", [](IntVector_ptr self) -> size_t {
-        return IntVector_size(self);
-    });
-    
-    m.def("IntVector_get", [](IntVector_ptr self, size_t idx) -> size_t {
-        return IntVector_get(self, idx);
-    });
-    
-    m.def("IntVector_delete", [](IntVector_ptr self) {
-        IntVector_delete(self);
-    });
+    // VECTOR FUNCTIONS - Vec3dVector utilities only
     
     m.def("Vec3dVector_new", [](size_t s) -> Vec3dVector_ptr {
         return Vec3dVector_new(s);
@@ -659,8 +622,8 @@ PYBIND11_MODULE(PyGEL, m) {
     });
     
     // Face extrusion and loop operations
-    m.def("extrude_faces", [](Manifold_ptr m_ptr, const std::vector<int>& faces, IntVector_ptr fidx_ptr) {
-        extrude_faces(m_ptr, faces, *fidx_ptr);
+    m.def("extrude_faces", [](Manifold_ptr m_ptr, const std::vector<int>& faces, std::vector<size_t>& fidx_ptr) {
+        extrude_faces(m_ptr, faces, fidx_ptr);
     });
     
     m.def("kill_face_loop", [](Manifold_ptr m_ptr) {
@@ -692,7 +655,30 @@ PYBIND11_MODULE(PyGEL, m) {
         mesh_vec_del(mv_ptr);
     });
     
-    // MISSING GRAPH FUNCTIONS
+
+    // I3DTree bindings
+    py::class_<I3DTree>(m, "I3DTree");
+    m.def("I3DTree_new", []() -> I3DTree_ptr {
+        return I3DTree_new();
+    });
+    m.def("I3DTree_delete", [](I3DTree_ptr self) {
+        I3DTree_delete(self);
+    });
+    m.def("I3DTree_insert", [](I3DTree_ptr tree, double x, double y, double z, size_t v) {
+        I3DTree_insert(tree, x, y, z, v);
+    });
+    m.def("I3DTree_build", [](I3DTree_ptr tree) {
+        I3DTree_build(tree);
+    });
+    m.def("I3DTree_closest_point", [](I3DTree_ptr tree, double x, double y, double z, double r) -> std::pair<std::vector<double>, size_t> {
+        return I3DTree_closest_point(tree, x, y, z, r);
+    });
+    m.def("I3DTree_in_sphere", [](I3DTree_ptr tree, double x, double y, double z, double r) -> std::pair<std::vector<CGLA::Vec3d>, std::vector<size_t>> {
+        return I3DTree_in_sphere(tree, x, y, z, r);
+    });
+    m.def("I3DTree_m_closest_points", [](I3DTree_ptr tree, double x, double y, double z, double r, int m) -> std::pair<std::vector<CGLA::Vec3d>, std::vector<size_t>> {
+        return I3DTree_m_closest_points(tree, x, y, z, r, m);
+    });
     
     // Graph to mesh functions
     m.def("graph_to_mesh_iso", [](Graph_ptr g_ptr, Manifold_ptr m_ptr, float fudge, size_t grid_res) {
@@ -700,22 +686,17 @@ PYBIND11_MODULE(PyGEL, m) {
     });
     
     // Skeletonization functions
-    m.def("graph_LS_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, bool sampling) {
-        graph_LS_skeleton(g_ptr, skel_ptr, *map_ptr, sampling);
+    m.def("graph_LS_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, bool sampling) -> std::vector<size_t> {
+        return graph_LS_skeleton(g_ptr, skel_ptr, sampling);
     });
-    
-    m.def("graph_MSLS_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, int grow_thresh) {
-        graph_MSLS_skeleton(g_ptr, skel_ptr, *map_ptr, grow_thresh);
+    m.def("graph_MSLS_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, int grow_thresh) -> std::vector<size_t> {
+        return graph_MSLS_skeleton(g_ptr, skel_ptr, grow_thresh);
     });
-    
-    m.def("graph_front_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, 
-                                     int N_col, const std::vector<double>& colors, int intervals) {
-        graph_front_skeleton(g_ptr, skel_ptr, *map_ptr, N_col, colors, intervals);
+    m.def("graph_front_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, int N_col, const std::vector<double>& colors, int intervals) -> std::vector<size_t> {
+        return graph_front_skeleton(g_ptr, skel_ptr, N_col, colors, intervals);
     });
-    
-    m.def("graph_combined_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, 
-                                        int N_col, const std::vector<double>& colors, int intervals) {
-        graph_combined_skeleton(g_ptr, skel_ptr, *map_ptr, N_col, colors, intervals);
+    m.def("graph_combined_skeleton", [](Graph_ptr g_ptr, Graph_ptr skel_ptr, int N_col, const std::vector<double>& colors, int intervals) -> std::vector<size_t> {
+        return graph_combined_skeleton(g_ptr, skel_ptr, N_col, colors, intervals);
     });
     
     m.def("graph_minimum_spanning_tree", [](Graph_ptr g_ptr, Graph_ptr mst_ptr, int root) {
@@ -799,7 +780,7 @@ PYBIND11_MODULE(PyGEL, m) {
         char c = mode.empty() ? 'n' : mode[0];
         Vec3f bg(bg_color[0], bg_color[1], bg_color[2]);
         GLManifoldViewer_display(self, m_ptr, g_ptr, c, smooth_shading, bg, attrib_vec, reset_view, once);
-    }, py::arg("viewer"), py::arg("manifold")=nullptr, py::arg("graph")=nullptr, py::arg("mode")="n",
+    }, py::arg("viewer"), py::arg("manifold")=nullptr, py::arg("graph")=nullptr, py::arg("mode")="w",
        py::arg("smooth_shading")=true, py::arg("bg_color")=std::vector<float>{0.1f,0.1f,0.1f},
        py::arg("attrib_vec")=std::vector<double>{}, py::arg("reset_view")=false, py::arg("once")=false);
 

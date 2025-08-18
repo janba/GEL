@@ -9,7 +9,7 @@
 #include <iostream>
 #include <string>
 #include <GEL/Geometry/Graph.h>
-#include "IntVector.h"
+
 #include "Graph.h"
 
 using namespace Geometry;
@@ -32,32 +32,27 @@ void Graph_delete(Graph_ptr _self) {
     delete _self;
 }
 
-size_t Graph_nodes(Graph_ptr _self, IntVector_ptr _nodes) {
+std::vector<size_t> Graph_nodes(Graph_ptr _self) {
     AMGraph3D* self = _self;
-    IntVector_ptr nodes = _nodes;
-    auto N = self->no_nodes();
-    nodes->resize(N);
-    size_t i=0;
+    std::vector<size_t> nodes;
+    nodes.reserve(self->no_nodes());
     for(auto v: self->node_ids())
-        (*nodes)[i++] = v;
-    return N;
+        nodes.push_back(v);
+    return nodes;
 }
 
-size_t Graph_neighbors(Graph_ptr _self, size_t n, IntVector_ptr _nbors, char mode) {
+std::vector<size_t> Graph_neighbors(Graph_ptr _self, size_t n, char mode) {
     AMGraph3D* self = _self;
-    IntVector_ptr nbors = _nbors;
+    std::vector<size_t> nbors;
     const auto& adj_map = self->edges(n);
-    nbors->resize(adj_map.size());
-
-    int i=0;
+    nbors.reserve(adj_map.size());
     if (mode=='e')
         for(auto e: adj_map)
-            (*nbors)[i++] = size_t(e.second);
+            nbors.push_back(size_t(e.second));
     else
         for(auto e: adj_map)
-            (*nbors)[i++] = size_t(e.first);
-
-    return i;
+            nbors.push_back(size_t(e.first));
+    return nbors;
 }
 
 size_t Graph_positions(Graph_ptr _self, double** pos){

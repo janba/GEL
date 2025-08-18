@@ -120,38 +120,20 @@ class Manifold:
         for halfedges."""
         return lib_py_gel.Manifold_no_allocated_halfedges(self.obj)
     def vertices(self):
-        """ Returns an iterable containing all vertex indices"""
-        verts = IntVector()
-        lib_py_gel.Manifold_vertices(self.obj, verts.obj)
-        return verts
+        """ Returns a list of all vertex indices"""
+        return lib_py_gel.Manifold_vertices(self.obj)
     def faces(self):
-        """ Returns an iterable containing all face indices"""
-        faces = IntVector()
-        lib_py_gel.Manifold_faces(self.obj, faces.obj)
-        return faces
+        """ Returns a list of all face indices"""
+        return lib_py_gel.Manifold_faces(self.obj)
     def halfedges(self):
-        """ Returns an iterable containing all halfedge indices"""
-        hedges = IntVector()
-        lib_py_gel.Manifold_halfedges(self.obj, hedges.obj)
-        return hedges
+        """ Returns a list of all halfedge indices"""
+        return lib_py_gel.Manifold_halfedges(self.obj)
     def circulate_vertex(self, vid, mode='v'):
-        """ Circulate a vertex. Passed a vertex index, vid, and second argument,
-        mode='f', this function will return an iterable with all faces incident
-        on vid arranged in counter clockwise order. Similarly, if mode is 'h',
-        incident halfedges (outgoing) are returned, and for mode = 'v', all
-        neighboring vertices are returned. """
-        nbrs = IntVector()
-        lib_py_gel.Manifold_circulate_vertex(self.obj, vid, ct.c_char(mode.encode('ascii')), nbrs.obj)
-        return nbrs
+        """ Circulate a vertex. Returns a list of indices as per mode."""
+        return lib_py_gel.Manifold_circulate_vertex(self.obj, vid, mode)
     def circulate_face(self, fid, mode='v'):
-        """ Circulate a face. Passed a face index, fid, and second argument,
-        mode='f', this function will return an iterable with all faces that
-        share an edge with fid (in counter clockwise order). If the argument is
-        mode='h', the halfedges themselves are returned. For mode='v', the
-        incident vertices of the face are returned. """
-        nbrs = IntVector()
-        lib_py_gel.Manifold_circulate_face(self.obj, fid, ct.c_char(mode.encode('ascii')), nbrs.obj)
-        return nbrs
+        """ Circulate a face. Returns a list of indices as per mode."""
+        return lib_py_gel.Manifold_circulate_face(self.obj, fid, mode)
     def next_halfedge(self,hid):
         """ Returns next halfedge to hid. """
         return lib_py_gel.Walker_next_halfedge(self.obj, hid)
@@ -276,7 +258,7 @@ class Manifold:
         true if the merging was possible and false otherwise. Currently merge
         only fails if the mesh is already illegal. Thus it should, in fact,
         never fail. """
-        if self.is_halfedge_at_boundary(hid):
+        if self.Manifold_is_halfedge_at_boundary(hid):
             return False
         fid = self.incident_face(hid)
         return lib_py_gel.Manifold_merge_faces(self.obj, fid, hid)
@@ -295,10 +277,10 @@ class Manifold:
     def is_halfedge_at_boundary(self, hid):
         """ Returns True if hid is a boundary halfedge, i.e. face on either
         side is invalid. """
-        return lib_py_gel.is_halfedge_at_boundary(self.obj, hid)
+        return lib_py_gel.Manifold_is_halfedge_at_boundary(self.obj, hid)
     def is_vertex_at_boundary(self, vid):
         """ Returns True if vid lies on a boundary. """
-        return lib_py_gel.is_vertex_at_boundary(self.obj, vid)
+        return lib_py_gel.Manifold_is_vertex_at_boundary(self.obj, vid)
     def edge_length(self, hid):
         """ Returns length of edge given by halfedge hid which is passed as argument. """
         return lib_py_gel.length(self.obj, hid)

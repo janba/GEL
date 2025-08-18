@@ -42,3 +42,4 @@ while did_work:
     v.display(m, once=True, bg_col=[1,1,1])
     sleep(.5)
 v.display(m, bg_col=[1,1,1])
+del v

@@ -12,7 +12,7 @@
 #include <vector>
 #include <string>
 #include "Vec3dVector.h"
-#include "IntVector.h"
+
 #include "Manifold.h"
 #include "Graph.h"
 
@@ -80,7 +80,7 @@ namespace PyGEL {
     void rsr_recon(Manifold_ptr m_ptr, const std::vector<double>& verts, const std::vector<double>& normals, 
                    int v_num, int n_num, bool isEuclidean = false, int genus = 0, int k = 70, int r = 20, int theta = 60, int n = 50);
     
-    void extrude_faces(Manifold_ptr m_ptr, const std::vector<int>& faces, IntVector& fidx_ptr);
+    void extrude_faces(Manifold_ptr m_ptr, const std::vector<int>& faces, std::vector<size_t>& fidx_ptr);
     void kill_face_loop(Manifold_ptr m_ptr);
     void kill_degenerate_face_loops(Manifold_ptr m_ptr, double thresh);
     void stable_marriage_registration(Manifold_ptr m_ptr, Manifold_ptr m_ref_ptr);

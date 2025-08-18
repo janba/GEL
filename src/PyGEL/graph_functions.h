@@ -11,7 +11,7 @@
 
 #include <vector>
 #include <string>
-#include "IntVector.h"
+
 #include "Graph.h"
 #include "Manifold.h"
 
@@ -28,10 +28,10 @@ namespace PyGEL {
     void graph_prune(Graph_ptr g_ptr);
     void graph_saturate(Graph_ptr g_ptr, int hops, double dist_frac, double rad);
     
-    void graph_LS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector& map_ptr, bool sampling=false);
-    void graph_MSLS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector& map_ptr, int grow_thresh=64);
-    void graph_front_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector& map_ptr, int N_col, const std::vector<double>& colors, int intervals);
-    void graph_combined_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector& map_ptr, int N_col, const std::vector<double>& colors, int intervals);
+    std::vector<size_t> graph_LS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, bool sampling=false);
+    std::vector<size_t> graph_MSLS_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, int grow_thresh=64);
+    std::vector<size_t> graph_front_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, int N_col, const std::vector<double>& colors, int intervals);
+    std::vector<size_t> graph_combined_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, int N_col, const std::vector<double>& colors, int intervals);
     
     void graph_minimum_spanning_tree(Graph_ptr g_ptr, Graph_ptr mst_ptr, int root);
     void graph_close_chordless_cycles(Graph_ptr g_ptr, int root, int hops, double rad);

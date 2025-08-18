@@ -13,7 +13,7 @@
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <GEL/HMesh/Manifold.h>
-#include "IntVector.h"
+
 #include "Vec3dVector.h"
 
 namespace PyGEL {
@@ -22,7 +22,7 @@ namespace PyGEL {
     using Vec = HMesh::Manifold::Vec;
     using Scalar = HMesh::Manifold::Vec::ScalarType;
     using Manifold_ptr = Manifold*;
-    using IntVector_ptr = IntVector*; // C-style alias
+
     
     // Manifold class methods
     Manifold_ptr Manifold_new();
@@ -36,11 +36,11 @@ namespace PyGEL {
     size_t Manifold_no_allocated_vertices(Manifold_ptr self);
     size_t Manifold_no_allocated_faces(Manifold_ptr self);
     size_t Manifold_no_allocated_halfedges(Manifold_ptr self);
-    size_t Manifold_vertices(Manifold_ptr self, IntVector& verts);
-    size_t Manifold_faces(Manifold_ptr self, IntVector& faces);
-    size_t Manifold_halfedges(Manifold_ptr self, IntVector& hedges);
-    size_t Manifold_circulate_vertex(Manifold_ptr self, size_t v, char mode, IntVector& nverts);
-    size_t Manifold_circulate_face(Manifold_ptr self, size_t f, char mode, IntVector& nverts);
+    std::vector<size_t> Manifold_vertices(Manifold_ptr self);
+    std::vector<size_t> Manifold_faces(Manifold_ptr self);
+    std::vector<size_t> Manifold_halfedges(Manifold_ptr self);
+    std::vector<size_t> Manifold_circulate_vertex(Manifold_ptr self, size_t v, char mode);
+    std::vector<size_t> Manifold_circulate_face(Manifold_ptr self, size_t f, char mode);
     
     size_t Manifold_add_face(Manifold_ptr self, const std::vector<double>& pos);
     bool Manifold_remove_face(Manifold_ptr self, size_t fid);

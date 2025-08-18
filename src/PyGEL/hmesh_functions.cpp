@@ -18,7 +18,7 @@
 #include <GEL/HMesh/RsR.h>
 #include "Graph.h"
 #include "Manifold.h"
-#include "IntVector.h"
+
 
 
 using namespace std;
@@ -277,7 +277,7 @@ void rsr_recon(Manifold_ptr m_ptr,
                        isEuclidean, genus, k, r, theta, n);
 }
 
-void extrude_faces(Manifold_ptr _m_ptr, const std::vector<int>& faces, IntVector& fidx_ref) {
+void extrude_faces(Manifold_ptr _m_ptr, const std::vector<int>& faces, std::vector<size_t>& fidx_ref) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     FaceSet fset;
     for (int fid : faces)

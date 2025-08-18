@@ -10,7 +10,7 @@
 #include <string>
 #include <GEL/HMesh/HMesh.h>
 #include <GEL/HMesh/Delaunay_triangulate.h>
-#include "IntVector.h"
+
 #include "Manifold.h"
 
 using namespace HMesh;
@@ -84,72 +84,59 @@ size_t Manifold_no_allocated_halfedges(Manifold_ptr _self) {
 }
 
 
-size_t Manifold_vertices(Manifold_ptr _self, IntVector& verts) {
+std::vector<size_t> Manifold_vertices(Manifold_ptr _self) {
     Manifold* self = _self;
-    auto N = self->no_vertices();
-    verts.resize(N);
-    size_t i = 0;
+    std::vector<size_t> verts;
+    verts.reserve(self->no_vertices());
     for (auto v : self->vertices())
-        verts[i++] = v.get_index();
-    return N;
+        verts.push_back(v.get_index());
+    return verts;
 }
 
-size_t Manifold_faces(Manifold_ptr _self, IntVector& faces) {
+std::vector<size_t> Manifold_faces(Manifold_ptr _self) {
     Manifold* self = _self;
-    auto N = self->no_faces();
-    faces.resize(N);
-    size_t i = 0;
+    std::vector<size_t> faces;
+    faces.reserve(self->no_faces());
     for (auto f : self->faces())
-        faces[i++] = f.get_index();
-    return N;
+        faces.push_back(f.get_index());
+    return faces;
 }
 
-size_t Manifold_halfedges(Manifold_ptr _self, IntVector& hedges) {
+std::vector<size_t> Manifold_halfedges(Manifold_ptr _self) {
     Manifold* self = _self;
-    auto N = self->no_halfedges();
-    hedges.resize(N);
-    size_t i = 0;
+    std::vector<size_t> hedges;
+    hedges.reserve(self->no_halfedges());
     for (auto h : self->halfedges())
-        hedges[i++] = h.get_index();
-    return N;    
+        hedges.push_back(h.get_index());
+    return hedges;
 }
 
-size_t Manifold_circulate_vertex(Manifold_ptr _self, size_t _v, char mode, IntVector& nbrs) {
+std::vector<size_t> Manifold_circulate_vertex(Manifold_ptr _self, size_t _v, char mode) {
     Manifold* self = _self;
     VertexID v(_v);
-    size_t N = circulate_vertex_ccw(*self, v, [&](Walker w){
+    std::vector<size_t> nbrs;
+    circulate_vertex_ccw(*self, v, [&](Walker w){
         switch(mode) {
-            case 'v':
-                nbrs.push_back(w.vertex().get_index());
-                break;
-            case 'f':
-                nbrs.push_back(w.face().get_index());
-                break;
-            case 'h':
-                nbrs.push_back(w.halfedge().get_index());
-                break;
+            case 'v': nbrs.push_back(w.vertex().get_index()); break;
+            case 'f': nbrs.push_back(w.face().get_index()); break;
+            case 'h': nbrs.push_back(w.halfedge().get_index()); break;
         }
     });
-    return N;
+    return nbrs;
 }
 
-size_t Manifold_circulate_face(Manifold_ptr _self, size_t _f, char mode, IntVector& nbrs) {
+std::vector<size_t> Manifold_circulate_face(Manifold_ptr _self, size_t _f, char mode) {
     Manifold* self = _self;
     FaceID f(_f);
-    size_t N = circulate_face_ccw(*self, f, [&](Walker w){
+    std::vector<size_t> nbrs;
+    circulate_face_ccw(*self, f, [&](Walker w){
         switch(mode) {
-            case 'v':
-                nbrs.push_back(w.vertex().get_index());
-                break;
-            case 'f':
-                nbrs.push_back(w.opp().face().get_index());
-                break;
-            case 'h':
-                nbrs.push_back(w.halfedge().get_index());
-                break;
+            case 'v': nbrs.push_back(w.vertex().get_index()); break;
+            case 'f': nbrs.push_back(w.opp().face().get_index()); break;
+            case 'h': nbrs.push_back(w.halfedge().get_index()); break;
         }
     });
-    return N;
+    return nbrs;
 }
 
 size_t Manifold_add_face(Manifold_ptr _self, const std::vector<double>& pos) {
