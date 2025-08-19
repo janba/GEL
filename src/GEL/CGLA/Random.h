@@ -131,6 +131,13 @@ public:
         return pcg32x2_rand_bounded_two_sided(lower, upper);
     }
 
+    /// Generate the next random number with an external bound
+    [[nodiscard]]
+    constexpr result_type operator()(const result_type lower_bound, const result_type upper_bound)
+    {
+        return pcg32x2_rand_bounded_two_sided(lower_bound, upper_bound);
+    }
+
 private:
     constexpr void pcg32x2_seed(std::uint64_t seed1, std::uint64_t seed2, std::uint64_t seq1, std::uint64_t seq2)
     {
@@ -148,20 +155,15 @@ private:
             | rng[1].pcg32_rand();
     }
 
-    constexpr std::uint64_t pcg32x2_rand_bounded(std::uint64_t bound)
-    {
-        std::uint64_t threshold = -bound % bound;
-        for (;;) {
-            std::uint64_t r = pcg32x2_rand();
-            if (r >= threshold)
-                return r % bound;
-        }
-    }
-
     constexpr std::uint64_t pcg32x2_rand_bounded_two_sided(std::uint64_t lower_bound, std::uint64_t upper_bound)
     {
         assert(lower_bound <= upper_bound);
-        return lower_bound + pcg32x2_rand_bounded(upper_bound - lower_bound);
+        std::uint64_t threshold = -upper_bound % upper_bound;
+        for (;;) {
+            std::uint64_t r = pcg32x2_rand();
+            if (r >= threshold)
+                return lower_bound + (r % upper_bound);
+        }
     }
 };
 
@@ -203,7 +205,7 @@ namespace Distributions
         [[nodiscard]]
         constexpr result_type operator()(GelPrngBase<>& rng) const
         {
-            return rng();
+            return rng(m_min, m_max);
         }
     };
 
@@ -219,7 +221,7 @@ namespace Distributions
         static constexpr result_type max() { return 1.0; }
 
         [[nodiscard]]
-        result_type operator()(GelPrngBase<>& rng) { return std::ldexp(rng(), -64); }
+        result_type operator()(GelPrngBase<>& rng) const { return std::ldexp(rng(), -64); }
     };
 
     static_assert(Distribution<UniformDouble>);
