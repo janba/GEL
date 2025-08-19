@@ -275,7 +275,7 @@ namespace Distributions
     static_assert(Distribution<Normal<>>);
 }
 
-
+/// Core template for all GEL pseudo-random generators
 template <Distributions::Distribution Distribution>
 // We inherit from Distribution to make use of empty-base optimization.
 struct GelPrngWithDistribution : Distribution {
@@ -292,8 +292,10 @@ public:
     explicit GelPrngWithDistribution(const std::array<std::uint64_t, 4>& seed,
                                      Distribution&& distribution) : Distribution(std::move(distribution)), rng(seed) {}
 
-    static result_type min() { return Distribution::min(); }
-    static result_type max() { return Distribution::max(); }
+    [[nodiscard]]
+    result_type min() const { return Distribution::min(); }
+    [[nodiscard]]
+    result_type max() const { return Distribution::max(); }
     /// Generate the next random number
     result_type operator()() { return Distribution::operator()(rng); }
 };
@@ -309,6 +311,9 @@ using GelPrngGaussian = GelPrngWithDistribution<Distributions::Gaussian<>>;
 
 /// Normal double generator
 using GelPrngNormal = GelPrngWithDistribution<Distributions::Normal<>>;
+
+/// Bit generator for std algorithms
+using GelBitGenerator = GelPrngBase<>;
 
 /// Function that seeds the GEL pseudo-random number generator
 //[[deprecated]]
@@ -340,6 +345,7 @@ using Random::GelPrngDouble;
 using Random::GelPrngGaussian;
 using Random::GelPrngNormal;
 using Random::GelPrngWithDistribution;
+using Random::GelBitGenerator;
 using Random::gel_rand;
 using Random::gel_srand;
 }
