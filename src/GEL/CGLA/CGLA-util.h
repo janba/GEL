@@ -11,6 +11,8 @@
 #ifndef CGLA_CGLA_UTIL
 #define CGLA_CGLA_UTIL
 
+#include <GEL/CGLA/Random.h>
+
 #if (_MSC_VER >= 1200)
 #pragma warning (disable: 4244 4800)
 #endif
@@ -129,20 +131,6 @@ namespace CGLA
         }
         return result;
     }
-    
-    /// Function that seeds the GEL pseudo-random number generator
-    void gel_srand(unsigned int seed);
-    
-    /** GEL provides a linear congruential pseudo-random number
-     generator which is optimized for speed. This version allows
-     an integer argument which is useful for grid-based noise
-     functions. */
-    unsigned int gel_rand(unsigned int k);
-    
-    /** GEL provides a linear congruential pseudo-random number
-     generator which is optimized for speed. This means
-     that GEL_RAND_MAX==UINT_MAX. */
-    unsigned int gel_rand();
     
     /** raw_assign takes a CGLA vector, matrix or whatever has a get() function
      as its first argument and a raw pointer to a (presumed scalar) entity
