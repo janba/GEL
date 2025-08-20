@@ -25,6 +25,16 @@ namespace Combinators
 
     bool ignore_spaces(std::string_view& s);
 
+    std::optional<std::uint64_t> parse_uint(std::string_view& s);
+
+    struct FaceTriplet {
+        std::uint64_t vertex_id = -1;
+        std::optional<std::uint64_t> tcoord_id;
+        std::optional<std::uint64_t> normal_id;
+    };
+
+    std::optional<FaceTriplet> parse_face_triplet(std::string_view& s);
+
     std::optional<double> parse_float(std::string_view& s);
 
     std::optional<double> parse_float_ws(std::string_view& s);
@@ -36,6 +46,12 @@ namespace Combinators
     std::optional<CGLA::Vec2d> parse_prefix_then_float_doublet(std::string_view prefix, std::string_view& s);
 
     std::optional<CGLA::Vec3d> parse_prefix_then_float_triplet(std::string_view prefix, std::string_view& s);
+
+    struct FaceElement {
+        std::vector<FaceTriplet> triplets;
+    };
+
+    std::optional<FaceElement> parse_face_element(std::string_view& s);
 }
 
 /// Raw Wavefront Obj type for easy import/export
@@ -48,17 +64,20 @@ struct RawObj {
     using Index = std::uint64_t;
     static constexpr Index InvalidIndex = std::numeric_limits<Index>::max();
     // TODO:
-    struct FaceElement {
-      Index vertex_id = InvalidIndex;
-      std::optional<Index> tcoord_id;
-      std::optional<Index> normal_id;
-    };
     // Note: this should probably use smallvec internally for up to 4 vertices
-    std::vector<std::vector<FaceElement>> faces;
+    std::vector<std::vector<Combinators::FaceTriplet>> faces;
 
     friend std::ostream& operator<<(std::ostream& os, const RawObj& obj);
     friend std::istream& operator>>(std::istream& is, RawObj& obj);
 };
+
+struct TriangleMesh {
+    std::vector<CGLA::Vec3d> vertices;
+    std::vector<CGLA::Vec3d> normals;
+    std::vector<size_t> indices;
+};
+
+TriangleMesh to_triangle_mesh(const RawObj& obj);
 
 std::optional<RawObj> read_raw_obj(const std::filesystem::path& file_path);
 

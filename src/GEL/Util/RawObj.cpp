@@ -16,14 +16,32 @@ using namespace Combinators;
 
 std::ostream& operator<<(std::ostream& os, const RawObj& obj)
 {
-    for (auto const& v : obj.vertices) {
+    for (const auto& v : obj.vertices) {
         os << "v " << v[0] << " " << v[1] << " " << v[2] << "\n";
     }
-    for (auto const& vn : obj.normals) {
+    for (const auto& vn : obj.normals) {
         os << "vn" << vn[0] << " " << vn[1] << " " << vn[2] << "\n";
     }
-    for (auto const& vt : obj.texture_coordinates) {
+    for (const auto& vt : obj.texture_coordinates) {
         os << "vt" << vt[0] << " " << vt[1] << "\n";
+    }
+    for (const auto& face : obj.faces) {
+        os << "f ";
+        for (const auto& triplet : face) {
+            os << triplet.vertex_id;
+            if (triplet.normal_id || triplet.tcoord_id) {
+                os << "/";
+                if (triplet.tcoord_id) {
+                    os << *triplet.tcoord_id;
+                }
+                if (triplet.normal_id) {
+                    os << "/" << *triplet.normal_id;
+                }
+            }
+
+            os << " ";
+        }
+        os << "\n";
     }
     return os;
 }
@@ -42,6 +60,9 @@ std::istream& operator>>(std::istream& is, RawObj& obj)
         }
         if (auto pos = parse_prefix_then_float_triplet("vt", line_view)) {
             obj.normals.emplace_back(*pos);
+        }
+        if (auto face = parse_face_element(line_view)) {
+            obj.faces.push_back(std::move(face->triplets));
         }
     }
     return is;
@@ -105,9 +126,11 @@ namespace Combinators
             return out;
         }
     }
+
     /// FIXME: Check if we live in that future where this code can be deleted
 #else
-    std::optional<double> parse_float(std::string_view& s) {
+    std::optional<double> parse_float(std::string_view& s)
+    {
         const auto begin = s.begin();
         const auto end_pos = s.find(' ');
         if (end_pos == 0) {
@@ -133,8 +156,38 @@ namespace Combinators
 
     std::optional<std::uint64_t> parse_uint(std::string_view& s)
     {
-        throw std::runtime_error("unimplemented");
-        return std::nullopt;
+        std::uint64_t out;
+        const auto begin = s.begin();
+        const auto end_pos = s.find(' ');
+        const auto end = (end_pos == std::string::npos) ? s.end() : s.begin() + end_pos;
+        const auto [p, ec] = std::from_chars<std::uint64_t>(begin, end, out);
+        if (ec != std::errc()) {
+            return std::nullopt;
+        } else {
+            const auto offset = p - begin;
+            s = s.substr(offset);
+            return out;
+        }
+    }
+
+    std::optional<FaceTriplet> parse_face_triplet(std::string_view& s)
+    {
+        auto s_temp = s;
+        const auto out1 = parse_uint(s_temp);
+        if (!out1) return std::nullopt;
+        // guaranteed to have at least one other thing
+        if (parse_one('/', s_temp)) {
+            const auto out2 = parse_uint(s_temp);
+            parse_one('/', s_temp);
+            const auto out3 = parse_uint(s_temp);
+            ignore_spaces(s_temp);
+            s = s_temp;
+            return FaceTriplet{*out1, out2, out3};
+        } else {
+            // Only vertices
+            ignore_spaces(s_temp);
+            return FaceTriplet{*out1, std::nullopt, std::nullopt};
+        }
     }
 
     std::optional<double> parse_float_ws(std::string_view& s)
@@ -199,14 +252,17 @@ namespace Combinators
         }
     }
 
-    std::optional<RawObj::FaceElement> parse_face_element(std::string_view& s)
+    std::optional<FaceElement> parse_face_element(std::string_view& s)
     {
         auto s_temp = s;
         if (!parse_string("f", s_temp)) return std::nullopt;
         ignore_spaces(s_temp);
-        // TODO
-
-        return std::nullopt;
+        std::vector<FaceTriplet> triplets;
+        while (auto triplet_maybe = parse_face_triplet(s_temp)) {
+            triplets.push_back(*triplet_maybe);
+        }
+        s = s_temp;
+        return FaceElement{std::move(triplets)};
     }
 }
 
@@ -227,5 +283,23 @@ void write_raw_obj(const std::filesystem::path& file_path, const RawObj& obj)
     std::ofstream file(file_path);
     file << obj << std::endl;
     file.close();
+}
+
+TriangleMesh to_triangle_mesh(const RawObj& obj)
+{
+    auto vertices = obj.vertices;
+    std::vector<CGLA::Vec3d> normals(vertices.size(), CGLA::Vec3d(0.0));
+    std::vector<size_t> indices;
+    for (auto& face : obj.faces) {
+        // indices start from one
+        for (auto& vertex : face) {
+            indices.push_back(vertex.vertex_id - 1);
+            normals.at(vertex.vertex_id - 1) += vertex.normal_id
+                                                    ? obj.normals.at(*vertex.normal_id - 1)
+                                                    : CGLA::Vec3d(0.0);
+        }
+    }
+
+    return TriangleMesh{std::move(vertices), std::move(normals), std::move(indices)};
 }
 }
