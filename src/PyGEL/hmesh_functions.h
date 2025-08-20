@@ -85,14 +85,14 @@ namespace PyGEL {
     void kill_degenerate_face_loops(Manifold* m_ptr, double thresh);
     void stable_marriage_registration(Manifold* m_ptr, Manifold* m_ref_ptr);
 
-    // std::vector<Manifold*> connected_components(Manifold* m_ptr);
-    size_t mesh_vec_size(const std::vector<Manifold*>& mv_ptr);
-    Manifold* mesh_vec_get(const std::vector<Manifold*>& mv_ptr, size_t i);
+    std::vector<Manifold*>* connected_components(Manifold* m_ptr);
+    size_t mesh_vec_size(const std::vector<Manifold*>* mv_ptr);
+    Manifold* mesh_vec_get(const std::vector<Manifold*>* mv_ptr, size_t i);
     void mesh_vec_del(std::vector<Manifold*>* mv_ptr);
     
     int count_boundary_curves(Manifold* m_ptr);
-    void create_LBO(Manifold* m_ptr, std::vector<size_t>& L_i, std::vector<size_t>& L_j, std::vector<double>& L,
-                    std::vector<size_t>& M_i, std::vector<size_t>& M_j, std::vector<double>& M);
+    // void create_LBO(Manifold* m_ptr, std::vector<size_t>& L_i, std::vector<size_t>& L_j, std::vector<double>& L,
+    //                 std::vector<size_t>& M_i, std::vector<size_t>& M_j, std::vector<double>& M);
 }
 
 #endif /* hmesh_functions_hpp */

@@ -11,12 +11,23 @@
 
 #include <vector>
 #include <utility>
+#include <GEL/Geometry/build_bbtree.h>
 #include "Manifold.h"
 
-// Forward declaration for MeshDistance - this is a PyGEL-specific class
-class MeshDistance;
-
 namespace PyGEL {
+        
+    class MeshDistance
+    {
+        Geometry::AABBTree aabb_tree;
+
+    public:
+        MeshDistance(HMesh::Manifold *m);
+
+        float signed_distance(const CGLA::Vec3f &p, float upper);
+        bool ray_inside_test(const CGLA::Vec3f &p, int no_rays);
+
+        bool ray_intersect(CGLA::Vec3f &p, CGLA::Vec3f &d, float &t);
+    };
 
     MeshDistance* MeshDistance_new(Manifold* m);
     void MeshDistance_delete(MeshDistance* self);

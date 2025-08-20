@@ -10,7 +10,6 @@
 
 #include <GEL/CGLA/CGLA.h>
 #include <GEL/HMesh/Manifold.h>
-#include <GEL/Geometry/build_bbtree.h>
 
 using namespace HMesh;
 using namespace CGLA;
@@ -18,18 +17,7 @@ using namespace Geometry;
 
 namespace PyGEL {
 
-class MeshDistance
-{
-    Geometry::AABBTree aabb_tree;
 
-public:
-    MeshDistance(HMesh::Manifold *m);
-
-    float signed_distance(const CGLA::Vec3f &p, float upper);
-    bool ray_inside_test(const CGLA::Vec3f &p, int no_rays);
-
-    bool ray_intersect(CGLA::Vec3f &p, CGLA::Vec3f &d, float &t);
-};
 
 MeshDistance::MeshDistance(Manifold *m)
 {

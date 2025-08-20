@@ -16,19 +16,19 @@ using namespace std;
 
 namespace PyGEL {
 
-Vec3dVector_ptr Vec3dVector_new(size_t s) {
+Vec3dVector* Vec3dVector_new(size_t s) {
     return new Vec3dVector(s);
 }
 
-size_t Vec3dVector_size(Vec3dVector_ptr self) {
+size_t Vec3dVector_size(Vec3dVector* self) {
     return self->size();
 }
 
-double* Vec3dVector_get(Vec3dVector_ptr self, size_t idx) {
+double* Vec3dVector_get(Vec3dVector* self, size_t idx) {
     return (*self)[idx].get();
 }
 
-void Vec3dVector_delete(Vec3dVector_ptr self) {
+void Vec3dVector_delete(Vec3dVector* self) {
     delete self;
 }
 

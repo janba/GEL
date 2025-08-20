@@ -24,7 +24,7 @@ using namespace HMesh;
 
 namespace PyGEL {
 
-void graph_from_mesh(Manifold_ptr _m_ptr, Graph_ptr _g_ptr) {
+void graph_from_mesh(Manifold* _m_ptr, AMGraph3D* _g_ptr) {
     AMGraph3D& g = *reinterpret_cast<AMGraph3D*>(_g_ptr);
     Manifold& m = *reinterpret_cast<Manifold*>(_m_ptr);
     VertexAttributeVector<AMGraph::NodeID> v2n;
@@ -39,45 +39,45 @@ void graph_from_mesh(Manifold_ptr _m_ptr, Graph_ptr _g_ptr) {
 }
 
 
-bool graph_load(Graph_ptr _g_ptr, const std::string& _file_name) {
+bool graph_load(AMGraph3D* _g_ptr, const std::string& _file_name) {
     AMGraph3D* g_ptr = _g_ptr;
     *g_ptr = Geometry::graph_load(_file_name);
     return g_ptr->no_nodes()>0;
 }
 
-bool graph_save(Graph_ptr _g_ptr, const std::string& _file_name) {
+bool graph_save(AMGraph3D* _g_ptr, const std::string& _file_name) {
     AMGraph3D* g_ptr = _g_ptr;
     return Geometry::graph_save(_file_name, *g_ptr);
 }
 
-void graph_to_mesh_cyl(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, float fudge) {
+void graph_to_mesh_cyl(AMGraph3D* _g_ptr, Manifold* _m_ptr, float fudge) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     graph_to_mesh_cyl(*g_ptr, *m_ptr, fudge);
 }
 
-void graph_to_mesh_iso(Graph_ptr _g_ptr, Manifold_ptr _m_ptr, float fudge, size_t grid_res) {
+void graph_to_mesh_iso(AMGraph3D* _g_ptr, Manifold* _m_ptr, float fudge, size_t grid_res) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     graph_to_mesh_iso(*g_ptr, *m_ptr, grid_res, fudge, 0.0);
 }
 
-void graph_smooth(Graph_ptr _g_ptr, const int iter, const float alpha) {
+void graph_smooth(AMGraph3D* _g_ptr, const int iter, const float alpha) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     smooth_graph(*g_ptr, iter, alpha);
 }
 
-int graph_edge_contract(Graph_ptr _g_ptr, double dist_thresh) {
+int graph_edge_contract(AMGraph3D* _g_ptr, double dist_thresh) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     return graph_edge_contract(*g_ptr, dist_thresh);
 }
 
-void graph_prune(Graph_ptr _g_ptr) {
+void graph_prune(AMGraph3D* _g_ptr) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     prune(*g_ptr);
 }
 
-std::vector<size_t> graph_LS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, bool sampling) {
+std::vector<size_t> graph_LS_skeleton(AMGraph3D* _g_ptr, AMGraph3D* _skel_ptr, bool sampling) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
     std::vector<size_t> map_ref(g_ptr->no_nodes());
@@ -89,7 +89,7 @@ std::vector<size_t> graph_LS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, boo
     return map_ref;
 }
 
-std::vector<size_t> graph_MSLS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, int grow_thresh) {
+std::vector<size_t> graph_MSLS_skeleton(AMGraph3D* _g_ptr, AMGraph3D* _skel_ptr, int grow_thresh) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
     std::vector<size_t> map_ref(g_ptr->no_nodes());
@@ -101,12 +101,12 @@ std::vector<size_t> graph_MSLS_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, i
     return map_ref;
 }
 
-void graph_saturate(Graph_ptr _g_ptr, int hops, double dist_frac, double rad) {
+void graph_saturate(AMGraph3D* _g_ptr, int hops, double dist_frac, double rad) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     saturate_graph(*g_ptr, hops, dist_frac, rad);
 }
 
-std::vector<size_t> graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, int N_col, const std::vector<double>& colors, int intervals){
+std::vector<size_t> graph_front_skeleton(AMGraph3D* _g_ptr, AMGraph3D* _skel_ptr, int N_col, const std::vector<double>& colors, int intervals){
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
     const size_t N = g_ptr->no_nodes();
@@ -125,7 +125,7 @@ std::vector<size_t> graph_front_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, 
     return map_ref;
 }
 
-std::vector<size_t> graph_combined_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_ptr, int N_col, const std::vector<double>& colors, int intervals){ 
+std::vector<size_t> graph_combined_skeleton(AMGraph3D* _g_ptr, AMGraph3D* _skel_ptr, int N_col, const std::vector<double>& colors, int intervals){ 
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* skel_ptr = reinterpret_cast<AMGraph3D*>(_skel_ptr);
     const size_t N = g_ptr->no_nodes();
@@ -146,14 +146,14 @@ std::vector<size_t> graph_combined_skeleton(Graph_ptr _g_ptr, Graph_ptr _skel_pt
 
 
 
-void graph_minimum_spanning_tree(Graph_ptr _g_ptr, Graph_ptr _mst_ptr, int _root) {
+void graph_minimum_spanning_tree(AMGraph3D* _g_ptr, AMGraph3D* _mst_ptr, int _root) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     AMGraph3D* mst_ptr = reinterpret_cast<AMGraph3D*>(_mst_ptr);
     auto root = AMGraph3D::NodeID(_root);
     *mst_ptr = minimum_spanning_tree(*g_ptr, root);
 }
 
-void graph_close_chordless_cycles(Graph_ptr _g_ptr, int _root, int hops, double rad) {
+void graph_close_chordless_cycles(AMGraph3D* _g_ptr, int _root, int hops, double rad) {
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     auto root = AMGraph3D::NodeID(_root);
     close_chordless_cycles(*g_ptr, root, hops, rad);

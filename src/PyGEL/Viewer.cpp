@@ -299,6 +299,7 @@ GLManifoldViewer::GLManifoldViewer() {
 }
 
 GLManifoldViewer::~GLManifoldViewer() {
+    cout << "TRAHAHAHAH LALLLA LALA I am destructing" << endl;
     wv_map.erase(window);
     delete renderer;
     glfwDestroyWindow(window);

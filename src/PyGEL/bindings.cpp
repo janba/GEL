@@ -619,16 +619,16 @@ PYBIND11_MODULE(PyGEL, m) {
     });
     
     // Connected components
-    m.def("connected_components", [](Manifold* m_ptr) -> std::vector<Manifold*> {
-        return connected_components(*m_ptr);
+    m.def("connected_components", [](Manifold* m_ptr) -> std::vector<Manifold*>* {
+        return connected_components(m_ptr);
     });
     
     m.def("mesh_vec_size", [](std::vector<Manifold*>* mv_ptr) -> size_t {
-        return mesh_vec_size(*mv_ptr);
+        return mesh_vec_size(mv_ptr);
     });
     
     m.def("mesh_vec_get", [](std::vector<Manifold*>* mv_ptr, size_t i) -> Manifold* {
-        return mesh_vec_get(*mv_ptr, i);
+        return mesh_vec_get(mv_ptr, i);
     });
     
     m.def("mesh_vec_del", [](std::vector<Manifold*>* mv_ptr) {

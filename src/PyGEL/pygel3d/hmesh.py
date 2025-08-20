@@ -80,8 +80,8 @@ class Manifold:
         yaxis = np.asarray(yaxis,dtype=np.float64, order='C')
         m.obj = lib_py_gel.Manifold_from_points(len(pts), pts, xaxis, yaxis)
         return m
-    def __del__(self):
-        lib_py_gel.Manifold_delete(self.obj)
+    # def __del__(self):
+    #     lib_py_gel.Manifold_delete(self.obj)
     def merge_with(self, other):
         """ Merge this Manifold with another one given as the argument. This function
         does not return anything. It simply combines the two meshes in the Manifold on which
@@ -985,7 +985,7 @@ def connected_components(m: Manifold):
         return []
     meshes = []
     for i in range(N):
-        obj = ct.c_void_p(lib_py_gel.mesh_vec_get(comp, i))
+        obj = lib_py_gel.mesh_vec_get(comp, i)
         meshes.append(Manifold(obj))
     lib_py_gel.mesh_vec_del(comp)
     return meshes

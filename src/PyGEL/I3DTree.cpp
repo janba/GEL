@@ -13,20 +13,18 @@
 #include <GEL/CGLA/Vec3d.h>
 #include <GEL/Geometry/KDTree.h>
 
+using namespace std;
 using namespace PyGEL;
 using namespace CGLA;
 using namespace Geometry;
 
-using namespace CGLA;
-using namespace std;
 
 template class Geometry::KDTree<CGLA::Vec3d, size_t>;
 
 namespace PyGEL {
     using Vec3dVector = vector<Vec3d>;
 
-
-    I3DTree_ptr I3DTree_new() {
+    I3DTree* I3DTree_new() {
         I3DTree* ptr = new I3DTree();
         return ptr;
     }
