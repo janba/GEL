@@ -16,12 +16,11 @@
 namespace PyGEL {
     using namespace CGLA;
     using Vec3dVector = std::vector<Vec3d>;
-    using Vec3dVector_ptr = Vec3dVector*; // C-style alias
-    
-    Vec3dVector_ptr Vec3dVector_new(size_t s);
-    double* Vec3dVector_get(Vec3dVector_ptr self, size_t idx);
-    size_t Vec3dVector_size(Vec3dVector_ptr self);
-    void Vec3dVector_delete(Vec3dVector_ptr self);
+
+    Vec3dVector* Vec3dVector_new(size_t s);
+    double* Vec3dVector_get(Vec3dVector* self, size_t idx);
+    size_t Vec3dVector_size(Vec3dVector* self);
+    void Vec3dVector_delete(Vec3dVector* self);
 }
 
 #endif /* Vec3dVector_hpp */

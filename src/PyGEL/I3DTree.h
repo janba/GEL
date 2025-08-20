@@ -20,16 +20,15 @@
 namespace PyGEL {
     // Define I3DTree as a specific KDTree type
     using I3DTree = Geometry::KDTree<CGLA::Vec3d, size_t>;
-    using I3DTreePtr = I3DTree*;
-    using I3DTree_ptr = I3DTreePtr; // C-style alias
+
     
-    I3DTree_ptr I3DTree_new();
-    void I3DTree_delete(I3DTree_ptr self);
-    void I3DTree_insert(I3DTree_ptr tree, double x, double y, double z, size_t v);
-    void I3DTree_build(I3DTree_ptr tree);
-    std::pair<std::vector<double>, size_t> I3DTree_closest_point(I3DTree_ptr tree, double x, double y, double z, double r);
-    std::pair<Vec3dVector, std::vector<size_t>> I3DTree_in_sphere(I3DTree_ptr tree, double x, double y, double z, double r);
-    std::pair<Vec3dVector, std::vector<size_t>> I3DTree_m_closest_points(I3DTree_ptr tree, double x, double y, double z, double r, int m);
+    I3DTree* I3DTree_new();
+    void I3DTree_delete(I3DTree* self);
+    void I3DTree_insert(I3DTree* tree, double x, double y, double z, size_t v);
+    void I3DTree_build(I3DTree* tree);
+    std::pair<std::vector<double>, size_t> I3DTree_closest_point(I3DTree* tree, double x, double y, double z, double r);
+    std::pair<Vec3dVector, std::vector<size_t>> I3DTree_in_sphere(I3DTree* tree, double x, double y, double z, double r);
+    std::pair<Vec3dVector, std::vector<size_t>> I3DTree_m_closest_points(I3DTree* tree, double x, double y, double z, double r, int m);
 }
 
 #endif /* I3DTree_h */

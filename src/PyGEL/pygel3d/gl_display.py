@@ -17,8 +17,10 @@ try:
         def __init__(self):
             current_directory = getcwd()
             self.obj = lib_py_gel.GLManifoldViewer_new()
+            print("OpenGL viewer initialized: ", self.obj)
             chdir(current_directory) # Necessary because init_glfw changes cwd
         def __del__(self):
+            print("Deleting: ", self.obj)
             lib_py_gel.GLManifoldViewer_delete(self.obj)
 
         def clone_controller(self, v):

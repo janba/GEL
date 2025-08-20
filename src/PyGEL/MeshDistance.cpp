@@ -82,44 +82,39 @@ bool MeshDistance::ray_inside_test(const CGLA::Vec3f &p, int no_rays)
 // C API
 // -----------------------------------------
 
-MeshDistance_ptr MeshDistance_new(Manifold_ptr _m)
+
+// Only one definition for MeshDistance_new should exist. If another exists elsewhere, remove or rename it.
+MeshDistance* MeshDistance_new(Manifold* m)
 {
-    Manifold *m = reinterpret_cast<Manifold *>(_m);
-    return reinterpret_cast<MeshDistance_ptr>(new MeshDistance(m));
+    return new MeshDistance(m);
 }
 
-void MeshDistance_delete(MeshDistance_ptr _self)
+void MeshDistance_delete(MeshDistance* self)
 {
-    MeshDistance *self = reinterpret_cast<MeshDistance *>(_self);
     delete self;
 }
 
-std::vector<float> MeshDistance_signed_distance(MeshDistance_ptr _self, const std::vector<float>& p, float upper)
-
+std::vector<float> MeshDistance_signed_distance(MeshDistance* self, const std::vector<float>& p, float upper)
 {
-    MeshDistance *self = reinterpret_cast<MeshDistance *>(_self);
     std::vector<float> d(p.size() / 3);
     for (size_t i = 0; i < p.size() / 3; ++i)
         d[i] = self->signed_distance(Vec3f(p[3 * i], p[3 * i + 1], p[3 * i + 2]), upper);
     return d;
 }
 
-std::vector<int> MeshDistance_ray_inside_test(MeshDistance_ptr self, const std::vector<float>& p, int no_rays)
+std::vector<int> MeshDistance_ray_inside_test(MeshDistance* self, const std::vector<float>& p, int no_rays)
 {
-    MeshDistance *dist = reinterpret_cast<MeshDistance *>(self);
     std::vector<int> results;
     for (size_t i = 0; i < p.size() / 3; ++i)
     {
         CGLA::Vec3f point(p[3 * i], p[3 * i + 1], p[3 * i + 2]);
-        results.push_back(dist->ray_inside_test(point, no_rays));
+        results.push_back(self->ray_inside_test(point, no_rays));
     }
     return results;
 }
 
-
-bool MeshDistance_ray_intersect(MeshDistance_ptr _self, CGLA::Vec3f& p, CGLA::Vec3f& d, float *t)
+bool MeshDistance_ray_intersect(MeshDistance* self, CGLA::Vec3f& p, CGLA::Vec3f& d, float *t)
 {
-    MeshDistance *self = reinterpret_cast<MeshDistance *>(_self);
     return self->ray_intersect(p, d, *t);
 }
 

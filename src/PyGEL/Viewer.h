@@ -18,8 +18,8 @@
 #include "Graph.h"
 
 struct DisplayParameters {
-    HMesh::Manifold* m_ptr = 0;
-    Geometry::AMGraph3D* g_ptr = 0;
+    HMesh::Manifold* m_ptr = nullptr;
+    Geometry::AMGraph3D* g_ptr = nullptr;
     char mode = 'n';
     bool smooth_shading = true;
     CGLA::Vec3f bg_color = CGLA::Vec3f(0.3,0.3,0.3);
@@ -105,24 +105,24 @@ public:
 
 namespace PyGEL {
     using namespace GLGraphics;
-    using GLManifoldViewer_ptr = GLManifoldViewer*; // C-style alias
+
     
-    GLManifoldViewer_ptr GLManifoldViewer_new();
+    GLManifoldViewer* GLManifoldViewer_new();
     void GLManifoldViewer_event_loop(bool once);
-    void GLManifoldViewer_display(GLManifoldViewer_ptr _self,
-                                Manifold_ptr _m,
-                                Graph_ptr _g,
+    void GLManifoldViewer_display(GLManifoldViewer* _self,
+                                Manifold* _m,
+                                AMGraph3D* _g,
                                 char mode,
                                 bool smooth_shading,
                                 const CGLA::Vec3f& bg_color, 
                                 std::vector<double>& attrib_vec, 
                                 bool reset_view,
                                 bool once);    
-    void GLManifoldViewer_clone_controller(GLManifoldViewer_ptr self, GLManifoldViewer_ptr other);
-    void GLManifoldViewer_delete(GLManifoldViewer_ptr self);
+    void GLManifoldViewer_clone_controller(GLManifoldViewer* self, GLManifoldViewer* other);
+    void GLManifoldViewer_delete(GLManifoldViewer* self);
 
-    // std::vector<double> GLManifoldViewer_get_annotation_points(GLManifoldViewer_ptr self);
-    // void GLManifoldViewer_set_annotation_points(GLManifoldViewer_ptr self, const std::vector<double>& data);
+    // std::vector<double> GLManifoldViewer_get_annotation_points(GLManifoldViewer* self);
+    // void GLManifoldViewer_set_annotation_points(GLManifoldViewer* self, const std::vector<double>& data);
 }
 
 #endif /* Viewer_hpp */

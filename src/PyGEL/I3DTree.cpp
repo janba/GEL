@@ -31,20 +31,20 @@ namespace PyGEL {
         return ptr;
     }
 
-    void I3DTree_delete(I3DTree_ptr self) {
-        delete reinterpret_cast<I3DTree*>(self);
+    void I3DTree_delete(I3DTree* self) {
+        delete self;
     }
 
-    void I3DTree_insert(I3DTree_ptr tree, double x, double y, double z, size_t v) {
+    void I3DTree_insert(I3DTree* tree, double x, double y, double z, size_t v) {
         tree->insert(CGLA::Vec3d(x,y,z), v);
     }
 
-    void I3DTree_build(I3DTree_ptr tree) {
+    void I3DTree_build(I3DTree* tree) {
         tree->build();
     }
 
 
-    std::pair<std::vector<double>, size_t> I3DTree_closest_point(I3DTree_ptr tree, double x, double y, double z, double r) {
+    std::pair<std::vector<double>, size_t> I3DTree_closest_point(I3DTree* tree, double x, double y, double z, double r) {
         CGLA::Vec3d p(x, y, z);
         CGLA::Vec3d key;
         size_t val = 0;
@@ -55,7 +55,7 @@ namespace PyGEL {
     }
 
 
-    std::pair<Vec3dVector, std::vector<size_t>> I3DTree_in_sphere(I3DTree_ptr tree, double x, double y, double z, double r) {
+    std::pair<Vec3dVector, std::vector<size_t>> I3DTree_in_sphere(I3DTree* tree, double x, double y, double z, double r) {
         Vec3dVector keys;
         std::vector<size_t> vals;
         tree->in_sphere(Vec3d(x,y,z), r, keys, vals);
@@ -63,7 +63,7 @@ namespace PyGEL {
     }
 
 
-    std::pair<Vec3dVector, std::vector<size_t>> I3DTree_m_closest_points(I3DTree_ptr tree, double x, double y, double z, double r, int m) {
+    std::pair<Vec3dVector, std::vector<size_t>> I3DTree_m_closest_points(I3DTree* tree, double x, double y, double z, double r, int m) {
         CGLA::Vec3d p(x,y,z);
         auto records = tree->m_closest(m,p,r);
         Vec3dVector keys(records.size());

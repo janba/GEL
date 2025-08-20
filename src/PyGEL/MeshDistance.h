@@ -17,15 +17,13 @@
 class MeshDistance;
 
 namespace PyGEL {
-    using MeshDistancePtr = MeshDistance*;
-    using MeshDistance_ptr = MeshDistancePtr; // C-style alias
-    
-    MeshDistance_ptr MeshDistance_new(Manifold_ptr m);
-    void MeshDistance_delete(MeshDistance_ptr self);
-    
-    std::vector<float> MeshDistance_signed_distance(MeshDistance_ptr self, const std::vector<float>& p, float upper);
-    std::vector<int> MeshDistance_ray_inside_test(MeshDistance_ptr self, const std::vector<float>& p, int no_rays);
-    bool MeshDistance_ray_intersect(MeshDistance_ptr self, CGLA::Vec3f& _p, CGLA::Vec3f& _d, float *t);
+
+    MeshDistance* MeshDistance_new(Manifold* m);
+    void MeshDistance_delete(MeshDistance* self);
+
+    std::vector<float> MeshDistance_signed_distance(MeshDistance* self, const std::vector<float>& p, float upper);
+    std::vector<int> MeshDistance_ray_inside_test(MeshDistance* self, const std::vector<float>& p, int no_rays);
+    bool MeshDistance_ray_intersect(MeshDistance* self, CGLA::Vec3f& _p, CGLA::Vec3f& _d, float *t);
 }
 
 #endif /* MeshDistance_hpp */

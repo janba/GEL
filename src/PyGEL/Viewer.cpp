@@ -340,28 +340,26 @@ void GLManifoldViewer_event_loop(bool once) {
 }
 
 
-// -----------------------------------------
+// ----------------------------------------- 
 // C API
-// -----------------------------------------
+// ----------------------------------------- 
 
-GLManifoldViewer_ptr GLManifoldViewer_new() {
+GLManifoldViewer* GLManifoldViewer_new() {
     static GLFWResource glfw_resource;
     return new GLManifoldViewer;
 }
 
-
-void GLManifoldViewer_display(GLManifoldViewer_ptr _self,
-                            Manifold_ptr _m,
-                            Graph_ptr _g,
-                            char mode,
-                            bool smooth_shading,
-                            const CGLA::Vec3f& bg_color, 
-                            std::vector<double>& attrib_vec, 
-                            bool reset_view,
-                            bool once) {
-    GLManifoldViewer* self = reinterpret_cast<GLManifoldViewer*>(_self);
-    self->display_parameters.m_ptr = reinterpret_cast<Manifold*>(_m);
-    self->display_parameters.g_ptr = reinterpret_cast<AMGraph3D*>(_g);
+void GLManifoldViewer_display(GLManifoldViewer* self,
+                              Manifold* m,
+                              AMGraph3D* g,
+                              char mode,
+                              bool smooth_shading,
+                              const CGLA::Vec3f& bg_color, 
+                              std::vector<double>& attrib_vec, 
+                              bool reset_view,
+                              bool once) {
+    self->display_parameters.m_ptr = m;
+    self->display_parameters.g_ptr = g;
     self->display_parameters.mode = mode;
     self->display_parameters.smooth_shading = smooth_shading;
     self->display_parameters.bg_color = bg_color;
@@ -371,22 +369,19 @@ void GLManifoldViewer_display(GLManifoldViewer_ptr _self,
     GLManifoldViewer_event_loop(once);
 }
 
-void GLManifoldViewer_clone_controller(GLManifoldViewer_ptr self, GLManifoldViewer_ptr other) {
-    reinterpret_cast<GLManifoldViewer*>(self)->clone_controller(reinterpret_cast<GLManifoldViewer*>(other));
+void GLManifoldViewer_clone_controller(GLManifoldViewer* self, GLManifoldViewer* other) {
+    self->clone_controller(other);
 }
 
-
-void GLManifoldViewer_delete(GLManifoldViewer_ptr _self) {
-    delete reinterpret_cast<GLManifoldViewer*>(_self);
+void GLManifoldViewer_delete(GLManifoldViewer* self) {
+    delete self;
 }
 
-// std::vector<double>& GLManifoldViewer_get_annotation_points(GLManifoldViewer_ptr _self) {
-//     GLManifoldViewer* self = reinterpret_cast<GLManifoldViewer*>(_self);
+// std::vector<double>& GLManifoldViewer_get_annotation_points(GLManifoldViewer* self) {
 //     return self->get_annotation_points();
 // }
 
-// void GLManifoldViewer_set_annotation_points(GLManifoldViewer_ptr _self, int n, double* data) {
-//     GLManifoldViewer* self = reinterpret_cast<GLManifoldViewer*>(_self);
+// void GLManifoldViewer_set_annotation_points(GLManifoldViewer* self, int n, double* data) {
 //     vector<Vec3d> pts(n);
 //     for(int i = 0; i<n;++i)
 //         pts[i] = Vec3d(data[3*i], data[3*i+1], data[3*i+2]);
