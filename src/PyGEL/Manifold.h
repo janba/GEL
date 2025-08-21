@@ -24,10 +24,10 @@ namespace PyGEL {
 
     
     // Manifold class methods
-    HMesh::Manifold* Manifold_new();
+    // HMesh::Manifold* Manifold_new();
     HMesh::Manifold* Manifold_from_triangles(const std::vector<double>& vertices, const std::vector<int>& faces);
     HMesh::Manifold* Manifold_from_points(int N, const std::vector<double>& pts, const Vec& X_axis, const Vec& Y_axis);
-    HMesh::Manifold* Manifold_copy(HMesh::Manifold* self);
+    // HMesh::Manifold* Manifold_copy(HMesh::Manifold* self);
     void Manifold_merge(HMesh::Manifold* self, HMesh::Manifold* other);
     void Manifold_delete(HMesh::Manifold* self);
     py::array_t<Scalar> Manifold_positions(HMesh::Manifold* self);

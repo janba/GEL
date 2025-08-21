@@ -21,29 +21,44 @@ using namespace PyGEL;
 using namespace Geometry;
 using namespace HMesh;
 using namespace CGLA;
+using namespace std;
 
 PYBIND11_MODULE(PyGEL, m) {
     m.doc() = "Python bindings for GEL (Geometry and Linear algebra library) - Complete";
     
     // Register opaque types for Python compatibility
-    py::class_<Geometry::AMGraph3D>(m, "Graph");
-    py::class_<HMesh::Manifold>(m, "Manifold");
+    py::class_<Geometry::AMGraph3D>(m, "Graph")
+        .def(py::init<>())
+        .def(py::init<const AMGraph3D&>(), "Copy constructor")
+        .def("get_ptr", [](AMGraph3D& self) {return &self;});
+    py::class_<Manifold>(m, "Manifold")
+        .def(py::init<>())
+        .def(py::init<const Manifold&>(), "Copy constructor")
+        .def(py::init<const Manifold*>(), "Pointer constructor")
+        .def("get_ptr", [](Manifold& self) {return &self;});
     py::class_<GLManifoldViewer>(m, "GLManifoldViewer")
         .def(py::init<>())
-        .def("get_ptr", [](GLManifoldViewer& self) {return reinterpret_cast<GLManifoldViewer*>(&self);});
-    py::class_<std::vector<CGLA::Vec3d>>(m, "Vec3dVector");
-    py::class_<std::vector<HMesh::Manifold*>>(m, "MeshVec");
-    
+        .def("get_ptr", [](GLManifoldViewer& self) {return &self;});
+    py::class_<I3DTree>(m, "I3DTree")
+        .def(py::init<>())
+        .def("get_ptr", [](GLManifoldViewer& self) {return &self;});
+    py::class_<vector<Vec3d>>(m, "Vec3dVector")
+        .def(py::init<>())
+        .def("get_ptr", [](vector<Vec3d>& self) {return &self;});
+    py::class_<vector<Manifold*>>(m, "MeshVec")
+        .def(py::init<>())
+        .def("get_ptr", [](vector<Manifold*>& self) {return &self;});
+
     // Constants
     m.attr("InvalidIndex") = PyGEL::InvalidIndex;
     
-    // GRAPH FUNCTIONS - Using existing wrapper functions
-    m.def("Graph_new", []() -> AMGraph3D* {
-        return Graph_new();
-    });
-    m.def("Graph_delete", [](AMGraph3D* self) {
-        Graph_delete(self);
-    });
+    // // GRAPH FUNCTIONS - Using existing wrapper functions
+    // m.def("Graph_new", []() -> AMGraph3D* {
+    //     return Graph_new();
+    // });
+    // m.def("Graph_delete", [](AMGraph3D* self) {
+    //     Graph_delete(self);
+    // });
     m.def("Graph_clear", [](AMGraph3D* self) {
         Graph_clear(self);
     });
@@ -72,9 +87,9 @@ PYBIND11_MODULE(PyGEL, m) {
     m.def("Graph_average_edge_length", [](AMGraph3D* self) -> double {
         return Graph_average_edge_length(self);
     });
-    m.def("Graph_copy", [](AMGraph3D* self) -> AMGraph3D* {
-        return Graph_copy(self);
-    });
+    // m.def("Graph_copy", [](AMGraph3D* self) -> AMGraph3D* {
+    //     return Graph_copy(self);
+    // });
     m.def("Graph_merge_nodes", [](AMGraph3D* self, size_t n0, size_t n1, bool avg) {
         Graph_merge_nodes(self, n0, n1, avg);
     });
@@ -85,16 +100,16 @@ PYBIND11_MODULE(PyGEL, m) {
         return self->no_edges();
     });
 
-    // MANIFOLD FUNCTIONS - Using existing wrapper functions where available
-    m.def("Manifold_new", []() -> Manifold* {
-        return Manifold_new();
-    });
-    m.def("Manifold_delete", [](Manifold* self) {
-        Manifold_delete(self);
-    });
-    m.def("Manifold_copy", [](Manifold* self) -> Manifold* {
-        return Manifold_copy(self);
-    });
+    // // MANIFOLD FUNCTIONS - Using existing wrapper functions where available
+    // m.def("Manifold_new", []() -> Manifold* {
+    //     return Manifold_new();
+    // });
+    // m.def("Manifold_delete", [](Manifold* self) {
+    //     Manifold_delete(self);
+    // });
+    // m.def("Manifold_copy", [](Manifold* self) -> Manifold* {
+    //     return Manifold_copy(self);
+    // });
     m.def("Manifold_from_triangles", [](const std::vector<double>& vertices, const std::vector<int>& faces) -> Manifold* {
         return Manifold_from_triangles(vertices, faces);
     });
@@ -505,17 +520,17 @@ PYBIND11_MODULE(PyGEL, m) {
     
     // VECTOR FUNCTIONS - Vec3dVector utilities only
     
-    m.def("Vec3dVector_new", [](size_t s) -> Vec3dVector* {
-        return Vec3dVector_new(s);
-    });
+    // m.def("Vec3dVector_new", [](size_t s) -> Vec3dVector* {
+    //     return Vec3dVector_new(s);
+    // });
     
     m.def("Vec3dVector_size", [](Vec3dVector* self) -> size_t {
         return Vec3dVector_size(self);
     });
     
-    m.def("Vec3dVector_delete", [](Vec3dVector* self) {
-        Vec3dVector_delete(self);
-    });
+    // m.def("Vec3dVector_delete", [](Vec3dVector* self) {
+    //     Vec3dVector_delete(self);
+    // });
     
     // Additional Manifold functions with wrapper functions
     m.def("Manifold_no_allocated_vertices", [](Manifold* self) -> size_t {
@@ -639,13 +654,12 @@ PYBIND11_MODULE(PyGEL, m) {
     
 
     // I3DTree bindings
-    py::class_<I3DTree>(m, "I3DTree");
-    m.def("I3DTree_new", []() -> I3DTree* {
-        return I3DTree_new();
-    });
-    m.def("I3DTree_delete", [](I3DTree* self) {
-        I3DTree_delete(self);
-    });
+    // m.def("I3DTree_new", []() -> I3DTree* {
+    //     return I3DTree_new();
+    // });
+    // m.def("I3DTree_delete", [](I3DTree* self) {
+    //     I3DTree_delete(self);
+    // });
     m.def("I3DTree_insert", [](I3DTree* tree, double x, double y, double z, size_t v) {
         I3DTree_insert(tree, x, y, z, v);
     });
@@ -692,13 +706,13 @@ PYBIND11_MODULE(PyGEL, m) {
     // MISSING MESHDISTANCE FUNCTIONS
     
     // MeshDistance class functions - using opaque pointers
-    m.def("MeshDistance_new", [](Manifold* m) -> MeshDistance* {
-        return MeshDistance_new(m);
-    });
+    // m.def("MeshDistance_new", [](Manifold* m) -> MeshDistance* {
+    //     return MeshDistance_new(m);
+    // });
     
-    m.def("MeshDistance_delete", [](MeshDistance* self) {
-        MeshDistance_delete(self);
-    });
+    // m.def("MeshDistance_delete", [](MeshDistance* self) {
+    //     MeshDistance_delete(self);
+    // });
     
     m.def("MeshDistance_signed_distance", [](MeshDistance* self, const std::vector<float>& p, float upper) -> std::vector<float> {
         return MeshDistance_signed_distance(self, p, upper);
@@ -716,29 +730,29 @@ PYBIND11_MODULE(PyGEL, m) {
         return {result, t};
     });
     
-    // Test functions
-    m.def("test_complete", []() -> std::string {
-        return "PyGEL complete version working!";
-    });
+    // // Test functions
+    // m.def("test_complete", []() -> std::string {
+    //     return "PyGEL complete version working!";
+    // });
     
-    m.def("test_graph", []() -> std::string {
-        // Test graph creation using wrapper functions
-        auto g = Graph_new();
-        auto n1 = Graph_add_node(g, {1, 2, 3});
-        auto n2 = Graph_add_node(g, {4, 5, 6});
-        Graph_connect_nodes(g, n1, n2);
-        auto result = "Graph test: " + std::to_string(g->no_nodes()) + " nodes, " + std::to_string(g->no_edges()) + " edges";
-        Graph_delete(g);
-        return result;
-    });
+    // m.def("test_graph", []() -> std::string {
+    //     // Test graph creation using wrapper functions
+    //     auto g = Graph_new();
+    //     auto n1 = Graph_add_node(g, {1, 2, 3});
+    //     auto n2 = Graph_add_node(g, {4, 5, 6});
+    //     Graph_connect_nodes(g, n1, n2);
+    //     auto result = "Graph test: " + std::to_string(g->no_nodes()) + " nodes, " + std::to_string(g->no_edges()) + " edges";
+    //     Graph_delete(g);
+    //     return result;
+    // });
     
-    m.def("test_manifold", []() -> std::string {
-        // Test manifold creation using wrapper functions
-        auto m = Manifold_new();
-        auto result = "Manifold test: " + std::to_string(m->no_vertices()) + " vertices, " + std::to_string(m->no_faces()) + " faces";
-        Manifold_delete(m);
-        return result;
-    });
+    // m.def("test_manifold", []() -> std::string {
+    //     // Test manifold creation using wrapper functions
+    //     auto m = Manifold_new();
+    //     auto result = "Manifold test: " + std::to_string(m->no_vertices()) + " vertices, " + std::to_string(m->no_faces()) + " faces";
+    //     Manifold_delete(m);
+    //     return result;
+    // });
 
     // VIEWER (GLManifoldViewer) bindings (only if built with GLGraphics)
     // m.def("GLManifoldViewer_new", []() -> GLManifoldViewer* { return GLManifoldViewer_new(); });

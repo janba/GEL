@@ -17,11 +17,12 @@ class Graph:
     refers to a node (aka vertex)."""
     def __init__(self,orig=None):
         if orig == None:
-            self.obj = lib_py_gel.Graph_new()
+            self.obj_real = lib_py_gel.Graph()
+            self.obj = self.obj_real.get_ptr()
         else:
-            self.obj = lib_py_gel.Graph_copy(orig.obj)
-    def __del__(self):
-        lib_py_gel.Graph_delete(self.obj)
+            self.obj_real = lib_py_gel.Graph_copy(orig.obj_real)
+            self.obj = self.obj_real.get_ptr()
+
     def clear(self):
         """ Clear the graph. """
         lib_py_gel.Graph_clear(self.obj)

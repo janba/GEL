@@ -60,6 +60,10 @@ namespace HMesh
         /// Construct an empty manifold.
         Manifold();
 
+        Manifold(const Manifold& m);
+
+        Manifold(const Manifold* m_ptr);
+
         /// Serialize the Manifold
         void serialize(Util::Serialization& ser) const;
         /// Deserialize the Manifold
@@ -453,6 +457,10 @@ namespace HMesh
     // Inline functions for the Manifold class -----------------------------------------
 
     inline Manifold::Manifold() = default;
+
+    inline Manifold::Manifold(const Manifold& m): kernel(m.kernel), positions(m.positions) {}
+
+    inline Manifold::Manifold(const Manifold* m_ptr): kernel(m_ptr->kernel), positions(m_ptr->positions) {}
 
     inline Manifold::Vec& Manifold::pos(VertexID id) { 
         return positions[id]; 

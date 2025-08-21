@@ -41,10 +41,10 @@ Manifold* Manifold_from_points(int N, const std::vector<double>& pts, const Vec&
     return m;
 }
 
-Manifold* Manifold_copy(Manifold* self)
-{
-    return new Manifold(*self);
-}
+// Manifold* Manifold_copy(Manifold* self)
+// {
+//     return new Manifold(*self);
+// }
 
 void Manifold_merge(Manifold* self, Manifold* other)
 {

@@ -50,13 +50,17 @@ class Manifold:
         but the pointer is used directly. If orig is anything else, a TypeError is raised.
         """
         if orig == None:
-            self.obj = lib_py_gel.Manifold_new()
+            self.obj_real = lib_py_gel.Manifold()
+            self.obj = self.obj_real.get_ptr()
         elif isinstance(orig, Manifold):
-            self.obj = lib_py_gel.Manifold_copy(orig.obj)
-        elif isinstance(orig, ct.c_void_p):
-            self.obj = orig
+            self.obj_real = lib_py_gel.Manifold(orig.obj_real)
+            self.obj = self.obj_real.get_ptr()
+        elif isinstance(orig, lib_py_gel.Manifold):
+            self.obj_real = lib_py_gel.Manifold(orig)
+            self.obj = self.obj_real.get_ptr()
         else:
-            raise TypeError("Manifold constructor takes either a Manifold or a c_void_p as argument, not %s" % type(orig))  
+            raise ValueError("Manifold constructor takes a Manifold as argument, not %s" % type(orig))
+
         
     @classmethod
     def from_triangles(cls,vertices, faces):
@@ -987,7 +991,6 @@ def connected_components(m: Manifold):
     for i in range(N):
         obj = lib_py_gel.mesh_vec_get(comp, i)
         meshes.append(Manifold(obj))
-    lib_py_gel.mesh_vec_del(comp)
     return meshes
 
 def count_boundary_curves(m: Manifold):

@@ -10,9 +10,10 @@ class I3DTree:
     a more general kd tree in scipy.spatial if this one does not
     suit your needs. """
     def __init__(self):
-        self.obj = lib_py_gel.I3DTree_new()
-    def __del__(self):
-        lib_py_gel.I3DTree_delete(self.obj)
+        self.obj_real = lib_py_gel.I3DTree()
+        self.obj = self.obj_real.get_ptr()
+    # def __del__(self):
+    #     lib_py_gel.I3DTree_delete(self.obj)
     def insert(self,p,v):
         """ Insert v at 3D point given by p. Insert should be called before
         calling build. """
