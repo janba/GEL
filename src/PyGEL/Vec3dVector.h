@@ -14,8 +14,7 @@
 #include <GEL/CGLA/Vec3d.h>
 
 namespace PyGEL {
-    using namespace CGLA;
-    using Vec3dVector = std::vector<Vec3d>;
+    using Vec3dVector = std::vector<CGLA::Vec3d>;
 
     Vec3dVector* Vec3dVector_new(size_t s);
     double* Vec3dVector_get(Vec3dVector* self, size_t idx);

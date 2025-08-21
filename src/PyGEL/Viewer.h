@@ -104,14 +104,12 @@ public:
 };
 
 namespace PyGEL {
-    using namespace GLGraphics;
-
     
-    GLManifoldViewer* GLManifoldViewer_new();
+    // GLManifoldViewer* GLManifoldViewer_new();
     void GLManifoldViewer_event_loop(bool once);
     void GLManifoldViewer_display(GLManifoldViewer* _self,
-                                Manifold* _m,
-                                AMGraph3D* _g,
+                                HMesh::Manifold* _m,
+                                Geometry::AMGraph3D* _g,
                                 char mode,
                                 bool smooth_shading,
                                 const CGLA::Vec3f& bg_color, 
@@ -119,7 +117,7 @@ namespace PyGEL {
                                 bool reset_view,
                                 bool once);    
     void GLManifoldViewer_clone_controller(GLManifoldViewer* self, GLManifoldViewer* other);
-    void GLManifoldViewer_delete(GLManifoldViewer* self);
+    // void GLManifoldViewer_delete(GLManifoldViewer* self);
 
     // std::vector<double> GLManifoldViewer_get_annotation_points(GLManifoldViewer* self);
     // void GLManifoldViewer_set_annotation_points(GLManifoldViewer* self, const std::vector<double>& data);

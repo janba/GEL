@@ -28,7 +28,9 @@ PYBIND11_MODULE(PyGEL, m) {
     // Register opaque types for Python compatibility
     py::class_<Geometry::AMGraph3D>(m, "Graph");
     py::class_<HMesh::Manifold>(m, "Manifold");
-    py::class_<GLManifoldViewer>(m, "GLManifoldViewer");
+    py::class_<GLManifoldViewer>(m, "GLManifoldViewer")
+        .def(py::init<>())
+        .def("get_ptr", [](GLManifoldViewer& self) {return reinterpret_cast<GLManifoldViewer*>(&self);});
     py::class_<std::vector<CGLA::Vec3d>>(m, "Vec3dVector");
     py::class_<std::vector<HMesh::Manifold*>>(m, "MeshVec");
     
@@ -739,8 +741,8 @@ PYBIND11_MODULE(PyGEL, m) {
     });
 
     // VIEWER (GLManifoldViewer) bindings (only if built with GLGraphics)
-    m.def("GLManifoldViewer_new", []() -> GLManifoldViewer* { return GLManifoldViewer_new(); });
-    m.def("GLManifoldViewer_delete", [](GLManifoldViewer* v) { GLManifoldViewer_delete(v); });
+    // m.def("GLManifoldViewer_new", []() -> GLManifoldViewer* { return GLManifoldViewer_new(); });
+    // m.def("GLManifoldViewer_delete", [](GLManifoldViewer* v) { GLManifoldViewer_delete(v); });
     m.def("GLManifoldViewer_clone_controller", [](GLManifoldViewer* self, GLManifoldViewer* other) {
         GLManifoldViewer_clone_controller(self, other);
     });

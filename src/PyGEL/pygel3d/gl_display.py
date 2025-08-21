@@ -16,7 +16,8 @@ try:
         visualizations. """
         def __init__(self):
             current_directory = getcwd()
-            self.obj = lib_py_gel.GLManifoldViewer_new()
+            self.obj_real = lib_py_gel.GLManifoldViewer()
+            self.obj = self.obj_real.get_ptr()
             print("OpenGL viewer initialized: ", self.obj)
             chdir(current_directory) # Necessary because init_glfw changes cwd
 

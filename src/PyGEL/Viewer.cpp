@@ -26,6 +26,24 @@ using namespace GLGraphics;
 using namespace HMesh;
 using namespace std;
 
+/** Creating a static instance of this class will cause GLFW to be initialized when needed i.e.
+ in the function where the static instance  is declared. Only when the program terminates is GLFW also
+ terminated */
+class GLFWResource {
+public:
+    GLFWResource() {
+//        cout << "Initializing GLFW" << endl;
+        if(!glfwInit())
+        {
+            cout << "could not init GLFW ... bailing" << endl;
+            exit(0);
+        }
+    }
+     ~GLFWResource() {
+//        cout << "Terminating GLFW" << endl;
+        glfwTerminate();
+    }
+};
 
 const vector<Vec3f> kelly_colors = {
     Vec3f(255, 179, 0)/255.0,
@@ -287,6 +305,7 @@ void GLManifoldViewer::display() {
 }
 
 GLManifoldViewer::GLManifoldViewer() {
+    static GLFWResource glfw_resource;
     window = glfwCreateWindow(1024, 800, "PyGEL", NULL, NULL);
     wv_map[window] = this;
 
@@ -304,25 +323,6 @@ GLManifoldViewer::~GLManifoldViewer() {
     delete renderer;
     glfwDestroyWindow(window);
 }
-
-/** Creating a static instance of this class will cause GLFW to be initialized when needed i.e.
- in the function where the static instance  is declared. Only when the program terminates is GLFW also
- terminated */
-class GLFWResource {
-public:
-    GLFWResource() {
-//        cout << "Initializing GLFW" << endl;
-        if(!glfwInit())
-        {
-            cout << "could not init GLFW ... bailing" << endl;
-            exit(0);
-        }
-    }
-     ~GLFWResource() {
-//        cout << "Terminating GLFW" << endl;
-        glfwTerminate();
-    }
-};
 
 namespace PyGEL {
 
@@ -345,10 +345,9 @@ void GLManifoldViewer_event_loop(bool once) {
 // C API
 // ----------------------------------------- 
 
-GLManifoldViewer* GLManifoldViewer_new() {
-    static GLFWResource glfw_resource;
-    return new GLManifoldViewer;
-}
+// GLManifoldViewer* GLManifoldViewer_new() {
+//     return new GLManifoldViewer;
+// }
 
 void GLManifoldViewer_display(GLManifoldViewer* self,
                               Manifold* m,
@@ -374,9 +373,9 @@ void GLManifoldViewer_clone_controller(GLManifoldViewer* self, GLManifoldViewer*
     self->clone_controller(other);
 }
 
-void GLManifoldViewer_delete(GLManifoldViewer* self) {
-    delete self;
-}
+// void GLManifoldViewer_delete(GLManifoldViewer* self) {
+//     delete self;
+// }
 
 // std::vector<double>& GLManifoldViewer_get_annotation_points(GLManifoldViewer* self) {
 //     return self->get_annotation_points();

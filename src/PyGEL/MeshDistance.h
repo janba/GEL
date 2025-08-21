@@ -29,7 +29,7 @@ namespace PyGEL {
         bool ray_intersect(CGLA::Vec3f &p, CGLA::Vec3f &d, float &t);
     };
 
-    MeshDistance* MeshDistance_new(Manifold* m);
+    MeshDistance* MeshDistance_new(HMesh::Manifold* m);
     void MeshDistance_delete(MeshDistance* self);
 
     std::vector<float> MeshDistance_signed_distance(MeshDistance* self, const std::vector<float>& p, float upper);
