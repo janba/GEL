@@ -495,13 +495,12 @@ namespace HMesh
                 return false;
             }
 
-            // If we are here, we can stitch the edges.
-            // The corresponding vertices at either end are joined by
-            // making the incoming halfedges of vertex v0b have v0a 
-            // as their target vertex. We do the same for v1b. This is
-            // done only if v0a,v0b and v1a,v1b are distinct.
-            // Next, we link up the incoming and outgoing boundary halfedges 
-            // of the newly merged vertex at either end remove the redundant vertex.
+            // If we are here, we can stitch the edges, but it may be the case that
+            // the two edges share either or both vertices.
+            // For each endpoint X=0 or X=1,  we check whether vXa and vXb are distinct.
+            // If they are distinct, we ensure that the incoming halfedges of vXb point to vXa.
+            // We also link the two boundary edges h1p and h0n since h1p is now the successor to
+            // h0n. Likewise, for h0p and h1n. Finally, we remove the spurious vertex vXb.
             if(v0a != v0b)
             {
                 circulate_vertex_ccw(*this, v0b, [&](Walker& hew) {
@@ -527,7 +526,7 @@ namespace HMesh
             }
 
             // Finally, we perform the actual gluing of the edges. Note that since there are always
-            // edges along a boundary, it is actually the opposite edges that are being glued, and the
+            // edges along a boundary, it is actually the two opposite edges that are being glued, and the
             // two input edges are removed. The outgoing halfedges are updated for the two vertices at
             // either end of the glued halfedges.
             glue(h0o, h1o);

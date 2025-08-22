@@ -184,7 +184,7 @@ def cut_mesh(m: hmesh.Manifold, loops):
                 if h0_in_use and h1_in_use:
                     m_out.stitch_boundary_edges(h0, h1)
                 else:
-                    print("one more halfedges unexpectedly not in use")
+                    print("Should not happen: one or more halfedges unexpectedly not in use")
     m_out.cleanup()
     return m_out
 
