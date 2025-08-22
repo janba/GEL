@@ -10,7 +10,6 @@
 		0D1028351C74CC9E00250431 /* Graph.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D1028331C74A95200250431 /* Graph.h */; };
 		0D1028361C74D1BC00250431 /* Range.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D1028341C74B10600250431 /* Range.h */; };
 		0D37DF941C8591FF00CD0A07 /* AttribVec.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = 0D37DF931C85905A00CD0A07 /* AttribVec.h */; };
-		0D52EB5B197D18C1002C7150 /* ArithSqMat3x3Float.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EA72197D18C1002C7150 /* ArithSqMat3x3Float.cpp */; };
 		0D52EB5C197D18C1002C7150 /* ArithSqMat4x4Float.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EA74197D18C1002C7150 /* ArithSqMat4x4Float.cpp */; };
 		0D52EB5D197D18C1002C7150 /* ArithVec2Float.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EA78197D18C1002C7150 /* ArithVec2Float.cpp */; };
 		0D52EB5E197D18C1002C7150 /* ArithVec3Float.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 0D52EA7A197D18C1002C7150 /* ArithVec3Float.cpp */; };
@@ -241,6 +240,8 @@
 		BD8B952E2D423CED0049DDBC /* stable_marriage_registration.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BD8B952D2D423CEC0049DDBC /* stable_marriage_registration.cpp */; };
 		BDC3325F29D378AA003073FE /* quad_valencify.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDC3325D29D378AA003073FE /* quad_valencify.cpp */; };
 		BDC3326029D378EA003073FE /* quad_valencify.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDC3325E29D378AA003073FE /* quad_valencify.h */; };
+		BDCFE9582E588F9B0005FE96 /* Assert.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BDCFE9572E588F830005FE96 /* Assert.h */; };
+		BDCFE9592E588F9B0005FE96 /* math_utils.h in CopyFiles */ = {isa = PBXBuildFile; fileRef = BD8B952F2D4382F10049DDBC /* math_utils.h */; };
 		BDF839DF2D50F2330090F280 /* normal.cpp in Sources */ = {isa = PBXBuildFile; fileRef = BDF839DE2D50F2330090F280 /* normal.cpp */; };
 		E105AAC528972A6500F45A96 /* skeleton_to_FEQ.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E105AAC428972A6500F45A96 /* skeleton_to_FEQ.cpp */; };
 		E105AACA2897C7D800F45A96 /* SphereDelaunay.cpp in Sources */ = {isa = PBXBuildFile; fileRef = E105AAC92897C7D800F45A96 /* SphereDelaunay.cpp */; };
@@ -459,6 +460,8 @@
 			dstPath = ../Headers/Util;
 			dstSubfolderSpec = 7;
 			files = (
+				BDCFE9582E588F9B0005FE96 /* Assert.h in CopyFiles */,
+				BDCFE9592E588F9B0005FE96 /* math_utils.h in CopyFiles */,
 				E19C2F4A260BE3ED003950DE /* Serialization.h in CopyFiles */,
 				0D37DF941C8591FF00CD0A07 /* AttribVec.h in CopyFiles */,
 				0D1028361C74D1BC00250431 /* Range.h in CopyFiles */,
@@ -481,7 +484,6 @@
 		0D52EA6F197D18C1002C7150 /* ArithMatFloat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithMatFloat.h; sourceTree = "<group>"; };
 		0D52EA70197D18C1002C7150 /* ArithQuat.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithQuat.h; sourceTree = "<group>"; };
 		0D52EA71197D18C1002C7150 /* ArithSqMat2x2Float.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithSqMat2x2Float.h; sourceTree = "<group>"; };
-		0D52EA72197D18C1002C7150 /* ArithSqMat3x3Float.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ArithSqMat3x3Float.cpp; sourceTree = "<group>"; };
 		0D52EA73197D18C1002C7150 /* ArithSqMat3x3Float.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithSqMat3x3Float.h; sourceTree = "<group>"; };
 		0D52EA74197D18C1002C7150 /* ArithSqMat4x4Float.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = ArithSqMat4x4Float.cpp; sourceTree = "<group>"; };
 		0D52EA75197D18C1002C7150 /* ArithSqMat4x4Float.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ArithSqMat4x4Float.h; sourceTree = "<group>"; };
@@ -718,6 +720,7 @@
 		BDAC7CAA201885F600197925 /* Serialization.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Serialization.h; sourceTree = "<group>"; };
 		BDC3325D29D378AA003073FE /* quad_valencify.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = quad_valencify.cpp; sourceTree = "<group>"; };
 		BDC3325E29D378AA003073FE /* quad_valencify.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = quad_valencify.h; sourceTree = "<group>"; };
+		BDCFE9572E588F830005FE96 /* Assert.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Assert.h; sourceTree = "<group>"; };
 		BDF839DC2D50F2330090F280 /* etf.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = etf.h; sourceTree = "<group>"; };
 		BDF839DD2D50F2330090F280 /* normal.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = normal.h; sourceTree = "<group>"; };
 		BDF839DE2D50F2330090F280 /* normal.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = normal.cpp; sourceTree = "<group>"; };
@@ -756,7 +759,6 @@
 			isa = PBXGroup;
 			children = (
 				0D52EBB1197D18D4002C7150 /* header */,
-				0D52EA72197D18C1002C7150 /* ArithSqMat3x3Float.cpp */,
 				0D52EA74197D18C1002C7150 /* ArithSqMat4x4Float.cpp */,
 				0D52EA78197D18C1002C7150 /* ArithVec2Float.cpp */,
 				0D52EA7A197D18C1002C7150 /* ArithVec3Float.cpp */,
@@ -1087,6 +1089,7 @@
 		0D52EBB7197D196D002C7150 /* header */ = {
 			isa = PBXGroup;
 			children = (
+				BDCFE9572E588F830005FE96 /* Assert.h */,
 				BD8B952F2D4382F10049DDBC /* math_utils.h */,
 				BDAC7CAA201885F600197925 /* Serialization.h */,
 				0D52EB4E197D18C1002C7150 /* ArgExtracter.h */,
@@ -1267,7 +1270,6 @@
 				0D52EB90197D18C1002C7150 /* SinglePassWireframeRenderer.cpp in Sources */,
 				0D52EBAF197D18C1002C7150 /* string_utils.cpp in Sources */,
 				0D52EB77197D18C1002C7150 /* Neighbours.cpp in Sources */,
-				0D52EB5B197D18C1002C7150 /* ArithSqMat3x3Float.cpp in Sources */,
 				0D52EB9B197D18C1002C7150 /* load.cpp in Sources */,
 				0D52EB6B197D18C1002C7150 /* BBox.cpp in Sources */,
 				0D52EB84197D18C1002C7150 /* Console.cpp in Sources */,

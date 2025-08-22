@@ -473,8 +473,7 @@ namespace HMesh
             }
 
             //If the vertices are already connected, welding them together will be awkward.
-            if(connected(v0a, v0b) ||
-               connected(v1a, v1b)) {
+            if(connected(v0a, v0b) || connected(v1a, v1b)) {
             //    cout << "Stupid, end points are connected!" << endl;
                 return false;
             }
@@ -496,53 +495,44 @@ namespace HMesh
                 return false;
             }
 
-            if(v0b != v0a)
+            // If we are here, we can stitch the edges.
+            // The corresponding vertices at either end are joined by
+            // making the incoming halfedges of vertex v0b have v0a 
+            // as their target vertex. We do the same for v1b. This is
+            // done only if v0a,v0b and v1a,v1b are distinct.
+            // Next, we link up the incoming and outgoing boundary halfedges 
+            // of the newly merged vertex at either end remove the redundant vertex.
+            if(v0a != v0b)
+            {
                 circulate_vertex_ccw(*this, v0b, [&](Walker& hew) {
                     kernel.set_vert(hew.opp().halfedge(), v0a);
                 });
-            
-            if(v1b != v1a)
-                circulate_vertex_ccw(*this, v1b, [&](Walker& hew) {
-                    kernel.set_vert(hew.opp().halfedge(), v1a);
-                });
-            
-            if(v0a != v0b)
-            {
+
                 HalfEdgeID h1p = kernel.prev(h1);
                 HalfEdgeID h0n = kernel.next(h0);
-                
-                if(kernel.next(h0n) == h1p)
-                {
-                    glue(kernel.opp(h0n), kernel.opp(h1p));
-                    kernel.set_out(kernel.vert(h0n),kernel.opp(h0n));
-                    kernel.remove_halfedge(h0n);
-                    kernel.remove_halfedge(h1p);
-                }
-                else
-                    link(h1p, h0n);
+                link(h1p, h0n);
                 kernel.remove_vertex(v0b);
             }
             
             if(v1a != v1b)
             {
+                circulate_vertex_ccw(*this, v1b, [&](Walker& hew) {
+                    kernel.set_vert(hew.opp().halfedge(), v1a);
+                });
+
                 HalfEdgeID h0p = kernel.prev(h0);
                 HalfEdgeID h1n = kernel.next(h1);
-                if(kernel.next(h1n) == h0p)
-                {
-                    glue(kernel.opp(h0p), kernel.opp(h1n));
-                    kernel.set_out(kernel.vert(h1n), kernel.opp(h1n));
-                    kernel.remove_halfedge(h0p);
-                    kernel.remove_halfedge(h1n);
-                }
-                else
-                    link(h0p, h1n);
+                link(h0p, h1n);
                 kernel.remove_vertex(v1b);
             }
+
+            // Finally, we perform the actual gluing of the edges. Note that since there are always
+            // edges along a boundary, it is actually the opposite edges that are being glued, and the
+            // two input edges are removed. The outgoing halfedges are updated for the two vertices at
+            // either end of the glued halfedges.
             glue(h0o, h1o);
-            
             kernel.remove_halfedge(h0);
             kernel.remove_halfedge(h1);
-            
             kernel.set_out(v1a, h1o);
             kernel.set_out(v0a, h0o);
             

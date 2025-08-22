@@ -169,16 +169,22 @@ def cut_mesh(m: hmesh.Manifold, loops):
     for f in m.faces():
         f_out = m_out.add_face(pos[m.circulate_face(f)])
         h_m = m.circulate_face(f, mode='h')
-        h_out = m_out.circulate_face(f_out, mode='h')
-        for i in range(len(h_m)):
-            h_map[h_m[i]] = m_out.opposite_halfedge(h_out[i])
+        h_out = [ m_out.opposite_halfedge(h) for h in m_out.circulate_face(f_out, mode='h') ]
+        for i, h in enumerate(h_m):
+            h_map[h] = h_out[i]
+
     for h in m.halfedges():
         if cut_tags[h]==0:
             ho = m.opposite_halfedge(h)
             if h < ho:
                 h0 = h_map[h]
                 h1 = h_map[ho]
-                m_out.stitch_boundary_edges(h0, h1)
+                h0_in_use = m_out.halfedge_in_use(h0)
+                h1_in_use = m_out.halfedge_in_use(h1)
+                if h0_in_use and h1_in_use:
+                    m_out.stitch_boundary_edges(h0, h1)
+                else:
+                    print("one more halfedges unexpectedly not in use")
     m_out.cleanup()
     return m_out
 
