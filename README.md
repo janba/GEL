@@ -2,6 +2,7 @@
 GEL is a C++ library of geometry processing tools mostly intended for computer graphics applications. Python bindings for GEL are found in the included PyGEL library which is also available from PyPI under the package name PyGEL3D.
 ![inverse skeletonized structure created using diffusion limited aggregation](./doc/teaser.png)
 
+
 GEL contains 
 - a fairly mature half-edge based polygonal mesh data structure which includes functions for traversing a mesh and a rich library of methods for modifying meshes, 
 - a graph data structure which is also specialized for spatial graphs,
