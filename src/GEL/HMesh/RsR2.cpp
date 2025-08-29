@@ -1728,8 +1728,8 @@ auto point_cloud_collapse_reexpand(
     ThreadPool pool;
     auto normals_copy = normals;
 
-    [[maybe_unused]]
-    auto smoothed_points = estimate_normals_and_smooth(pool, vertices, normals_copy, reconstruction_options.dist);
+    //[[maybe_unused]]
+    //auto smoothed_points = estimate_normals_and_smooth(pool, vertices, normals_copy, reconstruction_options.dist);
 
     auto collapse = collapse_points(vertices, normals_copy, collapse_options);
 
@@ -1739,10 +1739,12 @@ auto point_cloud_collapse_reexpand(
     //const auto normals_new = std::vector<Vec3>();
     //indexed_select(normals_copy, collapse.m_remaining);
     // TODO: normal weirdness
-    auto manifold = point_cloud_to_mesh(points_collapsed, {}, reconstruction_options);
+    auto manifold = point_cloud_to_mesh(points_collapsed, normals_collapsed, reconstruction_options);
 
+    // TODO: fix the stupidity
+    auto collapse2 = create_collapse(collapse);
     if (reexpand)
-        reexpand_points(manifold, std::move(collapse), vertices);
+        reexpand_points(manifold, std::move(collapse2));
 
     return manifold;
 }
