@@ -27,9 +27,17 @@ using NodeID = size_t;
 using Geometry::AMGraph;
 using Geometry::AMGraph3D;
 
+static constexpr bool DEBUG_PRINT = false;
+
 struct PointCloud {
     std::vector<Point> points;
     std::vector<Vec3> normals;
+};
+
+struct CollapseOpts {
+    size_t max_iterations = 1;
+    double reduction_per_iteration = 0.5;
+    size_t initial_neighbors = 8;
 };
 
 struct ReexpandOptions {
@@ -38,26 +46,118 @@ struct ReexpandOptions {
     /// maximum angle to allow a triangle
     double angle_threshold = std::numbers::pi * 0.90; // 162 degrees
 
-    double valency_min_threshold = 4.0;
+    double valency_min_threshold = 3.0;
     // double boundary_valency_min_threshold = 4.0;
     double valency_max_threshold = 8.0;
     // double boundary_valency_max_threshold = 8.0;
     // TODO: might be worth considering whether to treat boundaries differently
 
-    // TODO: We end up dealing with 5 triangles for dihedral angles and it might be worth considering bias
-
     double angle_threshold_penalty = 500.0;
     double valency_threshold_penalty = 1000.0;
 };
 
-template <std::ranges::bidirectional_range Range>
-auto rotate2(Range&& range)
+template <std::ranges::input_range R1, std::ranges::input_range R2>
+struct zip_view_t : std::ranges::view_interface<zip_view_t<R1, R2>> {
+    using value_type = std::pair<std::ranges::range_value_t<R1>, std::ranges::range_value_t<R2>>;
+    using reference = value_type;
+private:
+    std::ranges::iterator_t<R1> m_begin1;
+    std::ranges::iterator_t<R2> m_begin2;
+    std::ranges::sentinel_t<R1> m_end1;
+    std::ranges::sentinel_t<R2> m_end2;
+    class iterator_t {
+        std::ranges::iterator_t<R1> ptr1;
+        std::ranges::iterator_t<R2> ptr2;
+    public:
+        using difference_type = ptrdiff_t;
+        iterator_t() = default;
+        explicit iterator_t(auto _ptr1, auto _ptr2) : ptr1(_ptr1), ptr2(_ptr2) {}
+        iterator_t& operator++()
+        {
+            ++ptr1; ++ptr2;
+            return *this;
+        }
+        iterator_t operator++(int) { iterator_t retval = *this; ++(*this); return retval; }
+        bool operator==(iterator_t other) const
+        {
+            return ptr1 == other.ptr1 || ptr2 == other.ptr2;
+        }
+        bool operator!=(iterator_t other) const { return !(*this == other); }
+        reference operator*() const
+        {
+            return std::make_pair(*ptr1, *ptr2);
+        }
+    };
+
+public:
+    zip_view_t() = default;
+    zip_view_t(R1&& range1, R2&& range2) :
+        m_begin1(std::ranges::begin(range1)),
+        m_begin2(std::ranges::begin(range2)),
+        m_end1(std::ranges::end(range1)),
+        m_end2(std::ranges::end(range2)) {}
+
+    [[nodiscard]]
+    auto begin() const
+    {
+        return iterator_t(m_begin1, m_begin2);
+    }
+    [[nodiscard]]
+    auto end() const
+    {
+        return iterator_t(m_end1, m_end2);
+    }
+};
+
+template <std::ranges::input_range R1, std::ranges::input_range R2>
+auto zip(R1&& range1, R2&& range2) -> zip_view_t<R1, R2>
 {
-    // TODO: all pairs might be better
-    using Elem = std::ranges::range_value_t<Range>;
-    return std::views::iota(0UL, range.size())
-        | std::views::transform(
-            [&](size_t idx) -> std::pair<Elem, Elem> { return std::make_pair(range[idx], range[idx]); });
+    return zip_view_t<R1, R2>{std::forward<R1>(range1), std::forward<R2>(range2)};
+}
+
+template <std::ranges::input_range R1, std::ranges::input_range R2>
+std::ranges::input_range auto cartesian_product(R1&& range1, R2&& range2)
+{
+    using T1 = std::ranges::range_value_t<R1>;
+    using T2 = std::ranges::range_value_t<R2>;
+
+    auto rv1 = range1 | std::views::all;
+    auto rv2 = range2 | std::views::all;
+
+    auto size1 = std::ranges::size(rv1);
+    auto size2 = std::ranges::size(rv2);
+
+    auto wide1 = rv1 | std::views::transform([size2](auto e1) {
+        std::views::iota(0, size2) | std::views::transform([e1](auto _i) {
+            return e1;
+        });
+    }) | std::views::join;
+
+    auto wide2 = std::views::iota(0, size1) | std::views::transform([rv2](auto _i) {
+        return rv2;
+    }) | std::views::join;
+
+    return zip(wide1, wide2);
+}
+
+inline auto project_point_to_line(const Vec3& to_project, const Point& p1, const Point& p2) -> double
+{
+    const auto e1 = p2 - p1;
+    const auto e2 = to_project - p1;
+    return (CGLA::dot(e1, e2) / CGLA::length(e1));
+    //* e1 + p1;
+}
+
+inline auto lerp(const Vec3& v1, const Vec3& v2, double t) -> Vec3
+{
+    return v1 * (1.0 - t) + v2 * t;
+}
+
+inline double triangle_area(const Point& p1, const Point& p2, const Point& p3)
+{
+    const auto e1 = p2 - p1;
+    const auto e2 = p3 - p1;
+    return CGLA::length(CGLA::cross(e1, e2)) / 2.0;
 }
 
 struct QuadraticCollapseGraph : AMGraph {
@@ -74,6 +174,7 @@ private:
         NodeID n1;
     };
 
+public:
     Util::AttribVec<EdgeID, Edge> m_edges;
     Util::AttribVec<NodeID, Vertex> m_vertices;
     Util::MutablePriorityQueue<EdgeID, double, std::hash<EdgeID>, std::equal_to<>, std::less<>> m_collapse_queue;
@@ -103,22 +204,29 @@ public:
         GEL_ASSERT_NEQ(latent, active);
         GEL_ASSERT_NEQ(AMGraph::find_edge(latent, active), InvalidEdgeID);
 
+        const auto projected = project_point_to_line(position, m_vertices[latent].position, m_vertices[active].position);
+        const auto new_normal = lerp(m_vertices[latent].normal, m_vertices[active].normal, projected);
         m_vertices[active].position = position;
-        m_vertices[active].normal = m_vertices[latent].normal;
+        m_vertices[active].normal = new_normal;
+        //m_vertices[active].normal = m_vertices[latent].normal;
         m_vertices[active].qem += m_vertices[latent].qem;
         m_vertices[latent].position = Point(std::numeric_limits<double>::signaling_NaN());
         m_vertices[latent].normal = Vec3(std::numeric_limits<double>::signaling_NaN());
 
-        const auto edges = AMGraph::edges(latent) | std::views::values;
+        const auto edges_latent = AMGraph::edges(latent) | std::views::values;
+        const auto edges_active = AMGraph::edges(active) | std::views::values;
         // clear up old ranges
-        // TODO: this throws for some reason
-        m_collapse_queue.remove_range(edges);
+        m_collapse_queue.remove_range(edges_latent);
+        m_collapse_queue.remove_range(edges_active);
 
         for (const auto n : neighbors_lazy(latent)) {
             edge_map[n].erase(latent);
             if (n != active && n != latent)
                 // reconnections handle the new insertions
                 connect_nodes(n, active);
+        }
+        for (const auto n: neighbors_lazy(active)) {
+            connect_nodes(n, active);
         }
         edge_map[latent].clear();
         return active;
@@ -146,13 +254,16 @@ public:
         return { active, latent, active_coordinate, latent_coordinate, v_bar };
     }
 
+    /// Return the remaining points
     auto to_point_cloud() -> PointCloud
     {
         std::vector<Point> points;
         std::vector<Vec3> normals;
         for (auto i = 0UL; i < m_vertices.size(); ++i) {
-            points.emplace_back(m_vertices[i].position);
-            normals.emplace_back(m_vertices[i].normal);
+            if (!m_vertices[i].position.any([](const double e) { return std::isnan(e);})) {
+                points.emplace_back(m_vertices[i].position);
+                normals.emplace_back(m_vertices[i].normal);
+            }
         }
         return PointCloud{std::move(points), std::move(normals)};
     }
@@ -178,45 +289,50 @@ private:
             const auto qem = v0.qem + v1.qem;
             // We want to clamp the position to be in a sphere bounded by the two points
             // This will get rid of potential outliers
-            // TODO
             const auto center = (v0.position + v1.position) * 0.5;
             const auto radius = CGLA::length(v0.position - v1.position) * 0.5;
 
-            const auto position = qem.opt_pos(0.5, center);
-            CGLA::length(position - center);
-            const auto error = qem.error(position);
-            return std::make_pair(position, error);
-            //return quadratic_error(v0.position, v1.position, qem_temp);
+            const auto shared_neighbors = std::ranges::distance(shared_neighbors_lazy(n0, n1));
+
+            const auto opt_position = qem.opt_pos(0.5, center);
+            const auto opt_direction = opt_position - center;
+            const auto clamped = center + CGLA::normalize(opt_direction) * std::clamp(CGLA::length(opt_direction), 0.0, radius);
+            const auto error = qem.error(clamped);
+            // TODO: We can also look for surrounding triangles
+            return std::make_pair(clamped, error * radius * radius / (1));
         } else {
             return std::make_pair(CGLA::Vec3d(), CGLA::CGLA_NAN);
         }
     }
 };
 
+// Fat 64 bytes
+struct SingleCollapse {
+    //NodeID active = InvalidNodeID;
+    //NodeID latent = InvalidNodeID;
+    /// Old coordinates of the active point
+    Point active_point_coords;
+    /// Old coordinates of the latent point
+    Point latent_point_coords;
+    /// Current coordinates of the active point
+    Point v_bar;
+};
+
+// TODO: nuke this class
 struct Collapse {
-    // Fat 64 bytes
-    struct SingleCollapse {
-        NodeID active = InvalidNodeID;
-        NodeID latent = InvalidNodeID;
-        /// Old coordinates of the active point
-        Point active_point_coords;
-        /// Old coordinates of the latent point
-        Point latent_point_coords;
-        /// Current coordinates of the active point
-        Point v_bar;
-    };
 
 private:
-    Util::HashSet<NodeID> m_remaining;
-    std::vector<SingleCollapse> m_collapses;
-
     struct CollapseInfo {
         size_t begin;
         size_t end;
     };
 
+    Util::HashSet<NodeID> m_remaining;
+    std::vector<SingleCollapse> m_collapses;
     std::vector<CollapseInfo> m_collapse_ranges;
+    PointCloud p;
 
+    Collapse() = default;
 public:
     explicit Collapse(std::vector<NodeID>&& remaining): m_remaining(remaining.begin(), remaining.end()) {}
 
@@ -245,8 +361,6 @@ public:
             GEL_ASSERT_NEQ(latent, InvalidNodeID);
             auto a = std::make_pair(active, MapVal(latent, active_point_coords, latent_point_coords, v_bar));
             activity.emplace_back(a);
-            // TODO: Hmmm
-            //activity.emplace_back(latent, MapVal(Collapse::InvalidNodeID, Point(), Point(), Point()));
         }
     };
 
@@ -300,23 +414,26 @@ public:
         return m_collapse_ranges.size();
     }
 
+    // auto insert_one(SingleCollapse collapse) -> void
+    // {
+    //     m_collapses.emplace_back(collapse);
+    // }
+
     auto insert_collapse(const ActivityMap& activity_map) -> void
     {
         const auto begin_idx = m_collapses.size();
-        // const auto end_idx = begin_idx + activity_map.activity.size();
         size_t items = 0;
-        for (auto& [active, info] : activity_map.activity) {
-            const auto latent = (info.latent);
+        for (const auto& info : activity_map.activity | std::views::values) {
+            const auto latent = info.latent;
             m_remaining.erase(latent);
-            const auto active_point_coords = (info).active_point_coords;
-            const auto latent_point_coords = (info).latent_point_coords;
             if (latent != InvalidNodeID) {
-                m_collapses.emplace_back(active, latent, active_point_coords, latent_point_coords, info.v_bar);
+                const auto active_point_coords = info.active_point_coords;
+                const auto latent_point_coords = info.latent_point_coords;
+                m_collapses.emplace_back(active_point_coords, latent_point_coords, info.v_bar);
                 ++items;
             }
         }
         m_collapse_ranges.emplace_back(CollapseInfo{begin_idx, begin_idx + items});
-        std::cout << "remaining in insert: " << m_remaining.size() << std::endl;
     }
 
     [[nodiscard]]
@@ -329,25 +446,12 @@ public:
         };
     }
 
-    PointCloud p;
-
     auto finalize(QuadraticCollapseGraph&& graph) -> void
     {
         auto [points, normals] = std::forward<QuadraticCollapseGraph>(graph).to_point_cloud();
         std::cout << "remaining vertices: " << m_remaining.size() << std::endl;
-        for (const auto& id : m_remaining) {
-            auto position = points.at(id);
-            auto normal = normals.at(id);
-            GEL_ASSERT_FALSE(std::isnan(position[0]));
-            GEL_ASSERT_FALSE(std::isnan(position[1]));
-            GEL_ASSERT_FALSE(std::isnan(position[2]));
-            GEL_ASSERT_FALSE(std::isnan(normal[0]));
-            GEL_ASSERT_FALSE(std::isnan(normal[1]));
-            GEL_ASSERT_FALSE(std::isnan(normal[2]));
-
-            p.points.push_back(position);
-            p.normals.push_back(normal);
-        }
+        p.points = std::move(points);
+        p.normals = std::move(normals);
     }
 
     [[nodiscard]]
@@ -356,6 +460,31 @@ public:
         return p;
     }
 };
+
+/// Contains data needed for a reexpansion
+struct Collapse2 {
+    std::vector<std::vector<SingleCollapse>> collapses;
+    // FIXME Should store separately
+    //PointCloud remaining;
+};
+
+inline auto create_collapse(const Collapse& collapse) -> Collapse2
+{
+    Collapse2 collapse2;
+    for (auto&& iter: collapse) {
+        std::vector<SingleCollapse> single_collapses;
+        for (auto&& item: iter) {
+            single_collapses.push_back(item);
+        }
+        collapse2.collapses.push_back(std::move(single_collapses));
+    }
+    return collapse2;
+}
+
+inline auto create_collapse(std::vector<SingleCollapse>&& collapses) -> Collapse2
+{
+    return Collapse2 { .collapses = { std::move(collapses) } };
+}
 
 static_assert(std::ranges::viewable_range<Collapse&>);
 static_assert(std::ranges::viewable_range<const Collapse&>);
@@ -445,12 +574,6 @@ inline auto calculate_neighbors(
     const auto indices = std::ranges::iota_view(0UL, vertices.size());
     return calculate_neighbors(pool, vertices, indices, kdTree, k, std::move(neighbors_memoized));
 }
-
-struct CollapseOpts {
-    size_t max_iterations = 1;
-    double reduction_per_iteration = 0.5;
-    size_t initial_neighbors = 8;
-};
 
 // TODO: move to cpp file
 inline auto collapse_points(
@@ -544,6 +667,12 @@ inline double optimize_dihedral(const Vec3& n1, const Vec3& n2)
 {
     const auto angle = CGLA::dot(CGLA::normalize(n1), CGLA::normalize(n2)) - 1.0;
     return std::abs(angle);
+    //const auto angle_cos = std::abs(CGLA::dot(n1, n2)) / (CGLA::length(n1) * CGLA::length(n2));
+    //GEL_ASSERT_FALSE(std::isnan(angle_cos));
+    //const auto angle = std::acos(angle_cos);
+    //GEL_ASSERT_FALSE(std::isnan(angle));
+    //return angle;
+    //return std::abs(angle - 1.0);
 }
 
 // returns 0 for an equilateral triangle,
@@ -604,104 +733,293 @@ inline double optimize_valency(const HMesh::Manifold& m, const HMesh::HalfEdgeID
     return (valency_score * opts.valency_factor);
 }
 
-inline std::array<HMesh::HalfEdgeID, 2> find_edge_pair(const HMesh::Manifold& m, const HMesh::VertexID center_idx,
-                                                       const Vec3& to_insert_position, const ReexpandOptions& opts)
+
+struct Split {
+    HMesh::HalfEdgeID h_in;
+    HMesh::HalfEdgeID h_out;
+};
+
+struct Triangle {
+    Vec3 p1;
+    Vec3 p2;
+    Vec3 p3;
+
+    Vec3 normal() const
+    {
+        return triangle_normal(p1, p2, p3);
+    }
+    double area() const
+    {
+        return triangle_area(p1, p2, p3);
+    }
+};
+
+inline std::ostream& operator<<(std::ostream& os, const Triangle& t)
 {
-    std::array edges = {HMesh::InvalidHalfEdgeID, HMesh::InvalidHalfEdgeID};
-    const auto center_position = m.positions[center_idx];
+    auto e1 = t.p2 - t.p1;
+    auto e2 = t.p3 - t.p2;
+    auto e3 = t.p1 - t.p3;
+    os
+        << "{\n"
+        << "  p1: " << t.p1 << "\n"
+        << "  p2: " << t.p2 << "\n"
+        << "  p3: " << t.p3 << "\n"
+        << "  e1: " << e1 << "\n"
+        << "  e2: " << e2 << "\n"
+        << "  e3: " << e3 << "\n"
+        << "  normal: " << t.normal() << "\n"
+        << "  area: " << t.area() << "\n"
+        << "}";
+    return os;
+}
 
-    struct Candidate {
-        HalfEdgeID h;
-        Vec3 normal;
-        double score;
-        Vec3 points;
+inline Split find_edge_pair(
+    const HMesh::Manifold& m,
+    const HMesh::VertexID center_idx,
+    const Vec3& v_new_position,
+    const Vec3& v_old_position,
+    const ReexpandOptions& opts)
+{
+    // this is getting too complicated
 
-        std::weak_ordering operator<=>(const Candidate& other) const
-        {
-            return this->score == other.score
-                       ? std::weak_ordering::equivalent
-                       : this->score < other.score
-                       ? std::weak_ordering::less
-                       : std::weak_ordering::greater;
-        }
+    const auto print_hedge = [&m](HalfEdgeID he) {
+        auto v_from = m.positions[m.walker(he).opp().vertex()];
+        auto v_to = m.positions[m.walker(he).vertex()];
+        std::cout << v_from << " -> " << v_to << " (" << (v_to - v_from) << ")\n";
     };
-    struct CandidatePair {
-        HalfEdgeID in;
-        HalfEdgeID out;
-        double score;
 
-        std::weak_ordering operator<=>(const CandidatePair& other) const
-        {
-            return this->score == other.score
-                       ? std::weak_ordering::equivalent
-                       : this->score < other.score
-                       ? std::weak_ordering::less
-                       : std::weak_ordering::greater;
-        }
+    const auto triangle_from_half_edge_orig = [&m](const Point& origin, const Walker& w) -> Triangle {
+        auto v1 = w.vertex();
+        auto v2 = w.next().vertex();
+        return Triangle {origin, m.positions[v1], m.positions[v2]};
     };
 
-    std::vector<Candidate> h_out_candidates;
-    std::vector<Candidate> h_in_candidates;
-    std::priority_queue<CandidatePair, std::vector<CandidatePair>, std::greater<>> h_pair_candidates;
-    HMesh::circulate_vertex_ccw(m, center_idx, [&](HMesh::Walker& h) {
-        const auto v_h_out = m.positions[h.vertex()];
-        const auto v_h_out_top = m.positions[h.next().vertex()];
-        const auto v_h_out_bot = m.positions[h.opp().next().vertex()];
-        const auto v_h_in = m.positions[h.vertex()];
-        const auto v_h_in_top = m.positions[h.opp().next().vertex()];
-        const auto v_h_in_bot = m.positions[h.next().vertex()];
+    const auto triangle_from_half_edge = [&m](const Walker& w) -> Triangle {
+        auto v1 = w.vertex();
+        auto v2 = w.next().vertex();
+        auto v3 = w.next().next().vertex();
+        return Triangle {m.positions[v1], m.positions[v2], m.positions[v3]};
+    };
 
-        const auto tri_out_top = triangle_normal(to_insert_position, v_h_out_top, v_h_out);
-        const auto tri_out_new = triangle_normal(center_position, to_insert_position, v_h_out);
-        const auto tri_out_bot = triangle_normal(v_h_out, v_h_out_bot, center_position);
-        const auto out_dihedral_score
-            = optimize_dihedral(tri_out_top, tri_out_new) + optimize_dihedral(tri_out_new, tri_out_bot);
+    const auto dihedral_ = [](const Triangle& t1, const Triangle& t2) -> double
+    {
+        const auto d = optimize_dihedral(t1.normal(), t2.normal());
+        return d / (t1.area() + t2.area() + DBL_EPSILON);
+    };
 
-        const auto sharpness_tri_out_top = optimize_angle(to_insert_position, v_h_out_top, v_h_out, opts);
-        const auto sharpness_tri_out_new = optimize_angle(center_position, to_insert_position, v_h_out, opts);
-        const auto sharpness_tri_out_bot = optimize_angle(v_h_out, v_h_out_bot, center_position, opts);
-        const auto out_sharpness = sharpness_tri_out_bot + sharpness_tri_out_new + sharpness_tri_out_top;
+    const auto dihedral_two_ring = [&m](const Triangle& t, const FaceID f) -> double {
+        if (f == InvalidFaceID) return 0.0;
+        const auto d = optimize_dihedral(t.normal(), m.normal(f));
+        return d / (m.area(f) + t.area() + DBL_EPSILON);
+    };
 
-        const auto tri_in_top = triangle_normal(to_insert_position, v_h_in, v_h_in_top);
-        const auto tri_in_new = triangle_normal(to_insert_position, center_position, v_h_in);
-        const auto tri_in_bot = triangle_normal(center_position, v_h_in_bot, v_h_in);
-        const auto in_dihedral_score
-            = optimize_dihedral(tri_in_top, tri_in_new) + optimize_dihedral(tri_in_new, tri_in_bot);
+    const auto expand_score = [&](HalfEdgeID h_in_opp, HalfEdgeID h_out, const Point& v_new_position, const Point& v_old_position) -> double {
+        const auto walker_out = m.walker(h_out);
+        const auto walker_in_opp = m.walker(h_in_opp);
 
-        const auto sharpness_tri_in_top = optimize_angle(to_insert_position, v_h_in, v_h_in_top, opts);
-        const auto sharpness_tri_in_new = optimize_angle(to_insert_position, center_position, v_h_in, opts);
-        const auto sharpness_tri_in_bot = optimize_angle(center_position, v_h_in_bot, v_h_in, opts);
-        const auto in_sharpness = sharpness_tri_in_top + sharpness_tri_in_new + sharpness_tri_in_bot;
+        const auto v_h_out = m.positions[walker_out.vertex()];
+        const auto v_h_out_top = m.positions[walker_out.next().vertex()];
+        const auto v_h_out_bot = m.positions[walker_out.opp().next().vertex()];
 
-        const auto total_out = out_dihedral_score + out_sharpness;
-        const auto total_in = in_dihedral_score + in_sharpness;
+        const auto v_h_in = m.positions[walker_in_opp.vertex()];
+        const auto v_h_in_top = m.positions[walker_in_opp.opp().next().vertex()];
+        const auto v_h_in_bot = m.positions[walker_in_opp.next().vertex()];
 
-        h_out_candidates.emplace_back(Candidate{h.halfedge(), tri_out_new, total_out, v_h_out});
-        h_in_candidates.emplace_back(Candidate{h.halfedge(), tri_in_new, total_in, v_h_in});
+        // Have to check up to 14 triangles
+
+        // instead of doing this unscalable stupidity, let's try to be smart and perform a rotation through all of the
+        // affected triangles. We basically perform a sliding window and construct the right triangle by
+        // either passing v_new or v_old as the third point. The order of the window also matters a lot
+
+        // center (just 2)
+        const auto tri_center_in = Triangle (v_old_position, v_new_position, v_h_in);
+        const auto tri_center_out = Triangle (v_old_position, v_h_out, v_new_position);
+
+        // h_in_opp and h_out are unique, making this sound
+        std::vector<Triangle> triangles;
+        double two_ring = 0.0;
+
+        auto walker_prev = walker_out;
+        auto walker_next = walker_prev.circulate_vertex_ccw();
+        // from out towards in counterclockwise
+        triangles.push_back(tri_center_out);
+        while (walker_prev.halfedge() != walker_in_opp.halfedge()) {
+            auto p2 = m.positions[walker_prev.vertex()];
+            auto p3 = m.positions[walker_next.vertex()];
+
+            // to consider the two ring dihedrals, we need to get the triangles from the opposite edges.
+            // none of the triangles are affected by the expansion, so we can just fetch them from the manifold directly
+            FaceID opposing_face = walker_next.next().opp().face();
+            Triangle tri = {v_new_position, p2, p3};
+
+            two_ring += dihedral_two_ring(tri, opposing_face);
+
+            triangles.push_back(tri);
+            walker_prev = walker_prev.circulate_vertex_ccw();
+            walker_next = walker_next.circulate_vertex_ccw();
+        }
+        triangles.push_back(tri_center_in);
+        // from in towards out counterclockwise
+        walker_prev = walker_in_opp;
+        walker_next = walker_in_opp.circulate_vertex_ccw();
+        while (walker_prev.halfedge() != walker_out.halfedge()) {
+            auto p2 = m.positions[walker_prev.vertex()];
+            auto p3 = m.positions[walker_next.vertex()];
+
+            FaceID opposing_face = walker_next.next().opp().face();
+            Triangle tri = {v_old_position, p2, p3};
+
+            two_ring += dihedral_two_ring(tri, opposing_face);
+
+            triangles.push_back(tri);
+            walker_prev = walker_prev.circulate_vertex_ccw();
+            walker_next = walker_next.circulate_vertex_ccw();
+        }
+
+        double total_dihedral = 0.0;
+        for (size_t i = 0; i < triangles.size(); ++i) {
+            const auto& tri1 = triangles[i];
+            const auto& tri2 = triangles[(i + 1) % triangles.size()];
+
+            const auto one_ring = dihedral_(tri1, tri2);
+
+            total_dihedral += one_ring;
+        }
+        total_dihedral += two_ring;
+
+        // top row
+        const auto tri_top_in_l = triangle_from_half_edge(walker_in_opp.opp().next().next().opp());
+        const auto tri_top_in = Triangle (v_new_position, v_h_in_top, v_h_in);
+        const auto tri_top_in_r = triangle_from_half_edge_orig(v_new_position, walker_in_opp.opp().next().opp().next());
+
+        const auto tri_top_out_l = triangle_from_half_edge_orig(v_new_position, walker_out.next().next().opp());
+        const auto tri_top_out = Triangle (v_h_out, v_h_out_top, v_new_position);
+        const auto tri_top_out_r = triangle_from_half_edge(walker_out.next().opp());
+
+        // bottom row
+        const auto tri_bot_in_l = triangle_from_half_edge(walker_in_opp.next().opp());
+        const auto tri_bot_in = Triangle (v_old_position, v_h_in, v_h_in_bot);
+        const auto tri_bot_in_r = triangle_from_half_edge_orig(v_old_position, walker_in_opp.next().next().opp());
+
+        const auto tri_bot_out_l = triangle_from_half_edge_orig(v_old_position, walker_out.opp().next().opp().next());
+        const auto tri_bot_out = Triangle (v_old_position, v_h_out_bot, v_h_out);
+        const auto tri_bot_out_r = triangle_from_half_edge(walker_out.opp().next().next().opp());
+
+        auto dihedral0 = dihedral_(tri_center_in, tri_center_out);
+        auto dihedral1 = dihedral_(tri_center_in, tri_top_in);
+        auto dihedral2 = dihedral_(tri_center_in, tri_bot_in);
+        auto dihedral3 = dihedral_(tri_center_out, tri_top_out);
+        auto dihedral4 = dihedral_(tri_center_out, tri_bot_out);
+
+        auto dihedral5 = dihedral_(tri_top_in, tri_top_in_r);
+        auto dihedral6 = dihedral_(tri_top_out_l, tri_top_out);
+        auto dihedral7 = dihedral_(tri_bot_in, tri_bot_in_r); // this seems to reduce performance ?;
+        auto dihedral8 = dihedral_(tri_bot_out_l, tri_bot_out);
+
+        if constexpr (DEBUG_PRINT) {
+            std::cout << "h_in_opp:\n";
+            print_hedge(h_in_opp);
+            std::cout << "h_out:\n";
+            print_hedge(h_out);
+            std::cout << "\n";
+
+            std::cout << "center in: ";
+            std::cout << tri_center_in << "\n";
+            std::cout << "center out: ";
+            std::cout << tri_center_out << "\n";
+
+            std::cout << "top in: ";
+            std::cout << tri_top_in << "\n";
+            std::cout << "top in r: ";
+            std::cout << tri_top_in_r << "\n";
+
+            std::cout << "top out: ";
+            std::cout << tri_top_out << "\n";
+            std::cout << "top out l: ";
+            std::cout << tri_top_out_l << "\n";
+
+            std::cout << "bot in: ";
+            std::cout << tri_bot_in << "\n";
+            std::cout << "bot in r: ";
+            std::cout << tri_bot_in_r << "\n";
+
+            std::cout << "bot out: ";
+            std::cout << tri_bot_out << "\n";
+            std::cout << "bot out l:";
+            std::cout << tri_bot_out_l << "\n";
+
+            std::cout << "center in  <-> center_out: " << dihedral0 << "\n";
+            std::cout << "center in  <-> top in:     " << dihedral1 << "\n";
+            std::cout << "center in  <-> bot in:     " << dihedral2 << "\n";
+            std::cout << "center out <-> top out:    " << dihedral3 << "\n";
+            std::cout << "center out <-> bot out:    " << dihedral4 << "\n";
+            std::cout << "top in     <-> top in r:   " << dihedral5 << "\n";
+            std::cout << "top out l  <-> top out:    " << dihedral6 << "\n";
+            std::cout << "bot in     <-> bot in r:   " << dihedral7 << "\n";
+            std::cout << "bot out l  <-> bot out:    " << dihedral8 << "\n";
+        }
+
+        auto valency_cost = 0; //optimize_valency(m, h_out, h_in_opp, opts);
+
+        return total_dihedral + dihedral0 + valency_cost;
+    };
+
+    // let's do it the dumb way for once
+    std::vector<HalfEdgeID> half_edges;
+    HMesh::circulate_vertex_ccw(m, center_idx, [&](HalfEdgeID h) {
+       half_edges.push_back(h);
     });
 
-    std::sort(h_out_candidates.begin(), h_out_candidates.end());
-    std::sort(h_in_candidates.begin(), h_in_candidates.end());
+    if constexpr (DEBUG_PRINT) {
+        std::cout << "half_edges: " << half_edges.size() << std::endl;
+        std::cout << "v_old: " << v_old_position << "\n";
+        std::cout << "v_new: " << v_new_position << "\n";
+    }
 
-    // probably don't need to check all 20 - 42 pairs
-    for (const auto& h_in : h_in_candidates) {
-        for (const auto& h_out : h_out_candidates) {
-            if (h_in.h == h_out.h) { continue; }
-            const auto score_mid = optimize_dihedral(h_in.normal, h_out.normal);
-            const auto valency_score = optimize_valency(m, h_out.h, h_in.h, opts);
-            h_pair_candidates.emplace(CandidatePair{
-                h_in.h, h_out.h, h_in.score + h_out.score + score_mid + valency_score
-            });
+    double min_score = INFINITY;
+    HalfEdgeID h_in_opp;
+    HalfEdgeID h_out;
+    for (auto h1: half_edges) {
+        for (auto h2: half_edges) {
+            if (h1 == h2) {
+                continue;
+            }
+            double score = expand_score(h1, h2, v_new_position, v_old_position);
+            if (score < min_score) {
+                min_score = score;
+                h_in_opp = h1;
+                h_out = h2;
+                // FIXME DEBUG
+                if constexpr (DEBUG_PRINT) {
+                    std::cout << "<<>>score: " << score << "\n";
+                    std::cout << "<<>>h_in_opp: ";
+                    print_hedge(h1);
+                    std::cout << "<<>>h_out: ";
+                    print_hedge(h2);
+                    std::cout << "\n";
+                }
+
+            } else {
+                if constexpr (DEBUG_PRINT) {
+                    std::cout << "score: " << score << "\n";
+                    std::cout << "h_in_opp: ";
+                    print_hedge(h1);
+                    std::cout << "h_out: ";
+                    print_hedge(h2);
+                    std::cout << "\n";
+                }
+            }
+            if constexpr (DEBUG_PRINT) {
+                std::cout << "-------------------------" << "\n";
+            }
         }
     }
-    edges[0] = h_pair_candidates.top().out;
-    edges[1] = m.walker(h_pair_candidates.top().in).opp().halfedge();
 
-    return edges;
+    return Split{m.walker(h_in_opp).opp().halfedge(), h_out};
 }
 
 
-inline auto reexpand_points(::HMesh::Manifold& manifold, Collapse&& collapse, const std::vector<Vec3>& points,
+inline auto reexpand_points(::HMesh::Manifold& manifold, Collapse2&& collapse,
                             const ReexpandOptions& opts = ReexpandOptions()) -> void
 {
     std::cout << "reexpanding\n";
@@ -726,11 +1044,10 @@ inline auto reexpand_points(::HMesh::Manifold& manifold, Collapse&& collapse, co
     auto try_two_edge_expand = [&](IndexIter vs, const Point& latent_pos, const Point& active_pos) -> VertexID {
         // we want to get as close to 90 degrees as possible here
         for (const auto this_vert : vs) {
-            const auto candidate = find_edge_pair(manifold, this_vert, latent_pos, opts);
-            if (candidate[0] != InvalidHalfEdgeID && candidate[1] != InvalidHalfEdgeID) {
-                const auto vnew = manifold.split_vertex(candidate[1], candidate[0]);
+            const auto candidate = find_edge_pair(manifold, this_vert, latent_pos, active_pos, opts);
+            if (candidate.h_in != InvalidHalfEdgeID && candidate.h_out != InvalidHalfEdgeID) {
+                const auto vnew = manifold.split_vertex(candidate.h_in, candidate.h_out);
                 GEL_ASSERT_NEQ(vnew, InvalidVertexID);
-                manifold.positions[vnew] = latent_pos;
                 return vnew;
             }
         }
@@ -738,11 +1055,11 @@ inline auto reexpand_points(::HMesh::Manifold& manifold, Collapse&& collapse, co
     };
 
     size_t failures = 0;
-    for (auto collapse_iter : collapse | std::views::reverse) {
+    for (const auto& collapse_iter : collapse.collapses | std::views::reverse) {
         for (auto single_collapse : collapse_iter | std::views::reverse) {
             // find the manifold_ids for the active vertex
-            const auto active_idx = single_collapse.active;
-            const auto latent_idx = single_collapse.latent;
+            //const auto active_idx = single_collapse.active;
+            //const auto latent_idx = single_collapse.latent;
             const auto active_pos = single_collapse.active_point_coords;
             const auto latent_pos = single_collapse.latent_point_coords;
             const auto v_bar = single_collapse.v_bar;
@@ -752,8 +1069,7 @@ inline auto reexpand_points(::HMesh::Manifold& manifold, Collapse&& collapse, co
                 manifold.positions[id] = active_pos;
             }
             if (const auto new_vid = try_two_edge_expand(manifold_ids, latent_pos, active_pos); new_vid != InvalidVertexID) {
-                // point_to_manifold_ids.erase(v_bar);
-                //point_to_manifold_ids.emplace(latent_pos, new_vid);
+                manifold.positions[new_vid] = latent_pos;
                 for (const auto id: manifold_ids) {
                     point_to_manifold_ids.emplace(active_pos, id);
                 }
@@ -766,6 +1082,149 @@ inline auto reexpand_points(::HMesh::Manifold& manifold, Collapse&& collapse, co
     }
     std::cerr << "failures: " << failures << "\n";
 }
+
+inline auto decimate(const Manifold& manifold, double factor = 0.1) -> Manifold
+{
+    if (factor >= 1.0 || factor < 0.0) {
+        throw std::runtime_error("Invalid factor");
+    }
+
+    QuadraticCollapseGraph graph;
+    // insert QEM for every point
+    for (const auto vertex_id: manifold.vertices()) {
+        graph.add_node(manifold.positions[vertex_id], manifold.normal(vertex_id));
+    }
+    // insert every edge into a queue
+    for (const auto edge_id: manifold.halfedges()) {
+        auto walker = manifold.walker(edge_id);
+        auto p1 = walker.vertex();
+        auto p2 = walker.opp().vertex();
+        if (p1.get_index() > p2.get_index()) {
+            graph.connect_nodes(p1.get_index(), p2.get_index());
+        }
+    }
+
+    // perform a collapse until we reach the desired number of points
+    const size_t max_collapses = manifold.no_vertices() * (1.0 - factor);
+    for (size_t i = 0; i < max_collapses; ++i) {
+        [[maybe_unused]]
+        auto collapse = graph.collapse_one();
+    }
+
+    // create a new manifold from the collapsed graph
+    std::vector<Vec3> vertices;
+    vertices.reserve(graph.no_nodes());
+    std::vector<NodeID> indices;
+    indices.reserve(graph.no_edges() * 2);
+    for (NodeID id: graph.node_ids()) {
+        auto p1 = graph.m_vertices.at(id).position;
+        vertices.push_back(p1);
+        for (NodeID neighbor: graph.neighbors_lazy(id)) {
+            if (id < neighbor) {
+                for (NodeID third: graph.shared_neighbors(id, neighbor)) {
+                    if (neighbor < third) {
+                        auto n1 = graph.m_vertices.at(id).normal;
+                        auto n2 = graph.m_vertices.at(neighbor).normal;
+                        auto n3 = graph.m_vertices.at(third).normal;
+
+                        auto p2 = graph.m_vertices.at(neighbor).position;
+                        auto p3 = graph.m_vertices.at(third).position;
+                        auto e1 = p2 - p1;
+                        auto e2 = p3 - p1;
+                        auto n = CGLA::cross(e1, e2);
+                        if (CGLA::dot((n1 + n2 + n3) * (1./3.), n) > 0.0) {
+                            indices.push_back(id);
+                            indices.push_back(neighbor);
+                            indices.push_back(third);
+                        } else {
+                            indices.push_back(id);
+                            indices.push_back(third);
+                            indices.push_back(neighbor);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Manifold m;
+    build_manifold(m, vertices, indices, 3);
+    return m;
+}
+
+inline auto decimate_reexpand(const Manifold& manifold, double factor = 0.1) -> Manifold
+{
+        if (factor >= 1.0 || factor < 0.0) {
+        throw std::runtime_error("Invalid factor");
+    }
+
+    QuadraticCollapseGraph graph;
+    // insert QEM for every point
+    for (const auto vertex_id: manifold.vertices()) {
+        graph.add_node(manifold.positions[vertex_id], manifold.normal(vertex_id));
+    }
+    // insert every edge into a queue
+    for (const auto edge_id: manifold.halfedges()) {
+        auto walker = manifold.walker(edge_id);
+        auto p1 = walker.vertex();
+        auto p2 = walker.opp().vertex();
+        if (p1.get_index() > p2.get_index()) {
+            graph.connect_nodes(p1.get_index(), p2.get_index());
+        }
+    }
+
+    Collapse2 collapse;
+    collapse.collapses.emplace_back();
+    // perform a collapse until we reach the desired number of points
+    const size_t max_collapses = manifold.no_vertices() * (1.0 - factor);
+    for (size_t i = 0; i < max_collapses; ++i) {
+        auto single_collapse = graph.collapse_one();
+        collapse.collapses[0].emplace_back(single_collapse.active_point_coords, single_collapse.latent_point_coords, single_collapse.v_bar);
+    }
+
+    // create a new manifold from the collapsed graph
+    std::vector<Vec3> vertices;
+    vertices.reserve(graph.no_nodes());
+    std::vector<NodeID> indices;
+    indices.reserve(graph.no_edges() * 2);
+    for (NodeID id: graph.node_ids()) {
+        auto p1 = graph.m_vertices.at(id).position;
+        vertices.push_back(p1);
+        for (NodeID neighbor: graph.neighbors_lazy(id)) {
+            if (id < neighbor) {
+                for (NodeID third: graph.shared_neighbors(id, neighbor)) {
+                    if (neighbor < third) {
+                        auto n1 = graph.m_vertices.at(id).normal;
+                        auto n2 = graph.m_vertices.at(neighbor).normal;
+                        auto n3 = graph.m_vertices.at(third).normal;
+
+                        auto p2 = graph.m_vertices.at(neighbor).position;
+                        auto p3 = graph.m_vertices.at(third).position;
+                        auto e1 = p2 - p1;
+                        auto e2 = p3 - p1;
+                        auto n = CGLA::cross(e1, e2);
+                        if (CGLA::dot((n1 + n2 + n3) * (1./3.), n) > 0.0) {
+                            indices.push_back(id);
+                            indices.push_back(neighbor);
+                            indices.push_back(third);
+                        } else {
+                            indices.push_back(id);
+                            indices.push_back(third);
+                            indices.push_back(neighbor);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Manifold m;
+    build_manifold(m, vertices, indices, 3);
+
+    reexpand_points(m, std::move(collapse));
+
+    return m;
+}
+
+
 } // namespace HMesh
 
 #endif // GEL_HMESH_COLLAPSE_H
