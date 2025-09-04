@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <GEL/Util/AssociativeContainers.h>
+#include <GEL/Util/SparseGraph.h>
 
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/etf.h>
@@ -110,20 +111,22 @@ struct Edge {
 
 using Neighbor = Vertex::Neighbor;
 
-class SimpGraph : public AMGraph {
-    Util::AttribVec<EdgeID, Edge> m_edges;
+class SimpGraph : public Util::SparseGraph<double> {
+    //Util::AttribVec<EdgeID, Edge> m_edges;
 
 public:
-    EdgeID connect_nodes(const NodeID source, const NodeID target, const double weight = 0.)
+    void connect_nodes(const NodeID source, const NodeID target, const double weight = 0.)
     {
-        const EdgeID id = AMGraph::connect_nodes(source, target);
-        m_edges[id].weight = weight;
-        return id;
+        //const EdgeID id =
+            SparseGraph::connect_nodes(source, target, weight);
+        //m_edges[id].weight = weight;
+        //return id;
     }
 
     [[nodiscard]] double get_weight(const NodeID n1, const NodeID n2) const
     {
-        return m_edges[find_edge(n1, n2)].weight;
+        return find_edge(n1, n2).value();
+        //return m_edges[find_edge(n1, n2)].weight;
     }
 
     /// Disconnect nodes. This operation removes the edge from the edge maps of the two formerly connected
@@ -131,37 +134,60 @@ public:
     /// invalidated. Call cleanup to finalize removal. */
     void disconnect_nodes(const NodeID n0, const NodeID n1)
     {
-        if (valid_node_id(n0) && valid_node_id(n1)) {
-            edge_map[n0].erase(n1);
-            edge_map[n1].erase(n0);
-        }
+        remove_edge(n0, n1);
+        //if (valid_node_id(n0) && valid_node_id(n1)) {
+        //    edge_map[n0].erase(n1);
+        //    edge_map[n1].erase(n0);
+        //}
     }
 };
 
-class RSGraph : public AMGraph {
+struct EdgeT {
+    double weight = 0.;
+    int ref_time = 0;
+};
+
+class RSGraph : public Util::SparseGraph<EdgeT> {
 public:
+    struct edge_id_t {
+        NodeID source = InvalidNodeID;
+        NodeID target = InvalidNodeID;
+    };
+    using EdgeID = edge_id_t;
+
     Geometry::ETF etf;
     Util::AttribVec<NodeID, Vertex> m_vertices;
-    Util::AttribVec<EdgeID, Edge> m_edges;
+    // Util::AttribVec<EdgeID, Edge> m_edges;
 
     EdgeID add_edge(const NodeID source, const NodeID target, const double weight = 0.0)
     {
-        const EdgeID id = this->connect_nodes(source, target);
-        GEL_ASSERT_NEQ(id, InvalidEdgeID);
-        m_edges[id] = Edge {.source = source, .target = target, .weight = weight};
+        // const EdgeID id =
+            this->connect_nodes(source, target, EdgeT {weight, 0});
+        //GEL_ASSERT_NEQ(id, InvalidEdgeID);
+        //m_edges[id] = Edge {.source = source, .target = target, .weight = weight};
 
         // insert neighbors
         m_vertices[source].ordered_neighbors.insert(Neighbor(m_vertices[source], m_vertices[target], target));
         m_vertices[target].ordered_neighbors.insert(Neighbor(m_vertices[target], m_vertices[source], source));
 
-        return id;
+        return { source, target };
+        //return id;
     }
 
     NodeID add_node(const Vec3& p, const Vec3& in_normal = Vec3(0., 0., 0.))
     {
-        const NodeID n = AMGraph::add_node();
+        const NodeID n = SparseGraph::add_node();
         m_vertices[n] = Vertex{.id = n, .normal_rep = Vertex::InvalidNormalRep, .coords = p, .normal = in_normal };
         return n;
+    }
+
+    void increment_ref_time(NodeID n1, NodeID n2)
+    {
+        auto edge = find_edge(n1, n2);
+        if (edge) {
+            connect_nodes(n1, n2, EdgeT {edge.value().weight, edge.value().ref_time + 1});
+            //add_edge(n1, n2, );
+        }
     }
 
     /// @brief Get last neighbor information
