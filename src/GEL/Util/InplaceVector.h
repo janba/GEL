@@ -172,6 +172,18 @@ public:
         return m_data + m_size;
     }
 
+    [[nodiscard]]
+    constexpr const_iterator begin() const
+    {
+        return m_data;
+    }
+
+    [[nodiscard]]
+    constexpr const_iterator end() const
+    {
+        return m_data + m_size;
+    }
+
     [[nodiscard]] constexpr const_iterator cbegin() const
     {
         return m_data;
