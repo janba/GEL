@@ -502,62 +502,14 @@ auto collapse_points(
     const std::vector<Point>& vertices,
     const std::vector<Vec3>& normals,
     const CollapseOpts& options
-) -> Collapse
-;
+) -> Collapse;
 
-struct PointHash {
-    size_t operator()(const Point& point) const
-    {
-        const auto h1 = std::hash<double>{}(point[0]);
-        const auto h2 = std::hash<double>{}(point[1]);
-        const auto h3 = std::hash<double>{}(point[2]);
-        return h1 ^ (h2 << 1) ^ (h3 << 2);
-    }
-};
+auto reexpand_points(Manifold& manifold, Collapse2&& collapse,
+                     const ReexpandOptions& opts = ReexpandOptions()) -> void;
 
-struct PointEquals {
-    size_t operator()(const Point& left, const Point& right) const
-    {
-        return (left[0] == right[0]) && (left[1] == right[1]) && (left[2] == right[2]);
-    }
-};
+auto decimate(const Manifold& manifold, double factor = 0.1) -> Manifold;
 
-inline Vec3 half_edge_direction(const HMesh::Manifold& m, HMesh::HalfEdgeID h)
-{
-    const auto w = m.walker(h);
-    const auto current = w.vertex();
-    const auto opposing = w.opp().vertex();
-    return CGLA::normalize(m.positions[opposing] - m.positions[current]);
-}
-
-inline Vec3 triangle_normal(const Vec3& p1, const Vec3& p2, const Vec3& p3)
-{
-    const auto v1 = p2 - p1;
-    const auto v2 = p3 - p1;
-    return CGLA::normalize(CGLA::cross(v1, v2));
-}
-
-// returns 0 at 180 degrees, 1 at 90 (or 270) degrees
-double optimize_dihedral(const Vec3& n1, const Vec3& n2);
-
-// returns 0 for an equilateral triangle,
-double optimize_angle(const Vec3& p1, const Vec3& p2, const Vec3& p3, const ReexpandOptions& opts);
-
-// penalizes based on effect to valency
-// returns 0 if the valency of all affected vertices is 0 as a result of the split
-double optimize_valency(const HMesh::Manifold& m, const HMesh::HalfEdgeID h_out,
-                        const HMesh::HalfEdgeID h_in_opp, const ReexpandOptions& opts);
-
-
-auto reexpand_points(::HMesh::Manifold& manifold, Collapse2&& collapse,
-                     const ReexpandOptions& opts = ReexpandOptions()) -> void
-;
-
-auto decimate(const Manifold& manifold, double factor = 0.1) -> Manifold
-;
-
-auto decimate_reexpand(const Manifold& manifold, double factor = 0.1) -> Manifold
-;
+auto decimate_reexpand(const Manifold& manifold, double factor = 0.1) -> Manifold;
 } // namespace HMesh
 
 #endif // GEL_HMESH_COLLAPSE_H

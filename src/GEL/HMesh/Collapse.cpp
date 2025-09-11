@@ -9,6 +9,91 @@
 
 namespace HMesh::RSR
 {
+
+Vec3 half_edge_direction(const HMesh::Manifold& m, HMesh::HalfEdgeID h)
+{
+    const auto w = m.walker(h);
+    const auto current = w.vertex();
+    const auto opposing = w.opp().vertex();
+    return CGLA::normalize(m.positions[opposing] - m.positions[current]);
+}
+
+Vec3 triangle_normal(const Vec3& p1, const Vec3& p2, const Vec3& p3)
+{
+    const auto v1 = p2 - p1;
+    const auto v2 = p3 - p1;
+    return CGLA::normalize(CGLA::cross(v1, v2));
+}
+
+// returns 0 at 180 degrees, 1 at 90 (or 270) degrees
+double optimize_dihedral(const Vec3& n1, const Vec3& n2) {
+    const auto angle = CGLA::dot(CGLA::normalize(n1), CGLA::normalize(n2)) - 1.0;
+    return std::abs(angle);
+    //const auto angle_cos = std::abs(CGLA::dot(n1, n2)) / (CGLA::length(n1) * CGLA::length(n2));
+    //GEL_ASSERT_FALSE(std::isnan(angle_cos));
+    //const auto angle = std::acos(angle_cos);
+    //GEL_ASSERT_FALSE(std::isnan(angle));
+    //return angle;
+    //return std::abs(angle - 1.0);
+}
+
+// returns 0 for an equilateral triangle
+double optimize_angle(const Vec3& p1, const Vec3& p2, const Vec3& p3, const ReexpandOptions& opts) {
+    const auto e1 = CGLA::normalize(p2 - p1);
+    const auto e2 = CGLA::normalize(p3 - p1);
+
+    const auto e3 = -e2;
+    const auto e4 = CGLA::normalize(p3 - p2);
+
+    const auto e5 = -e4;
+    const auto e6 = -e1;
+
+    const auto angle1 = std::acos(dot(e1, e2));
+    const auto angle2 = std::acos(dot(e3, e4));
+    const auto angle3 = std::acos(dot(e5, e6));
+    if (angle1 > opts.angle_threshold || angle2 > opts.angle_threshold || angle3 > opts.angle_threshold) {
+        return opts.angle_threshold_penalty;
+    }
+
+    const auto score1 = std::abs(angle1 - std::numbers::pi / 3.0);
+    const auto score2 = std::abs(angle2 - std::numbers::pi / 3.0);
+    const auto score3 = std::abs(angle3 - std::numbers::pi / 3.0);
+    const auto score = score1 + score2 + score3;
+    return score * opts.angle_factor;
+}
+
+// penalizes based on effect to valency
+// returns 0 if the valency of all affected vertices is 0 as a result of the split
+double optimize_valency(const HMesh::Manifold& m, const HMesh::HalfEdgeID h_out, const HMesh::HalfEdgeID h_in_opp,
+    const ReexpandOptions& opts) {
+    const auto original_valency = m.valency(m.walker(h_out).opp().vertex());
+    // we count the number of edges steps to go from h_in_opp to h_out
+    auto steps = 0;
+    for (auto w = m.walker(h_out); w.halfedge() != h_in_opp; w = w.circulate_vertex_ccw()) {
+        ++steps;
+    }
+    const auto split_vert_valency = steps + 2;
+    const auto original_final_latency = original_valency - steps + 2;
+
+    const auto h_out_end_valency = m.valency(m.walker(h_out).vertex()) + 1;
+    const auto h_in_opp_end_valency = m.valency(m.walker(h_in_opp).vertex()) + 1;
+    if (split_vert_valency > opts.valency_max_threshold || split_vert_valency < opts.valency_min_threshold
+        || original_final_latency > opts.valency_max_threshold || original_final_latency < opts.valency_min_threshold
+        || h_out_end_valency > opts.valency_max_threshold || h_out_end_valency < opts.valency_min_threshold
+        || h_in_opp_end_valency > opts.valency_max_threshold || h_in_opp_end_valency < opts.valency_min_threshold) {
+        return opts.valency_threshold_penalty;
+    }
+
+    const auto valency_score =
+        std::abs(split_vert_valency - 6)
+        + std::abs(original_final_latency - 6)
+        + std::abs(h_out_end_valency - 6)
+        + std::abs(h_in_opp_end_valency - 6);
+
+    return (valency_score * opts.valency_factor);
+}
+
+
 struct Split {
     HMesh::HalfEdgeID h_in;
     HMesh::HalfEdgeID h_out;
@@ -397,69 +482,22 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
     return collapse;
 }
 
-double optimize_dihedral(const Vec3& n1, const Vec3& n2) {
-    const auto angle = CGLA::dot(CGLA::normalize(n1), CGLA::normalize(n2)) - 1.0;
-    return std::abs(angle);
-    //const auto angle_cos = std::abs(CGLA::dot(n1, n2)) / (CGLA::length(n1) * CGLA::length(n2));
-    //GEL_ASSERT_FALSE(std::isnan(angle_cos));
-    //const auto angle = std::acos(angle_cos);
-    //GEL_ASSERT_FALSE(std::isnan(angle));
-    //return angle;
-    //return std::abs(angle - 1.0);
-}
-
-double optimize_angle(const Vec3& p1, const Vec3& p2, const Vec3& p3, const ReexpandOptions& opts) {
-    const auto e1 = CGLA::normalize(p2 - p1);
-    const auto e2 = CGLA::normalize(p3 - p1);
-
-    const auto e3 = -e2;
-    const auto e4 = CGLA::normalize(p3 - p2);
-
-    const auto e5 = -e4;
-    const auto e6 = -e1;
-
-    const auto angle1 = std::acos(dot(e1, e2));
-    const auto angle2 = std::acos(dot(e3, e4));
-    const auto angle3 = std::acos(dot(e5, e6));
-    if (angle1 > opts.angle_threshold || angle2 > opts.angle_threshold || angle3 > opts.angle_threshold) {
-        return opts.angle_threshold_penalty;
+struct PointHash {
+    size_t operator()(const Point& point) const
+    {
+        const auto h1 = std::hash<double>{}(point[0]);
+        const auto h2 = std::hash<double>{}(point[1]);
+        const auto h3 = std::hash<double>{}(point[2]);
+        return h1 ^ (h2 << 1) ^ (h3 << 2);
     }
+};
 
-    const auto score1 = std::abs(angle1 - std::numbers::pi / 3.0);
-    const auto score2 = std::abs(angle2 - std::numbers::pi / 3.0);
-    const auto score3 = std::abs(angle3 - std::numbers::pi / 3.0);
-    const auto score = score1 + score2 + score3;
-    return score * opts.angle_factor;
-}
-
-double optimize_valency(const HMesh::Manifold& m, const HMesh::HalfEdgeID h_out, const HMesh::HalfEdgeID h_in_opp,
-    const ReexpandOptions& opts) {
-    const auto original_valency = m.valency(m.walker(h_out).opp().vertex());
-    // we count the number of edges steps to go from h_in_opp to h_out
-    auto steps = 0;
-    for (auto w = m.walker(h_out); w.halfedge() != h_in_opp; w = w.circulate_vertex_ccw()) {
-        ++steps;
+struct PointEquals {
+    size_t operator()(const Point& left, const Point& right) const
+    {
+        return (left[0] == right[0]) && (left[1] == right[1]) && (left[2] == right[2]);
     }
-    const auto split_vert_valency = steps + 2;
-    const auto original_final_latency = original_valency - steps + 2;
-
-    const auto h_out_end_valency = m.valency(m.walker(h_out).vertex()) + 1;
-    const auto h_in_opp_end_valency = m.valency(m.walker(h_in_opp).vertex()) + 1;
-    if (split_vert_valency > opts.valency_max_threshold || split_vert_valency < opts.valency_min_threshold
-        || original_final_latency > opts.valency_max_threshold || original_final_latency < opts.valency_min_threshold
-        || h_out_end_valency > opts.valency_max_threshold || h_out_end_valency < opts.valency_min_threshold
-        || h_in_opp_end_valency > opts.valency_max_threshold || h_in_opp_end_valency < opts.valency_min_threshold) {
-        return opts.valency_threshold_penalty;
-    }
-
-    const auto valency_score =
-        std::abs(split_vert_valency - 6)
-        + std::abs(original_final_latency - 6)
-        + std::abs(h_out_end_valency - 6)
-        + std::abs(h_in_opp_end_valency - 6);
-
-    return (valency_score * opts.valency_factor);
-}
+};
 
 auto reexpand_points(HMesh::Manifold& manifold, Collapse2&& collapse, const ReexpandOptions& opts) -> void {
     std::cout << "reexpanding\n";
