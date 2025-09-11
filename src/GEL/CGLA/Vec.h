@@ -164,6 +164,28 @@ public:
         v[0], v[1], v[2], v[3]) {}
 };
 
+template <typename VecOrMat, typename Predicate>
+auto any(const VecOrMat& v, Predicate&& p) -> bool
+{
+    for (const auto& elem: v) {
+        if (p(elem)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template <typename VecOrMat, typename Predicate>
+auto all(const VecOrMat& v, Predicate&& p) -> bool
+{
+    for (const auto& elem: v) {
+        if (!p(v)) {
+            return false;
+        }
+    }
+    return true;
+}
+
 template <>
 struct VecT_to_MatT<Vec2d> {
     using MatT = Mat2x2d;
