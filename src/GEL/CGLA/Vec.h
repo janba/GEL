@@ -15,7 +15,7 @@
 namespace CGLA
 {
 template <std::floating_point Float>
-class Vec2 : public ArithVec2Float<Float, Vec2<Float>> {
+class Vec2 final : public ArithVec2Float<Float, Vec2<Float>> {
 public:
     constexpr Vec2() = default;
 
@@ -36,7 +36,7 @@ public:
 };
 
 template <std::integral Integral>
-class Vec2Integral : public ArithVec<Integral, Vec2Integral<Integral>, 2> {
+class Vec2Integral final : public ArithVec<Integral, Vec2Integral<Integral>, 2> {
 public:
     /// Construct 0 vector
     constexpr Vec2Integral() = default;
@@ -56,7 +56,7 @@ public:
 
 /** \brief A 3 dimensional vector. */
 template <std::floating_point Float>
-class Vec3 : public ArithVec3Float<Float, Vec3<Float>> {
+class Vec3 final : public ArithVec3Float<Float, Vec3<Float>> {
 public:
     /// Construct 0 vector
     constexpr Vec3() = default;
@@ -89,7 +89,7 @@ public:
         and hence provides only the basic facilities of an ArithVec.
         The class is typically used for indices to 3D voxel grids. */
 template <std::integral Integral>
-class Vec3Integral : public ArithVec3Int<Integral, Vec3Integral<Integral>> {
+class Vec3Integral final : public ArithVec3Int<Integral, Vec3Integral<Integral>> {
 public:
     /// Construct 0 vector.
     constexpr Vec3Integral() = default;
@@ -118,7 +118,7 @@ public:
         homogeneous vectors.
 */
 template <std::floating_point Float>
-class Vec4 : public ArithVec4Float<Float, Vec4<Float>> {
+class Vec4 final : public ArithVec4Float<Float, Vec4<Float>> {
 public:
     /// Construct a (0,0,0,0) homogenous Vector
     constexpr Vec4(): ArithVec4Float<Float, Vec4>(0.0, 0.0, 0.0, 0.0) {}
@@ -141,7 +141,7 @@ public:
 //         and hence provides only the basic facilities of an ArithVec.
 //         The class is typically used for indices to 4D voxel grids.
 template <std::integral Integral>
-class Vec4Integral : public ArithVec4Int<Integral, Vec4Integral<Integral>> {
+class Vec4Integral final: public ArithVec4Int<Integral, Vec4Integral<Integral>> {
 public:
     /// Construct 0 vector.
     constexpr Vec4Integral() = default;
@@ -163,6 +163,28 @@ public:
     explicit Vec4Integral(const Vec4Integral<OtherIntegral>& v) : ArithVec4Int<Integral, Vec4Integral>(
         v[0], v[1], v[2], v[3]) {}
 };
+
+template <typename VecOrMat, typename Predicate>
+auto any(const VecOrMat& v, Predicate&& p) -> bool
+{
+    for (const auto& elem: v) {
+        if (p(elem)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+template <typename VecOrMat, typename Predicate>
+auto all(const VecOrMat& v, Predicate&& p) -> bool
+{
+    for (const auto& elem: v) {
+        if (!p(v)) {
+            return false;
+        }
+    }
+    return true;
+}
 
 template <>
 struct VecT_to_MatT<Vec2d> {
