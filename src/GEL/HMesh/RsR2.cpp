@@ -31,8 +31,14 @@ using FacePriorityQueue = std::priority_queue<
     std::vector<std::pair<FaceType, float>>,
     FaceComparator>;
 
-using TEdge = std::pair<NodeID, NodeID>;
-using PEdgeLength = std::pair<float, TEdge>;
+struct TEdge {
+    NodeID from;
+    NodeID to;
+};
+struct PEdgeLength {
+    TEdge edge;
+    float length;
+};
 
 struct FaceConnectionKey {
     uint tree_id;
@@ -57,7 +63,7 @@ using NeighborPair = std::pair<double, NodeID>;
 
 constexpr bool edge_comparator(const PEdgeLength& l, const PEdgeLength& r)
 {
-    return l.first < r.first;
+    return l.length < r.length;
 }
 
 constexpr bool face_comparator(const FacePair& l, const FacePair& r)
@@ -73,23 +79,18 @@ constexpr bool neighbor_comparator(const NeighborPair& l, const NeighborPair& r)
 template <std::ranges::viewable_range Range>
 std::ranges::viewable_range auto slide2_wraparound(Range&& range)
 {
-    using Elem = std::ranges::range_value_t<Range>;
+    using Elem = std::remove_cvref_t<std::ranges::range_value_t<Range>>;
     const auto size = range.size();
     auto ptr = range.begin();
     const auto end = range.end();
     return std::views::iota(0UL, (size > 1) ? size : 0UL)
-    | std::views::transform([=, &range]([[maybe_unused]] const auto& _i) mutable -> std::pair<Elem, Elem> {
+    | std::views::transform([=, &range]([[maybe_unused]] const auto& _i) mutable -> std::tuple<Elem const&, Elem const&> {
         const auto current = ptr;
         ++ptr;
         const auto next = (ptr == end) ? range.begin() : ptr;
-        return std::make_pair(*current, *next);
+        return std::tie(*current, *next);
     });
 }
-
-struct Slide2Wraparound {
-
-
-};
 
 /// @brief Calculate the reference vector for the rotation system
 /// @param normal: normal direction for the target vertex
@@ -227,7 +228,7 @@ SimpGraph init_graph(
     const bool is_euclidean)
 {
     SimpGraph dist_graph;
-    //dist_graph.reserve(vertices.size() * k);
+    dist_graph.reserve(vertices.size(), k);
     GEL_ASSERT_EQ(vertices.size(), smoothed_v.size());
     GEL_ASSERT_EQ(vertices.size(), normals.size());
 
@@ -237,8 +238,8 @@ SimpGraph init_graph(
 
     // TODO: parallelization idea: precalculate the distances and then nodes to connect
     for (NodeID id_this = 0UL; id_this < vertices.size(); ++id_this) {
-        const Point vertex = vertices[id_this];
-        const Vec3 this_normal = normals[id_this];
+        const Point& vertex = vertices[id_this];
+        const Vec3& this_normal = normals[id_this];
         const auto& neighbors = neighbor_map[id_this];
 
         connection_lengths[id_this].pre_max_length = neighbors[static_cast<size_t>(k * 2. / 3.)].distance;
@@ -441,12 +442,22 @@ TargetGraph make_mst(
 {
     GEL_ASSERT_NEQ(root, AMGraph::InvalidNodeID);
     TargetGraph gn;
-    using QElem = std::tuple<double, NodeID, NodeID>;
+    struct QElem {
+        double distance;
+        NodeID from;
+        NodeID to;
 
+        bool operator>(const QElem& rhs)
+        {
+            return distance > rhs.distance;
+        }
+    };
+    struct Bool {
+        bool inner;
+    };
     for (auto n : g.node_ids())
         node_inserter(gn, n);
-
-    AttribVec<NodeID, unsigned char> in_tree(gn.no_nodes(), false);
+    std::vector<Bool> in_tree(gn.no_nodes(), Bool(false));
 
     std::priority_queue<QElem, std::vector<QElem>, std::greater<>> queue;
     for (auto neighbor : g.neighbors_lazy(root)) {
@@ -458,8 +469,8 @@ TargetGraph make_mst(
         auto [distance, id1, id2] = queue.top();
         queue.pop();
 
-        if (!in_tree[id2]) {
-            in_tree[id2] = true;
+        if (!in_tree[id2].inner) {
+            in_tree[id2].inner = true;
 
             edge_insertion(gn, id1, id2);
 
@@ -524,7 +535,7 @@ void correct_normal_orientation(
     /// The graph has the angles as weights
     const auto [g_angle, sets] = [&] {
         SimpGraph g_angle_temp;
-        Util::HashSet<SimpGraph::NodeID> sets_temp;
+        UnorderedSet<SimpGraph::NodeID> sets_temp;
         // sets_temp.reserve(in_smoothed_v.size()); // TODO: flat_hash_set can be reserved
 
         for (int i = 0; i < in_smoothed_v.size(); i++) {
@@ -551,7 +562,7 @@ void correct_normal_orientation(
         return std::make_tuple(g_angle_temp, sets_temp);
     }();
 
-    const auto components_vec = connected_components(g_angle, sets);
+    const auto components_vec = connected_components(g_angle.inner(), sets);
 
     // The number of components and their relative sizes is inconsistent, don't parallelize this
     for (const auto& i : components_vec) {
@@ -627,19 +638,19 @@ Vec3 projected_vector(const Vec3& input, const Vec3& normal)
 /// @return if they are intersecting with each other
 bool is_intersecting(const RSGraph& mst, const NodeID v1, const NodeID v2, const NodeID v3, const NodeID v4)
 {
-    const Point p1 = mst.m_vertices[v1].coords;
-    const Point p2 = mst.m_vertices[v2].coords;
-    const Vec3 n1 = mst.m_vertices[v1].normal;
-    const Vec3 n2 = mst.m_vertices[v2].normal;
+    const auto& p1 = mst.m_vertices[v1].coords;
+    const auto& p2 = mst.m_vertices[v2].coords;
+    const auto& n1  = mst.m_vertices[v1].normal;
+    const auto& n2  = mst.m_vertices[v2].normal;
     const Vec3 normal_12 = (n1 + n2) / 2.;
 
-    const Point p3 = mst.m_vertices[v3].coords;
-    const Point p4 = mst.m_vertices[v4].coords;
-    const Vec3 n3 = mst.m_vertices[v3].normal;
-    const Vec3 n4 = mst.m_vertices[v4].normal;
+    const auto& p3 = mst.m_vertices[v3].coords;
+    const auto& p4 = mst.m_vertices[v4].coords;
+    const auto& n3  = mst.m_vertices[v3].normal;
+    const auto& n4  = mst.m_vertices[v4].normal;
     const Vec3 normal_34 = (n3 + n4) / 2.;
 
-    const auto check_intersection = [](auto p1, auto p2, auto p3, auto p4, auto normal) -> bool {
+    auto check_intersection = [](auto&& p1, auto&& p2, auto&& p3, auto&& p4, auto&& normal) -> bool {
         const Vec3 midpoint = p1 + (p2 - p1) / 2.0;
         const Vec3 edge1 = p1 - midpoint;
         const Vec3 edge2 = p3 - midpoint;
@@ -672,12 +683,12 @@ bool is_intersecting(const RSGraph& mst, const NodeID v1, const NodeID v2, const
 /// @return if the candidate pass the check
 bool geometry_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_tree)
 {
-    const NodeID v1 = candidate.first;
-    const NodeID v2 = candidate.second;
-    const Point p1 = mst.m_vertices[v1].coords;
-    const Point p2 = mst.m_vertices[v2].coords;
-    const Vec3 n1 = mst.m_vertices[v1].normal;
-    const Vec3 n2 = mst.m_vertices[v2].normal;
+    const NodeID& v1 = candidate.from;
+    const NodeID& v2 = candidate.to;
+    const Point& p1 = mst.m_vertices[v1].coords;
+    const Point& p2 = mst.m_vertices[v2].coords;
+    const Vec3& n1 = mst.m_vertices[v1].normal;
+    const Vec3& n2 = mst.m_vertices[v2].normal;
 
     const Vec3 mean_normal = CGLA::normalize((n1 + n2) / 2.0);
 
@@ -719,35 +730,11 @@ bool vanilla_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_tr
     return geometry_check(mst, candidate, kd_tree);
 }
 
-/// @brief Get the neighbor information
-/// @param g: current graph
-/// @param root: root vertex index
-/// @param branch: the outgoing branch
-/// @return reference to the neighbor struct
-Neighbor& get_neighbor_info(const RSGraph& g, const NodeID& root, const NodeID& branch)
-{
-    const auto& u = g.m_vertices.at(root);
-    const auto& v = g.m_vertices.at(branch);
-    const auto iter = u.ordered_neighbors.lower_bound({u, v, static_cast<uint>(branch)});
-    // TODO: tree_id does not invalidate ordered_neighbors, but it still has thread safety issues
-    return const_cast<Neighbor&>(*iter);
-}
-
-void maintain_face_loop(RSGraph& g, const NodeID source, const NodeID target)
-{
-    const auto this_v_tree = g.predecessor(source, target).tree_id;
-    const auto neighbor_tree = g.predecessor(target, source).tree_id;
-
-    auto [fst, snd] = g.etf.insert(this_v_tree, neighbor_tree);
-    get_neighbor_info(g, source, target).tree_id = fst;
-    get_neighbor_info(g, target, source).tree_id = snd;
-}
-
 bool routine_check(const RSGraph& mst, const FaceType& triangle)
 {
-    const Point p1 = mst.m_vertices[triangle[0]].coords;
-    const Point p2 = mst.m_vertices[triangle[1]].coords;
-    const Point p3 = mst.m_vertices[triangle[2]].coords;
+    const Point& p1 = mst.m_vertices[triangle[0]].coords;
+    const Point& p2 = mst.m_vertices[triangle[1]].coords;
+    const Point& p3 = mst.m_vertices[triangle[2]].coords;
     const auto len_ui = (p1 - p2).length();
     const auto len_wi = (p3 - p2).length();
     const auto len_uw = (p1 - p3).length();
@@ -774,33 +761,32 @@ bool routine_check(const RSGraph& mst, const FaceType& triangle)
         return false;
 }
 
-void add_face(RSGraph& G, const FaceType& item,
+void add_face(RSGraph& graph, const FaceType& item,
               std::vector<FaceType>& faces)
 {
-    const NodeID v_i = item[0];
-    const NodeID v_u = item[1];
-    const NodeID v_w = item[2];
+    const auto& v_i = item[0];
+    const auto& v_u = item[1];
+    const auto& v_w = item[2];
 
-    G.increment_ref_time(v_i, v_w);
-    G.increment_ref_time(v_u, v_i);
-    G.increment_ref_time(v_w, v_u);
+    graph.increment_ref_time(v_i, v_w);
+    graph.increment_ref_time(v_u, v_i);
+    graph.increment_ref_time(v_w, v_u);
     faces.push_back(item);
 }
 
-void register_face(RSGraph& mst, const NodeID v1, const NodeID v2, std::vector<FaceType>& faces,
-                   const float edge_length)
+struct RegisterFaceResult {
+    Util::InplaceVector<FaceType, 2> faces;
+};
+auto register_face(const RSGraph& mst, const NodeID v1, const NodeID v2) -> std::optional<RegisterFaceResult>
 {
     GEL_ASSERT_EQ(mst.find_edge(v1, v2), RSGraph::InvalidEdgeID);
     auto shared_neighbors = mst.shared_neighbors_lazy(v1, v2);
     if (shared_neighbors.empty()) {
-        // only mst mutated
-        mst.add_edge(v1, v2, edge_length);
-        maintain_face_loop(mst, v1, v2);
-        return; // true
+        return RegisterFaceResult(); // true
     }
 
-    const Point p1 = mst.m_vertices[v1].coords;
-    const Point p2 = mst.m_vertices[v2].coords;
+    const Point& p1 = mst.m_vertices[v1].coords;
+    const Point& p2 = mst.m_vertices[v2].coords;
 
     const auto possible_root1 = mst.predecessor(v1, v2).v;
     const auto angle1 = cal_radians_3d(p1 - mst.m_vertices[possible_root1].coords,
@@ -818,7 +804,7 @@ void register_face(RSGraph& mst, const NodeID v1, const NodeID v2, std::vector<F
             if (routine_check(mst, triangle) ||
                 mst.successor(v2, v1).v != v3 ||
                 mst.successor(possible_root1, v2).v != v1) {
-                return; // false
+                return std::nullopt; // false
             }
             temp.emplace_back(FaceType{v1, v3, v2});
         }
@@ -827,22 +813,18 @@ void register_face(RSGraph& mst, const NodeID v1, const NodeID v2, std::vector<F
             if (routine_check(mst, triangle) ||
                 mst.successor(v1, v2).v != v3 ||
                 mst.successor(possible_root2, v1).v != v2) {
-                return; // false
+                return std::nullopt; // false
             }
             temp.emplace_back(FaceType{v1, v2, v3});
         }
     }
 
     if (temp.empty())
-        return; // false
+        return std::nullopt; // false
 
-    // mst and faces mutated
-    mst.add_edge(v1, v2, edge_length);
-    maintain_face_loop(mst, v1, v2);
-    for (const auto& face : temp) {
-        add_face(mst, face, faces);
-    }
-    return; // true
+    return RegisterFaceResult {
+        temp,
+    }; // true
 }
 
 /// @brief Connect handle to raise the genus number
@@ -904,8 +886,8 @@ void connect_handle(
             TEdge candidate(this_v, neighbor.id);
             if (mst.find_edge(this_v, neighbor.id) != RSGraph::InvalidEdgeID)
                 continue;
-            tree = mst.etf.representative(mst.tree_id(this_v));
-            to_tree = mst.etf.representative(mst.tree_id(neighbor.id));
+            tree = mst.etf.representative(mst.predecessor(this_v, neighbor.id).tree_id);
+            to_tree = mst.etf.representative(mst.predecessor(neighbor.id, this_v).tree_id);
             if (geometry_check(mst, candidate, kd_tree) && tree != to_tree) {
                 validIdx = j;
                 break;
@@ -922,7 +904,7 @@ void connect_handle(
     }
 
     // Select one handle
-    std::unordered_map<FaceConnectionKey, std::vector<int>, FaceConnectionKeyHasher> face_connections;
+    Map<FaceConnectionKey, std::vector<int>, FaceConnectionKeyHasher> face_connections;
     for (int i = 0; i < connect_p.size(); i++) {
         uint tree = tree_id[i];
         uint to_tree = to_tree_id[i];
@@ -950,9 +932,9 @@ void connect_handle(
 
         bool isFind = false;
         for (int idx : idx_vec) {
-            NodeID this_v = connect_p[idx];
-            Point query = mst.m_vertices[this_v].coords;
-            NodeID connected_neighbor = to_connect_p[idx];
+            const NodeID& this_v = connect_p[idx];
+            const Point& query = mst.m_vertices[this_v].coords;
+            const NodeID& connected_neighbor = to_connect_p[idx];
             // TODO: path and step_thresh are both dead
             const int steps = find_shortest_path(mst, this_v, connected_neighbor);
             if (steps > step_thresh) {
@@ -997,12 +979,12 @@ bool explore(
         const NodeID v_u = neighbor.v;
         const NodeID v_w = G.successor(i, v_u).v;
 
-        const Point w_pos = G.m_vertices[v_w].coords;
-        const Point u_pos = G.m_vertices[v_u].coords;
-        const Point i_pos = G.m_vertices[v_i].coords;
-        const Vec3 i_normal = G.m_vertices[v_i].normal;
-        const Vec3 u_normal = G.m_vertices[v_u].normal;
-        const Vec3 w_normal = G.m_vertices[v_w].normal;
+        const Point& w_pos = G.m_vertices[v_w].coords;
+        const Point& u_pos = G.m_vertices[v_u].coords;
+        const Point& i_pos = G.m_vertices[v_i].coords;
+        const Vec3& i_normal = G.m_vertices[v_i].normal;
+        const Vec3& u_normal = G.m_vertices[v_u].normal;
+        const Vec3& w_normal = G.m_vertices[v_w].normal;
         const auto angle = cal_radians_3d(w_pos - i_pos, i_normal,
                                           u_pos - i_pos);
         const bool isLargerThanPi = angle < M_PI;
@@ -1030,10 +1012,10 @@ bool check_branch_validity(const RSGraph& G, const NodeID root, const NodeID bra
 {
     constexpr auto angle_thresh = 0. / 180. * M_PI;
 
-    const Point pos_u = G.m_vertices[branch1].coords;
-    const Point pos_w = G.m_vertices[branch2].coords;
-    const Vec3 normal_u = G.m_vertices[branch1].normal;
-    const Vec3 normal_w = G.m_vertices[branch2].normal;
+    const Point& pos_u = G.m_vertices[branch1].coords;
+    const Point& pos_w = G.m_vertices[branch2].coords;
+    const Vec3& normal_u = G.m_vertices[branch1].normal;
+    const Vec3& normal_w = G.m_vertices[branch2].normal;
 
     const auto is_valid = [&root](auto this_radian, auto former, auto next) {
         if (next.v == root) {
@@ -1095,10 +1077,10 @@ bool check_validity(
     const NodeID v_i = item.first[0];
     const NodeID v_u = item.first[1];
     const NodeID v_w = item.first[2];
-    const Point pos_i = graph.m_vertices[v_i].coords;
-    const Point pos_u = graph.m_vertices[v_u].coords;
-    const Point pos_w = graph.m_vertices[v_w].coords;
-    const Vec3 normal_i = graph.m_vertices[v_i].normal;
+    const Point& pos_i = graph.m_vertices[v_i].coords;
+    const Point& pos_u = graph.m_vertices[v_u].coords;
+    const Point& pos_w = graph.m_vertices[v_w].coords;
+    const Vec3& normal_i = graph.m_vertices[v_i].normal;
 
     if (graph.find_edge(v_u, v_w) != RSGraph::InvalidEdgeID)
         return false;
@@ -1130,7 +1112,8 @@ void triangulate(
     const std::vector<ConnectionLength>& length_thresh,
     const std::vector<NodeID>& connected_handle_root)
 {
-    UnorderedSet<NodeID> to_visit;
+    // Since we are clearing every element here, a TreeSet has much better performance than a Swiss table
+    OrderedSet<NodeID> to_visit;
     FacePriorityQueue queue;
 
     // Init priority queue
@@ -1158,8 +1141,8 @@ void triangulate(
             const NodeID v_i = item.first[0];
             const NodeID v_u = item.first[1];
             const NodeID v_w = item.first[2];
-            const Point pos_u = graph.m_vertices[v_u].coords;
-            const Point pos_w = graph.m_vertices[v_w].coords;
+            const Point& pos_u = graph.m_vertices[v_u].coords;
+            const Point& pos_w = graph.m_vertices[v_w].coords;
 
             Vec3 edge = pos_u - pos_w;
             const auto distance =
@@ -1225,21 +1208,21 @@ void build_mst(
     // Fix strong ambiguous points
     if (!is_euclidean) {
 
-        for (auto _edge: temp.all_edges_lazy()) {
-        //for (int i = 0; i < temp.m_edges.size(); i++) {
-            //const NodeID source = temp.m_edges[i].source;
-            const NodeID source = _edge.first.from;
-            const NodeID target = _edge.first.to;
-            //const NodeID target = temp.m_edges[i].target;
-            const Vec3 normal1 = normalize(temp.m_vertices[source].normal);
-            const Vec3 normal2 = normalize(temp.m_vertices[target].normal);
-            const Point pos1 = temp.m_vertices[source].coords;
-            const Point pos2 = temp.m_vertices[target].coords;
+        //for (auto _edge: temp.all_edges_lazy()) {
+            //const NodeID source = _edge.first.from;
+            //const NodeID target = _edge.first.to;
+        for (int i = 0; i < temp.m_edges.size(); i++) {
+            const NodeID& source = temp.m_edges[i].source;
+            const NodeID& target = temp.m_edges[i].target;
+            const Vec3& normal1 = temp.m_vertices[source].normal;
+            const Vec3& normal2 = temp.m_vertices[target].normal;
+            const Point& pos1 = temp.m_vertices[source].coords;
+            const Point& pos2 = temp.m_vertices[target].coords;
             if (temp.valence(source) >= 2 && temp.valence(target) >= 2)
                 continue;
             const Vec3 edge = pos2 - pos1;
 
-            const Vec3 normal_sum = normal1 + normal2;
+            const Vec3 normal_sum = CGLA::normalize(normal1) + CGLA::normalize(normal2);
             const auto cos_angle = std::abs(dot(edge, normal_sum / normal_sum.length() / edge.length()));
             if (cos_angle > std::cos(10. / 180. * M_PI)) {
                 NodeID parent;
@@ -1269,15 +1252,13 @@ void build_mst(
     }
 
     // Build corrected MST
-    for (int i = 0; i < temp.m_vertices.size(); i++) {
-        out_mst.add_node(temp.m_vertices[i].coords, temp.m_vertices[i].normal);
+    for (const auto& vertex : temp.m_vertices) {
+        out_mst.add_node(vertex.coords, vertex.normal);
     }
-    for (auto _edge: temp.all_edges_lazy()) {
-    //for (int i = 0; i < temp.m_edges.size(); i++) {
-        //const auto source = temp.m_edges[i].source;
-        //const auto target = temp.m_edges[i].target;
-        const NodeID source = _edge.first.from;
-        const NodeID target = _edge.first.to;
+
+    for (const auto& m_edge : temp.m_edges) {
+        const auto& source = m_edge.source;
+        const auto& target = m_edge.target;
         const Vec3 edge = out_mst.m_vertices[source].coords -
             out_mst.m_vertices[target].coords;
 
@@ -1433,7 +1414,7 @@ auto split_components(
     const double outlier_thresh = opts.r;
     double total_edge_length = 0;
     // TODO: can't we cache this?
-    Util::HashSet<SimpGraph::NodeID> sets;
+    UnorderedSet<SimpGraph::NodeID> sets;
     SimpGraph components;
     for (int i = 0; i < vertices.size(); i++) {
         sets.insert(components.add_node());
@@ -1470,7 +1451,7 @@ auto split_components(
         components.disconnect_nodes(fst, snd);
     }
     // Find Components
-    const auto components_vec = connected_components(components, sets);
+    const auto components_vec = connected_components(components.inner(), sets);
     std::cout << "The input contains " << components_vec.size() << " connected components." << std::endl;
     // Valid Components and create new vectors for components
     const auto threshold = std::min<size_t>(vertices.size(), 100);
@@ -1518,12 +1499,11 @@ auto component_to_manifold(
 
     // Initial Structure
     RSGraph mst;
-    /*mst.init(vertices.size());*/
+    mst.reserve(vertices.size(), opts.k);
+
     std::vector<PEdgeLength> edge_length;
     // TODO: combine these
     std::vector<ConnectionLength> connection_lengths(vertices.size(), ConnectionLength());
-    // std::vector<float> connection_max_length(vertices.size(), 0.);
-    // std::vector<float> pre_max_length(vertices.size(), 0.);
     {
         inner_timer.start("init_graph");
         SimpGraph g = init_graph(smoothed_v, smoothed_v, normals, neighbor_map, connection_lengths, opts.k,
@@ -1547,7 +1527,7 @@ auto component_to_manifold(
                     if (len > connection_lengths[node].pre_max_length ||
                         len > connection_lengths[node_neighbor].pre_max_length)
                         continue;
-                    edge_length.emplace_back(len, std::make_pair(node, node_neighbor));
+                    edge_length.emplace_back(TEdge(node, node_neighbor), len);
                 }
             }
         }
@@ -1566,12 +1546,79 @@ auto component_to_manifold(
     // Vanilla MST imp
     // Edge connection
     inner_timer.start("edge_connection");
-    for (auto& [edge_len, this_edge] : edge_length) {
-        if (mst.find_edge(this_edge.first, this_edge.second) == RSGraph::InvalidEdgeID &&
+    const auto lambda1 = [&](const PEdgeLength& pedge) -> std::optional<RegisterFaceResult> {
+        auto [this_edge, edge_len] = pedge;
+        if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
             vanilla_check(mst, this_edge, kd_tree)) {
-            register_face(mst, this_edge.first, this_edge.second, faces, edge_len);
+            return register_face(mst, this_edge.from, this_edge.to);
+        }
+        return std::nullopt;
+    };
+     auto lambda2 = [&](const PEdgeLength& pedge, const RegisterFaceResult& result) {
+        const auto [this_edge, edge_len] = pedge;
+        mst.add_edge(this_edge.from, this_edge.to, edge_len);
+        mst.maintain_face_loop(this_edge.from, this_edge.to);
+        for (const auto& face : result.faces) {
+            add_face(mst, face, faces);
+        }
+     };
+    struct RegisterFaceResult2 {
+        PEdgeLength pedge;
+        RegisterFaceResult result;
+    };
+    // TODO:
+    static constexpr auto single_threaded_number = 500000;
+    for (auto& [this_edge, edge_len] : edge_length | std::views::take(single_threaded_number)) {
+        if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
+            vanilla_check(mst, this_edge, kd_tree)) {
+            auto result = register_face(mst, this_edge.from, this_edge.to);
+            if (result.has_value()) {
+                mst.add_edge(this_edge.from, this_edge.to, edge_len);
+                mst.maintain_face_loop(this_edge.from, this_edge.to);
+                for (const auto& face : result->faces) {
+                    add_face(mst, face, faces);
+                }
+            }
         }
     }
+
+    std::vector<RegisterFaceResult2> results;
+    Util::Parallel::map_filter(pool, edge_length | std::views::drop(single_threaded_number), results, [&](const PEdgeLength& pedge) -> std::optional<RegisterFaceResult2> {
+        const auto& [this_edge, edge_len] = pedge;
+        if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
+            vanilla_check(mst, this_edge, kd_tree)) {
+            auto result = register_face(mst, this_edge.from, this_edge.to);
+            if (result.has_value())
+                return RegisterFaceResult2 {pedge, *result};
+        }
+        return std::nullopt;
+    });
+    std::cout << "edge length size:" << edge_length.size() << "\n";
+    std::cout << "results size:    " << results.size() << "\n";
+    for (const auto& result: results) {
+        auto result_ = lambda1(result.pedge);
+        if (result_.has_value()) {
+            lambda2(result.pedge, RegisterFaceResult(result_->faces));
+        }
+    }
+    // // TODO: this is probably still way too fragile
+    // Util::ImmediatePool small_pool(8);
+    // Util::Parallel::mutable_parallel_fold(small_pool, edge_length, lambda1, lambda2);
+
+    // for (auto& [edge_len, this_edge] : edge_length) {
+    //     if (mst.find_edge(this_edge.first, this_edge.second) == RSGraph::InvalidEdgeID &&
+    //         vanilla_check(mst, this_edge, kd_tree)) {
+    //         auto result = register_face(mst, this_edge.first, this_edge.second);
+    //         if (result.has_value()) {
+    //             mst.add_edge(this_edge.first, this_edge.second, edge_len);
+    //             mst.maintain_face_loop(this_edge.first, this_edge.second);
+    //             for (const auto& face : result->faces) {
+    //                 add_face(mst, face, faces);
+    //             }
+    //         }
+    //     }
+    // }
+
     inner_timer.end("edge_connection");
 
     // Create handles & Triangulation
@@ -1658,8 +1705,8 @@ auto point_cloud_to_mesh(
     });
 
     auto [component_vertices,
-            component_smoothed_v,
-            component_normals] =
+          component_smoothed_v,
+          component_normals] =
         split_components(pool,
                          neighbor_map,
                          std::move(vertices_copy),

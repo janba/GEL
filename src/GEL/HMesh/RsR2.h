@@ -34,6 +34,9 @@ namespace detail
 
     template <typename K, typename V, typename Hash>
     using Map = std::unordered_map<K, V, Hash>;
+
+    template <typename K, typename V>
+    using OrderedMap = Util::BTreeMap<K, V>;
 }
 
 
@@ -70,6 +73,7 @@ struct Vertex {
     bool operator==(const Vertex& rhs) const { return id == rhs.id; }
 
     struct Neighbor {
+        using TreeID = uint;
         double angle;
         uint v;
         uint tree_id = 0;
@@ -97,6 +101,7 @@ struct Vertex {
     static constexpr NormalRep CollisionRep = -2;
     friend class RSGraph;
 
+    //detail::OrderedMap<Neighbor, Neighbor::TreeID> ordered_neighbors;
     detail::OrderedSet<Neighbor> ordered_neighbors = {};
 };
 
@@ -111,22 +116,49 @@ struct Edge {
 
 using Neighbor = Vertex::Neighbor;
 
-class SimpGraph : public Util::SparseGraph<double> {
-    //Util::AttribVec<EdgeID, Edge> m_edges;
+class SimpGraph /*: public Util::SparseGraph<double>*/ {
+    AMGraph graph;
+    std::vector<double> m_edges;
+    //Util::AttribVec<AMGraph::EdgeID, Edge> m_edges;
 
 public:
-    void connect_nodes(const NodeID source, const NodeID target, const double weight = 0.)
+    using NodeID = decltype(graph)::NodeID;
+    static constexpr auto InvalidEdgeID = decltype(graph)::InvalidEdgeID;
+
+    void reserve(size_t vertices, int k)
     {
-        //const EdgeID id =
-            SparseGraph::connect_nodes(source, target, weight);
-        //m_edges[id].weight = weight;
-        //return id;
+        m_edges.reserve(vertices * k);
+        graph.reserve(vertices);
+    }
+
+    // connected components
+    auto inner() const -> const decltype(graph)&
+    {
+        return graph;
+    }
+
+    // generic algorithms
+    auto add_node() -> NodeID
+    {
+        return graph.add_node();
+    }
+
+    auto connect_nodes(const NodeID source, const NodeID target, const double weight = 0.)
+    {
+        //graph.connect_nodes(source, target, weight);
+        const auto id =
+            graph.connect_nodes(source, target);
+        if (id == m_edges.size())
+            m_edges.push_back(weight);
+        else
+            m_edges[id] = weight;
+        return id;
     }
 
     [[nodiscard]] double get_weight(const NodeID n1, const NodeID n2) const
     {
-        return find_edge(n1, n2).value();
-        //return m_edges[find_edge(n1, n2)].weight;
+        //return graph.find_edge(n1, n2).value();
+        return m_edges[graph.find_edge(n1, n2)];
     }
 
     /// Disconnect nodes. This operation removes the edge from the edge maps of the two formerly connected
@@ -134,11 +166,38 @@ public:
     /// invalidated. Call cleanup to finalize removal. */
     void disconnect_nodes(const NodeID n0, const NodeID n1)
     {
-        remove_edge(n0, n1);
-        //if (valid_node_id(n0) && valid_node_id(n1)) {
-        //    edge_map[n0].erase(n1);
-        //    edge_map[n1].erase(n0);
-        //}
+        //return graph.remove_edge(n0, n1);
+        //remove_edge(n0, n1);
+        // if (graph.valid_node_id(n0) && graph.valid_node_id(n1)) {
+        //     graph.edge_map[n0].erase(n1);
+        //     graph.edge_map[n1].erase(n0);
+        // }
+        graph.erase_edge(n0, n1);
+    }
+
+    auto find_edge(NodeID from, NodeID to)
+    {
+        return graph.find_edge(from, to);
+    }
+
+    auto node_ids() const
+    {
+        return graph.node_ids();
+    }
+
+    auto no_nodes() const -> size_t
+    {
+        return graph.no_nodes();
+    }
+
+    auto no_edges() const -> size_t
+    {
+        return graph.no_edges();
+    }
+
+    auto neighbors_lazy(NodeID from) const
+    {
+        return graph.neighbors_lazy(from);
     }
 };
 
@@ -147,48 +206,73 @@ struct EdgeT {
     int ref_time = 0;
 };
 
-class RSGraph : public Util::SparseGraph<EdgeT> {
+class RSGraph : public AMGraph {
 public:
-    struct edge_id_t {
-        NodeID source = InvalidNodeID;
-        NodeID target = InvalidNodeID;
-    };
-    using EdgeID = edge_id_t;
+    //struct edge_id_t {
+    //    NodeID source = InvalidNodeID;
+    //    NodeID target = InvalidNodeID;
+    //};
+    //using EdgeID = edge_id_t;
+    static constexpr auto InvalidEdgeID = std::nullopt;
 
     Geometry::ETF etf;
-    Util::AttribVec<NodeID, Vertex> m_vertices;
-    // Util::AttribVec<EdgeID, Edge> m_edges;
+    std::vector<Vertex> m_vertices;
+    std::vector<Edge> m_edges;
+    //Util::AttribVec<NodeID, Vertex> m_vertices;
+    //Util::AttribVec<EdgeID, Edge> m_edges;
+
+    void reserve(size_t nodes, int k)
+    {
+        m_vertices.reserve(nodes);
+    }
 
     EdgeID add_edge(const NodeID source, const NodeID target, const double weight = 0.0)
     {
-        // const EdgeID id =
-            this->connect_nodes(source, target, EdgeT {weight, 0});
-        //GEL_ASSERT_NEQ(id, InvalidEdgeID);
-        //m_edges[id] = Edge {.source = source, .target = target, .weight = weight};
+        const EdgeID id = this->connect_nodes(source, target);
+        GEL_ASSERT_NEQ(id, AMGraph::InvalidEdgeID);
+        if (m_edges.size() == id)
+            m_edges.emplace_back(source, target, weight);
+        else
+            m_edges[id] = Edge {.source = source, .target = target, .weight = weight};
 
         // insert neighbors
-        m_vertices[source].ordered_neighbors.insert(Neighbor(m_vertices[source], m_vertices[target], target));
-        m_vertices[target].ordered_neighbors.insert(Neighbor(m_vertices[target], m_vertices[source], source));
+        m_vertices[source].ordered_neighbors.emplace(Neighbor(m_vertices[source], m_vertices[target], target));
+        m_vertices[target].ordered_neighbors.emplace(Neighbor(m_vertices[target], m_vertices[source], source));
 
-        return { source, target };
-        //return id;
+        //return { source, target };
+        return id;
     }
 
     NodeID add_node(const Vec3& p, const Vec3& in_normal = Vec3(0., 0., 0.))
     {
-        const NodeID n = SparseGraph::add_node();
-        m_vertices[n] = Vertex{.id = n, .normal_rep = Vertex::InvalidNormalRep, .coords = p, .normal = in_normal };
+        const NodeID n = AMGraph::add_node();
+        GEL_ASSERT_EQ(m_vertices.size(), n);
+        m_vertices.emplace_back(n, Vertex::InvalidNormalRep, p, in_normal);
+        //m_vertices[n] = Vertex{.id = n, .normal_rep = Vertex::InvalidNormalRep, .coords = p, .normal = in_normal };
         return n;
     }
 
     void increment_ref_time(NodeID n1, NodeID n2)
     {
-        auto edge = find_edge(n1, n2);
-        if (edge) {
-            connect_nodes(n1, n2, EdgeT {edge.value().weight, edge.value().ref_time + 1});
-            //add_edge(n1, n2, );
+        auto edge = AMGraph::find_edge(n1, n2);
+        if (edge != AMGraph::InvalidEdgeID) {
+            m_edges[edge].ref_time += 1;
         }
     }
+
+    std::optional<Edge> find_edge(NodeID n1, NodeID n2) const
+    {
+        const EdgeID id = AMGraph::find_edge(n1, n2);
+        if (id == AMGraph::InvalidEdgeID) {
+            return std::nullopt;
+        }
+        return m_edges[id];
+    }
+
+    //auto all_edges_lazy() const -> const decltype(m_edges)&
+    //{
+    //    return m_edges;
+    //}
 
     /// @brief Get last neighbor information
     /// @param root: root vertex index
@@ -200,22 +284,17 @@ public:
     {
         GEL_ASSERT(m_vertices.size() > root);
         GEL_ASSERT(m_vertices.size() > branch);
-        const auto& u = m_vertices.at(root);
-        const auto& v = m_vertices.at(branch);
+        auto& u = m_vertices.at(root);
+        auto& v = m_vertices.at(branch);
         GEL_ASSERT(!u.ordered_neighbors.empty()); // we need at least one neighbor to return
         Neighbor temp = {u, v, static_cast<uint>(branch)};
         auto iter = u.ordered_neighbors.lower_bound(temp);
         if (iter == u.ordered_neighbors.begin()) iter = u.ordered_neighbors.end(); // Wrap around
+        //auto& f = iter->first;
+        //auto& s = iter->second;
+        //return {f, s};
+        //return std::tie(f, s);
         return const_cast<Neighbor&>(*(std::prev(iter)));
-    }
-
-    [[nodiscard]]
-    uint tree_id(const NodeID& root) const
-    {
-        GEL_ASSERT(m_vertices.size() > root);
-        GEL_ASSERT(!m_vertices.at(root).ordered_neighbors.empty()); // we need at least one neighbor to return
-        auto final = m_vertices.at(root).ordered_neighbors.end();
-        return (--final)->tree_id;
     }
 
     /// @brief Get the next neighbor information
@@ -227,12 +306,46 @@ public:
     [[nodiscard]]
     const Neighbor& successor(const NodeID& root, const NodeID& branch) const
     {
-        const auto& u = m_vertices.at(root);
-        const auto& v = m_vertices.at(branch);
+        auto& u = m_vertices.at(root);
+        auto& v = m_vertices.at(branch);
         GEL_ASSERT(!u.ordered_neighbors.empty()); // we need at least one neighbor to return
         auto iter = u.ordered_neighbors.upper_bound(Neighbor(u, v, branch));
         if (iter == u.ordered_neighbors.end()) iter = u.ordered_neighbors.begin(); // Wrap around
-        return (*iter); // This is honestly not good practice - ONLY modification of tree_id
+        //auto& f = iter->first;
+        //auto& s = iter->second;
+        //return {f, s};
+        //return std::tie(f, s);
+        //return const_cast<Neighbor&>(*(iter));
+        return (*iter);
+    }
+
+private:
+    /// @brief Get the neighbor information
+    /// @param root: root vertex index
+    /// @param branch: the outgoing branch
+    /// @return reference to the neighbor struct
+    Neighbor&  get_neighbor_info(const NodeID root, const NodeID branch)
+    {
+        auto& u = this->m_vertices.at(root);
+        auto& v = this->m_vertices.at(branch);
+        auto iter = u.ordered_neighbors.lower_bound({u, v, static_cast<uint>(branch)});
+        // TODO: tree_id does not invalidate ordered_neighbors, but it still has thread safety issues
+        //auto& f = iter->first;
+        //auto& s = iter->second;
+        //return {f, s};
+        return const_cast<Neighbor&>(*(iter));
+    }
+public:
+
+    void maintain_face_loop(const NodeID source, const NodeID target)
+    {
+        auto& this_v_tree   = this->predecessor(source, target).tree_id;
+        auto& neighbor_tree = this->predecessor(target, source).tree_id;
+
+        auto [fst, snd] = this->etf.insert(this_v_tree, neighbor_tree);
+
+        get_neighbor_info(source, target).tree_id = fst;
+        get_neighbor_info(target, source).tree_id = snd;
     }
 };
 
