@@ -302,62 +302,71 @@ namespace CGLA
         /// @{
 
         /// Assignment multiplication with scalar.
-        constexpr const V& operator *=(T k)
+        constexpr V& operator *=(T k)
         {
             for(auto& x : data) {x*=k;}
-            return static_cast<const V&>(*this);
+            return static_cast<V&>(*this);
         }
 
         /// Assignment division with scalar.
-        constexpr const V& operator /=(T k)
+        constexpr V& operator /=(T k)
         {
             for(auto& x : data) {x/=k;}
-            return static_cast<const V&>(*this);
+
+            return static_cast<V&>(*this);
         }
 
         /// Assignment addition with scalar. Adds scalar to each coordinate.
-        constexpr const V& operator +=(T k)
+        constexpr V& operator +=(T k)
         {
             for(auto& x : data) {x+=k;}
-            return  static_cast<const V&>(*this);
+
+            return static_cast<V&>(*this);
         }
 
         /// Assignment subtraction with scalar. Subtracts scalar from each coord.
-        constexpr const V& operator -=(T k)
+        constexpr V& operator -=(T k)
         {
             for(auto& x : data) {x-=k;}
-            return  static_cast<const V&>(*this);
+            return static_cast<V&>(*this);
         }
 
         /** Assignment multiplication with vector.
          Multiply each coord independently. */
-        constexpr const V& operator *=(const V& v)
+        constexpr V& operator *=(const V& v)
         {
-            std::transform(begin(), end(), v.begin(), begin(), std::multiplies<T>());
-            return  static_cast<const V&>(*this);
+            for (auto i = 0; i < N; ++i) {
+                data[i] = data[i] * v[i];
+            }
+            return static_cast<V&>(*this);
         }
 
         /// Assigment division with vector. Each coord divided independently.
-        constexpr const V& operator /=(const V& v)
+        constexpr V& operator /=(const V& v)
         {
-            std::transform(begin(), end(),  v.begin(), begin(), std::divides<T>());
-            return  static_cast<const V&>(*this);
+            for (auto i = 0; i < N; ++i) {
+                data[i] = data[i] / v[i];
+            }
+            return static_cast<V&>(*this);
         }
 
         /// Assignmment addition with vector.
-        constexpr const V& operator +=(const V& v)
+        constexpr V& operator +=(const V& v)
         {
-            std::transform(begin(), end(), v.begin(), begin(), std::plus<T>());
-            return  static_cast<const V&>(*this);
+            for (auto i = 0; i < N; ++i) {
+                data[i] = data[i] + v[i];
+            }
+            return static_cast<V&>(*this);
         }
 
         /// Assignment subtraction with vector.
-        constexpr const V& operator -=(const V& v)
+        constexpr V& operator -=(const V& v)
         {
-            std::transform(begin(), end(), v.begin(), begin(), std::minus<T>());
-            return  static_cast<const V&>(*this);
+            for (auto i = 0; i < N; ++i) {
+                data[i] = data[i] - v[i];
+            }
+            return static_cast<V&>(*this);
         }
-
 
         /// @}
         /// @name Unary operators
@@ -366,9 +375,11 @@ namespace CGLA
         /// Negate vector.
         constexpr V operator - () const
         {
-            V v_new;
-            std::transform(begin(), end(), v_new.begin(), std::negate<T>());
-            return v_new;
+            V ret;
+            for (auto i = 0; i < N; ++i) {
+                ret[i] = -data[i];
+            }
+            return ret;
         }
 
         /// @}
@@ -379,33 +390,41 @@ namespace CGLA
          Do not confuse this operation with dot product. */
         constexpr V operator * (const V& v1) const
         {
-            V v_new;
-            std::transform(begin(), end(), v1.begin(), v_new.begin(), std::multiplies<T>());
-            return v_new;
+            V ret;
+            for (auto i = 0; i < N; ++i) {
+                ret[i] = data[i] * v1[i];
+            }
+            return ret;
         }
 
         /// Add two vectors
         constexpr V operator + (const V& v1) const
         {
-            V v_new;
-            std::transform(begin(), end(), v1.begin(), v_new.begin(), std::plus<T>());
-            return v_new;
+            V ret;
+            for (auto i = 0; i < N; ++i) {
+                ret[i] = data[i] + v1[i];
+            }
+            return ret;
         }
 
         /// Subtract two vectors.
         constexpr V operator - (const V& v1) const
         {
-            V v_new;
-            std::transform(begin(), end(), v1.begin(), v_new.begin(), std::minus<T>());
-            return v_new;
+            V ret;
+            for (auto i = 0; i < N; ++i) {
+                ret[i] = data[i] - v1[i];
+            }
+            return ret;
         }
 
         /// Divide two vectors. Each coord separately
         constexpr V operator / (const V& v1) const
         {
-            V v_new;
-            std::transform(begin(), end(), v1.begin(), v_new.begin(), std::divides<T>());
-            return v_new;
+            V ret;
+            for (auto i = 0; i < N; ++i) {
+                ret[i] = data[i] / v1[i];
+            }
+            return ret;
         }
 
         /// @}
@@ -415,18 +434,22 @@ namespace CGLA
         /// Multiply scalar onto vector.
         constexpr V operator * (T k) const
         {
-            V v_new;
-            std::transform(begin(), end(), v_new.begin(), [k](T x){return x*k;});
-            return v_new;
+            V ret;
+            for (auto i = 0; i < N; ++i) {
+                ret[i] = data[i] * k;
+            }
+            return ret;
         }
 
 
         /// Divide vector by scalar.
         constexpr V operator / (T k) const
         {
-            V v_new;
-            std::transform(begin(), end(), v_new.begin(), [k](T x){return x/k;});
-            return v_new;
+            V ret;
+            for (auto i = 0; i < N; ++i) {
+                ret[i] = data[i] / k;
+            }
+            return ret;
         }
 
 
@@ -476,7 +499,11 @@ namespace CGLA
         template <class T,class V, unsigned int N>
         constexpr T dot(const ArithVec<T,V,N>& v0, const ArithVec<T,V,N>& v1)
         {
-            return std::inner_product(v0.begin(), v0.end(), v1.begin(), T(0));
+            T acc = 0;
+            for (auto i = 0; i < N; ++i) {
+                acc += v0[i] * v1[i];
+            }
+            return acc;
         }
 
         /** Compute the sqr length by taking dot product of vector with itself. */
