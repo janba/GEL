@@ -3,6 +3,7 @@
 #include <GEL/HMesh/RsR2.h>
 #include <GEL/Util/ParallelAdapters.h>
 #include <ranges> // std::views
+#include <GEL/Util/RangeTools.h>
 
 #include "GEL/Util/InplaceVector.h"
 
@@ -13,6 +14,7 @@ using namespace detail;
 using ThreadPool = Util::ImmediatePool;
 using Geometry::estimateNormal;
 using namespace ::HMesh;
+using namespace Util::Ranges;
 using Util::AttribVec;
 using HMesh::Manifold;
 
@@ -76,32 +78,16 @@ constexpr bool neighbor_comparator(const NeighborPair& l, const NeighborPair& r)
     return l.first > r.first;
 }
 
-template <std::ranges::viewable_range Range>
-std::ranges::viewable_range auto slide2_wraparound(Range&& range)
-{
-    using Elem = std::remove_cvref_t<std::ranges::range_value_t<Range>>;
-    const auto size = range.size();
-    auto ptr = range.begin();
-    const auto end = range.end();
-    return std::views::iota(0UL, (size > 1) ? size : 0UL)
-    | std::views::transform([=, &range]([[maybe_unused]] const auto& _i) mutable -> std::tuple<Elem const&, Elem const&> {
-        const auto current = ptr;
-        ++ptr;
-        const auto next = (ptr == end) ? range.begin() : ptr;
-        return std::tie(*current, *next);
-    });
-}
-
 /// @brief Calculate the reference vector for the rotation system
 /// @param normal: normal direction for the target vertex
 /// @return the reference vector
 constexpr Vec3 calculate_ref_vec(const Vec3& normal)
 {
     constexpr double eps = 1e-6;
-    const double second = (normal[1] == 0.) ? normal[1] + eps : normal[1];
-    auto ref_vec = Vec3(0, -normal[2] / second, 1);
-    if (normal[2] == 1.)
-        ref_vec = Vec3(0., 1., 0.);
+    if (normal[2] == 1.0)
+        return Vec3(0.0, 1.0, 0.0);;
+    const double second = (normal[1] == 0.0) ? eps : normal[1];
+    const auto ref_vec = Vec3(0.0, -normal[2] / second, 1.0);
     return CGLA::normalize(ref_vec);
 }
 
@@ -853,7 +839,7 @@ void connect_handle(
     for (int i = 0; i < mst.no_nodes(); i++) {
         const auto& neighbors = mst.m_vertices[i].ordered_neighbors;
 
-        for (const auto& [neighbor_old, neighbor_next] : slide2_wraparound(neighbors)) {
+        for (const auto [neighbor_old, neighbor_next] : slide2_wraparound(neighbors)) {
             auto last_angle = neighbor_old.angle;
             auto this_angle = neighbor_next.angle;
             auto angle_diff = this_angle - last_angle;
@@ -864,10 +850,13 @@ void connect_handle(
         }
     }
 
-    std::vector<NodeID> connect_p;
-    std::vector<NodeID> to_connect_p;
-    std::vector<uint> tree_id;
-    std::vector<uint> to_tree_id;
+    struct Connection {
+        NodeID p_from;
+        NodeID p_to;
+        uint tree_from;
+        uint tree_to;
+    };
+    std::vector<Connection> connect;
 
     ThreadPool pool;
     const auto neighbors_map = calculate_neighbors(pool, smoothed_v, imp_node, kd_tree, k);
@@ -896,18 +885,15 @@ void connect_handle(
         // TODO: Check if any tree shares root, and return corresponding edges
 
         if (validIdx != -1) {
-            connect_p.push_back(this_v);
-            to_connect_p.push_back(neighbors[validIdx].id);
-            tree_id.push_back(tree);
-            to_tree_id.push_back(to_tree);
+            connect.emplace_back(this_v, neighbors[validIdx].id, tree, to_tree);
         }
     }
 
     // Select one handle
     Map<FaceConnectionKey, std::vector<int>, FaceConnectionKeyHasher> face_connections;
-    for (int i = 0; i < connect_p.size(); i++) {
-        uint tree = tree_id[i];
-        uint to_tree = to_tree_id[i];
+    for (int i = 0; i < connect.size(); i++) {
+        uint tree = connect[i].tree_from; //tree_id[i];
+        uint to_tree = connect[i].tree_to; //to_tree_id[i];
         if (to_tree > tree)
             std::swap(tree, to_tree);
         const auto key = FaceConnectionKey{tree, to_tree};
@@ -931,10 +917,10 @@ void connect_handle(
             break;
 
         bool isFind = false;
-        for (int idx : idx_vec) {
-            const NodeID& this_v = connect_p[idx];
+        for (const int idx : idx_vec) {
+            const NodeID& this_v = connect[idx].p_from;
             const Point& query = mst.m_vertices[this_v].coords;
-            const NodeID& connected_neighbor = to_connect_p[idx];
+            const NodeID& connected_neighbor = connect[idx].p_to;
             // TODO: path and step_thresh are both dead
             const int steps = find_shortest_path(mst, this_v, connected_neighbor);
             if (steps > step_thresh) {
@@ -1207,10 +1193,6 @@ void build_mst(
 
     // Fix strong ambiguous points
     if (!is_euclidean) {
-
-        //for (auto _edge: temp.all_edges_lazy()) {
-            //const NodeID source = _edge.first.from;
-            //const NodeID target = _edge.first.to;
         for (int i = 0; i < temp.m_edges.size(); i++) {
             const NodeID& source = temp.m_edges[i].source;
             const NodeID& target = temp.m_edges[i].target;
