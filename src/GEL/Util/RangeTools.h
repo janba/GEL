@@ -19,7 +19,7 @@ namespace Util::Ranges
 template <std::ranges::input_range R1, std::ranges::input_range R2>
 struct zip_view_t : std::ranges::view_interface<zip_view_t<R1, R2>> {
     using value_type = std::pair<std::ranges::range_value_t<R1>, std::ranges::range_value_t<R2>>;
-    using reference = value_type;
+    using reference = std::pair<std::ranges::range_reference_t<R1>, std::ranges::range_reference_t<R2>>;
 
 private:
 public:
@@ -37,8 +37,8 @@ public:
     public:
         using difference_type = ptrdiff_t;
         using value_type = std::pair<typename decltype(ptr1)::value_type, typename decltype(ptr2)::value_type>;
-        iterator_t() = default;
-        explicit iterator_t(auto _ptr1, auto _ptr2) : ptr1(_ptr1), ptr2(_ptr2) {}
+        constexpr iterator_t() = default;
+        constexpr explicit iterator_t(auto _ptr1, auto _ptr2) : ptr1(_ptr1), ptr2(_ptr2) {}
 
         iterator_t& operator++()
         {
@@ -68,7 +68,7 @@ public:
 
         reference operator*() const
         {
-            return std::make_pair(*ptr1, *ptr2);
+            return {*ptr1, *ptr2};
         }
     };
 
@@ -113,11 +113,16 @@ namespace detail
 /// Helper function to create a zip_view_t
 ///
 /// @related zip_view_t
-template <std::ranges::input_range R1, std::ranges::input_range R2>
-auto zip(R1&& range1, R2&& range2) -> zip_view_t<R1, R2>
-{
-    return zip_view_t<R1, R2>{std::forward<R1>(range1), std::forward<R2>(range2)};
-}
+struct Zip /*: : std::ranges::range_adaptor_closure<Zip> */ {
+    template <std::ranges::input_range R1, std::ranges::input_range R2>
+    [[nodiscard]]
+    constexpr auto operator()(R1&& range1, R2&& range2) const -> zip_view_t<R1, R2>
+    {
+        return zip_view_t<R1, R2>{std::forward<R1>(range1), std::forward<R2>(range2)};
+    }
+};
+// FIXME: replace with std::ranges::zip when upgrading to C++23
+static constexpr Zip zip;
 
 /// Cartesian product of two ranges
 template <std::ranges::input_range R1, std::ranges::input_range R2>
@@ -142,33 +147,65 @@ std::ranges::input_range auto cartesian_product(R1&& range1, R2&& range2)
         return rv2;
     }) | std::views::join;
 
+    //return wide1 | zip(wide2);
     return zip(wide1, wide2);
 }
 
-//template <typename V>
-//std::ranges::input_range auto repeat(V&& value)
-//{
-//    return std::views::iota(0ULL)
-//    | std::views::transform([value = std::forward<V&&>(value)]() -> V&& { return std::forward<V&&>(value); })
-//    ;
-//}
-
 template <std::ranges::input_range R>
-std::ranges::input_range auto shifted_wrapping(R&& range, size_t m)
+std::ranges::input_range auto repeat_range(R&& range)
 {
-    //auto joined = repeat(range) | std::views::join;
+    return std::views::iota(0ULL)
+    | std::views::transform([range = std::forward<R>(range)](auto _unused) { return range; })
+    | std::views::join;
+}
+
+template <std::copy_constructible V>
+std::ranges::input_range auto repeat(V&& v)
+{
+    auto range = std::views::iota(0ULL) | std::views::transform([v = std::forward<V>(v)](auto _unused)  { return v; });
+    return range;
+}
+
+//template <std::ranges::input_range R>
+std::ranges::input_range auto shifted_wrapping(std::ranges::input_range auto&& range, size_t m)
+{
     auto ranges = std::views::iota(0ULL) | std::views::transform([&](auto _unused) { return std::views::all(range); });
     auto joined = std::views::join(ranges);
-    //auto ranges = std::array({std::forward<R>(range), std::forward<R>(range)});
-    //auto joined = std::views::join(ranges);
     auto n = std::ranges::distance(range);
     m %= n;
     return joined | std::views::drop(m) | std::views::take(n);
 }
 
+template <std::ranges::viewable_range Range>
+std::ranges::viewable_range auto slide2_wraparound(Range&& range)
+{
+    // TODO: figure this out
+    //auto length = std::ranges::distance(range) + 1;
+    //auto repeating1 = repeat_range(range);
+    //auto repeating2 = repeat_range(range);
+    //return zip(repeating1 | std::views::take(length), repeating2 | std::views::drop(1) | std::views::take(length));
+    using Elem = std::remove_cvref_t<std::ranges::range_value_t<Range>>;
+    const auto size = range.size();
+    auto ptr = range.begin();
+    const auto end = range.end();
+    return std::views::iota(0UL, (size > 1) ? size : 0UL)
+    | std::views::transform([=, &range]([[maybe_unused]] const auto& _i) mutable -> std::tuple<Elem const&, Elem const&> {
+        const auto& current = ptr;
+        ++ptr;
+        const auto& next = (ptr == end) ? range.begin() : ptr;
+        return std::tie(*current, *next);
+    });
+}
+
+template<std::ranges::random_access_range Range, std::ranges::input_range Selector>
+auto select_lazy(const Range& range, Selector&& selector)
+{
+    return selector | std::views::transform([&range](auto idx) {return range[idx];});
+}
+
 template <typename G, typename I>
 concept GeneratorClosure =
-    std::copy_constructible<I> &&
+    std::copy_constructible<I> && // Need to return I by value
     std::copy_constructible<G> &&
     requires(G g)
     {
@@ -177,16 +214,16 @@ concept GeneratorClosure =
 
 /// An atrocious clone of Rust's Iterator interface
 //template <std::copy_constructible Item, GeneratorClosure<Item> G>
-template <typename Item, GeneratorClosure<Item> G>
+template <typename Item, GeneratorClosure<Item> Generator>
 struct Iterator {
     // The generator has to be stored so if the Iterator is reused, we can copy construct it.
-    G generator;
-    explicit Iterator(G&& g = G()) : generator(std::forward<G>(g)) {}
+    Generator generator;
+    explicit Iterator(Generator&& g = Generator()) : generator(std::forward<Generator>(g)) {}
 
     struct sentinel_t;
 
     struct iterator_t {
-        G generator;
+        Generator generator;
         // iterator equality does not make much sense for such a generator, but C++ requires us to track this
         // meaning we have to store an index
         size_t index = 0;
@@ -194,7 +231,11 @@ struct Iterator {
         using difference_type = ptrdiff_t;
         using value_type = Item;
         iterator_t() = default;
-        explicit iterator_t(const G& generator) : generator(generator), item(std::nullopt)
+        iterator_t(const iterator_t& rhs) : generator(rhs.generator), index(rhs.index), item(rhs.item) {}
+        iterator_t& operator=(const iterator_t& rhs) = default;
+        iterator_t(iterator_t&& rhs) noexcept = default; //: generator(rhs.generator), index(rhs.index), item(rhs.item) {}
+        iterator_t& operator=(iterator_t&& rhs) = default;
+        explicit iterator_t(const Generator& generator) : generator(generator), item(std::nullopt)
         {
             // Since advancing the iterator and fetching elements are different operations
             // we need to initialize the item
@@ -246,7 +287,7 @@ struct Iterator {
         return sentinel_t{};
     }
 
-    static_assert(std::forward_iterator<iterator_t>);
+    static_assert(std::input_iterator<iterator_t>);
     static_assert(std::sentinel_for<sentinel_t, iterator_t>);
 };
 
@@ -284,16 +325,73 @@ namespace detail
 }
 
 /// Create an infinite generator using the provided initial state and fold function (State -> State)
-template <typename State, typename Functor> requires std::same_as<std::invoke_result_t<Functor, State>, State>
+template <std::copy_constructible State, typename Functor> requires std::same_as<std::invoke_result_t<Functor, State>, std::remove_cvref_t<State>>
 std::ranges::viewable_range auto make_generator(State&& initial, Functor&& func)
 {
-    auto generator = [state = std::forward<State>(initial), &func]([[maybe_unused]] int _unused) mutable -> State {
-        State&& current = state;
+    // For some reason, without the explicit remove_cvref_t, this closure returns a reference to "current" rather
+    // than returning it by value
+    auto generator = [state = initial, &func]([[maybe_unused]] int _unused) mutable -> std::remove_cvref_t<State> {
+        auto current = state;
         state = func(current);
         return current;
     };
     return std::views::iota(0) | std::views::transform(generator);
 }
+
+/// Create an infinite generator using the provided initial state and fold function (State -> optional State)
+// template <std::copy_constructible State, typename Functor> //requires std::same_as<std::invoke_result_t<Functor, State>, std::remove_cvref_t<State>>
+// std::ranges::range auto make_generator_finite(State&& initial, Functor&& func)
+// {
+//     // using StateVal = std::remove_cvref_t<State>;
+//     // struct Generator {
+//     //     StateVal initial;
+//     //     StateVal current;
+//     //
+//     //     std::optional<std::remove_cvref_t<State>> operator()()
+//     //     {
+//     //         if (current.has_value())
+//     //             current = func(current.value());
+//     //         return current;
+//     //     }
+//     // };
+//     // auto generator = [state = initial, &func]() mutable -> std::optional<std::remove_cvref_t<State>> {
+//     //     std::optional<std::remove_cvref_t<State>> current = state;
+//     //     if (current.has_value())
+//     //         state = func(current.value());
+//     //     return current;
+//     // };
+//     // return Iterator<std::remove_cvref_t<State>, decltype(generator)>(std::move(generator));
+// }
+
+// struct iterator_t {
+//     using difference_type = ptrdiff_t;
+//     using value_type = Item;
+//     iterator_t() = default;
+//     iterator_t(const iterator_t& rhs) = default;
+//     iterator_t& operator=(const iterator_t& rhs) = default;
+//     iterator_t(iterator_t&& rhs) noexcept = default;
+//     iterator_t& operator=(iterator_t&& rhs) = default;
+//     explicit iterator_t(...): ... {}
+//
+//     iterator_t& operator++()
+//     {
+//         index++;
+//         return *this;
+//     }
+//
+//     iterator_t operator++(int)
+//     {
+//         iterator_t retval = *this;
+//         ++(*this);
+//         return retval;
+//     }
+//
+//     bool operator==(iterator_t other) const
+//     {
+//         return /**/;
+//     }
+// };
+
 }
 
 
