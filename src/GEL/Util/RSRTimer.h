@@ -16,8 +16,8 @@ namespace Util {
     struct RSRTimer {
         RSRTimer() = default;
 
-        RSRTimer(const RSRTimer&) = delete;
-        RSRTimer& operator=(const RSRTimer&) = delete;
+        //RSRTimer(const RSRTimer&) = delete;
+        //RSRTimer& operator=(const RSRTimer&) = delete;
 
     private:
         using time_point = std::chrono::high_resolution_clock::time_point;
