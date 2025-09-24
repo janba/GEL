@@ -12,6 +12,7 @@
 #define CGLA_ARITHMATFLOAT_H
 
 #include <numeric>
+#include <GEL/CGLA/Vec.h>
 
 namespace CGLA
 {

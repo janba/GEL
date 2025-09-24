@@ -1,5 +1,8 @@
 #include <sstream>
+#include <map>
+#include <unordered_set>
 #include "RsR.h"
+#include <GEL/Util/RSRTimer.h>
 static bool isGTNormal = true;
 static bool isEuclidean = true;
 static bool isFaceLoop = true;
@@ -14,7 +17,7 @@ static std::string model_path;
 static std::string root_path;
 static std::string model_name;
 static std::string mode;
-static RsR_Timer recon_timer;
+static Util::RSRTimer recon_timer;
 static int bettiNum_1 = 0;
 
 
@@ -381,7 +384,7 @@ float find_components(std::vector<Point>& vertices,
     // Remove Edge Longer than threshold
     std::vector<NodeID> edge_rm_v_id1, edge_rm_v_id2;
     for (NodeID i = 0; i < components.no_nodes(); i++) {
-        auto& edges = components.edges(i);
+        auto edges = components.edges(i);
         for (const auto& pair : edges) {
             NodeID vertex1 = i;
             NodeID vertex2 = pair.first;
@@ -2224,7 +2227,7 @@ void reset_static() {
     root_path = "";
     model_name = "";
     mode = "";
-    recon_timer = RsR_Timer();
+    recon_timer = Util::RSRTimer();
     bettiNum_1 = 0;
 }
 
@@ -2494,6 +2497,7 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
     }
 
     recon_timer.end("algorithm");
+    recon_timer.end("Whole process");
     std::string line(40, '=');
     std::cout << line << std::endl << std::endl;
     recon_timer.show();

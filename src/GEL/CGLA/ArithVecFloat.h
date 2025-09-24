@@ -8,8 +8,8 @@
  * @brief Abstract 2D floating point vector class
  */
 
-#ifndef CGLA__ARITHVECFLOAT_H
-#define CGLA__ARITHVECFLOAT_H
+#ifndef CGLA_ARITHVECFLOAT_H
+#define CGLA_ARITHVECFLOAT_H
 
 #include <GEL/CGLA/ArithVec.h>
 
@@ -36,9 +36,10 @@ public:
         ArithVec<T, V, N>(a, b, c, d) {}
 
     /// Compute Euclidean length.
+    [[nodiscard]]
     constexpr T length() const
     {
-        return sqrt(sqr_length(*this));
+        return std::sqrt(sqr_length(*this));
     }
 
     /// Normalize vector.
@@ -52,7 +53,7 @@ public:
     {
         T sql = sqr_length(*this);
         if (sql > 0)
-            (*this) /= sqrt(sql);
+            (*this) /= std::sqrt(sql);
     }
 };
 
@@ -62,6 +63,7 @@ public:
 
 /// Returns length of vector
 template <class T, class V, unsigned int N>
+[[nodiscard]]
 constexpr T length(const ArithVecFloat<T, V, N>& v)
 {
     return v.length();
@@ -70,6 +72,7 @@ constexpr T length(const ArithVecFloat<T, V, N>& v)
 
 /// Returns normalized vector
 template <class T, class V, unsigned int N>
+[[nodiscard]]
 constexpr V normalize(const ArithVecFloat<T, V, N>& v)
 {
     return v / v.length();
@@ -77,11 +80,12 @@ constexpr V normalize(const ArithVecFloat<T, V, N>& v)
 
 /// Returns normalized vector if the vector has non-zero length - otherwise the 0 vector.
 template <class T, class V, unsigned int N>
+[[nodiscard]]
 constexpr V cond_normalize(const ArithVecFloat<T, V, N>& v)
 {
     T sql = sqr_length(v);
     if (sql > 0)
-        return v / sqrt(sql);
+        return v / std::sqrt(sql);
     return v * 1.0;
 }
 

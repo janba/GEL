@@ -9,8 +9,8 @@
  * @brief Abstract 3D floating point vector class
  */
 
-#ifndef CGLA__ARITHVEC3FLOAT_H
-#define CGLA__ARITHVEC3FLOAT_H
+#ifndef CGLA_ARITHVEC3FLOAT_H
+#define CGLA_ARITHVEC3FLOAT_H
 
 #include <GEL/CGLA/ArithVecFloat.h>
 

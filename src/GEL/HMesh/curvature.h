@@ -9,20 +9,11 @@
  * @brief Compute various curvature measures from meshes.
  */
 
-#ifndef __MESHEDIT_CURVATURE_H__
-#define __MESHEDIT_CURVATURE_H__
+#ifndef MESHEDIT_CURVATURE_H
+#define MESHEDIT_CURVATURE_H
 
 #include <vector>
 #include <GEL/HMesh/Manifold.h>
-
-namespace CGLA
-{
-    class Vec3d;
-    class Vec2d;
-    class Mat2x2d;
-    class Mat3x3d;
-    class Ma4x4d;
-}
 
 namespace HMesh
 {
