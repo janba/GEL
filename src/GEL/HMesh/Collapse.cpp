@@ -99,7 +99,6 @@ double optimize_valency(const HMesh::Manifold& m, const HMesh::HalfEdgeID h_out,
 struct Split {
     HMesh::HalfEdgeID h_in;
     HMesh::HalfEdgeID h_out;
-    std::optional<HalfEdgeID> flip = std::nullopt;
 };
 
 struct Triangle {
@@ -143,89 +142,6 @@ inline std::ostream& operator<<(std::ostream& os, const Triangle& t)
         << "  area: " << t.area() << "\n"
         << "}";
     return os;
-}
-
-std::ranges::input_range auto circulate_vertex_ccw_range(const Manifold& m, VertexID v)
-{
-    //auto length = m.valency(v);
-    //auto generator = Util::Ranges::make_generator(m.walker(v), [](Walker w) {
-    //   return w.circulate_vertex_ccw();
-    //});
-    // TODO: dumbass helper that doesn't work correctly, I will likely retire this
-    struct walker_sentinel_t {};
-    struct vertex_ccw_t {
-        Walker w;
-        using difference_type = ptrdiff_t;
-        using value_type = Walker;
-        vertex_ccw_t() : w(Manifold().walker(InvalidHalfEdgeID)) {}
-        vertex_ccw_t(const vertex_ccw_t& rhs) = default;
-        vertex_ccw_t& operator=(const vertex_ccw_t& rhs) = default;
-        vertex_ccw_t(vertex_ccw_t&& rhs) noexcept = default;
-        vertex_ccw_t& operator=(vertex_ccw_t&& rhs) = default;
-
-        explicit vertex_ccw_t(Walker w): w(w) {}
-
-        vertex_ccw_t& operator++()
-        {
-            w = w.circulate_vertex_ccw();
-            return *this;
-        }
-
-        vertex_ccw_t operator++(int)
-        {
-            vertex_ccw_t retval = *this;
-            ++(*this);
-            return retval;
-        }
-
-        bool operator==(const walker_sentinel_t&) const
-        {
-            return w.full_circle();
-        }
-
-        bool operator==(const vertex_ccw_t& other) const
-        {
-            return this->w.halfedge() == other.w.halfedge();
-        }
-
-        value_type operator*() const
-        {
-            return w;
-        }
-    };
-    static_assert(std::input_or_output_iterator<vertex_ccw_t>);
-
-    // struct Iterator {
-    //     Walker w;
-    //     Walker operator()(){
-    //         Walker current = w;
-    //         w = w.circulate_vertex_ccw();
-    //         return current;
-    //     }
-    // };
-    auto it = vertex_ccw_t(m.walker(v));
-    auto sentinel = walker_sentinel_t{};
-    auto range = std::ranges::subrange(it, sentinel);
-    //auto single = std::views::single(Iterator(m.walker(v))) | std::views::transform();
-    //auto generator = std::views::iota(0) | std::views::transform([v](auto _unused){ return 0; });
-    //return generator | std::views::take(1);
-    return range;
-}
-
-static_assert(std::same_as<std::ranges::range_value_t<decltype(circulate_vertex_ccw_range(std::declval<Manifold>(), std::declval<VertexID>()))>, Walker>);
-
-auto post_collapse_iterator(const Manifold& m)
-{
-    HalfEdgeID h_in_opp;
-    HalfEdgeID h_out;
-    VertexID v_old;
-    VertexID v_new;
-
-    const auto range1 = circulate_vertex_ccw_range(m, v_old);
-    const auto range2 = circulate_vertex_ccw_range(m, v_new);
-    const auto ranges = {range1, range2};
-    //std::views::join(ranges);
-    //circulate_vertex_ccw(m, []{});
 }
 
 struct Angles {
@@ -376,10 +292,29 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
         return total;
     };
 
+    const auto shared_edge_length = [](const Triangle& t1, const Triangle& t2) -> double {
+        Vec3 first_shared;
+        Vec3 second_shared;
+        if (t1.p1 == t2.p1 || t1.p1 == t2.p2 || t1.p1 == t2.p3) {
+            first_shared = t1.p1;
+            if (t1.p2 == t2.p1 || t1.p2 == t2.p2 || t1.p2 == t2.p3) {
+                second_shared = t1.p2;
+            } else {
+                second_shared = t1.p3;
+            }
+        } else {
+            first_shared = t1.p2;
+            second_shared = t1.p3;
+        }
+        return (first_shared - second_shared).length();
+    };
+
     // Optimize the dihedral value
-    const auto dihedral_one_ring = [](const Triangle& t1, const Triangle& t2) -> double {
+    const auto dihedral_one_ring = [shared_edge_length](const Triangle& t1, const Triangle& t2) -> double {
         auto d = optimize_dihedral(t1.normal(), t2.normal());
-        return std::pow(d,  1.0) * (t1.total_edge_length() + t2.total_edge_length()); /// std::min(t1.area(), t2.area()); // FIXME: figure this out
+        auto edge_length = shared_edge_length(t1, t2); //(t1.p3 - t1.p1).length();
+        //auto other = (t2.p2 - t2.p1).length();
+        return d * edge_length; // (t1.total_edge_length() + t2.total_edge_length());
     };
 
     const auto dihedral_two_ring = [&](const Triangle& t, const FaceID f) -> double {
@@ -395,45 +330,18 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
         HalfEdgeID he2; // from the previous two
         Point opposing_vertex; // required to calculate dihedrals
     };
-    auto find_flip_candidate = [&m](HalfEdgeID he1, HalfEdgeID he2) -> std::optional<FlipCandidate> {
-        auto walker1 = m.walker(he1);
-        auto walker2 = m.walker(he2);
-        if (walker1.prev().opp().halfedge() == he2) {
-            Point opposing_vertex = m.positions[walker1.next().opp().next().vertex()];
-            return FlipCandidate {
-                .candidate = walker1.next().halfedge(),
-                .he1 = he1,
-                .he2 = he2,
-                .opposing_vertex = opposing_vertex,
-            };
-        } else if (walker2.prev().opp().halfedge() == he1) {
-            Point opposing_vertex = m.positions[walker2.next().opp().next().vertex()];
-            return FlipCandidate {
-                .candidate = walker2.next().halfedge(),
-                .he1 = he2,
-                .he2 = he1,
-                .opposing_vertex = opposing_vertex,
-            };
-        };
-        return std::nullopt;
-    };
 
     struct ExpandResult {
         double score = INFINITY;
         double max_angle = INFINITY;
-        std::vector<Triangle> triangles; // FIXME: debug time
-        // TODO: maybe add an optional "flip"
-        std::optional<HalfEdgeID> flip = std::nullopt;
     };
     const auto expand_score = [&](
-        HalfEdgeID h_in_opp,
-        HalfEdgeID h_out,
+        const HalfEdgeID& h_in_opp,
+        const HalfEdgeID& h_out,
         const Point& v_new_position,
-        const Point& v_old_position,
-        const std::optional<FlipCandidate>& flip_candidate) -> ExpandResult {
+        const Point& v_old_position) -> ExpandResult {
         const auto walker_out = m.walker(h_out);
         const auto walker_in_opp = m.walker(h_in_opp);
-        //GEL_ASSERT(flip_candidate.has_value());
         const auto v_h_out = m.positions[walker_out.vertex()];
         const auto v_h_in = m.positions[walker_in_opp.vertex()];
 
@@ -442,9 +350,43 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
         // either passing v_new or v_old as the third point. The order of the window also matters a lot
 
         const auto tri_center_in = Triangle(v_old_position, v_new_position, v_h_in);
-        const auto tri_center_out = Triangle(v_old_position, v_h_out, v_new_position);
+        const auto tri_center_out = Triangle(v_new_position, v_old_position, v_h_out);
 
-        double two_ring = 0.0;
+        // auto one_ring_iterator_alt = [&]() {
+        //     std::vector<HalfEdgeID> half_edges;
+        //
+        //     auto walker_prev = walker_out;
+        //     auto walker_next = walker_prev.circulate_vertex_ccw();
+        //     // from out towards in counterclockwise
+        //     half_edges.push_back(tri_center_out);
+        //     while (walker_prev.halfedge() != walker_in_opp.halfedge()) {
+        //         const auto p2 = m.positions[walker_prev.vertex()];
+        //         const auto p3 = m.positions[walker_next.vertex()];
+        //         Triangle tri = {v_new_position, p2, p3};
+        //         // to consider the two ring dihedrals, we need to get the triangles from the opposite edges.
+        //         // none of the triangles are affected by the expansion, so we can just fetch them from the manifold directly
+        //
+        //         half_edges.push_back(tri);
+        //         walker_prev = walker_prev.circulate_vertex_ccw();
+        //         walker_next = walker_next.circulate_vertex_ccw();
+        //     }
+        //     half_edges.push_back(tri_center_in);
+        //     // from in towards out counterclockwise
+        //     walker_prev = walker_in_opp;
+        //     walker_next = walker_in_opp.circulate_vertex_ccw();
+        //     while (walker_prev.halfedge() != walker_out.halfedge()) {
+        //         const auto p2 = m.positions[walker_prev.vertex()];
+        //         const auto p3 = m.positions[walker_next.vertex()];
+        //
+        //         Triangle tri = {v_old_position, p2, p3};
+        //
+        //         half_edges.push_back(tri);
+        //         walker_prev = walker_prev.circulate_vertex_ccw();
+        //         walker_next = walker_next.circulate_vertex_ccw();
+        //     }
+        //     return half_edges;
+        // };
+
         auto one_ring_iterator = [&]() {
             std::vector<Triangle> triangles;
 
@@ -456,12 +398,6 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
                 const auto p2 = m.positions[walker_prev.vertex()];
                 const auto p3 = m.positions[walker_next.vertex()];
                 Triangle tri = {v_new_position, p2, p3};
-
-                if (walker_prev.halfedge() == flip_candidate->he1 && walker_next.halfedge() == flip_candidate->he2) {
-                    FaceID opposing_face = walker_prev.next().opp().face();
-                    two_ring = dihedral_two_ring(tri, opposing_face);
-                }
-
                 // to consider the two ring dihedrals, we need to get the triangles from the opposite edges.
                 // none of the triangles are affected by the expansion, so we can just fetch them from the manifold directly
 
@@ -485,52 +421,8 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
             }
             return triangles;
         };
-        // TODO
-        auto one_ring_iterator_flipped_edge = [&]() {
-            std::vector<Triangle> triangles;
-
-            auto walker_prev = walker_out;
-            auto walker_next = walker_prev.circulate_vertex_ccw();
-            // from out towards in counterclockwise
-            triangles.push_back(tri_center_out);
-            while (walker_prev.halfedge() != walker_in_opp.halfedge()) {
-                if (walker_prev.halfedge() == flip_candidate->he2 && walker_next.halfedge() == flip_candidate->he1) {
-                    // TODO
-                    auto p2 = m.positions[walker_prev.vertex()];
-                    auto p3 = m.positions[walker_next.vertex()];
-                    Triangle tri1 = {v_new_position, flip_candidate->opposing_vertex, p2};
-                    Triangle tri2 = {v_new_position, p3, flip_candidate->opposing_vertex};
-                    triangles.push_back(tri1);
-                    triangles.push_back(tri2);
-                } else {
-                    auto p2 = m.positions[walker_prev.vertex()];
-                    auto p3 = m.positions[walker_next.vertex()];
-                    Triangle tri = {v_new_position, p2, p3};
-                    triangles.push_back(tri);
-                }
-                walker_prev = walker_prev.circulate_vertex_ccw();
-                walker_next = walker_next.circulate_vertex_ccw();
-            }
-            triangles.push_back(tri_center_in);
-            // from in towards out counterclockwise
-            walker_prev = walker_in_opp;
-            walker_next = walker_in_opp.circulate_vertex_ccw();
-            while (walker_prev.halfedge() != walker_out.halfedge()) {
-                auto p2 = m.positions[walker_prev.vertex()];
-                auto p3 = m.positions[walker_next.vertex()];
-
-                Triangle tri = {v_old_position, p2, p3};
-
-                triangles.push_back(tri);
-                walker_prev = walker_prev.circulate_vertex_ccw();
-                walker_next = walker_next.circulate_vertex_ccw();
-            }
-            return triangles;
-        };
 
         // h_in_opp and h_out are unique, making this sound
-        // TODO: get rid of this
-        //double two_ring = 0.0;
         auto triangles = one_ring_iterator();
 
         const auto dihedral0 = dihedral_one_ring(tri_center_in, tri_center_out);
@@ -549,34 +441,10 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
             return std::make_pair(total_dihedral + dihedral0, max_angle);
         };
         auto [total_dihedral, max_angle] = calculate_dihedrals(triangles);
-        // FIXME: bad temporary hack
-        if (!flip_candidate.has_value()) {
-            return ExpandResult{
-                .score = total_dihedral, // + two_ring,
-                .max_angle = max_angle,
-                .triangles = std::move(triangles),
-            };
-        }
-        auto triangles2 = one_ring_iterator_flipped_edge();
-        auto [total_dihedral_s, max_angle_s] = calculate_dihedrals(triangles2);
-
-        auto valency_cost = 0; //optimize_valency(m, h_out, h_in_opp, opts);
-        auto total_cost = total_dihedral + dihedral0 + valency_cost;
-        //total_dihedral_s = 100000.0;
-        if (total_dihedral < total_dihedral_s) {
-            return ExpandResult{
-                .score = total_dihedral, // + two_ring,
-                .max_angle = max_angle,
-                .triangles = std::move(triangles),
-            };
-        } else {
-            return ExpandResult{
-                .score = total_dihedral_s,
-                .max_angle = max_angle_s,
-                .triangles = std::move(triangles2),
-                .flip = flip_candidate->candidate
-            };
-        }
+        return ExpandResult{
+            .score = total_dihedral,
+            .max_angle = max_angle,
+        };
     };
 
     // let's do it the dumb way for once
@@ -585,83 +453,114 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
         half_edges.emplace_back(he);
     });
 
-
-    struct HalfEdgeHelper {
-        HalfEdgeID he;
-        double prod = INFINITY;
-    };
-    struct HalfEdgeHelperComp {
-        bool operator()(const HalfEdgeHelper& lhs, const HalfEdgeHelper& rhs) const
-        {
-            return lhs.prod < rhs.prod;
-        }
-    };
-
     double min_score = INFINITY;
     double max_angle = INFINITY;
     HalfEdgeID h_in_opp;
     HalfEdgeID h_out;
-    //std::optional<HalfEdgeID> flip_candidate;
     std::vector<Triangle> triangles;
 
-    // TODO: figure out the flip candidate
-    Util::InplaceVector<HalfEdgeHelper, 3> hedges;
-    //std::vector<HalfEdgeHelper> hedges;
-    auto edge = CGLA::normalize(v_new_position - v_old_position);
-    for (auto h : half_edges) {
-        auto v = m.positions[m.walker(h).vertex()];
-        auto e = CGLA::normalize(v - v_new_position);
-        auto prod = std::abs(CGLA::dot(e, edge) - 1.0);
-        hedges.emplace_back(h, prod);
-        // TODO: bubble sort would be good here
-        std::ranges::sort(hedges, HalfEdgeHelperComp());
-        if (hedges.size() == 3) {
-            hedges.pop_back();
-        }
-    }
-    GEL_ASSERT_EQ(hedges.size(), 2);
-    auto flip_candidate = find_flip_candidate(hedges[0].he, hedges[1].he);
-    std::optional<HalfEdgeID> flip = std::nullopt;
     for (auto h1 : half_edges) {
         for (auto h2 : half_edges) {
             if (h1 == h2) {
                 continue;
             }
-            auto score = expand_score(h1, h2, v_new_position, v_old_position, flip_candidate);
+            auto score = expand_score(h1, h2, v_new_position, v_old_position);
             if (score.score < min_score) {
                 min_score = score.score;
                 max_angle = score.max_angle;
-                triangles = std::move(score.triangles);
-                flip = score.flip;
                 h_in_opp = h1;
                 h_out = h2;
             }
         }
     }
-    if constexpr (DEBUG_PRINT) {
-        if (flip.has_value()) {
-            std::cout << "to flip edge:   ";
-            print_hedge(flip.value());
-            std::cout << "flip candidate: ";
-            print_hedge(flip_candidate->candidate);
-            std::cout << "he1:            ";
-            print_hedge(flip_candidate->he1);
-            std::cout << "he2:            ";
-            print_hedge(flip_candidate->he2);
-            std::cout << flip_candidate->opposing_vertex << "\n";
-        }
-        for (auto tri : triangles) {
-            std::cout << tri << "\n";
-        }
-        std::cout << "------------\n";
+
+    return Split{m.walker(h_in_opp).opp().halfedge(), h_out};
+}
+
+auto dihedral_from_half_edge(const Manifold& m, const HalfEdgeID h) -> double {
+    auto walker = m.walker(h);
+    auto sp1  = m.positions[walker.vertex()];
+    auto t1p3 = m.positions[walker.next().vertex()];
+    auto sp2  = m.positions[walker.opp().vertex()];
+    auto t2p3 = m.positions[walker.opp().next().vertex()];
+
+    auto n1 = triangle_normal(sp1, t1p3, sp2);
+    auto n2 = triangle_normal(sp2, t2p3, sp1);
+    return m.length(h) * optimize_dihedral(n1, n2);
+};
+
+auto four_dihedrals(const Manifold& manifold, HalfEdgeID he) -> double
+{
+    const auto walker = manifold.walker(he);
+    const auto he_n = walker.next().halfedge();
+    const auto he_p = walker.prev().halfedge();
+    const auto he_opp_n = walker.opp().next().halfedge();
+    const auto he_opp_p = walker.opp().prev().halfedge();
+    return dihedral_from_half_edge(manifold, he) +
+        dihedral_from_half_edge(manifold, he_n) +
+        dihedral_from_half_edge(manifold, he_p) +
+        dihedral_from_half_edge(manifold, he_opp_n) +
+        dihedral_from_half_edge(manifold, he_opp_p);
+}
+
+auto maybe_flip(Manifold& manifold, HalfEdgeID he, double dihedral_threshold = 1.5) -> bool
+{
+    if (!manifold.precond_flip_edge(he))
+        return false;
+
+    constexpr auto angle_threshold = 0.25;
+    //constexpr auto dihedral_threshold = 1.5;
+    const auto angles = [&](HalfEdgeID he) -> std::pair<double, double> {
+        auto walker = manifold.walker(he);
+        auto v1 = manifold.positions[walker.vertex()];
+        auto v2 = manifold.positions[walker.next().vertex()];
+        auto v3 = manifold.positions[walker.opp().vertex()];
+        auto e_shared = CGLA::normalize(v1 - v3);
+        auto e_next   = CGLA::normalize(v2 - v1);
+        auto e_prev   = CGLA::normalize(v2 - v3);
+
+        auto angle1 = CGLA::dot(e_next, -e_shared);
+        auto angle2 = CGLA::dot(e_prev, e_shared);
+
+        return {angle1, angle2};
+    };
+    const auto he_opp = manifold.walker(he).opp().halfedge();
+    auto [angle1, angle2] = angles(he);
+    auto [angle3, angle4] = angles(he_opp);
+    const auto current_dihedral_cost = four_dihedrals(manifold, he);
+
+    manifold.flip_edge(he);
+    const auto new_dihedral_cost = four_dihedrals(manifold, he);
+    if (new_dihedral_cost > current_dihedral_cost * dihedral_threshold) {
+        manifold.flip_edge(he);
+        return false;
     }
 
-    return Split{m.walker(h_in_opp).opp().halfedge(), h_out, flip};
+    if (angle1 < 0.0 || angle2 < 0.0 || angle3 < 0.0 || angle4 < 0.0) {
+        manifold.flip_edge(he);
+        return false;
+        //return false;
+    }
+    return true;
+    //if (((angle1 + angle2 < threshold) || (angle3 + angle4 < threshold)) && manifold.precond_flip_edge(he))
+    //    manifold.flip_edge(he);
+    if (((angle1 < angle_threshold && angle2 < angle_threshold) || (angle3 < angle_threshold && angle4 < angle_threshold))) {
+        //manifold.flip_edge(he);
+        return true;
+    }
+    manifold.flip_edge(he);
+    return false;
 }
 
 auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>& normals,
                      const CollapseOpts& options) -> Collapse
 {
+    // set of connectivity information
+    auto indices = [&vertices] {
+        std::vector<NodeID> temp(vertices.size());
+        std::iota(temp.begin(), temp.end(), 0);
+        return temp;
+    }();
     GEL_ASSERT_EQ(vertices.size(), normals.size());
     Util::ImmediatePool pool;
     QuadraticCollapseGraph graph;
@@ -671,12 +570,7 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
         graph.add_node(vertices[i], normals[i]);
     }
 
-    // set of connectivity information
-    auto indices = [&vertices] {
-        std::vector<NodeID> temp(vertices.size());
-        std::iota(temp.begin(), temp.end(), 0);
-        return temp;
-    }();
+
     const auto kd_tree = build_kd_tree_of_indices(vertices, indices);
     const auto neighbor_map = calculate_neighbors(pool, vertices, kd_tree, options.initial_neighbors);
     Collapse collapse{std::move(indices)};
@@ -690,12 +584,13 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
         }
     }
 
-    size_t count = 0;
+
     for (size_t iter = 0; iter < options.max_iterations; ++iter) {
         // TODO: stricter checking
         const size_t max_collapses = vertices.size() * std::pow(0.5, iter) * options.reduction_per_iteration;
         Collapse::ActivityMap activity_map;
 
+        size_t count = 0;
         while (count < max_collapses) {
             count++;
 
@@ -705,7 +600,7 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
         }
         collapse.insert_collapse(activity_map);
     }
-    std::cout << "collapsed: " << count << std::endl;
+    //std::cout << "collapsed: " << count << std::endl;
     collapse.finalize(std::move(graph));
     return collapse;
 }
@@ -755,9 +650,6 @@ auto reexpand_points(Manifold& manifold, Collapse2&& collapse, const ReexpandOpt
             const auto candidate = find_edge_pair(manifold, this_vert, latent_pos, active_pos, opts);
             if (candidate.h_in != InvalidHalfEdgeID && candidate.h_out != InvalidHalfEdgeID) {
                 const auto vnew = manifold.split_vertex(candidate.h_in, candidate.h_out);
-                if (candidate.flip.has_value()) {
-                    manifold.flip_edge(*candidate.flip);
-                }
                 GEL_ASSERT_NEQ(vnew, InvalidVertexID);
                 return vnew;
             }
@@ -766,6 +658,7 @@ auto reexpand_points(Manifold& manifold, Collapse2&& collapse, const ReexpandOpt
     };
 
     size_t failures = 0;
+    size_t flips = 0;
     for (const auto& collapse_iter : collapse.collapses | std::views::reverse) {
         for (auto single_collapse : collapse_iter | std::views::reverse) {
             // find the manifold_ids for the active vertex
@@ -784,11 +677,46 @@ auto reexpand_points(Manifold& manifold, Collapse2&& collapse, const ReexpandOpt
                 }
                 point_to_manifold_ids.emplace(latent_pos, new_vid);
                 point_to_manifold_ids.erase(v_bar);
+
+                // TODO: Look for edge flips
+                // Our primary problem was on the actual ring around the
+
+                // for (edge: one_ring)
+                //   if ( dihedral angle is low AND minimum angle gain is positive AND flip is valid)
+                //       perform a flip
+                std::vector<HalfEdgeID> one_ring;
+                std::vector<HalfEdgeID> circle;
+                circulate_vertex_ccw(manifold, new_vid, [&](Walker& w) {
+                    HalfEdgeID one_ring_he = w.halfedge();
+                    one_ring.push_back(one_ring_he);
+                    HalfEdgeID circle_he = w.next().halfedge();
+                    circle.push_back(circle_he);
+                });
+                for (HalfEdgeID h: one_ring) {
+                    flips += maybe_flip(manifold, h, 2.5);
+                }
+                for (HalfEdgeID h: circle) {
+                    flips += maybe_flip(manifold, h, 2.5);
+                }
+                for (HalfEdgeID h: one_ring) {
+                    flips += maybe_flip(manifold, h, 1.5);
+                }
+                for (HalfEdgeID h: circle) {
+                    flips += maybe_flip(manifold, h, 1.5);
+                }
+                for (HalfEdgeID h: one_ring) {
+                    flips += maybe_flip(manifold, h, 1.0);
+                }
+                for (HalfEdgeID h: circle) {
+                    flips += maybe_flip(manifold, h, 1.0);
+                }
+
             } else {
                 failures++;
             }
         }
     }
+    std::cout << "flips: " << flips << "\n";
     std::cerr << "failures: " << failures << "\n";
 }
 
@@ -851,86 +779,6 @@ auto reexpand_points_repair(Manifold& manifold, Collapse2&& collapse, const Reex
             if (vold == InvalidVertexID || vnew == InvalidVertexID) {
                 continue;
             }
-            // perform local edge optimization
-
-            // We need to figure out the actual viability, so let's do it the dumb way
-            // Push everything into a vector
-            // Sort vector
-            // Pop duplicate elements
-            // Take cartesian product
-            std::vector<HalfEdgeID> flip_candidates;
-            // These will have some redundant combinations but we will consider this acceptable for our use case
-            circulate_vertex_ccw(manifold, vnew, [&](const Walker& w) {
-                flip_candidates.push_back(w.halfedge()); // can use total ordering of edges to put in unique halfedges
-                flip_candidates.push_back(w.next().halfedge());
-            });
-            circulate_vertex_ccw(manifold, vold, [&](const Walker& w) {
-                flip_candidates.push_back(w.halfedge());
-                flip_candidates.push_back(w.next().halfedge());
-            });
-            std::ranges::sort(flip_candidates, std::less<>());
-            std::ranges::unique(flip_candidates);
-            // representing "no flip" (poorly)
-            flip_candidates.push_back(InvalidHalfEdgeID);
-            flip_candidates.push_back(InvalidHalfEdgeID);
-            flip_candidates.push_back(InvalidHalfEdgeID);
-
-            // How to measure improvement?
-            // Measure local dihedral angles
-            // Perform flips
-            // Measure local dihedral angles again
-
-            Angles vold_initial_angles = one_ring_dihedral_angles(manifold, vold);
-            Angles vnew_initial_angles = one_ring_dihedral_angles(manifold, vnew);
-
-            double best_improvement = INFINITY;
-            std::array<HalfEdgeID, 3> to_perform {InvalidHalfEdgeID, InvalidHalfEdgeID, InvalidHalfEdgeID};
-
-            for (size_t i = 0; i < flip_candidates.size(); i++) {
-                for (size_t j = 0; j < flip_candidates.size(); j++) {
-                    for (size_t k = 0; k < flip_candidates.size(); k++) {
-                        if (i != j && i != k && j != k) {
-                            std::array<HalfEdgeID, 3> flips = {flip_candidates[i], flip_candidates[j], flip_candidates[k]};
-                            for (auto edge: flips) {
-                                if (edge != InvalidHalfEdgeID && manifold.precond_flip_edge(edge)) {
-                                    manifold.flip_edge(edge);
-                                }
-                            }
-
-                            Angles vold_angles = one_ring_dihedral_angles(manifold, vold);
-                            Angles vnew_angles = one_ring_dihedral_angles(manifold, vnew);
-                            double difference = (vold_angles.one_ring + vnew_angles.one_ring) - (vold_initial_angles.one_ring + vnew_initial_angles.one_ring);
-                            if (difference < 0.0 && difference < best_improvement) {
-                                best_improvement = difference;
-                                to_perform = flips;
-                            }
-                            // Undo the damage
-                            // Do the order of flips matter? (Oh no)
-                            for (auto edge: flips | std::views::reverse) {
-                                if (edge != InvalidHalfEdgeID && manifold.precond_flip_edge(edge)) {
-                                    manifold.flip_edge(edge);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-
-            for (auto edge: to_perform) {
-                if (edge != InvalidHalfEdgeID && manifold.precond_flip_edge(edge)) {
-                    manifold.flip_edge(edge);
-                }
-            }
-            /// Which edges should be considered? Any edge in the local area could theoretically be a flip candidate.
-            /// Main candidates: Any edge surrounding the active and latent vertex.
-            ///                  Edges that oppose the active and latent vertex facing opposite sides.
-            ///
-            /// Algorithm strategy: Create range for edges (todo)
-            ///                     Generate cartesian product combinations for a given number of edge flips (difficult)
-            ///                     Perform edge flips (trivial)
-            ///                     Calculate the dihedral cost (semi-done)
-            ///                     Perform edge flips again to restore initial state (trivial)
-            ///                     Return edge flips with the best dihedral cost (todo)
         }
     }
 }
@@ -1078,7 +926,7 @@ auto decimate_reexpand(const Manifold& manifold, double factor) -> Manifold
     Manifold m;
     build_manifold(m, vertices, indices, 3);
 
-    reexpand_points(m, std::move(collapse));
+    reexpand_points_repair(m, std::move(collapse), ReexpandOptions());
 
     return m;
 }
