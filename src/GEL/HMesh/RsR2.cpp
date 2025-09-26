@@ -158,15 +158,13 @@ void nn_search(const Point& query, const Tree& kd_tree,
 /// @return projection distance
 double cal_proj_dist(const Vec3& edge, const Vec3& this_normal, const Vec3& neighbor_normal)
 {
-    const double Euclidean_dist = edge.length();
-    const double neighbor_normal_length = dot(edge, normalize(neighbor_normal));
-    const double normal_length = dot(edge, normalize(this_normal));
-    double projection_dist = std::sqrt((Euclidean_dist * Euclidean_dist) - (normal_length * normal_length));
-    projection_dist += std::sqrt((Euclidean_dist * Euclidean_dist) -
-        (neighbor_normal_length * neighbor_normal_length));
-    projection_dist /= 2.;
-    if (std::abs(dot(normalize(this_normal), normalize(neighbor_normal))) < std::cos(15. / 180. * M_PI))
-        projection_dist = Euclidean_dist;
+    const double euclidean_distance = edge.length();
+    if (std::abs(dot(this_normal, neighbor_normal)) < std::cos(15. / 180. * M_PI))
+        return euclidean_distance;
+    const double neighbor_normal_length = dot(edge, neighbor_normal);
+    const double normal_length = dot(edge, this_normal);
+    const double projection_dist = (std::sqrt((euclidean_distance * euclidean_distance) - (normal_length * normal_length))
+    + std::sqrt((euclidean_distance * euclidean_distance) - (neighbor_normal_length * neighbor_normal_length))) * 0.5;
     return projection_dist;
 }
 
@@ -177,15 +175,17 @@ void filter_out_cross_connection(
     const double cross_conn_thresh,
     const bool is_euclidean)
 {
-    const Vec3 this_normal = normals[this_idx];
-    std::erase_if(neighbors, [&](const auto& neighbor_info) {
-        const Vec3 neighbor_normal = normals[neighbor_info.id];
+    const auto& this_normal = normals[this_idx];
+    auto iter = std::remove_if(neighbors.begin(), neighbors.end(), [&](const auto& neighbor_info) {
+        const auto& neighbor_normal = normals[neighbor_info.id];
         const double cos_theta = dot(this_normal, neighbor_normal) /
             this_normal.length() / neighbor_normal.length();
         const double cos_thresh =
             (is_euclidean) ? 0.0 : cos(cross_conn_thresh / 180. * M_PI);
         return cos_theta < cos_thresh;
     });
+    neighbors.erase(iter, neighbors.end());
+    //std::erase(iter, neighbors.end());
 }
 
 struct ConnectionLength {
@@ -244,8 +244,7 @@ SimpGraph init_graph(
                     : static_cast<float>(cal_proj_dist(edge, this_normal, neighbor_normal));
             if (weight > connection_lengths[id_this].max_length)
                 connection_lengths[id_this].max_length = weight;
-            // TODO: Can we move this elsewhere in some way?
-            // TODO: We can also make this atomic maybe
+
             if (weight > connection_lengths[id_other].max_length)
                 connection_lengths[id_other].max_length = weight;
 
@@ -327,7 +326,6 @@ void weighted_smooth(
         const std::intptr_t limit = (neighbors.size() < 192) ? static_cast<intptr_t>(neighbors.size()) : 192;
         length_weights.reserve(limit);
         for (const auto& neighbor: neighbors | std::views::take(192)) {
-
             const Point neighbor_pos = vertices[neighbor.id];
             const Vec3 n2this = neighbor_pos - vertex;
             if (dot(normals[neighbor.id], normal) < std::cos(30. / 180. * M_PI)) {
@@ -474,7 +472,7 @@ RSGraph minimum_spanning_tree(
     const NodeID root,
     const std::vector<Vec3>& normals,
     const std::vector<Point>& vertices,
-    const bool isEuclidean)
+    const bool is_euclidean)
 {
     GEL_ASSERT_NEQ(root, AMGraph::InvalidNodeID);
     auto gn = make_mst<RSGraph>(
@@ -484,13 +482,13 @@ RSGraph minimum_spanning_tree(
             return CGLA::sqr_length(vertices[m] - vertices[n]);
         },
         [&](RSGraph& graph, NodeID id1, NodeID id2) {
-            Vec3 edge = graph.m_vertices[id2].coords - graph.m_vertices[id1].coords;
+            Vec3 edge = graph.m_vertices[id1].coords - graph.m_vertices[id2].coords;
             const auto distance =
-                (isEuclidean)
+                (is_euclidean)
                     ? edge.length()
-                    : cal_proj_dist(edge, graph.m_vertices[id2].normal,
-                                    graph.m_vertices[id1].normal);
-            graph.add_edge(id2, id1, distance);
+                    : cal_proj_dist(edge, graph.m_vertices[id1].normal,
+                                    graph.m_vertices[id2].normal);
+            graph.add_edge(id1, id2, distance);
         }
     );
     return gn;
@@ -613,6 +611,7 @@ Vec3 projected_vector(const Vec3& input, const Vec3& normal)
 {
     const auto normal_normed = CGLA::normalize(normal);
     return input - CGLA::dot(input, normal_normed) * normal_normed;
+    //return input - dot(input, normal) * normal;
 }
 
 /// @brief Check if two segments are intersecting on both planes (defined by their normal) they belong
@@ -676,10 +675,10 @@ bool geometry_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_t
     const Vec3& n1 = mst.m_vertices[v1].normal;
     const Vec3& n2 = mst.m_vertices[v2].normal;
 
-    const Vec3 mean_normal = CGLA::normalize((n1 + n2) / 2.0);
+    const Vec3 mean_normal = (n1 + n2) * 0.5;
 
-    const Point search_center = p1 + (p2 - p1) / 2.0;
-    const double radius = (p2 - p1).length() / 2.0;
+    const Point search_center = p1 + (p2 - p1) * 0.5;
+    const double radius = (p2 - p1).length() * 0.5;
     std::vector<NodeID> neighbors;
     nn_search(search_center, kd_tree, radius * 3., neighbors);
     UnorderedSet<NodeID> rejection_neighbor_set;
@@ -867,25 +866,19 @@ void connect_handle(
         const auto& neighbors = neighbors_map[i];
 
         // Potential handle collection
-        uint tree, to_tree;
-        NodeID validIdx = -1;
-
-        for (size_t j = 0; j < neighbors.size(); j++) {
+        for (size_t j = 1; j < neighbors.size(); j++) {
             auto& neighbor = neighbors[j];
-            TEdge candidate(this_v, neighbor.id);
+
             if (mst.find_edge(this_v, neighbor.id) != RSGraph::InvalidEdgeID)
                 continue;
-            tree = mst.etf.representative(mst.predecessor(this_v, neighbor.id).tree_id);
-            to_tree = mst.etf.representative(mst.predecessor(neighbor.id, this_v).tree_id);
-            if (geometry_check(mst, candidate, kd_tree) && tree != to_tree) {
-                validIdx = j;
+            const auto tree = mst.etf.representative(mst.predecessor(this_v, neighbor.id).tree_id);
+            const auto to_tree = mst.etf.representative(mst.predecessor(neighbor.id, this_v).tree_id);
+            const TEdge candidate(this_v, neighbor.id);
+            if (tree != to_tree && geometry_check(mst, candidate, kd_tree)) {
+                // TODO: Check if any tree shares root, and return corresponding edges
+                connect.emplace_back(this_v, neighbor.id, tree, to_tree);
                 break;
             }
-        }
-        // TODO: Check if any tree shares root, and return corresponding edges
-
-        if (validIdx != -1) {
-            connect.emplace_back(this_v, neighbors[validIdx].id, tree, to_tree);
         }
     }
 
@@ -1204,8 +1197,8 @@ void build_mst(
                 continue;
             const Vec3 edge = pos2 - pos1;
 
-            const Vec3 normal_sum = CGLA::normalize(normal1) + CGLA::normalize(normal2);
-            const auto cos_angle = std::abs(dot(edge, normal_sum / normal_sum.length() / edge.length()));
+            const Vec3 normal_sum = (normal1 + normal2) * 0.5;
+            const auto cos_angle = std::abs(dot(edge, normal_sum / edge.length()));
             if (cos_angle > std::cos(10. / 180. * M_PI)) {
                 NodeID parent;
                 if (temp.valence(source) == 1) {
@@ -1395,7 +1388,6 @@ auto split_components(
     // Identifies clusters of vertices which are reconstructed to disparate meshes
     const double outlier_thresh = opts.r;
     double total_edge_length = 0;
-    // TODO: can't we cache this?
     UnorderedSet<SimpGraph::NodeID> sets;
     SimpGraph components;
     for (int i = 0; i < vertices.size(); i++) {
@@ -1412,9 +1404,7 @@ auto split_components(
 
             total_edge_length += length;
 
-            if (components.find_edge(this_idx, idx) == SimpGraph::InvalidEdgeID) {
-                components.connect_nodes(this_idx, idx);
-            }
+            components.connect_nodes(this_idx, idx);
         }
     }
     const double thresh_r = (total_edge_length * outlier_thresh) / static_cast<double>(components.no_edges());
@@ -1484,7 +1474,6 @@ auto component_to_manifold(
     mst.reserve(vertices.size(), opts.k);
 
     std::vector<PEdgeLength> edge_length;
-    // TODO: combine these
     std::vector<ConnectionLength> connection_lengths(vertices.size(), ConnectionLength());
     {
         inner_timer.start("init_graph");
@@ -1528,79 +1517,19 @@ auto component_to_manifold(
     // Vanilla MST imp
     // Edge connection
     inner_timer.start("edge_connection");
-    const auto lambda1 = [&](const PEdgeLength& pedge) -> std::optional<RegisterFaceResult> {
-        auto [this_edge, edge_len] = pedge;
-        if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
-            vanilla_check(mst, this_edge, kd_tree)) {
-            return register_face(mst, this_edge.from, this_edge.to);
-        }
-        return std::nullopt;
-    };
-     auto lambda2 = [&](const PEdgeLength& pedge, const RegisterFaceResult& result) {
-        const auto [this_edge, edge_len] = pedge;
-        mst.add_edge(this_edge.from, this_edge.to, edge_len);
-        mst.maintain_face_loop(this_edge.from, this_edge.to);
-        for (const auto& face : result.faces) {
-            add_face(mst, face, faces);
-        }
-     };
-    struct RegisterFaceResult2 {
-        PEdgeLength pedge;
-        RegisterFaceResult result;
-    };
-    // TODO:
-    static constexpr auto single_threaded_number = 500000;
-    for (auto& [this_edge, edge_len] : edge_length | std::views::take(single_threaded_number)) {
-        if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
-            vanilla_check(mst, this_edge, kd_tree)) {
-            auto result = register_face(mst, this_edge.from, this_edge.to);
-            if (result.has_value()) {
-                mst.add_edge(this_edge.from, this_edge.to, edge_len);
-                mst.maintain_face_loop(this_edge.from, this_edge.to);
-                for (const auto& face : result->faces) {
-                    add_face(mst, face, faces);
-                }
-            }
-        }
-    }
-
-    std::vector<RegisterFaceResult2> results;
-    Util::Parallel::map_filter(pool, edge_length | std::views::drop(single_threaded_number), results, [&](const PEdgeLength& pedge) -> std::optional<RegisterFaceResult2> {
-        const auto& [this_edge, edge_len] = pedge;
-        if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
-            vanilla_check(mst, this_edge, kd_tree)) {
-            auto result = register_face(mst, this_edge.from, this_edge.to);
-            if (result.has_value())
-                return RegisterFaceResult2 {pedge, *result};
-        }
-        return std::nullopt;
-    });
-    std::cout << "edge length size:" << edge_length.size() << "\n";
-    std::cout << "results size:    " << results.size() << "\n";
-    for (const auto& result: results) {
-        auto result_ = lambda1(result.pedge);
-        if (result_.has_value()) {
-            lambda2(result.pedge, RegisterFaceResult(result_->faces));
-        }
-    }
-    // // TODO: this is probably still way too fragile
-    // Util::ImmediatePool small_pool(8);
-    // Util::Parallel::mutable_parallel_fold(small_pool, edge_length, lambda1, lambda2);
-
-    // for (auto& [edge_len, this_edge] : edge_length) {
-    //     if (mst.find_edge(this_edge.first, this_edge.second) == RSGraph::InvalidEdgeID &&
-    //         vanilla_check(mst, this_edge, kd_tree)) {
-    //         auto result = register_face(mst, this_edge.first, this_edge.second);
-    //         if (result.has_value()) {
-    //             mst.add_edge(this_edge.first, this_edge.second, edge_len);
-    //             mst.maintain_face_loop(this_edge.first, this_edge.second);
-    //             for (const auto& face : result->faces) {
-    //                 add_face(mst, face, faces);
-    //             }
-    //         }
-    //     }
-    // }
-
+     for (auto& [this_edge, edge_len] : edge_length) {
+         if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
+             vanilla_check(mst, this_edge, kd_tree)) {
+             auto result = register_face(mst, this_edge.from, this_edge.to);
+             if (result.has_value()) {
+                 mst.add_edge(this_edge.from, this_edge.to, edge_len);
+                 mst.maintain_face_loop(this_edge.from, this_edge.to);
+                 for (const auto& face : result->faces) {
+                     add_face(mst, face, faces);
+                 }
+             }
+         }
+     }
     inner_timer.end("edge_connection");
 
     // Create handles & Triangulation
@@ -1679,8 +1608,7 @@ auto point_cloud_to_mesh(
     timer.start("Split components");
     std::cout << "find components\n";
 
-    // TODO: the cross connection filtering needs to be synced with the inner loop, else there are issues
-    // TODO: it might be better to
+    // Note: the cross connection filtering needs to be synced with the inner loop, else there are issues
     auto neighbor_map = calculate_neighbors(pool, vertices_copy, kd_tree, opts.k);
     Util::Parallel::foreach(pool, std::views::iota(0UL, vertices_copy.size()), [&](const NodeID idx) {
         filter_out_cross_connection(neighbor_map[idx], normals_copy, idx, opts.theta, opts.dist == Distance::EUCLIDEAN);
@@ -1707,13 +1635,14 @@ auto point_cloud_to_mesh(
         std::vector<Vec3> normals_of_this = std::move(component_normals[component_id]);
         std::vector<Point> smoothed_v_of_this = std::move(component_smoothed_v[component_id]);
 
-        // TODO: move this further up
+        // While I would like to move this up, there are some nontrivial changes made to each component
+        // inside split_components eve if we only have one component to worry about.
         const auto indices_of_this = std::ranges::iota_view(0UL, smoothed_v_of_this.size());
         Tree kd_tree_of_this = build_kd_tree_of_indices(smoothed_v_of_this, indices_of_this);
 
-        auto neighbor_map = calculate_neighbors(pool, smoothed_v_of_this, kd_tree_of_this, opts.k);
+        auto neighbor_map_of_this = calculate_neighbors(pool, smoothed_v_of_this, kd_tree_of_this, opts.k);
         Util::Parallel::foreach(pool, std::views::iota(0UL, smoothed_v_of_this.size()), [&](NodeID idx) {
-            filter_out_cross_connection(neighbor_map[idx], normals_of_this, idx, opts.theta,
+            filter_out_cross_connection(neighbor_map_of_this[idx], normals_of_this, idx, opts.theta,
                                         opts.dist == Distance::EUCLIDEAN);
         });
 
@@ -1724,7 +1653,7 @@ auto point_cloud_to_mesh(
             normals_of_this,
             smoothed_v_of_this,
             kd_tree_of_this,
-            neighbor_map);
+            neighbor_map_of_this);
 
         output.merge(res);
     }
@@ -1751,6 +1680,39 @@ auto indexed_select(const Collection& collection,
     return result;
 }
 
+std::vector<Vec3> validate_normals(ThreadPool& pool, const std::vector<Point>& vertices, const std::vector<Vec3>& normals, const RsROpts& reconstruction_options)
+{
+    auto check = [&]() {
+        if (!normals.empty() && vertices.size() != normals.size()) {
+            std::cerr << "Bad normal input: normals must either be empty or the same size as vertices" << "\n";
+            return false;
+        }
+        for (const auto& point: vertices) {
+            GEL_ASSERT_FALSE(std::isnan(point[0]) || std::isnan(point[1]) || std::isnan(point[2]), "Bad point input: Found a NaN coordinate.");
+        }
+        for (const auto& normal: normals) {
+            if (std::isnan(normal[0]) || std::isnan(normal[1]) || std::isnan(normal[2])) {
+                std::cerr << "Bad normal input: normal is NaN" << "\n";
+                return false;
+            }
+            if (normal == Vec3(0.0)) {
+                std::cerr << "Bad normal input: normal is 0 vector" << "\n";
+                return false;
+            }
+        }
+        return true;
+    };
+    if (check()) {
+        return normals;
+    } else {
+        std::cout << "generating normals...";
+        auto normals_copy = std::vector<Vec3>();
+        auto smoothed_points = estimate_normals_and_smooth(pool, vertices, normals_copy, reconstruction_options.dist);
+        return normals_copy;
+    }
+
+}
+
 auto point_cloud_collapse_reexpand(
     const std::vector<Point>& vertices,
     const std::vector<Vec3>& normals,
@@ -1758,14 +1720,21 @@ auto point_cloud_collapse_reexpand(
     const RsROpts& reconstruction_options,
     const bool reexpand) -> Manifold
 {
+    if (collapse_options.max_iterations == 0) {
+        return point_cloud_to_mesh(vertices, normals, reconstruction_options);
+    }
     ThreadPool pool;
+    Util::RSRTimer timer;
+
+    //auto normals_copy = validate_normals(pool, vertices, normals, reconstruction_options);
     auto normals_copy = normals;
-
     //[[maybe_unused]]
-    //auto smoothed_points = estimate_normals_and_smooth(pool, vertices, normals_copy, reconstruction_options.dist);
+    //if (normals_copy.empty())
+    //    auto smoothed_points = estimate_normals_and_smooth(pool, vertices, normals_copy, reconstruction_options.dist);
 
+    timer.start("Collapse");
     auto collapse = collapse_points(vertices, normals_copy, collapse_options);
-
+    timer.end("Collapse");
     //const auto vertices_new = indexed_select(vertices, collapse.m_remaining);
     auto [points_collapsed, normals_collapsed] = collapse.remaining();
     // const auto vertices_new = collapse.remaining().points;
@@ -1775,10 +1744,13 @@ auto point_cloud_collapse_reexpand(
     auto manifold = point_cloud_to_mesh(points_collapsed, normals_collapsed, reconstruction_options);
 
     // TODO: fix the stupidity
+    timer.start("Reexpand");
     auto collapse2 = create_collapse(collapse);
     if (reexpand)
-        reexpand_points(manifold, std::move(collapse2));
+        reexpand_points(manifold, std::move(collapse2), ReexpandOptions());
+    timer.end("Reexpand");
 
+    timer.show();
     return manifold;
 }
 
