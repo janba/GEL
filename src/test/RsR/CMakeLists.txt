@@ -7,9 +7,11 @@ add_executable(OBJParser_test OBJParser_test.cpp)
 
 set_target_properties(RsR_test OBJParser_test PROPERTIES
     CXX_STANDARD 20
-    INCLUDE_DIRECTORIES "${GEL_INCLUDE_DIR};${DOCTEST_INCLUDE_DIR}"
     CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fsanitize=undefined"
 )
+target_include_directories(RsR_test PRIVATE "${GEL_INCLUDE_DIR}" "${DOCTEST_INCLUDE_DIR}")
+target_include_directories(OBJParser_test PRIVATE "${GEL_INCLUDE_DIR}" "${DOCTEST_INCLUDE_DIR}")
+
 target_link_libraries(RsR_test PRIVATE GEL nanobench)
 target_link_libraries(OBJParser_test PRIVATE GEL nanobench)
 
