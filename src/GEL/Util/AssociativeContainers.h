@@ -22,9 +22,9 @@ template <typename Key, typename Value, typename Compare = phmap::Less<Key>>
     requires std::is_nothrow_copy_constructible_v<Compare>
 using BTreeMap = phmap::btree_map<Key, Value, Compare>;
 
-//template <typename Key, typename Value, typename Compare = phmap::Less<Key>>
-//    requires std::is_nothrow_copy_constructible_v<Compare>
-//using BTreeMultiMap = phmap::btree_multimap<Key, Value, Compare>;
+template <typename Key, typename Value, typename Compare = phmap::Less<Key>>
+    requires std::is_nothrow_copy_constructible_v<Compare>
+using BTreeMultiMap = phmap::btree_multimap<Key, Value, Compare>;
 
 template <typename Key, typename Hash = phmap::Hash<Key>, typename Eq = phmap::EqualTo<Key>>
 using HashSet = phmap::flat_hash_set<Key, Hash, Eq>;
@@ -33,9 +33,9 @@ template <typename Key, typename Compare = phmap::Less<Key>>
     requires std::is_nothrow_copy_constructible_v<Compare>
 using BTreeSet = phmap::btree_set<Key, Compare>;
 
-//template <typename Key, typename Compare = phmap::Less<Key>>
-//    requires std::is_nothrow_copy_constructible_v<Compare>
-//using BTreeMultiSet = phmap::btree_set<Key, Compare>;
+template <typename Key, typename Compare = phmap::Less<Key>>
+    requires std::is_nothrow_copy_constructible_v<Compare>
+using BTreeMultiSet = phmap::btree_multiset<Key, Compare>;
 
 using phmap::erase_if;
 
