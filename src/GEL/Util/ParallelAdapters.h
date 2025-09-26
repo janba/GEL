@@ -5,9 +5,11 @@
 
 #ifndef GEL_UTIL_PARALLELADAPTERS_H
 #define GEL_UTIL_PARALLELADAPTERS_H
+#pragma once
 
 #include <GEL/Util/ThreadPool.h>
 #include <optional>
+#include <barrier>
 #ifdef _MSC_VER
 #include <array> // std::size
 #include <limits> // std::numeric_limits
@@ -144,6 +146,8 @@ namespace Util {
                 = SizedRange<I> && BinaryFunction<F, State, Item<I>, State>;
     } // namespace Concepts
 
+    /// Helper functions for parallel algorithms
+    /// @internal
     namespace ParallelUtil {
         /// @brief variadic function to find the shortest iterator
         /// @tparam Iterator The first iterator
@@ -187,16 +191,30 @@ namespace Util {
             }
         }
 
+#ifdef __cpp_lib_hardware_interference_size
+        static constexpr std::size_t CACHE_LINE_SIZE = std::hardware_destructive_interference_size;
+#else
+        // 64 bytes on x86-64 │ L1_CACHE_BYTES │ L1_CACHE_SHIFT │ __cacheline_aligned │ ...
+        static constexpr std::size_t CACHE_LINE_SIZE = 64; // 64 bytes is as good a guess as any
+#endif
+
+        struct alignas(CACHE_LINE_SIZE) CacheLineCounter {
+            size_t inner;
+        };
+
         /// @brief Moves chunks and resizes the output array for
         /// @param target output array
-        /// @param counter the counter vector containing chunk sizes
+        /// @param counters the counter vector containing chunk sizes
         /// @param max_chunk_size gap size between the chunks
-        /// @param total_size counter.sum()
-        void fix_chunks(auto& target, const auto& counter, auto max_chunk_size, auto total_size)
+        template <typename Target>
+        void fix_chunks(Target& target, const std::vector<CacheLineCounter>& counters, size_t max_chunk_size)
         {
-            auto end_of_chunk1 = target.begin() + counter.at(0);
-            for (size_t chunk = 1; chunk < counter.size(); ++chunk) {
-                auto this_chunk_size = counter[chunk];
+            size_t total_size = 0;
+            for (const auto& counter: counters) { total_size += counter.inner; }
+
+            auto end_of_chunk1 = target.begin() + counters.at(0).inner;
+            for (size_t chunk = 1; chunk < counters.size(); ++chunk) {
+                auto this_chunk_size = counters[chunk].inner;
                 auto chunk_begin = target.begin() + chunk * max_chunk_size;
                 auto chunk_end = chunk_begin + this_chunk_size;
                 std::copy(chunk_begin, chunk_end, end_of_chunk1);
@@ -441,27 +459,26 @@ namespace Util {
                 // safety post-condition: we need to manually resize out to the correct size at the end
                 out.resize(work_size);
             }
-            std::vector<size_t> counters(pool_size, 0);
+            using ParallelUtil::CacheLineCounter;
+            std::vector<CacheLineCounter> counters(pool_size, CacheLineCounter(0));
             for (size_t thread_id = 0; thread_id < pool_size; ++thread_id) {
                 auto& thread_counter = counters[thread_id];
-                thread_counter = 0;
+                thread_counter.inner = 0;
                 pool.addTask([&out, thread_id, reduced_size, work_size, &it, &p, &thread_counter] {
                     auto max_size = std::min((thread_id + 1) * reduced_size, work_size);
                     auto begin = thread_id * reduced_size;
                     for (auto j = begin; j < max_size; ++j) {
                         const auto& value = it[j];
                         if (p(value)) {
-                            out[begin + thread_counter] = value;
-                            thread_counter++;
+                            out[begin + thread_counter.inner] = value;
+                            thread_counter.inner++;
                         }
                     }
                 });
             }
             pool.waitAll();
 
-            decltype(counters)::value_type total_size = 0;
-            for (const auto& counter: counters) { total_size += counter; }
-            ParallelUtil::fix_chunks(out, counters, reduced_size, total_size);
+            ParallelUtil::fix_chunks(out, counters, reduced_size);
 
             return std::forward<OutputIt>(out);
         }
@@ -491,18 +508,18 @@ namespace Util {
                 // safety post-condition: we need to manually resize out to the correct size at the end
                 out.resize(work_size);
             }
-            std::vector<size_t> counters(pool_size, 0);
+            using ParallelUtil::CacheLineCounter;
+            std::vector<CacheLineCounter> counters(pool_size, CacheLineCounter(0));
             for (auto thread_id = 0; thread_id < pool_size; ++thread_id) {
-                auto& thread_counter = counters[thread_id];
+                auto& thread_counter = counters[thread_id].inner;
                 thread_counter = 0;
-                pool.addTask([&out, thread_id, reduced_size, work_size, &it, &f, &thread_counter] {
-                    auto max_size = std::min((thread_id + 1) * reduced_size, work_size);
-                    auto begin = thread_id * reduced_size;
+                pool.addTask([&, thread_id, reduced_size, work_size] {
+                    const auto max_size = std::min((thread_id + 1) * reduced_size, work_size);
+                    const auto begin = thread_id * reduced_size;
                     for (auto j = begin; j < max_size; ++j) {
                         const auto& input_value = it[j];
                         if (const auto&& result = f(input_value); result.has_value()) {
-                            auto&& inner = result.value();
-                            out[begin + thread_counter] = inner;
+                            out[begin + thread_counter] = *result;
                             thread_counter++;
                         }
                     }
@@ -510,9 +527,7 @@ namespace Util {
             }
             pool.waitAll();
 
-            decltype(counters)::value_type total_size = 0;
-            for (const auto& counter: counters) { total_size += counter; }
-            ParallelUtil::fix_chunks(out, counters, reduced_size, total_size);
+            ParallelUtil::fix_chunks(out, counters, reduced_size);
 
             return std::forward<OutputIt>(out);
         }
@@ -542,10 +557,11 @@ namespace Util {
                 // safety post-condition: we need to manually resize out to the correct size at the end
                 out.resize(work_size);
             }
-            std::vector<size_t> counters(pool_size, 0);
+            using ParallelUtil::CacheLineCounter;
+            std::vector<CacheLineCounter> counters(pool_size, CacheLineCounter(0));
             for (size_t thread_id = 0; thread_id < pool_size; ++thread_id) {
                 auto& thread_counter = counters[thread_id];
-                thread_counter = 0;
+                thread_counter.inner = 0;
                 pool.addTask([&out, thread_id, reduced_size, work_size, &it, &f, &thread_counter] {
                     auto max_size = std::min((thread_id + 1) * reduced_size, work_size);
                     auto begin = thread_id * reduced_size;
@@ -553,17 +569,15 @@ namespace Util {
                         const auto& input_value = it[j];
                         if (const auto&& result = f(j, input_value); result.has_value()) {
                             auto inner = std::move(result.value());
-                            out[begin + thread_counter] = inner;
-                            thread_counter++;
+                            out[begin + thread_counter.inner] = inner;
+                            thread_counter.inner++;
                         }
                     }
                 });
             }
             pool.waitAll();
 
-            decltype(counters)::value_type total_size = 0;
-            for (const auto& counter: counters) { total_size += counter; }
-            ParallelUtil::fix_chunks(out, counters, reduced_size, total_size);
+            ParallelUtil::fix_chunks(out, counters, reduced_size);
 
             return std::forward<OutputIt>(out);
         }
@@ -597,10 +611,11 @@ namespace Util {
                 // safety post-condition: we need to manually resize out to the correct size at the end
                 out.resize(work_size);
             }
-            std::vector<size_t> counters(pool_size, 0);
+            using ParallelUtil::CacheLineCounter;
+            std::vector<CacheLineCounter> counters(pool_size, CacheLineCounter(0));
             for (size_t thread_id = 0; thread_id < pool_size; ++thread_id) {
                 auto& thread_counter = counters[thread_id];
-                thread_counter = 0;
+                thread_counter.inner = 0;
                 pool.addTask([&out, thread_id, reduced_size, work_size, &it1, &f, &thread_counter, &it2] {
                     auto max_size = std::min((thread_id + 1) * reduced_size, work_size);
                     auto begin = thread_id * reduced_size;
@@ -610,17 +625,15 @@ namespace Util {
                         const auto&& result = f(input_value1, input_value2);
                         if (result.has_value()) {
                             auto&& inner = result.value();
-                            out[begin + thread_counter] = inner;
-                            thread_counter++;
+                            out[begin + thread_counter.inner] = inner;
+                            thread_counter.inner++;
                         }
                     }
                 });
             }
             pool.waitAll();
 
-            decltype(counters)::value_type total_size = 0;
-            for (const auto& counter: counters) { total_size += counter; }
-            ParallelUtil::fix_chunks(out, counters, reduced_size, total_size);
+            ParallelUtil::fix_chunks(out, counters, reduced_size);
 
             return std::forward<OutputIt>(out);
         }
@@ -659,10 +672,11 @@ namespace Util {
                 // safety post-condition: we need to manually resize out to the correct size at the end
                 out2.resize(work_size);
             }
-            std::vector<size_t> counters(pool_size, 0);
+            using ParallelUtil::CacheLineCounter;
+            std::vector<CacheLineCounter> counters(pool_size, CacheLineCounter(0));
             for (size_t thread_id = 0; thread_id < pool_size; ++thread_id) {
                 auto& thread_counter = counters[thread_id];
-                thread_counter = 0;
+                thread_counter.inner = 0;
                 pool.addTask([&out1, thread_id, reduced_size, work_size, &it1, &f, &thread_counter, &it2, out2] {
                     auto max_size = std::min((thread_id + 1) * reduced_size, work_size);
                     auto begin = thread_id * reduced_size;
@@ -672,20 +686,18 @@ namespace Util {
                         const auto result = f(input_value1, input_value2);
                         if (result.has_value()) {
                             auto [inner1, inner2] = result.value();
-                            out1[begin + thread_counter] = std::move(inner1);
-                            out2[begin + thread_counter] = std::move(inner2);
-                            thread_counter++;
+                            out1[begin + thread_counter.inner] = std::move(inner1);
+                            out2[begin + thread_counter.inner] = std::move(inner2);
+                            thread_counter.inner++;
                         }
                     }
                 });
             }
             pool.waitAll();
 
-            decltype(counters)::value_type total_size = 0;
-            for (const auto& counter: counters) { total_size += counter; }
 
-            ParallelUtil::fix_chunks(out1, counters, reduced_size, total_size);
-            ParallelUtil::fix_chunks(out2, counters, reduced_size, total_size);
+            ParallelUtil::fix_chunks(out1, counters, reduced_size);
+            ParallelUtil::fix_chunks(out2, counters, reduced_size);
 
             return std::make_pair(std::forward<OutputIt1>(out1), std::forward<OutputIt2>(out2));
         }
@@ -725,10 +737,11 @@ namespace Util {
                 // safety post-condition: we need to manually resize out to the correct size at the end
                 out2.resize(work_size);
             }
-            std::vector<size_t> counters(pool_size, 0);
+            using ParallelUtil::CacheLineCounter;
+            std::vector<CacheLineCounter> counters(pool_size, CacheLineCounter(0));
             for (size_t thread_id = 0; thread_id < pool_size; ++thread_id) {
                 auto& thread_counter = counters[thread_id];
-                thread_counter = 0;
+                thread_counter.inner = 0;
                 pool.addTask([&out1, thread_id, reduced_size, work_size, &it1, &f, &thread_counter, &it2, &out2] {
                     auto max_size = std::min((thread_id + 1) * reduced_size, work_size);
                     auto begin = thread_id * reduced_size;
@@ -738,20 +751,17 @@ namespace Util {
                         auto result = f(j, input_value1, input_value2);
                         if (result.has_value()) {
                             auto [inner1, inner2] = std::move(result.value());
-                            out1[begin + thread_counter] = inner1;
-                            out2[begin + thread_counter] = inner2;
-                            thread_counter++;
+                            out1[begin + thread_counter.inner] = inner1;
+                            out2[begin + thread_counter.inner] = inner2;
+                            thread_counter.inner++;
                         }
                     }
                 });
             }
             pool.waitAll();
 
-            decltype(counters)::value_type total_size = 0;
-            for (const auto& counter: counters) { total_size += counter; }
-
-            ParallelUtil::fix_chunks(out1, counters, reduced_size, total_size);
-            ParallelUtil::fix_chunks(out2, counters, reduced_size, total_size);
+            ParallelUtil::fix_chunks(out1, counters, reduced_size);
+            ParallelUtil::fix_chunks(out2, counters, reduced_size);
 
             return ParallelUtil::make_pair_wrapper(std::forward<O1>(out1), std::forward<O2>(out2));
         }
