@@ -99,18 +99,16 @@ struct Vertex {
 
     static constexpr NormalRep InvalidNormalRep = -1;
     static constexpr NormalRep CollisionRep = -2;
-    friend class RSGraph;
+    //friend class RSGraph;
 
     //detail::OrderedMap<Neighbor, Neighbor::TreeID> ordered_neighbors;
-    detail::OrderedSet<Neighbor> ordered_neighbors = {};
+    detail::OrderedSet<Neighbor> ordered_neighbors;
 };
 
 
 struct Edge {
     NodeID source = InvalidNodeID;
     NodeID target = InvalidNodeID;
-    double weight = 0.;
-    // ?
     int ref_time = 0;
 };
 
@@ -118,8 +116,7 @@ using Neighbor = Vertex::Neighbor;
 
 class SimpGraph /*: public Util::SparseGraph<double>*/ {
     AMGraph graph;
-    std::vector<double> m_edges;
-    //Util::AttribVec<AMGraph::EdgeID, Edge> m_edges;
+    std::vector<double> m_edges; // Edge weight
 
 public:
     using NodeID = decltype(graph)::NodeID;
@@ -128,10 +125,10 @@ public:
     void reserve(size_t vertices, int k)
     {
         m_edges.reserve(vertices * k);
-        graph.reserve(vertices);
     }
 
     // connected components
+    [[nodiscard]]
     auto inner() const -> const decltype(graph)&
     {
         return graph;
@@ -145,7 +142,6 @@ public:
 
     auto connect_nodes(const NodeID source, const NodeID target, const double weight = 0.)
     {
-        //graph.connect_nodes(source, target, weight);
         const auto id =
             graph.connect_nodes(source, target);
         if (id == m_edges.size())
@@ -157,7 +153,6 @@ public:
 
     [[nodiscard]] double get_weight(const NodeID n1, const NodeID n2) const
     {
-        //return graph.find_edge(n1, n2).value();
         return m_edges[graph.find_edge(n1, n2)];
     }
 
@@ -175,55 +170,82 @@ public:
         graph.erase_edge(n0, n1);
     }
 
-    auto find_edge(NodeID from, NodeID to)
+    [[nodiscard]]
+    auto find_edge(NodeID from, NodeID to) const
     {
         return graph.find_edge(from, to);
     }
 
+    [[nodiscard]]
     auto node_ids() const
     {
         return graph.node_ids();
     }
 
+    [[nodiscard]]
     auto no_nodes() const -> size_t
     {
         return graph.no_nodes();
     }
 
+    [[nodiscard]]
     auto no_edges() const -> size_t
     {
         return graph.no_edges();
     }
 
+    [[nodiscard]]
     auto neighbors_lazy(NodeID from) const
     {
         return graph.neighbors_lazy(from);
     }
+
+    auto collapse(NodeID to_keep, NodeID to_remove)
+    {
+        for (auto n: neighbors_lazy(to_remove)) {
+            double weight = get_weight(n, to_remove);
+            connect_nodes(to_keep, n, weight);
+        }
+        graph.erase_node(to_remove);
+
+    }
 };
 
-struct EdgeT {
-    double weight = 0.;
-    int ref_time = 0;
-};
-
-class RSGraph : public AMGraph {
+class RSGraph : private AMGraph {
 public:
-    //struct edge_id_t {
-    //    NodeID source = InvalidNodeID;
-    //    NodeID target = InvalidNodeID;
-    //};
-    //using EdgeID = edge_id_t;
     static constexpr auto InvalidEdgeID = std::nullopt;
 
     Geometry::ETF etf;
     std::vector<Vertex> m_vertices;
     std::vector<Edge> m_edges;
-    //Util::AttribVec<NodeID, Vertex> m_vertices;
-    //Util::AttribVec<EdgeID, Edge> m_edges;
 
     void reserve(size_t nodes, int k)
     {
-        m_vertices.reserve(nodes);
+        m_vertices.reserve(nodes * k);
+    }
+
+    [[nodiscard]]
+    auto no_nodes() const -> size_t
+    {
+        return AMGraph::no_nodes();
+    }
+
+    [[nodiscard]]
+    auto neighbors_lazy(NodeID n) const
+    {
+        return AMGraph::neighbors_lazy(n);
+    }
+
+    [[nodiscard]]
+    auto shared_neighbors_lazy(NodeID n1, NodeID n2) const
+    {
+        return AMGraph::shared_neighbors_lazy(n1, n2);
+    }
+
+    [[nodiscard]]
+    auto valence(NodeID n) const
+    {
+        return AMGraph::valence(n);
     }
 
     EdgeID add_edge(const NodeID source, const NodeID target, const double weight = 0.0)
@@ -231,9 +253,9 @@ public:
         const EdgeID id = this->connect_nodes(source, target);
         GEL_ASSERT_NEQ(id, AMGraph::InvalidEdgeID);
         if (m_edges.size() == id)
-            m_edges.emplace_back(source, target, weight);
+            m_edges.emplace_back(source, target);
         else
-            m_edges[id] = Edge {.source = source, .target = target, .weight = weight};
+            m_edges[id] = Edge {.source = source, .target = target};
 
         // insert neighbors
         m_vertices[source].ordered_neighbors.emplace(Neighbor(m_vertices[source], m_vertices[target], target));
@@ -260,6 +282,7 @@ public:
         }
     }
 
+    [[nodiscard]]
     std::optional<Edge> find_edge(NodeID n1, NodeID n2) const
     {
         const EdgeID id = AMGraph::find_edge(n1, n2);
@@ -268,11 +291,6 @@ public:
         }
         return m_edges[id];
     }
-
-    //auto all_edges_lazy() const -> const decltype(m_edges)&
-    //{
-    //    return m_edges;
-    //}
 
     /// @brief Get last neighbor information
     /// @param root: root vertex index
