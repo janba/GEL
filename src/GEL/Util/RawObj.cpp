@@ -186,6 +186,7 @@ namespace Combinators
         } else {
             // Only vertices
             ignore_spaces(s_temp);
+            s = s_temp;
             return FaceTriplet{*out1, std::nullopt, std::nullopt};
         }
     }
@@ -288,17 +289,29 @@ void write_raw_obj(const std::filesystem::path& file_path, const RawObj& obj)
 TriangleMesh to_triangle_mesh(const RawObj& obj)
 {
     auto vertices = obj.vertices;
-    std::vector<CGLA::Vec3d> normals(vertices.size(), CGLA::Vec3d(0.0));
     std::vector<size_t> indices;
     for (auto& face : obj.faces) {
         // indices start from one
         for (auto& vertex : face) {
             indices.push_back(vertex.vertex_id - 1);
-            normals.at(vertex.vertex_id - 1) += vertex.normal_id
-                                                    ? obj.normals.at(*vertex.normal_id - 1)
-                                                    : CGLA::Vec3d(0.0);
         }
     }
+    auto normals = [&] {
+        if (!obj.normals.empty()) {
+            std::vector<CGLA::Vec3d> normals(vertices.size(), CGLA::Vec3d(0.0));
+            for (auto& face : obj.faces) {
+                // indices start from one
+                for (auto& vertex : face) {
+                    normals.at(vertex.vertex_id - 1) += vertex.normal_id
+                                            ? obj.normals.at(*vertex.normal_id - 1)
+                                            : CGLA::Vec3d(0.0);
+                }
+            }
+            return normals;
+        } else {
+            return std::vector<CGLA::Vec3d>();
+        }
+    }();
 
     return TriangleMesh{std::move(vertices), std::move(normals), std::move(indices)};
 }
