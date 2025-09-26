@@ -105,7 +105,7 @@ namespace HMesh
         /// @brief initializer list specialization for add_face
         // FIXME: initializer lists do not implement the range concept directly in C++20
         // FIXME: this can be removed in C++26
-        FaceID add_face(std::initializer_list<Manifold::Vec>&& points)
+        FaceID add_face(std::initializer_list<Manifold::Vec> points)
         {
             const std::span s = points;
             return add_face(s);
