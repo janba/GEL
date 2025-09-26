@@ -320,6 +320,9 @@ auto maybe_flip(Manifold& manifold, HalfEdgeID he, double dihedral_threshold = 1
 auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>& normals,
                      const CollapseOpts& options) -> std::pair<Collapse, PointCloud>
 {
+    if (options.max_iterations == 0) {
+        return std::make_pair(Collapse(), PointCloud(vertices, normals));
+    }
     GEL_ASSERT_EQ(vertices.size(), normals.size());
     Util::ImmediatePool pool;
     QuadraticCollapseGraph graph;
