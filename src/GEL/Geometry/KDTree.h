@@ -36,7 +36,10 @@ class NQueue {
     
 public:
     /// Create an NQueue of specified size
-    NQueue(size_t sz): max_sz(sz) {}
+    NQueue(size_t sz): max_sz(sz)
+    {
+        q.reserve(sz+1);
+    }
     
     /// Push an item onto an NQueue
     void push(const T& item) {
