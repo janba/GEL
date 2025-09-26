@@ -163,6 +163,24 @@ namespace Geometry {
         
         /// Return the number of edges incident on a given node.
         size_t valence(NodeID n) const { return edge_map[n].size(); }
+
+        void erase_edge(const NodeID n0, const NodeID n1)
+        {
+            if (valid_node_id(n0) && valid_node_id(n1)) {
+                edge_map[n0].erase(n1);
+                edge_map[n1].erase(n0);
+            }
+        }
+
+        void erase_node(const NodeID n0)
+        {
+            if (valid_node_id(n0)) {
+                for (auto neighbor: neighbors_lazy(n0)) {
+                    edge_map[neighbor].erase(n0);
+                }
+                edge_map[n0].clear();
+            }
+        }
         
     };
     
