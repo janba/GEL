@@ -519,7 +519,7 @@ void correct_normal_orientation(
     /// The graph has the angles as weights
     const auto [g_angle, sets] = [&] {
         SimpGraph g_angle_temp;
-        UnorderedSet<SimpGraph::NodeID> sets_temp;
+        AMGraph::NodeSet sets_temp;
         // sets_temp.reserve(in_smoothed_v.size()); // TODO: flat_hash_set can be reserved
 
         for (int i = 0; i < in_smoothed_v.size(); i++) {
@@ -1388,7 +1388,7 @@ auto split_components(
     // Identifies clusters of vertices which are reconstructed to disparate meshes
     const double outlier_thresh = opts.r;
     double total_edge_length = 0;
-    UnorderedSet<SimpGraph::NodeID> sets;
+    AMGraph::NodeSet sets;
     SimpGraph components;
     for (int i = 0; i < vertices.size(); i++) {
         sets.insert(components.add_node());
