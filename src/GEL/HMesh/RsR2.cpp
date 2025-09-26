@@ -1727,27 +1727,21 @@ auto point_cloud_collapse_reexpand(
     Util::RSRTimer timer;
 
     //auto normals_copy = validate_normals(pool, vertices, normals, reconstruction_options);
-    auto normals_copy = normals;
     //[[maybe_unused]]
     //if (normals_copy.empty())
     //    auto smoothed_points = estimate_normals_and_smooth(pool, vertices, normals_copy, reconstruction_options.dist);
 
     timer.start("Collapse");
-    auto collapse = collapse_points(vertices, normals_copy, collapse_options);
+    auto [collapse, point_cloud] = collapse_points(vertices, normals, collapse_options);
     timer.end("Collapse");
-    //const auto vertices_new = indexed_select(vertices, collapse.m_remaining);
-    auto [points_collapsed, normals_collapsed] = collapse.remaining();
-    // const auto vertices_new = collapse.remaining().points;
-    //const auto normals_new = std::vector<Vec3>();
-    //indexed_select(normals_copy, collapse.m_remaining);
+    auto [points_collapsed, normals_collapsed] = std::move(point_cloud);
+
     // TODO: normal weirdness
     auto manifold = point_cloud_to_mesh(points_collapsed, normals_collapsed, reconstruction_options);
 
-    // TODO: fix the stupidity
     timer.start("Reexpand");
-    auto collapse2 = create_collapse(collapse);
     if (reexpand)
-        reexpand_points(manifold, std::move(collapse2), ReexpandOptions());
+        reexpand_points(manifold, std::move(collapse), ReexpandOptions());
     timer.end("Reexpand");
 
     timer.show();
