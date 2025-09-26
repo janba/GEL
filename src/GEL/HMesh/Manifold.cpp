@@ -10,6 +10,8 @@
 #include <GEL/HMesh/triangulate.h>
 #include <GEL/Util/Assert.h>
 
+#include <GEL/Util/AssociativeContainers.h>
+
 #include <iostream>
 #include <iterator>
 #include <map>
@@ -1024,9 +1026,13 @@ namespace HMesh
     }
     
     void Manifold::merge(const Manifold& mergee) {
-        map<FaceID,FaceID> fmap;
-        map<HalfEdgeID,HalfEdgeID> hmap;
-        map<VertexID,VertexID> vmap;
+        Util::HashMap<FaceID,FaceID> fmap;
+        Util::HashMap<HalfEdgeID,HalfEdgeID> hmap;
+        Util::HashMap<VertexID,VertexID> vmap;
+
+        fmap.reserve(kernel.allocated_faces());
+        hmap.reserve(kernel.allocated_halfedges());
+        vmap.reserve(kernel.allocated_vertices());
         
         for(auto v: mergee.vertices())
             vmap[v] = kernel.add_vertex();
@@ -1655,6 +1661,7 @@ namespace HMesh
     
     Manifold::Vec Manifold::area_normal(FaceID f) const
     {
+        GEL_ASSERT_NEQ(f, InvalidFaceID);
         std::vector<Manifold::Vec> vertices;
         Vec c(0.0);
         int k = circulate_face_ccw(*this, f, [&](VertexID vid) {
