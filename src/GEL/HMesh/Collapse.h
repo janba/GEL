@@ -78,8 +78,19 @@ inline double triangle_area(const Point& p1, const Point& p2, const Point& p3)
     return CGLA::length(CGLA::cross(e1, e2)) / 2.0;
 }
 
+// Fat 72 bytes
+struct SingleCollapse {
+    //NodeID active = InvalidNodeID;
+    //NodeID latent = InvalidNodeID;
+    /// Old coordinates of the active point
+    Point active_point_coords;
+    /// Old coordinates of the latent point
+    Point latent_point_coords;
+    /// Current coordinates of the active point
+    Point v_bar;
+};
+
 struct QuadraticCollapseGraph : AMGraph {
-    friend struct Collapse;
 
 private:
     struct Vertex {
@@ -152,7 +163,7 @@ public:
         return active;
     }
 
-    struct SingleCollapse {
+    struct RawCollapse {
         NodeID active = InvalidNodeID;
         NodeID latent = InvalidNodeID;
         Point active_point_coords;
@@ -160,7 +171,7 @@ public:
         Point v_bar;
     };
 
-    auto collapse_one() -> SingleCollapse
+    auto collapse_one() -> RawCollapse
     {
         const auto [edge, _] = m_collapse_queue.pop_front();
 
@@ -172,7 +183,7 @@ public:
         const auto v_bar = quadratic_distance(active, latent).first;
         merge_nodes(latent, active, v_bar);
 
-        return {active, latent, active_coordinate, latent_coordinate, v_bar};
+        return { active, latent, active_coordinate, latent_coordinate, v_bar};
     }
 
     /// Return the remaining points
@@ -205,212 +216,35 @@ private:
     {
         GEL_ASSERT(valid_node_id(n0) && valid_node_id(n1));
         if (valid_node_id(n0) && valid_node_id(n1)) {
-            const auto v0 = m_vertices[n0];
-            const auto v1 = m_vertices[n1];
+            const auto& v0 = m_vertices[n0];
+            const auto& v1 = m_vertices[n1];
             const auto qem = v0.qem + v1.qem;
             // We want to clamp the position to be in a sphere bounded by the two points
             // This will get rid of potential outliers
             const auto center = (v0.position + v1.position) * 0.5;
             const auto radius = CGLA::length(v0.position - v1.position) * 0.5;
 
-            const auto shared_neighbors = std::ranges::distance(shared_neighbors_lazy(n0, n1));
-
             const auto opt_position = qem.opt_pos(0.5, center);
             const auto opt_direction = opt_position - center;
             const auto clamped = center + CGLA::normalize(opt_direction) * std::clamp(
                 CGLA::length(opt_direction), 0.0, radius);
             const auto error = qem.error(clamped);
-            // TODO: We can also look for surrounding triangles
-            return std::make_pair(clamped, error * radius * radius / (1));
+            return std::make_pair(clamped, error * radius * radius);
         } else {
             return std::make_pair(CGLA::Vec3d(), CGLA::CGLA_NAN);
         }
     }
 };
 
-// Fat 72 bytes
-struct SingleCollapse {
-    //NodeID active = InvalidNodeID;
-    //NodeID latent = InvalidNodeID;
-    /// Old coordinates of the active point
-    Point active_point_coords;
-    /// Old coordinates of the latent point
-    Point latent_point_coords;
-    /// Current coordinates of the active point
-    Point v_bar;
-};
-
-// TODO: nuke this class
-struct Collapse {
-private:
-    struct CollapseInfo {
-        size_t begin;
-        size_t end;
-    };
-
-    Util::HashSet<NodeID> m_remaining;
-    std::vector<SingleCollapse> m_collapses;
-    std::vector<CollapseInfo> m_collapse_ranges;
-    PointCloud p;
-
-    Collapse() = default;
-
-public:
-    explicit Collapse(std::vector<NodeID>&& remaining) : m_remaining(remaining.begin(), remaining.end()) {}
-
-    using ActiveNodeID = NodeID;
-    using LatentNodeID = NodeID;
-    using CollapseSpan = std::span<const SingleCollapse>;
-
-    struct ActivityMap {
-        friend struct Collapse;
-
-    private:
-        struct MapVal {
-            LatentNodeID latent = InvalidNodeID;
-            Point active_point_coords;
-            Point latent_point_coords;
-            Point v_bar;
-        };
-
-        std::vector<std::pair<ActiveNodeID, MapVal>> activity;
-
-    public:
-        auto insert(ActiveNodeID active, LatentNodeID latent, const Point& active_point_coords,
-                    const Point& latent_point_coords, const Point& v_bar) -> void
-        {
-            GEL_ASSERT_NEQ(active, latent);
-            GEL_ASSERT_NEQ(active, InvalidNodeID);
-            GEL_ASSERT_NEQ(latent, InvalidNodeID);
-            auto a = std::make_pair(active, MapVal(latent, active_point_coords, latent_point_coords, v_bar));
-            activity.emplace_back(a);
-        }
-    };
-
-    static constexpr NodeID InvalidNodeID = std::numeric_limits<NodeID>::max();
-
-    struct Iterator {
-        using difference_type = std::ptrdiff_t;
-        using value_type = CollapseSpan;
-        friend struct Collapse;
-        std::optional<std::reference_wrapper<const Collapse>> collapse;
-        size_t element;
-
-        Iterator& operator++()
-        {
-            element++;
-            return *this;
-        }
-
-        Iterator operator++(int)
-        {
-            ++*this;
-            return *this;
-        }
-
-        Iterator& operator--()
-        {
-            element--;
-            return *this;
-        }
-
-        Iterator operator--(int)
-        {
-            --*this;
-            return *this;
-        }
-
-        bool operator==(const Iterator& other) const { return element == other.element; }
-        bool operator!=(const Iterator& other) const { return element != other.element; }
-        CollapseSpan operator*() const { return collapse->get().get_collapse_span(element); }
-    };
-
-    static_assert(std::bidirectional_iterator<Iterator>);
-
-    [[nodiscard]] auto begin() const -> Iterator { return Iterator{*this, 0}; }
-
-    [[nodiscard]] auto end() const -> Iterator { return Iterator{*this, number_of_collapses()}; }
-
-    [[nodiscard]]
-    auto number_of_collapses() const -> size_t
-    {
-        return m_collapse_ranges.size();
-    }
-
-    // auto insert_one(SingleCollapse collapse) -> void
-    // {
-    //     m_collapses.emplace_back(collapse);
-    // }
-
-    auto insert_collapse(const ActivityMap& activity_map) -> void
-    {
-        const auto begin_idx = m_collapses.size();
-        size_t items = 0;
-        for (const auto& info : activity_map.activity | std::views::values) {
-            const auto latent = info.latent;
-            m_remaining.erase(latent);
-            if (latent != InvalidNodeID) {
-                const auto active_point_coords = info.active_point_coords;
-                const auto latent_point_coords = info.latent_point_coords;
-                m_collapses.emplace_back(active_point_coords, latent_point_coords, info.v_bar);
-                ++items;
-            }
-        }
-        m_collapse_ranges.emplace_back(CollapseInfo{begin_idx, begin_idx + items});
-    }
-
-    [[nodiscard]]
-    auto get_collapse_span(const size_t at) const -> CollapseSpan
-    {
-        if (at >= m_collapse_ranges.size()) { throw std::out_of_range("collapse_ranges"); }
-        return {
-            m_collapses.begin() + m_collapse_ranges.at(at).begin,
-            m_collapses.begin() + m_collapse_ranges.at(at).end
-        };
-    }
-
-    auto finalize(QuadraticCollapseGraph&& graph) -> void
-    {
-        auto [points, normals] = std::forward<QuadraticCollapseGraph>(graph).to_point_cloud();
-        std::cout << "remaining vertices: " << m_remaining.size() << std::endl;
-        p.points = std::move(points);
-        p.normals = std::move(normals);
-    }
-
-    [[nodiscard]]
-    auto remaining() const -> PointCloud
-    {
-        return p;
-    }
-};
-
 /// Contains data needed for a reexpansion
-struct Collapse2 {
+struct Collapse {
     std::vector<std::vector<SingleCollapse>> collapses;
-    // FIXME Should store separately
-    //PointCloud remaining;
 };
 
-inline auto create_collapse(const Collapse& collapse) -> Collapse2
+inline auto create_collapse(std::vector<SingleCollapse>&& collapses) -> Collapse
 {
-    Collapse2 collapse2;
-    for (auto&& iter : collapse) {
-        std::vector<SingleCollapse> single_collapses;
-        for (auto&& item : iter) {
-            single_collapses.push_back(item);
-        }
-        collapse2.collapses.push_back(std::move(single_collapses));
-    }
-    return collapse2;
+    return Collapse{.collapses = {std::move(collapses)}};
 }
-
-inline auto create_collapse(std::vector<SingleCollapse>&& collapses) -> Collapse2
-{
-    return Collapse2{.collapses = {std::move(collapses)}};
-}
-
-static_assert(std::ranges::viewable_range<Collapse&>);
-static_assert(std::ranges::viewable_range<const Collapse&>);
 
 using Tree = Geometry::KDTree<Point, NodeID>;
 using Record = Geometry::KDTreeRecord<Point, NodeID>;
@@ -420,13 +254,15 @@ struct NeighborInfo {
     double distance; // the added precision doesn't justify the usage of doubles
 
     static constexpr NodeID invalid_id = -1;
-    NeighborInfo() = delete;
+    //NeighborInfo() = default;
 
     explicit NeighborInfo(const Record& record) noexcept : id(record.v), distance(std::sqrt(record.d))
     {}
 };
 
+//using NeighborArray = Util::InplaceVector<NeighborInfo, 192>;
 using NeighborArray = std::vector<NeighborInfo>;
+
 using NeighborMap = std::vector<NeighborArray>;
 
 template <typename Indices>
@@ -469,13 +305,12 @@ auto calculate_neighbors(
     if (neighbors_memoized.empty()) {
         neighbors_memoized = NeighborMap(indices.size());
         for (auto& neighbors : neighbors_memoized) {
-            neighbors.reserve(k);
+            neighbors.reserve(k + 2);
         }
     } else if (neighbors_memoized.at(0).capacity() < k) {
-        // TODO: this seems to lose performance because calls to reserve block yet the allocator is multithreaded
-        // for (auto &neighbors : neighbors_memoized) {
-        //     neighbors.reserve(k);
-        // }
+        for (auto &neighbors : neighbors_memoized) {
+            neighbors.reserve(k + 2);
+        }
     }
 
     auto cache_kNN_search = [&kdTree, k, &vertices](auto index, auto& neighbor) {
@@ -502,9 +337,9 @@ auto collapse_points(
     const std::vector<Point>& vertices,
     const std::vector<Vec3>& normals,
     const CollapseOpts& options
-) -> Collapse;
+) -> std::pair<Collapse, PointCloud>;
 
-auto reexpand_points(Manifold& manifold, Collapse2&& collapse,
+auto reexpand_points(Manifold& manifold, Collapse&& collapse,
                      const ReexpandOptions& opts = ReexpandOptions()) -> void;
 
 auto decimate(const Manifold& manifold, double factor = 0.1) -> Manifold;

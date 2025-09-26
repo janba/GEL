@@ -318,14 +318,8 @@ auto maybe_flip(Manifold& manifold, HalfEdgeID he, double dihedral_threshold = 1
 }
 
 auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>& normals,
-                     const CollapseOpts& options) -> Collapse
+                     const CollapseOpts& options) -> std::pair<Collapse, PointCloud>
 {
-    // set of connectivity information
-    auto indices = [&vertices] {
-        std::vector<NodeID> temp(vertices.size());
-        std::iota(temp.begin(), temp.end(), 0);
-        return temp;
-    }();
     GEL_ASSERT_EQ(vertices.size(), normals.size());
     Util::ImmediatePool pool;
     QuadraticCollapseGraph graph;
@@ -334,11 +328,14 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
     for (auto i = 0UL; i < vertices.size(); ++i) {
         graph.add_node(vertices[i], normals[i]);
     }
-
+    auto indices = [&vertices] {
+        std::vector<NodeID> temp(vertices.size());
+        std::iota(temp.begin(), temp.end(), 0);
+        return temp;
+    }();
 
     const auto kd_tree = build_kd_tree_of_indices(vertices, indices);
     const auto neighbor_map = calculate_neighbors(pool, vertices, kd_tree, options.initial_neighbors);
-    Collapse collapse{std::move(indices)};
 
     // This also initializes distances
     for (const auto& neighbors : neighbor_map) {
@@ -349,25 +346,23 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
         }
     }
 
+    std::vector<std::vector<SingleCollapse>> collapses;
 
     for (size_t iter = 0; iter < options.max_iterations; ++iter) {
         // TODO: stricter checking
         const size_t max_collapses = vertices.size() * std::pow(0.5, iter) * options.reduction_per_iteration;
-        Collapse::ActivityMap activity_map;
+        std::vector<SingleCollapse> activity;
 
         size_t count = 0;
         while (count < max_collapses) {
             count++;
-
             auto [active, latent, active_point_coords, latent_point_coords, v_bar] = graph.collapse_one();
 
-            activity_map.insert(active, latent, active_point_coords, latent_point_coords, v_bar);
+            activity.emplace_back(active_point_coords, latent_point_coords, v_bar);
         }
-        collapse.insert_collapse(activity_map);
+        collapses.emplace_back(std::move(activity));
     }
-    //std::cout << "collapsed: " << count << std::endl;
-    collapse.finalize(std::move(graph));
-    return collapse;
+    return std::make_pair(Collapse {std::move(collapses)}, graph.to_point_cloud()); // TODO
 }
 
 struct PointHash {
@@ -387,7 +382,7 @@ struct PointEquals {
     }
 };
 
-auto reexpand_points(Manifold& manifold, Collapse2&& collapse, const ReexpandOptions& opts) -> void
+auto reexpand_points(Manifold& manifold, Collapse&& collapse, const ReexpandOptions& opts) -> void
 {
     std::cout << "reexpanding\n";
     const auto& manifold_positions = manifold.positions;
@@ -579,7 +574,7 @@ auto decimate_reexpand(const Manifold& manifold, double factor) -> Manifold
         }
     }
 
-    Collapse2 collapse;
+    Collapse collapse;
     collapse.collapses.emplace_back();
     // perform a collapse until we reach the desired number of points
     const size_t max_collapses = manifold.no_vertices() * (1.0 - factor);
