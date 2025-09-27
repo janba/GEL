@@ -157,10 +157,12 @@ namespace Combinators
     std::optional<std::uint64_t> parse_uint(std::string_view& s)
     {
         std::uint64_t out;
-        const auto begin = s.begin();
+        // Due to MSVC lacking the relevant overloads wrt from_chars and string_view, we have to use this awkward
+        // juggling of data() and length() instead of begin() and end().
+        const auto begin = s.data();
         const auto end_pos = s.find(' ');
-        const auto end = (end_pos == std::string::npos) ? s.end() : s.begin() + end_pos;
-        const auto [p, ec] = std::from_chars<std::uint64_t>(begin, end, out);
+        const auto end = (end_pos == std::string_view::npos) ? s.data() + s.length() : s.data() + end_pos;
+        const auto [p, ec] = std::from_chars(begin, end, out);
         if (ec != std::errc()) {
             return std::nullopt;
         } else {
@@ -303,8 +305,8 @@ TriangleMesh to_triangle_mesh(const RawObj& obj)
                 // indices start from one
                 for (auto& vertex : face) {
                     normals.at(vertex.vertex_id - 1) += vertex.normal_id
-                                            ? obj.normals.at(*vertex.normal_id - 1)
-                                            : CGLA::Vec3d(0.0);
+                                                            ? obj.normals.at(*vertex.normal_id - 1)
+                                                            : CGLA::Vec3d(0.0);
                 }
             }
             return normals;
