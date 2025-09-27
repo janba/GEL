@@ -34,6 +34,7 @@ static constexpr bool DEBUG_PRINT = false;
 struct PointCloud {
     std::vector<Point> points;
     std::vector<Vec3> normals;
+    std::vector<NodeID> indices;
 };
 
 struct CollapseOpts {
@@ -191,13 +192,15 @@ public:
     {
         std::vector<Point> points;
         std::vector<Vec3> normals;
+        std::vector<NodeID> indices;
         for (auto i = 0UL; i < m_vertices.size(); ++i) {
             if (!m_vertices[i].position.any([](const double e) { return std::isnan(e); })) {
                 points.emplace_back(m_vertices[i].position);
                 normals.emplace_back(m_vertices[i].normal);
+                indices.emplace_back(i);
             }
         }
-        return PointCloud{std::move(points), std::move(normals)};
+        return PointCloud{std::move(points), std::move(normals), std::move(indices)};
     }
 
 private:
