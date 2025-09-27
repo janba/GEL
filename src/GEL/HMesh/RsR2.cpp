@@ -1580,52 +1580,20 @@ auto component_to_manifold(
     return res;
 }
 
-auto point_cloud_to_mesh(
-    const std::vector<Point>& vertices_in,
-    const std::vector<Vec3>& normals_in,
+auto point_cloud_to_mesh_impl(
+    std::vector<Point>&& vertices_copy,
+    std::vector<Vec3>&& normals_copy,
+    std::vector<Vec3>&& in_smoothed_v,
+    const Tree& kd_tree,
+    Util::RSRTimer& timer,
+    ThreadPool& pool,
     const RsROpts& opts) -> HMesh::Manifold
 {
-    const auto opts2 = opts;
-    HMesh::Manifold output;
-    Util::RSRTimer timer;
-    if (!normals_in.empty()) {
-        GEL_ASSERT_EQ(vertices_in.size(), normals_in.size(), "Vertices and normals must be the same size");
-    }
-    timer.start("Whole process");
-    for (const auto& point: vertices_in) {
-        GEL_ASSERT_FALSE(std::isnan(point[0]) || std::isnan(point[1]) || std::isnan(point[2]), "Bad point input");
-    }
-    for (const auto& normal: normals_in) {
-        GEL_ASSERT_FALSE(std::isnan(normal[0]) || std::isnan(normal[1]) || std::isnan(normal[2]), "Bad normal input");
-        GEL_ASSERT_NEQ(normal, Vec3(0.0), "Bad normal input");
-    }
-
-    auto vertices_copy = vertices_in;
-    auto normals_copy = normals_in;
-    ThreadPool pool;
-
-
-    // Estimate normals & orientation & weighted smoothing
-    timer.start("Estimate and smooth normals");
-
-    std::vector<Point> in_smoothed_v = estimate_normals_and_smooth(pool, vertices_copy, normals_copy,
-                                                                   opts2.dist);
-    timer.end("Estimate and smooth normals");
-
-    timer.start("Correct normal orientation");
-    const auto indices = std::ranges::iota_view(0UL, in_smoothed_v.size());
-    const Tree kd_tree = build_kd_tree_of_indices(in_smoothed_v, indices);
-    std::cout << "correct normal orientation\n";
-
-    if (normals_in.empty()) {
-        correct_normal_orientation(pool, kd_tree, in_smoothed_v, normals_copy, opts2.k);
-    }
-    timer.end("Correct normal orientation");
+    Manifold output;
 
     // Find components
     timer.start("Split components");
-    std::cout << "find components\n";
-
+    std::cout << "Split components\n";
     // Note: the cross connection filtering needs to be synced with the inner loop, else there are issues
     auto neighbor_map = calculate_neighbors(pool, vertices_copy, kd_tree, opts.k);
     Util::Parallel::foreach(pool, std::views::iota(0UL, vertices_copy.size()), [&](const NodeID idx) {
@@ -1640,7 +1608,7 @@ auto point_cloud_to_mesh(
                          std::move(vertices_copy),
                          std::move(normals_copy),
                          std::move(in_smoothed_v),
-                         opts2);
+                         opts);
     timer.end("Split components");
     // There is no guarantee that there is more than one component, and components can
     // be highly non-uniform in terms of how many primitives they have. That means we cannot
@@ -1666,7 +1634,7 @@ auto point_cloud_to_mesh(
 
         auto res = component_to_manifold(
             pool,
-            opts2,
+            opts,
             vertices_of_this,
             normals_of_this,
             smoothed_v_of_this,
@@ -1681,14 +1649,62 @@ auto point_cloud_to_mesh(
         // }
     }
     timer.end("Algorithm");
-    timer.end("Whole process");
-
-    const std::string line(40, '=');
-    std::cout << line << "\n\n";
-
-    timer.show();
 
     return output;
+}
+
+auto point_cloud_to_mesh(
+    const std::vector<Point>& vertices_in,
+    const std::vector<Vec3>& normals_in,
+    const RsROpts& opts) -> Manifold
+{
+    Util::RSRTimer timer;
+    ThreadPool pool;
+    timer.start("Whole process");
+    timer.start("Validation");
+    if (!normals_in.empty()) {
+        GEL_ASSERT_EQ(vertices_in.size(), normals_in.size(), "Vertices and normals must be the same size");
+    }
+    for (const auto& point: vertices_in) {
+        GEL_ASSERT_FALSE(std::isnan(point[0]) || std::isnan(point[1]) || std::isnan(point[2]), "Bad point input");
+    }
+    for (const auto& normal: normals_in) {
+        GEL_ASSERT_FALSE(std::isnan(normal[0]) || std::isnan(normal[1]) || std::isnan(normal[2]), "Bad normal input");
+        GEL_ASSERT_NEQ(normal, Vec3(0.0), "Bad normal input");
+    }
+    auto vertices_copy = vertices_in;
+    auto normals_copy = normals_in;
+    timer.end("Validation");
+
+
+    // Estimate normals & orientation & weighted smoothing
+    timer.start("Estimate and smooth normals");
+    std::vector<Point> in_smoothed_v = estimate_normals_and_smooth(pool, vertices_copy, normals_copy, opts.dist);
+    timer.end("Estimate and smooth normals");
+
+
+    const auto indices = std::ranges::iota_view(0UL, in_smoothed_v.size());
+    const Tree kd_tree = build_kd_tree_of_indices(in_smoothed_v, indices);
+    if (normals_in.empty()) {
+        std::cout << "correct normal orientation\n";
+        timer.start("Correct normal orientation");
+        correct_normal_orientation(pool, kd_tree, in_smoothed_v, normals_copy, opts.k);
+        timer.end("Correct normal orientation");
+    }
+
+    Manifold result = point_cloud_to_mesh_impl(
+        std::move(vertices_copy),
+        std::move(normals_copy),
+        std::move(in_smoothed_v),
+        kd_tree,
+        timer,
+        pool,
+        opts);
+    timer.end("Whole process");
+    const std::string line(40, '=');
+    std::cout << line << "\n\n";
+    timer.show();
+    return result;
 }
 
 template <typename Collection, typename IndexRange>
@@ -1737,36 +1753,76 @@ std::vector<Vec3> validate_normals(ThreadPool& pool, const std::vector<Point>& v
 }
 
 auto point_cloud_collapse_reexpand(
-    const std::vector<Point>& vertices,
-    const std::vector<Vec3>& normals,
+    const std::vector<Point>& vertices_in,
+    const std::vector<Vec3>& normals_in,
     const CollapseOpts& collapse_options,
-    const RsROpts& reconstruction_options,
+    const RsROpts& opts,
     const bool reexpand) -> Manifold
 {
     if (collapse_options.max_iterations == 0) {
-        return point_cloud_to_mesh(vertices, normals, reconstruction_options);
+        return point_cloud_to_mesh(vertices_in, normals_in, opts);
     }
-    ThreadPool pool;
     Util::RSRTimer timer;
+    ThreadPool pool;
 
-    //auto normals_copy = validate_normals(pool, vertices, normals, reconstruction_options);
-    //[[maybe_unused]]
-    //if (normals_copy.empty())
-    //    auto smoothed_points = estimate_normals_and_smooth(pool, vertices, normals_copy, reconstruction_options.dist);
+    timer.start("Whole process");
+    timer.start("Validation");
+    if (!normals_in.empty()) {
+        GEL_ASSERT_EQ(vertices_in.size(), normals_in.size(), "Vertices and normals must be the same size");
+    }
+    for (const auto& point: vertices_in) {
+        GEL_ASSERT_FALSE(std::isnan(point[0]) || std::isnan(point[1]) || std::isnan(point[2]), "Bad point input");
+    }
+    for (const auto& normal: normals_in) {
+        GEL_ASSERT_FALSE(std::isnan(normal[0]) || std::isnan(normal[1]) || std::isnan(normal[2]), "Bad normal input");
+        GEL_ASSERT_NEQ(normal, Vec3(0.0), "Bad normal input");
+    }
+    auto vertices_copy = vertices_in;
+    auto normals_copy = normals_in;
+    timer.end("Validation");
+
+
+    // Estimate normals & orientation & weighted smoothing
+    timer.start("Estimate and smooth normals");
+    std::vector<Point> in_smoothed_v = estimate_normals_and_smooth(pool, vertices_copy, normals_copy, opts.dist);
+    timer.end("Estimate and smooth normals");
+
+
+
+    if (normals_in.empty()) {
+        std::cout << "correct normal orientation\n";
+        timer.start("Correct normal orientation");
+        const auto indices = std::ranges::iota_view(0UL, in_smoothed_v.size());
+        const Tree kd_tree = build_kd_tree_of_indices(in_smoothed_v, indices);
+        correct_normal_orientation(pool, kd_tree, in_smoothed_v, normals_copy, opts.k);
+        timer.end("Correct normal orientation");
+    }
 
     timer.start("Collapse");
-    auto [collapse, point_cloud] = collapse_points(vertices, normals, collapse_options);
+    auto [collapse, point_cloud] = collapse_points(vertices_copy, normals_copy, collapse_options);
     timer.end("Collapse");
-    auto [points_collapsed, normals_collapsed] = std::move(point_cloud);
-
-    // TODO: normal weirdness
-    auto manifold = point_cloud_to_mesh(points_collapsed, normals_collapsed, reconstruction_options);
+    auto [points_collapsed, normals_collapsed, indices_collapsed] = std::move(point_cloud);
+    // TODO: need smoothing
+    auto vertices_smoothed_collapsed = indexed_select(in_smoothed_v, indices_collapsed);
+    const auto indices = std::ranges::iota_view(0UL, vertices_smoothed_collapsed.size());
+    const Tree kd_tree = build_kd_tree_of_indices(vertices_smoothed_collapsed, indices);
+    Manifold manifold = point_cloud_to_mesh_impl(
+        std::move(points_collapsed),
+        std::move(normals_collapsed),
+        std::move(vertices_smoothed_collapsed),
+        kd_tree,
+        timer,
+        pool,
+        opts);
 
     timer.start("Reexpand");
     if (reexpand)
         reexpand_points(manifold, std::move(collapse), ReexpandOptions());
     timer.end("Reexpand");
 
+    timer.end("Whole process");
+    const std::string line(40, '=');
+    std::cout << line << "\n\n";
     timer.show();
     return manifold;
 }
