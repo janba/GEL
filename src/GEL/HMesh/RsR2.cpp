@@ -211,6 +211,7 @@ SimpGraph init_graph(
     const NeighborMap& neighbor_map,
     std::vector<ConnectionLength>& connection_lengths,
     const int k,
+    const double cross_connection_threshold,
     const bool is_euclidean)
 {
     SimpGraph dist_graph;
@@ -222,33 +223,37 @@ SimpGraph init_graph(
         dist_graph.add_node();
     }
 
-    // TODO: parallelization idea: precalculate the distances and then nodes to connect
     for (NodeID id_this = 0UL; id_this < vertices.size(); ++id_this) {
         const Point& vertex = vertices[id_this];
         const Vec3& this_normal = normals[id_this];
-        const auto& neighbors = neighbor_map[id_this];
+        auto neighbors = neighbor_map[id_this];
 
-        connection_lengths[id_this].pre_max_length = neighbors[static_cast<size_t>(k * 2. / 3.)].distance;
+        connection_lengths[id_this].pre_max_length = neighbors[static_cast<size_t>(double(k) * (2.0 / 3.0))].distance;
+
+        // FIXME: cross_conn_thresh needs to be captured
+        filter_out_cross_connection(neighbors, normals, id_this, cross_connection_threshold,
+                            is_euclidean);
 
         for (const auto& neighbor : neighbors | std::views::drop(1)) {
             const auto id_other = neighbor.id;
+            //if (id_this > id_other) continue;
+            GEL_ASSERT_NEQ(id_other, id_this, "Vertex connects back to its own");
             if (dist_graph.find_edge(id_this, id_other) != SimpGraph::InvalidEdgeID)
                 continue;
-            GEL_ASSERT_NEQ(id_other, id_this, "Vertex connects back to its own");
-            const Vec3 neighbor_normal = normals[id_other];
-            const Point neighbor_pos = vertices[id_other];
-            const Vec3 edge = neighbor_pos - vertex;
+            const Vec3&  neighbor_normal = normals[id_other];
+            const Point& neighbor_pos = vertices[id_other];
+            const Vec3  edge = neighbor_pos - vertex;
             const auto weight =
                 (is_euclidean)
-                    ? static_cast<float>(edge.length())
-                    : static_cast<float>(cal_proj_dist(edge, this_normal, neighbor_normal));
+                    ? (edge.length())
+                    : (cal_proj_dist(edge, this_normal, neighbor_normal));
             if (weight > connection_lengths[id_this].max_length)
                 connection_lengths[id_this].max_length = weight;
 
             if (weight > connection_lengths[id_other].max_length)
                 connection_lengths[id_other].max_length = weight;
 
-            if (weight < 1e-8) [[unlikely]]
+            if (weight < 1e-6) [[unlikely]]
                 std::cerr << __func__ << ": error" << std::endl;
 
             dist_graph.connect_nodes(id_this, id_other, weight);
@@ -837,16 +842,28 @@ void connect_handle(
     // Collect vertices w/ an open angle larger than pi
     for (int i = 0; i < mst.no_nodes(); i++) {
         const auto& neighbors = mst.m_vertices[i].ordered_neighbors;
+        // FIXME: Clean this up
+        float last_angle = (*(--neighbors.end())).angle;
+        float this_angle;
 
-        for (const auto [neighbor_old, neighbor_next] : slide2_wraparound(neighbors)) {
-            auto last_angle = neighbor_old.angle;
-            auto this_angle = neighbor_next.angle;
-            auto angle_diff = this_angle - last_angle;
+        for (auto& neighbor : neighbors) {
+            this_angle = neighbor.angle;
+            float angle_diff = this_angle - last_angle;
             if (angle_diff < 0)
                 angle_diff += 2 * M_PI;
             if (angle_diff > M_PI)
                 imp_node.push_back(i);
+            last_angle = this_angle;
         }
+        //for (const auto [neighbor_old, neighbor_next] : slide2_wraparound(neighbors)) {
+        //    auto last_angle = neighbor_old.angle;
+        //    auto this_angle = neighbor_next.angle;
+        //    auto angle_diff = this_angle - last_angle;
+        //    if (angle_diff < 0)
+        //        angle_diff += 2 * M_PI;
+        //    if (angle_diff > M_PI)
+        //        imp_node.push_back(i);
+        //}
     }
 
     struct Connection {
@@ -866,8 +883,7 @@ void connect_handle(
         const auto& neighbors = neighbors_map[i];
 
         // Potential handle collection
-        for (size_t j = 1; j < neighbors.size(); j++) {
-            auto& neighbor = neighbors[j];
+        for (auto& neighbor: neighbors | std::views::drop(1)) {
 
             if (mst.find_edge(this_v, neighbor.id) != RSGraph::InvalidEdgeID)
                 continue;
@@ -881,6 +897,7 @@ void connect_handle(
             }
         }
     }
+    std::cout << "connections: " << connect.size() << "\n";
 
     // Select one handle
     Map<FaceConnectionKey, std::vector<int>, FaceConnectionKeyHasher> face_connections;
@@ -1477,7 +1494,7 @@ auto component_to_manifold(
     std::vector<ConnectionLength> connection_lengths(vertices.size(), ConnectionLength());
     {
         inner_timer.start("init_graph");
-        SimpGraph g = init_graph(smoothed_v, smoothed_v, normals, neighbor_map, connection_lengths, opts.k,
+        SimpGraph g = init_graph(smoothed_v, smoothed_v, normals, neighbor_map, connection_lengths, opts.k, opts.theta,
                                  opts.dist == Distance::EUCLIDEAN);
         inner_timer.end("init_graph");
         // Generate MST
@@ -1531,6 +1548,7 @@ auto component_to_manifold(
          }
      }
     inner_timer.end("edge_connection");
+    std::cout << "edge length length: " << edge_length.size() << "\n";
 
     // Create handles & Triangulation
     inner_timer.start("triangulation");
@@ -1567,7 +1585,7 @@ auto point_cloud_to_mesh(
     const std::vector<Vec3>& normals_in,
     const RsROpts& opts) -> HMesh::Manifold
 {
-    auto opts2 = opts;
+    const auto opts2 = opts;
     HMesh::Manifold output;
     Util::RSRTimer timer;
     if (!normals_in.empty()) {
@@ -1641,10 +1659,10 @@ auto point_cloud_to_mesh(
         Tree kd_tree_of_this = build_kd_tree_of_indices(smoothed_v_of_this, indices_of_this);
 
         auto neighbor_map_of_this = calculate_neighbors(pool, smoothed_v_of_this, kd_tree_of_this, opts.k);
-        Util::Parallel::foreach(pool, std::views::iota(0UL, smoothed_v_of_this.size()), [&](NodeID idx) {
-            filter_out_cross_connection(neighbor_map_of_this[idx], normals_of_this, idx, opts.theta,
-                                        opts.dist == Distance::EUCLIDEAN);
-        });
+        //Util::Parallel::foreach(pool, std::views::iota(0UL, smoothed_v_of_this.size()), [&](NodeID idx) {
+        //    filter_out_cross_connection(neighbor_map_of_this[idx], normals_of_this, idx, opts.theta,
+        //                                opts.dist == Distance::EUCLIDEAN);
+        //});
 
         auto res = component_to_manifold(
             pool,
@@ -1656,6 +1674,11 @@ auto point_cloud_to_mesh(
             neighbor_map_of_this);
 
         output.merge(res);
+        // if (component_id == 0) {
+        //     std::swap(output, res);
+        // } else {
+        //     output.merge(res);
+        // }
     }
     timer.end("Algorithm");
     timer.end("Whole process");
