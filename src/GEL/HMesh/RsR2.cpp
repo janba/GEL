@@ -408,7 +408,7 @@ void estimate_normal_no_normals_memoized(
 /// @param this_normal: normal of current vertex
 /// @param neighbor_normal: normal of its neighbor vertex
 /// @return angle weight calculated
-constexpr double cal_angle_based_weight(const Vec3& this_normal, const Vec3& neighbor_normal)
+double cal_angle_based_weight(const Vec3& this_normal, const Vec3& neighbor_normal)
 {
     const double dot_pdt = std::abs(
         dot(this_normal, neighbor_normal) / (this_normal.length() * neighbor_normal.length()));
