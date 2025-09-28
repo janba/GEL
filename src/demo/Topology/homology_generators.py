@@ -194,7 +194,7 @@ if __name__ == "__main__":
     if m is None:
         print("Failed to load mesh.")
         exit(1)
-    # hmesh.quadric_simplify(m,0.25)
+    hmesh.quadric_simplify(m,0.25)
     hmesh.close_holes(m, 100000)
     m.cleanup()
 
