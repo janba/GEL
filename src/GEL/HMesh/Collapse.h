@@ -25,9 +25,9 @@ namespace HMesh::RSR
 {
 using Vec3 = CGLA::Vec3d;
 using Point = Vec3;
-using NodeID = size_t;
 using Geometry::AMGraph;
 using Geometry::AMGraph3D;
+using NodeID = AMGraph::NodeID;
 
 static constexpr bool DEBUG_PRINT = false;
 
@@ -91,6 +91,14 @@ struct SingleCollapse {
     Point v_bar;
 };
 
+struct RawCollapse {
+    NodeID active = AMGraph::InvalidNodeID;
+    NodeID latent = AMGraph::InvalidNodeID;
+    Point active_point_coords;
+    Point latent_point_coords;
+    Point v_bar;
+};
+
 struct QuadraticCollapseGraph : AMGraph {
 
 private:
@@ -101,14 +109,42 @@ private:
     };
 
     struct Edge {
-        NodeID n0;
-        NodeID n1;
+        NodeID from;
+        NodeID to;
+        double dist;
+
+        bool operator==(const Edge& rhs) const
+        {
+            return (from == rhs.from && to == rhs.to) || (from == rhs.to && to == rhs.from);
+        }
+
+        bool operator<(const Edge& other) const
+        {
+            return dist < other.dist;
+        }
+    };
+
+    struct edge_t {
+        NodeID from;
+        NodeID to;
+
+        bool operator==(const edge_t& rhs) const = default;
+    };
+
+    struct edge_t_hash {
+        auto operator()(const edge_t& edge) const -> std::size_t
+        {
+            std::hash<NodeID> h;
+            return h(edge.from) ^ (h(edge.to) << 1);
+        }
     };
 
 public:
-    Util::AttribVec<EdgeID, Edge> m_edges;
+
+
     Util::AttribVec<NodeID, Vertex> m_vertices;
-    Util::MutablePriorityQueue<EdgeID, double, std::hash<EdgeID>, std::equal_to<>, std::less<>> m_collapse_queue;
+    Util::BTreeSet<Edge> m_collapse_queue;
+    Util::HashMap<edge_t, double, edge_t_hash> m_distance_cache;
 
 public:
     auto add_node(const Point& position, const Vec3& normal) -> NodeID
@@ -121,70 +157,85 @@ public:
 
     auto connect_nodes(const NodeID n0, const NodeID n1) -> EdgeID
     {
-        const EdgeID e = AMGraph::connect_nodes(n0, n1);
-        m_edges[e] = Edge{.n0 = n0, .n1 = n1};
-        auto [_, dist] = quadratic_distance(n0, n1);
-        std::array elem = {std::make_pair(e, dist)};
-        m_collapse_queue.insert_range(elem);
-
-        return e;
-    }
-
-    auto merge_nodes(const NodeID latent, const NodeID active, const Point& position) -> NodeID
-    {
-        GEL_ASSERT_NEQ(latent, active);
-        GEL_ASSERT_NEQ(AMGraph::find_edge(latent, active), InvalidEdgeID);
-
-        const auto projected =
-            project_point_to_line(position, m_vertices[latent].position, m_vertices[active].position);
-        const auto new_normal = lerp(m_vertices[latent].normal, m_vertices[active].normal, projected);
-        m_vertices[active].position = position;
-        m_vertices[active].normal = new_normal;
-        //m_vertices[active].normal = m_vertices[latent].normal;
-        m_vertices[active].qem += m_vertices[latent].qem;
-        m_vertices[latent].position = Point(std::numeric_limits<double>::signaling_NaN());
-        m_vertices[latent].normal = Vec3(std::numeric_limits<double>::signaling_NaN());
-
-        const auto edges_latent = AMGraph::edges(latent) | std::views::values;
-        const auto edges_active = AMGraph::edges(active) | std::views::values;
-        // clear up old ranges
-        m_collapse_queue.remove_range(edges_latent);
-        m_collapse_queue.remove_range(edges_active);
-
-        for (const auto n : neighbors_lazy(latent)) {
-            edge_map[n].erase(latent);
-            if (n != active && n != latent)
-                // reconnections handle the new insertions
-                connect_nodes(n, active);
+        if (n1 > n0) {
+            const EdgeID e = AMGraph::connect_nodes(n0, n1);
+            auto [_, dist] = quadratic_distance(n0, n1);
+            m_collapse_queue.emplace(n0, n1, dist);
+            m_distance_cache[edge_t {n0, n1}] = dist;
+            return e;
         }
-        for (const auto n : neighbors_lazy(active)) {
-            connect_nodes(n, active);
-        }
-        edge_map[latent].clear();
-        return active;
+        return InvalidEdgeID;
     }
-
-    struct RawCollapse {
-        NodeID active = InvalidNodeID;
-        NodeID latent = InvalidNodeID;
-        Point active_point_coords;
-        Point latent_point_coords;
-        Point v_bar;
-    };
 
     auto collapse_one() -> RawCollapse
     {
-        const auto [edge, _] = m_collapse_queue.pop_front();
+        while (!m_collapse_queue.empty()) {
+            auto edge_ = m_collapse_queue.begin();
+            auto edge = *edge_;
+            m_collapse_queue.erase(edge_);
+            //collapses++;
+            auto active = edge.from;
+            auto latent = edge.to;
 
-        const auto active = m_edges[edge].n0;
-        const auto latent = m_edges[edge].n1;
-        const auto active_coordinate = m_vertices[active].position;
-        const auto latent_coordinate = m_vertices[latent].position;
+            if (AMGraph::find_edge(active, latent) != InvalidEdgeID) {
 
-        const auto v_bar = quadratic_distance(active, latent).first;
-        merge_nodes(latent, active, v_bar);
+                const auto active_coords = m_vertices[active].position;
+                const auto latent_coords = m_vertices[latent].position;
 
-        return { active, latent, active_coordinate, latent_coordinate, v_bar};
+                GEL_ASSERT_FALSE(CGLA::any(active_coords, [](auto d){ return std::isnan(d); }));
+                GEL_ASSERT_FALSE(CGLA::any(latent_coords, [](auto d){ return std::isnan(d); }));
+
+                // recalculate current edges
+                for (auto v : AMGraph::neighbors_lazy(active)) {
+                    auto v0 = std::min(v, active);
+                    auto v1 = std::max(v, active);
+                    auto dist = m_distance_cache[edge_t {v0, v1}];
+                    m_collapse_queue.extract(Edge{v0, v1, dist});
+                }
+
+                for (auto v : AMGraph::neighbors_lazy(latent)) {
+                    auto v0 = std::min(v, latent);
+                    auto v1 = std::max(v, latent);
+                    auto dist = m_distance_cache[edge_t {v0, v1}];
+                    m_collapse_queue.extract(Edge{v0, v1, dist});
+                }
+
+                auto [v_bar, dist] = quadratic_distance(active, latent);
+                const auto projected =
+                    project_point_to_line(v_bar, m_vertices[latent].position, m_vertices[active].position);
+                const auto new_normal = lerp(m_vertices[latent].normal, m_vertices[active].normal, projected);
+                m_vertices[active].position = v_bar;
+                m_vertices[active].normal = new_normal;
+                //m_vertices[active].normal = m_vertices[latent].normal;
+                m_vertices[active].qem += m_vertices[latent].qem;
+                m_vertices[latent].position = Point(std::numeric_limits<double>::signaling_NaN());
+                m_vertices[latent].normal = Vec3(std::numeric_limits<double>::signaling_NaN());
+
+                // recalculate current edges
+                for (auto v : AMGraph::neighbors_lazy(active)) {
+                    auto v0 = std::min(v, active);
+                    auto v1 = std::max(v, active);
+                    connect_nodes(v0, v1);
+                }
+
+                for (auto v : AMGraph::neighbors_lazy(latent)) {
+                    auto v0 = std::min(v, active);
+                    auto v1 = std::max(v, active);
+                    connect_nodes(v0, v1);
+                }
+                AMGraph::erase_node(latent);
+
+                return RawCollapse{
+                    .active = active,
+                    .latent = latent,
+                    .active_point_coords = active_coords,
+                    .latent_point_coords = latent_coords,
+                    .v_bar = v_bar
+                };
+            }
+        }
+        GEL_ASSERT(false);
+        return RawCollapse{};
     }
 
     /// Return the remaining points
