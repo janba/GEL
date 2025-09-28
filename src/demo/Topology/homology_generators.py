@@ -66,7 +66,7 @@ def shortest_path_tree(m: hmesh.Manifold, v0=None):
     while not q.empty():
         d, v, h = q.get()
         if d < dist[v]:
-            if h:
+            if not h is None:
                 htag[h] = 1
             dist[v] = d
             for hn in m.circulate_vertex(v, mode='h'):
@@ -194,7 +194,7 @@ if __name__ == "__main__":
     if m is None:
         print("Failed to load mesh.")
         exit(1)
-    hmesh.quadric_simplify(m,0.25)
+    # hmesh.quadric_simplify(m,0.25)
     hmesh.close_holes(m, 100000)
     m.cleanup()
 
