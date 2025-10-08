@@ -1756,11 +1756,11 @@ auto point_cloud_collapse_reexpand(
     const std::vector<Point>& vertices_in,
     const std::vector<Vec3>& normals_in,
     const CollapseOpts& collapse_options,
-    const RsROpts& opts,
-    const bool reexpand) -> Manifold
+    const RsROpts& rsr_opts,
+    const ReexpandOptions& reexpand_opts) -> Manifold
 {
     if (collapse_options.max_iterations == 0) {
-        return point_cloud_to_mesh(vertices_in, normals_in, opts);
+        return point_cloud_to_mesh(vertices_in, normals_in, rsr_opts);
     }
     Util::RSRTimer timer;
     ThreadPool pool;
@@ -1784,7 +1784,7 @@ auto point_cloud_collapse_reexpand(
 
     // Estimate normals & orientation & weighted smoothing
     timer.start("Estimate and smooth normals");
-    std::vector<Point> in_smoothed_v = estimate_normals_and_smooth(pool, vertices_copy, normals_copy, opts.dist);
+    std::vector<Point> in_smoothed_v = estimate_normals_and_smooth(pool, vertices_copy, normals_copy, rsr_opts.dist);
     timer.end("Estimate and smooth normals");
 
 
@@ -1794,15 +1794,16 @@ auto point_cloud_collapse_reexpand(
         timer.start("Correct normal orientation");
         const auto indices = std::ranges::iota_view(0UL, in_smoothed_v.size());
         const Tree kd_tree = build_kd_tree_of_indices(in_smoothed_v, indices);
-        correct_normal_orientation(pool, kd_tree, in_smoothed_v, normals_copy, opts.k);
+        correct_normal_orientation(pool, kd_tree, in_smoothed_v, normals_copy, rsr_opts.k);
         timer.end("Correct normal orientation");
     }
 
     timer.start("Collapse");
     auto [collapse, point_cloud] = collapse_points(vertices_copy, normals_copy, collapse_options);
     timer.end("Collapse");
+
     auto [points_collapsed, normals_collapsed, indices_collapsed] = std::move(point_cloud);
-    // TODO: need smoothing
+
     auto vertices_smoothed_collapsed = indexed_select(in_smoothed_v, indices_collapsed);
     const auto indices = std::ranges::iota_view(0UL, vertices_smoothed_collapsed.size());
     const Tree kd_tree = build_kd_tree_of_indices(vertices_smoothed_collapsed, indices);
@@ -1813,11 +1814,11 @@ auto point_cloud_collapse_reexpand(
         kd_tree,
         timer,
         pool,
-        opts);
+        rsr_opts);
 
     timer.start("Reexpand");
-    if (reexpand)
-        reexpand_points(manifold, std::move(collapse), ReexpandOptions());
+    if (reexpand_opts.enabled)
+        reexpand_points(manifold, std::move(collapse), reexpand_opts);
     timer.end("Reexpand");
 
     timer.end("Whole process");

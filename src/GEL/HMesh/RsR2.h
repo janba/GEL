@@ -394,7 +394,7 @@ auto point_cloud_collapse_reexpand(
     const std::vector<Vec3>& normals,
     const CollapseOpts& collapse_options,
     const RsROpts& reconstruction_options,
-    bool reexpand) -> HMesh::Manifold;
+    const ReexpandOptions& reexpand_options) -> HMesh::Manifold;
 } // namespace HMesh::RSR
 
 #endif // GEL_HMesh_RsR2_hpp
