@@ -373,6 +373,16 @@ auto test_reconstruct_new(const std::string_view file_name, const RsROpts& opts)
     return output;
 }
 
+auto point_cloud_to_mesh_legacy(std::vector<CGLA::Vec3d> const& points, const std::vector<CGLA::Vec3d>& normals, const RsROpts& opts) -> HMesh::Manifold
+{
+    auto points_copy = points;
+    auto normals_copy = normals;
+    HMesh::Manifold output;
+    reconstruct_single(output, points_copy, normals_copy, opts.dist == Distance::EUCLIDEAN, opts.genus, opts.k,
+                       opts.r, opts.theta, opts.n);
+    return output;
+}
+
 
 auto test_reconstruct_legacy(const std::string_view file_name, const RsROpts& opts) -> std::optional<HMesh::Manifold>
 {
@@ -385,11 +395,21 @@ auto test_reconstruct_legacy(const std::string_view file_name, const RsROpts& op
     }
     auto input = Util::to_triangle_mesh(*input_maybe);
 
+    // auto collapse_opts = CollapseOpts{};
+    // collapse_opts.max_iterations = 1;
+    // collapse_opts.initial_neighbors = 8;
+    // collapse_opts.reduction_per_iteration = 0.90;
+    // auto [_, collapsed] = collapse_points(input.vertices, input.normals, collapse_opts);
+
     std::cout << "obj vertices: " << input.vertices.size() << "\n";
     std::cout << "obj normals: " << input.normals.size() << "\n";
 
     HMesh::Manifold output;
-    reconstruct_single(output, input.vertices, input.normals, opts.dist == Distance::EUCLIDEAN, opts.genus, opts.k,
+    reconstruct_single(output,
+        //collapsed.points,collapsed.normals,
+        input.vertices,
+        input.normals,
+        opts.dist == Distance::EUCLIDEAN, opts.genus, opts.k,
                        opts.r, opts.theta, opts.n);
     // k: 70 is too large
     // r: needs isEuclidean false
@@ -399,7 +419,7 @@ auto test_reconstruct_legacy(const std::string_view file_name, const RsROpts& op
 }
 
 auto test_reconstruct_collapse_reexpand(const std::string_view file_name, const CollapseOpts& collapse_opts,
-                                        const RsROpts& rsr_opts, const bool reexpand) -> std::optional<HMesh::Manifold>
+                                        const RsROpts& rsr_opts, const ReexpandOptions& reexpand) -> std::optional<HMesh::Manifold>
 {
     std::cout << "======================\n"
         << "Begin new function\n";
@@ -524,7 +544,7 @@ TEST_CASE("reconstruct")
 TEST_CASE("reconstruct_collapse_reexpand")
 {
     auto l = []<typename T0, typename T1>(T0&& PH1, T1&& PH2) {
-        return test_reconstruct_collapse_reexpand(std::forward<T0>(PH1), CollapseOpts(), std::forward<T1>(PH2), true);
+        return test_reconstruct_collapse_reexpand(std::forward<T0>(PH1), CollapseOpts(), std::forward<T1>(PH2), ReexpandOptions());
     };
     test_reconstruct(l, true, true);
 }
@@ -534,32 +554,46 @@ TEST_CASE("reconstruct_debug")
     auto collapse_opts = CollapseOpts{};
     auto opts_euclidean = test_options();
     auto file = FILE_BUNNY_SIMPLE;
-    collapse_opts.max_iterations = 0;
+    collapse_opts.max_iterations = 3;
     collapse_opts.initial_neighbors = 8;
-    collapse_opts.reduction_per_iteration = 0.5;
+    collapse_opts.reduction_per_iteration = 0.50;
+    collapse_opts.max_collapses = 0;
 
-    auto reexpand = true;
+    auto reexpand_opts = ReexpandOptions();
+    reexpand_opts.enabled = true;
+    reexpand_opts.debug_print = false;
+    reexpand_opts.angle_threshold = std::numbers::pi / 180.0 * 9;
+    reexpand_opts.angle_threshold_penalty = 0.1;
+    reexpand_opts.angle_factor *= 1;
+    reexpand_opts.brute_force_repair = false;
+    reexpand_opts.early_stop_at_error = false;
+    reexpand_opts.stop_at_error = 0;
+    reexpand_opts.debug_mask; // |= RE_ERRORS; //  | RE_FIRST_FLIP | RE_SECOND_FLIP | RE_ITERATION;
+    reexpand_opts.stop_at_iteration = 0;
+
+
     opts_euclidean.dist = Distance::EUCLIDEAN;
-    auto manifold = test_reconstruct_collapse_reexpand(file, collapse_opts, opts_euclidean, reexpand);
+    auto manifold = test_reconstruct_collapse_reexpand(file, collapse_opts, opts_euclidean, reexpand_opts);
     CHECK(manifold.has_value());
     if (manifold.has_value()) {
         HMesh::obj_save("debug_obj_reexpand_euclidean.obj", *manifold);
         reconstruct_assertions(*manifold);
     }
-    auto opts_neighbors = test_options();
-    opts_neighbors.dist = Distance::NEIGHBORS;
-    manifold = test_reconstruct_collapse_reexpand(file, collapse_opts, opts_neighbors, reexpand);
-    CHECK(manifold.has_value());
-    if (manifold.has_value()) {
-        HMesh::obj_save("debug_obj_reexpand_neighbors.obj", *manifold);
-        reconstruct_assertions(*manifold);
-    }
+    // auto opts_neighbors = test_options();
+    // opts_neighbors.dist = Distance::NEIGHBORS;
+    // manifold = test_reconstruct_collapse_reexpand(file, collapse_opts, opts_neighbors, reexpand_opts);
+    // CHECK(manifold.has_value());
+    // if (manifold.has_value()) {
+    //     HMesh::obj_save("debug_obj_reexpand_neighbors.obj", *manifold);
+    //     reconstruct_assertions(*manifold);
+    // }
 }
 
 TEST_CASE("reconstruct_legacy_debug")
 {
+    auto collapse_opts = CollapseOpts{};
     auto opts_euclidean = test_options();
-    auto file = FILE_BUNNY_SIMPLE;
+    auto file = FILE_BUNNY_SIMPLE_NO_NORMALS;
 
     opts_euclidean.dist = Distance::EUCLIDEAN;
     auto manifold = test_reconstruct_legacy(file, opts_euclidean);
