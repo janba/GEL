@@ -9,6 +9,16 @@
 
 namespace HMesh::RSR
 {
+bool vec3_eq(const Vec3& lhs, const Vec3& rhs, double eps = 1e-4)
+{
+    return lhs.all_le(rhs + Vec3(eps)) && lhs.all_ge(rhs - Vec3(eps));
+}
+
+bool float_eq(double lhs, double rhs, double eps = 1e-4)
+{
+    return std::abs(lhs - rhs) < eps;
+}
+
 Vec3 half_edge_direction(const HMesh::Manifold& m, HMesh::HalfEdgeID h)
 {
     const auto w = m.walker(h);
@@ -34,27 +44,30 @@ double optimize_dihedral(const Vec3& n1, const Vec3& n2)
 // returns 0 for an equilateral triangle
 double optimize_angle(const Vec3& p1, const Vec3& p2, const Vec3& p3, const ReexpandOptions& opts)
 {
-    const auto e1 = CGLA::normalize(p2 - p1);
-    const auto e2 = CGLA::normalize(p3 - p1);
+    const auto e1 = p2 - p1;
+    const auto e1_len = e1.length();
+    const auto e2 = p3 - p1;
+    const auto e2_len = e2.length();
 
     const auto e3 = -e2;
-    const auto e4 = CGLA::normalize(p3 - p2);
+    const auto e4 = p3 - p2;
+    const auto e4_len   = e4.length();
 
     const auto e5 = -e4;
     const auto e6 = -e1;
 
-    const auto angle1 = std::acos(dot(e1, e2));
-    const auto angle2 = std::acos(dot(e3, e4));
-    const auto angle3 = std::acos(dot(e5, e6));
-    if (angle1 > opts.angle_threshold || angle2 > opts.angle_threshold || angle3 > opts.angle_threshold) {
+    const auto angle1 = std::acos(dot(CGLA::normalize(e1), CGLA::normalize(e2)));
+    const auto angle2 = std::acos(dot(CGLA::normalize(e3), CGLA::normalize(e4)));
+    const auto angle3 = std::acos(dot(CGLA::normalize(e5), CGLA::normalize(e6)));
+
+    const auto min_angle = std::min(angle3, std::min(angle1, angle2));
+    const auto shortest = std::min(e4_len, std::min(e1_len, e2_len));
+    if (min_angle < opts.angle_threshold) {
         return opts.angle_threshold_penalty;
     }
 
-    const auto score1 = std::abs(angle1 - std::numbers::pi / 3.0);
-    const auto score2 = std::abs(angle2 - std::numbers::pi / 3.0);
-    const auto score3 = std::abs(angle3 - std::numbers::pi / 3.0);
-    const auto score = score1 + score2 + score3;
-    return score * opts.angle_factor;
+    const auto score = std::abs(std::numbers::pi / 3.0 - min_angle);
+    return score * shortest * opts.angle_factor;
 }
 
 // penalizes based on effect to valency
@@ -93,6 +106,7 @@ double optimize_valency(const HMesh::Manifold& m, const HMesh::HalfEdgeID h_out,
 struct Split {
     HMesh::HalfEdgeID h_in;
     HMesh::HalfEdgeID h_out;
+    double max_angle = 0;
 };
 
 struct Triangle {
@@ -103,6 +117,45 @@ struct Triangle {
         shared_length(shared_length), normal(triangle_normal(p1, p2, p3))
     {}
 };
+
+auto one_ring_max_angle(const Manifold& manifold, const VertexID vid) -> double
+{
+
+    auto dihedral_from_hedge = [&manifold](HalfEdgeID h) {
+        Walker w = manifold.walker(h);
+        auto v1 = w.vertex();
+        auto v2 = w.next().vertex();
+        auto v3 = w.next().next().vertex();
+        auto v4 = w.opp().vertex();
+        auto v5 = w.opp().next().vertex();
+        auto v6 = w.opp().next().next().vertex();
+        if (v1 == InvalidVertexID ||
+            v2 == InvalidVertexID ||
+            v3 == InvalidVertexID ||
+            v4 == InvalidVertexID ||
+            v5 == InvalidVertexID ||
+            v6 == InvalidVertexID) {
+            GEL_ASSERT(false, "wat");
+            return 0.0;
+        }
+        auto n0 = triangle_normal(
+            manifold.positions[v1],
+            manifold.positions[v2],
+            manifold.positions[v3]);
+        auto n1 = triangle_normal(
+            manifold.positions[v4],
+            manifold.positions[v5],
+            manifold.positions[v6]);
+        return optimize_dihedral(n0, n1);
+    };
+
+    double max_angle = 0;
+    for (const auto h: manifold.incident_halfedges(vid)) {
+        GEL_ASSERT_NEQ(h, InvalidHalfEdgeID);
+        max_angle = std::max(max_angle, dihedral_from_hedge(h));
+    }
+    return max_angle;
+}
 
 Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v_new_position,
                      const Vec3& v_old_position, const ReexpandOptions& opts)
@@ -117,10 +170,16 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
     // Optimize the dihedral value
     const auto dihedral_one_ring = [](const Triangle& t1, const Triangle& t2) -> double {
         auto d = optimize_dihedral(t1.normal, t2.normal);
-        auto edge_length = t1.shared_length; // shared_edge_length(t1, t2);
+        auto edge_length = t1.shared_length;
         return d * edge_length;
     };
 
+    const auto dihedral_angle_only = [](const Triangle& t1, const Triangle& t2) -> double {
+        auto d = optimize_dihedral(t1.normal, t2.normal);
+        return d;
+    };
+
+    // TODO: kill this
     std::vector<Triangle> triangles_buffer;
 
     struct ExpandResult {
@@ -140,10 +199,16 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
         // instead of doing this unscalable stupidity, let's try to be smart and perform a rotation through all of the
         // affected triangles. We basically perform a sliding window and construct the right triangle by
         // either passing v_new or v_old as the third point. The order of the window also matters a lot
-        const double in_len = (v_old_position - v_h_in).length();
-        const double out_len = (v_new_position - v_h_out).length();
+        constexpr double EPS = 1e-8;
+
+        const double  in_len = std::max((v_old_position - v_h_in).length(), EPS);
+        const double out_len = std::max((v_new_position - v_h_out).length(), EPS);
         const auto tri_center_in = Triangle(v_old_position, v_new_position, v_h_in, in_len);
         const auto tri_center_out = Triangle(v_new_position, v_old_position, v_h_out, out_len);
+
+        double angle_cost = 0;
+        angle_cost += optimize_angle(v_old_position, v_new_position, v_h_in, opts);
+        angle_cost += optimize_angle(v_new_position, v_old_position, v_h_out, opts);
 
         auto one_ring_iterator = [&]() {
             triangles_buffer.clear();
@@ -156,8 +221,9 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
             while (walker_prev.halfedge() != walker_in_opp.halfedge()) {
                 const auto& p2 = m.pos(walker_prev.vertex());
                 const auto& p3 = m.pos(walker_next.vertex());
-                const auto shared_length = (v_new_position - p3).length();
+                const auto shared_length = std::max((v_new_position - p3).length(), EPS);
                 Triangle tri = {v_new_position, p2, p3, shared_length};
+                angle_cost += optimize_angle(v_new_position, p2, p3, opts);
                 // to consider the two ring dihedrals, we need to get the triangles from the opposite edges.
                 // none of the triangles are affected by the expansion, so we can just fetch them from the manifold directly
 
@@ -172,8 +238,9 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
             while (walker_prev.halfedge() != walker_out.halfedge()) {
                 const auto& p2 = m.pos(walker_prev.vertex());
                 const auto& p3 = m.pos(walker_next.vertex());
-                const auto shared_length = (v_old_position - p3).length();
+                const auto shared_length = std::max((v_old_position - p3).length(), EPS);
                 Triangle tri = {v_old_position, p2, p3, shared_length};
+                angle_cost += optimize_angle(v_old_position, p2, p3, opts);
 
                 triangles_buffer.push_back(tri);
                 walker_prev = walker_prev.circulate_vertex_ccw();
@@ -187,6 +254,7 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
         one_ring_iterator();
 
         const auto dihedral0 = dihedral_one_ring(tri_center_in, tri_center_out);
+        const auto dihedral0_angle = dihedral_angle_only(tri_center_in, tri_center_out);
         auto calculate_dihedrals = [&](auto& iter) {
             double total_dihedral = 0.0;
             double max_angle = 0.0;
@@ -195,7 +263,8 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
                 auto& tri1 = triangles_buffer[i];
                 auto& tri2 = triangles_buffer[(i+1)%triangles_buffer.size()];
                 const auto one_ring = dihedral_one_ring(tri1, tri2);
-                max_angle = std::max(max_angle, one_ring);
+                const auto raw_angle = dihedral_angle_only(tri1, tri2);
+                max_angle = std::max(max_angle, raw_angle);
                 total_dihedral += one_ring;
             }
             //auto length = std::ranges::distance(iter);
@@ -207,8 +276,8 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
             //    max_angle = std::max(max_angle, one_ring);
             //    total_dihedral += one_ring;
             //}
-            max_angle = std::max(max_angle, dihedral0);
-            return std::make_pair(total_dihedral + dihedral0, max_angle);
+            max_angle = std::max(max_angle, dihedral0_angle);
+            return std::make_pair(total_dihedral + dihedral0 + angle_cost, max_angle);
         };
         auto [total_dihedral, max_angle] = calculate_dihedrals(triangles_buffer);
         return ExpandResult{
@@ -222,6 +291,11 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
     HalfEdgeID h_in_opp;
     HalfEdgeID h_out;
 
+    double min_score_alt = INFINITY;
+    double max_angle_alt = INFINITY;
+    HalfEdgeID h_in_opp_alt = InvalidHalfEdgeID;
+    HalfEdgeID h_out_alt = InvalidHalfEdgeID;
+
     for (auto h1 : m.incident_halfedges(center_idx)) {
         for (auto h2 : m.incident_halfedges(center_idx)) {
             if (h1 == h2) {
@@ -234,10 +308,37 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
                 h_in_opp = h1;
                 h_out = h2;
             }
+            if (score.score < min_score_alt && score.max_angle < 1) {
+                min_score_alt = score.score;
+                max_angle_alt = score.max_angle;
+                h_in_opp_alt = h1;
+                h_out_alt = h2;
+            }
+            if (opts.debug_mask & RE_SPLITS) {
+                std::cout << "h1: ";
+                print_hedge(h1);
+                std::cout << "h2: ";
+                print_hedge(h2);
+                std::cout << "score    : " << score.score << "\n";
+                std::cout << "max angle: " << score.max_angle << "\n";
+            }
         }
     }
+    if (max_angle > 1 && max_angle_alt < 1) {
+        if (opts.debug_mask & RE_SPLIT_RESULTS) {
+            std::cout << "using alternative split\n";
+            std::cout << "h_in_opp: "; print_hedge(h_in_opp_alt);
+            std::cout << "h_out:    "; print_hedge(h_out_alt);
 
-    return Split{m.walker(h_in_opp).opp().halfedge(), h_out};
+        }
+        return Split{m.walker(h_in_opp_alt).opp().halfedge(), h_out_alt, max_angle_alt};
+    }
+    if (opts.debug_mask & RE_SPLIT_RESULTS) {
+        std::cout << "using regular split\n";
+        std::cout << "h_in_opp: "; print_hedge(h_in_opp);
+        std::cout << "h_out:    "; print_hedge(h_out);
+    }
+    return Split{m.walker(h_in_opp).opp().halfedge(), h_out, max_angle};
 }
 
 auto dihedral_from_half_edge(const Manifold& m, const HalfEdgeID h) -> double
@@ -267,7 +368,45 @@ auto four_dihedrals(const Manifold& manifold, HalfEdgeID he) -> double
         dihedral_from_half_edge(manifold, he_opp_p);
 }
 
+// TODO: merge this stupidity
 auto maybe_flip(Manifold& manifold, HalfEdgeID he, double dihedral_threshold = 1.5) -> bool
+{
+    if (!manifold.precond_flip_edge(he))
+        return false;
+
+    const auto angles = [&](HalfEdgeID he) -> std::pair<double, double> {
+        auto walker = manifold.walker(he);
+        auto v1 = manifold.positions[walker.vertex()];
+        auto v2 = manifold.positions[walker.next().vertex()];
+        auto v3 = manifold.positions[walker.opp().vertex()];
+        auto e_shared = CGLA::normalize(v1 - v3);
+        auto e_next = CGLA::normalize(v2 - v1);
+        auto e_prev = CGLA::normalize(v2 - v3);
+
+        auto angle1 = CGLA::dot(e_next, -e_shared);
+        auto angle2 = CGLA::dot(e_prev, e_shared);
+
+        return {angle1, angle2};
+    };
+    const auto he_opp = manifold.walker(he).opp().halfedge();
+    auto [angle1, angle2] = angles(he);
+    auto [angle3, angle4] = angles(he_opp);
+    const auto current_dihedral_cost = four_dihedrals(manifold, he);
+
+    //if (angle1 < 0.0 || angle2 < 0.0 || angle3 < 0.0 || angle4 < 0.0) {
+    //    return false;
+    //}
+
+    manifold.flip_edge(he);
+    const auto new_dihedral_cost = four_dihedrals(manifold, he);
+    if (new_dihedral_cost > current_dihedral_cost * dihedral_threshold) {
+        manifold.flip_edge(he);
+        return false;
+    }
+    return true;
+}
+
+auto maybe_flip_(Manifold& manifold, HalfEdgeID he, double dihedral_threshold = 1.5) -> bool
 {
     if (!manifold.precond_flip_edge(he))
         return false;
@@ -312,7 +451,7 @@ auto maybe_flip(Manifold& manifold, HalfEdgeID he, double dihedral_threshold = 1
         angle_threshold))) {
         //manifold.flip_edge(he);
         return true;
-    }
+        }
     manifold.flip_edge(he);
     return false;
 }
@@ -326,6 +465,7 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
     GEL_ASSERT_EQ(vertices.size(), normals.size());
     Util::ImmediatePool pool;
     QuadraticCollapseGraph graph;
+    //QuadraticCollapseGraphAlt graph;
 
     // initialize graph
     for (auto i = 0UL; i < vertices.size(); ++i) {
@@ -353,7 +493,13 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
 
     for (size_t iter = 0; iter < options.max_iterations; ++iter) {
         // TODO: stricter checking
-        const size_t max_collapses = vertices.size() * std::pow(0.5, iter) * options.reduction_per_iteration;
+        const size_t max_collapses =
+            [&]() -> size_t {
+                if (options.max_collapses != 0) return options.max_collapses;
+
+                return vertices.size() * std::pow(0.5, iter) * options.reduction_per_iteration;
+            }();
+
         std::vector<SingleCollapse> activity;
 
         size_t count = 0;
@@ -364,6 +510,7 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
             activity.emplace_back(active_point_coords, latent_point_coords, v_bar);
         }
         collapses.emplace_back(std::move(activity));
+        std::cout << "Collapsed " << count << " of " << max_collapses << "\n";
     }
     return std::make_pair(Collapse {std::move(collapses)}, graph.to_point_cloud()); // TODO
 }
@@ -384,6 +531,65 @@ struct PointEquals {
         return (left[0] == right[0]) && (left[1] == right[1]) && (left[2] == right[2]);
     }
 };
+
+void shoot_ray_and_maybe_flip_edge(
+    Manifold& manifold,
+    const VertexID id,
+    const Point& active_pos,
+    const Point& latent_pos,
+    const ReexpandOptions& opts)
+{
+    for (auto he: manifold.incident_halfedges(id)) {
+        auto walker = manifold.walker(he);
+        auto flip_maybe = walker.next().halfedge();
+        auto v1 = manifold.positions[walker.vertex()];
+        auto v2 = manifold.positions[walker.next().vertex()];
+        auto tangent = normalize(v1 - v2);
+        if (opts.debug_mask & RE_FIRST_FLIP) {
+
+            std::cout << v1 << "\n";
+            std::cout << v2 << "\n";
+        }
+
+        auto normal = CGLA::normalize(CGLA::cross((active_pos - v1), tangent));
+
+        // normal of the plane
+        Vec3 binormal = CGLA::cross(tangent, normal);
+        // point on the plane
+        const Point& p0 = (v1 + v2) * 0.5;
+        const double r = (v1 - v2).length() * 0.5;
+
+        // starting point in our line
+        const Point& l0 = active_pos;
+        const Vec3 l = normalize(latent_pos - active_pos);
+
+        auto den = dot(l, binormal);
+        if (std::abs(den) < 1e-8) {
+            //    std::cout << "parallel" << "\n";
+            continue;
+        } // parallel case
+        auto len = (latent_pos - active_pos).length();
+        auto d = dot((p0 - l0), binormal) / den;
+
+        auto p = l0 + d * l;
+        auto distance = (p - p0).length();
+        if (opts.debug_mask & RE_FIRST_FLIP) {
+            std::cout << "d  : " << d << "\n";
+            std::cout << "len: " << len << "\n";
+        }
+        if (distance > r) {
+            continue;
+        }
+
+        if (d > 0 && len > (d * 0.90) && manifold.precond_flip_edge(flip_maybe)) {
+            manifold.flip_edge(flip_maybe);
+            if (opts.debug_mask & RE_FIRST_FLIP) {
+                std::cout << "flipped!" << "\n";
+            }
+            break;
+        }
+    }
+}
 
 auto reexpand_points(Manifold& manifold, Collapse&& collapse, const ReexpandOptions& opts) -> void
 {
@@ -420,66 +626,106 @@ auto reexpand_points(Manifold& manifold, Collapse&& collapse, const ReexpandOpti
         return InvalidVertexID;
     };
 
-    size_t failures = 0;
+    size_t expansion_failures = 0;
+    size_t bad_expansions = 0;
     size_t flips = 0;
+    int iteration = 0;
     for (const auto& collapse_iter : collapse.collapses | std::views::reverse) {
         for (auto single_collapse : collapse_iter | std::views::reverse) {
+            iteration++;
             // find the manifold_ids for the active vertex
+
             const auto active_pos = single_collapse.active_point_coords;
             const auto latent_pos = single_collapse.latent_point_coords;
             const auto v_bar = single_collapse.v_bar;
+            // FIXME: Debug info
+            if (opts.debug_mask & RE_ITERATION) {
+                std::cout << "--------------------------------\n";
+                std::cout << "@iteration: " << iteration << "\n";
+                std::cout << "active pos: " << active_pos << "\n";
+                std::cout << "latent pos: " << latent_pos << "\n";
+                std::cout << "combin pos: " << v_bar << "\n";
+                manifold.add_face({active_pos, latent_pos, v_bar});
+            }
+            if (opts.debug_mask & RE_FIRST_FLIP) {
+                std::cout << "First flip:\n";
+            }
+            // repair local geometry maybe
             const auto manifold_ids = position_to_manifold_iter(v_bar);
             for (const auto id : manifold_ids) {
                 manifold.positions[id] = active_pos;
+                shoot_ray_and_maybe_flip_edge(manifold, id, active_pos, latent_pos, opts);
             }
-            if (const auto new_vid = try_two_edge_expand(manifold_ids, latent_pos, active_pos); new_vid !=
-                InvalidVertexID) {
-                manifold.positions[new_vid] = latent_pos;
-                for (const auto id : manifold_ids) {
-                    point_to_manifold_ids.emplace(active_pos, id);
-                }
-                point_to_manifold_ids.emplace(latent_pos, new_vid);
-                point_to_manifold_ids.erase(v_bar);
 
-                // TODO: Look for edge flips
-                // Our primary problem was on the actual ring around the
+            // actually do the expansion
+            const auto new_vid = try_two_edge_expand(manifold_ids, latent_pos, active_pos);
+            if (new_vid == InvalidVertexID) {
+                expansion_failures++;
+                continue;
+            }
 
-                // for (edge: one_ring)
-                //   if ( dihedral angle is low AND minimum angle gain is positive AND flip is valid)
-                //       perform a flip
-                std::vector<HalfEdgeID> one_ring;
-                std::vector<HalfEdgeID> circle;
-                circulate_vertex_ccw(manifold, new_vid, [&](Walker& w) {
-                    HalfEdgeID one_ring_he = w.halfedge();
-                    one_ring.push_back(one_ring_he);
-                    HalfEdgeID circle_he = w.next().halfedge();
-                    circle.push_back(circle_he);
-                });
+
+            manifold.positions[new_vid] = latent_pos;
+            for (const auto id : manifold_ids) {
+                point_to_manifold_ids.emplace(active_pos, id);
+            }
+            point_to_manifold_ids.emplace(latent_pos, new_vid);
+            point_to_manifold_ids.erase(v_bar);
+
+            // for (edge: one_ring)
+            //   if ( dihedral angle is low AND minimum angle gain is positive AND flip is valid)
+            //       perform a flip
+            std::vector<HalfEdgeID> one_ring;
+            std::vector<HalfEdgeID> circle;
+            circulate_vertex_ccw(manifold, new_vid, [&](Walker& w) {
+                HalfEdgeID one_ring_he = w.halfedge();
+                one_ring.push_back(one_ring_he);
+                HalfEdgeID circle_he = w.next().halfedge();
+                circle.push_back(circle_he);
+            });
+
+            if (opts.debug_mask & RE_SECOND_FLIP) {
+                std::cout << "Second flip:\n";
+            }
+            shoot_ray_and_maybe_flip_edge(manifold, new_vid, latent_pos, v_bar ,opts);
+
+            auto v_new_max_angle = one_ring_max_angle(manifold, new_vid);
+            auto v_old_max_angle = one_ring_max_angle(manifold, manifold_ids.front());
+
+            if (v_new_max_angle > 1 || v_old_max_angle > 1) {
+                bad_expansions++;
+                if (opts.debug_mask & RE_ERRORS) {
+                    auto normal = manifold.normal(new_vid);
+                    manifold.add_face({active_pos, latent_pos, v_bar + (active_pos-latent_pos).length() * normal});
+                    std::cout << "v_new max angle: " << v_new_max_angle << "\n";
+                    std::cout << "v_old max angle: " << v_old_max_angle << "\n";
+                    std::cout << "failed at iteration " << iteration << "\n";
+                }
+                if (opts.early_stop_at_error && opts.stop_at_error == 0) {
+                    return;
+                }
+                if (opts.stop_at_error > 0 && opts.stop_at_error == bad_expansions) {
+                    return;
+                }
+            }
+
+            if (opts.brute_force_repair) {
                 for (HalfEdgeID h : one_ring) {
-                    flips += maybe_flip(manifold, h, 2.5);
+                    flips += maybe_flip(manifold, h, 0.50);
                 }
                 for (HalfEdgeID h : circle) {
-                    flips += maybe_flip(manifold, h, 2.5);
+                    flips += maybe_flip(manifold, h, 0.50);
                 }
-                for (HalfEdgeID h : one_ring) {
-                    flips += maybe_flip(manifold, h, 1.5);
-                }
-                for (HalfEdgeID h : circle) {
-                    flips += maybe_flip(manifold, h, 1.5);
-                }
-                for (HalfEdgeID h : one_ring) {
-                    flips += maybe_flip(manifold, h, 1.0);
-                }
-                for (HalfEdgeID h : circle) {
-                    flips += maybe_flip(manifold, h, 1.0);
-                }
-            } else {
-                failures++;
+            }
+
+            if (opts.stop_at_iteration > 0 && iteration == opts.stop_at_iteration) {
+                std::cout << "stopped early at " << iteration << "\n";
+                return;
             }
         }
     }
     std::cout << "flips: " << flips << "\n";
-    std::cerr << "failures: " << failures << "\n";
+    std::cerr << "failures: " << expansion_failures << "\n";
 }
 
 struct ExpansionChoice {
