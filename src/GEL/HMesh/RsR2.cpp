@@ -3,6 +3,7 @@
 #include <GEL/HMesh/RsR2.h>
 #include <GEL/Util/ParallelAdapters.h>
 #include <ranges> // std::views
+#include <algorithm>
 #include <GEL/Util/RangeTools.h>
 
 #include "GEL/Util/InplaceVector.h"
@@ -98,20 +99,19 @@ constexpr Vec3 calculate_ref_vec(const Vec3& normal)
 /// @return radian
 double cal_radians_3d(const Vec3& branch, const Vec3& normal, const Vec3& ref_vec)
 {
-    const Vec3 proj_vec = branch - dot(normal, branch) /
-        normal.length() * normal;
-    if (std::abs(proj_vec.length()) < 1e-8)
+    const Vec3 proj_vec = branch - dot(normal, branch) * normal;
+    const double proj_vec_len = proj_vec.length();
+    if (proj_vec_len < 1e-8)
         return 0.;
 
-    const Vec3 proj_ref = ref_vec - dot(normal, ref_vec) /
-        normal.length() * normal;
+    const Vec3 proj_ref = ref_vec - dot(normal, ref_vec) * normal;
     const auto value = std::clamp<double>(
-        dot(proj_vec, proj_ref) / proj_vec.length() /
-        proj_ref.length(), -1, 1);
+        dot(proj_vec, proj_ref) / proj_vec_len /
+        proj_ref.length(), -1.0, 1.0);
     // We clamped value to [-1,1], so radian cannot be NaN unless normal is 0
     double radian = std::acos(value);
-    if (dot(cross(proj_vec, proj_ref), normal) > 0)
-        radian = 2 * M_PI - radian;
+    if (dot(cross(proj_vec, proj_ref), normal) > 0.0)
+        radian = 2.0 * M_PI - radian;
     return radian;
 }
 
@@ -123,32 +123,6 @@ double cal_radians_3d(const Vec3& branch, const Vec3& normal)
 {
     const auto ref_vec = calculate_ref_vec(normal);
     return cal_radians_3d(branch, normal, ref_vec);
-}
-
-/// @brief neighbor search within a specific radius
-/// @param query: the coordinate of the point to be queried
-/// @param kd_tree: kd-tree for knn query
-/// @param dist: the radius of the search ball
-/// @param neighbors: [OUT] indices of k nearest neighbors
-void nn_search(const Point& query, const Tree& kd_tree,
-               const double dist, std::vector<NodeID>& neighbors)
-{
-    // TODO: this still performs two small allocations
-    std::vector<Point> neighbor_coords;
-    kd_tree.in_sphere(query, dist, neighbor_coords, neighbors);
-
-    std::vector<NeighborPair> paired;
-    auto i = 0UL;
-    for (const auto& neighbor_coord : neighbor_coords) {
-        const auto neighbor_dist = (neighbor_coord - query).length();
-        paired.emplace_back(neighbor_dist, neighbors[i]);
-        i++;
-    }
-
-    std::ranges::sort(paired, neighbor_comparator);
-    for (size_t idx = 0; idx < paired.size(); ++idx) {
-        neighbors[idx] = paired[idx].second;
-    }
 }
 
 /// @brief Calculate projection distance
@@ -230,7 +204,6 @@ SimpGraph init_graph(
 
         connection_lengths[id_this].pre_max_length = neighbors[static_cast<size_t>(double(k) * (2.0 / 3.0))].distance;
 
-        // FIXME: cross_conn_thresh needs to be captured
         filter_out_cross_connection(neighbors, normals, id_this, cross_connection_threshold,
                             is_euclidean);
 
@@ -487,13 +460,7 @@ RSGraph minimum_spanning_tree(
             return CGLA::sqr_length(vertices[m] - vertices[n]);
         },
         [&](RSGraph& graph, NodeID id1, NodeID id2) {
-            Vec3 edge = graph.m_vertices[id1].coords - graph.m_vertices[id2].coords;
-            const auto distance =
-                (is_euclidean)
-                    ? edge.length()
-                    : cal_proj_dist(edge, graph.m_vertices[id1].normal,
-                                    graph.m_vertices[id2].normal);
-            graph.add_edge(id1, id2, distance);
+            graph.add_edge(id1, id2);
         }
     );
     return gn;
@@ -671,7 +638,11 @@ bool is_intersecting(const RSGraph& mst, const NodeID v1, const NodeID v2, const
 /// @param candidate: the edge to be checked
 /// @param kd_tree: kd-tree for knn query
 /// @return if the candidate pass the check
-bool geometry_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_tree)
+bool geometry_check(
+    const RSGraph& mst,
+    const TEdge& candidate,
+    const Tree& kd_tree,
+    std::vector<std::pair<Point, NodeID>>& neighbors)
 {
     const NodeID& v1 = candidate.from;
     const NodeID& v2 = candidate.to;
@@ -682,30 +653,61 @@ bool geometry_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_t
 
     const Vec3 mean_normal = (n1 + n2) * 0.5;
 
-    const Point search_center = p1 + (p2 - p1) * 0.5;
+    const Point search_center = (p1 + p2) * 0.5;
     const double radius = (p2 - p1).length() * 0.5;
-    std::vector<NodeID> neighbors;
-    nn_search(search_center, kd_tree, radius * 3., neighbors);
-    UnorderedSet<NodeID> rejection_neighbor_set;
-    for (const auto neighbor : neighbors) {
-        if (neighbor != v1 &&
+
+    kd_tree.in_sphere(search_center, radius * 3.0, neighbors);
+
+    auto in_rejection_set = [&](NodeID neighbor) -> bool {
+        return
+            neighbor != v1 &&
             neighbor != v2 &&
-            CGLA::dot(mst.m_vertices[neighbor].normal, mean_normal) > std::cos(60. / 180. * M_PI)) {
-            rejection_neighbor_set.insert(neighbor);
-        }
-    }
-    for (const auto neighbor : rejection_neighbor_set) {
-        for (const auto& rej_neighbor_neighbor : mst.m_vertices[neighbor].ordered_neighbors) {
-            if (rejection_neighbor_set.contains(rej_neighbor_neighbor.v) &&
-                is_intersecting(mst, v1, v2, neighbor, rej_neighbor_neighbor.v)) {
-                return false;
+            CGLA::dot(mst.m_vertices[neighbor].normal, mean_normal) > 0.5; //std::cos(60. / 180. * M_PI);
+    };
+    for (const auto neighbor : neighbors
+         | std::views::values
+         | std::views::filter(in_rejection_set)) {
+
+        if (std::ranges::any_of(
+            mst.m_vertices[neighbor].ordered_neighbors |
+            std::views::transform([](auto&& x) { return x.v; }) |
+            std::views::filter(in_rejection_set), [&](const auto& rej_neighbor_neighbor) {
+                return is_intersecting(mst, v1, v2, neighbor, rej_neighbor_neighbor);
             }
-        }
+        )) return false;
     }
     return true;
 }
 
-bool vanilla_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_tree)
+bool geometry_check(
+    const RSGraph& mst,
+    const TEdge& candidate,
+    const Tree& kd_tree)
+{
+    std::vector<std::pair<Point, NodeID>> neighbors;
+    return geometry_check(mst, candidate, kd_tree, neighbors);
+}
+
+bool topology_check(const RSGraph& mst, const TEdge& candidate)
+{
+    const auto [this_v, neighbor] = candidate;
+
+    // Topology check
+    const auto this_v_tree = mst.predecessor(this_v, neighbor).tree_id;
+    const auto neighbor_tree = mst.predecessor(neighbor, this_v).tree_id;
+
+    if (!mst.etf.connected(this_v_tree, neighbor_tree)) {
+        return false;
+    } else {
+        return true;
+    }
+}
+
+bool vanilla_check(
+    const RSGraph& mst,
+    const TEdge& candidate,
+    const Tree& kd_tree,
+    std::vector<std::pair<Point, NodeID>>& neighbors)
 {
     const auto [this_v, neighbor] = candidate;
 
@@ -717,7 +719,7 @@ bool vanilla_check(const RSGraph& mst, const TEdge& candidate, const Tree& kd_tr
         return false;
     }
 
-    return geometry_check(mst, candidate, kd_tree);
+    return geometry_check(mst, candidate, kd_tree, neighbors);
 }
 
 bool routine_check(const RSGraph& mst, const FaceType& triangle)
@@ -752,7 +754,7 @@ bool routine_check(const RSGraph& mst, const FaceType& triangle)
 }
 
 void add_face(RSGraph& graph, const FaceType& item,
-              std::vector<FaceType>& faces)
+              std::vector<size_t>& faces)
 {
     const auto& v_i = item[0];
     const auto& v_u = item[1];
@@ -761,7 +763,9 @@ void add_face(RSGraph& graph, const FaceType& item,
     graph.increment_ref_time(v_i, v_w);
     graph.increment_ref_time(v_u, v_i);
     graph.increment_ref_time(v_w, v_u);
-    faces.push_back(item);
+    faces.push_back(v_i);
+    faces.push_back(v_u);
+    faces.push_back(v_w);
 }
 
 struct RegisterFaceResult {
@@ -937,14 +941,8 @@ void connect_handle(
                 isFind = true;
                 const auto candidate = TEdge(this_v, connected_neighbor);
                 if (geometry_check(mst, candidate, kd_tree)) {
-                    Vec3 edge = query - mst.m_vertices[connected_neighbor].coords;
-                    const auto distance =
-                        (isEuclidean)
-                            ? edge.length()
-                            : cal_proj_dist(edge, mst.m_vertices[this_v].normal,
-                                            mst.m_vertices[connected_neighbor].normal);
 
-                    mst.add_edge(this_v, connected_neighbor, distance);
+                    mst.add_edge(this_v, connected_neighbor);
                     connected_handle_root.push_back(this_v);
                     connected_handle_root.push_back(connected_neighbor);
 
@@ -1102,7 +1100,7 @@ bool check_validity(
 }
 
 void triangulate(
-    std::vector<FaceType>& faces,
+    std::vector<size_t>& faces,
     RSGraph& graph,
     const bool is_euclidean,
     const std::vector<ConnectionLength>& length_thresh,
@@ -1137,17 +1135,9 @@ void triangulate(
             const NodeID v_i = item.first[0];
             const NodeID v_u = item.first[1];
             const NodeID v_w = item.first[2];
-            const Point& pos_u = graph.m_vertices[v_u].coords;
-            const Point& pos_w = graph.m_vertices[v_w].coords;
-
-            Vec3 edge = pos_u - pos_w;
-            const auto distance =
-                (is_euclidean)
-                    ? edge.length()
-                    : cal_proj_dist(edge, graph.m_vertices[v_u].normal, graph.m_vertices[v_w].normal);
 
             if (graph.find_edge(v_u, v_w) == RSGraph::InvalidEdgeID) {
-                graph.add_edge(v_u, v_w, distance);
+                graph.add_edge(v_u, v_w);
                 add_face(graph, item.first, faces);
             } else {
                 continue;
@@ -1249,18 +1239,7 @@ void build_mst(
     }
 
     for (const auto& m_edge : temp.m_edges) {
-        const auto& source = m_edge.source;
-        const auto& target = m_edge.target;
-        const Vec3 edge = out_mst.m_vertices[source].coords -
-            out_mst.m_vertices[target].coords;
-
-        const double distance =
-            (is_euclidean)
-                ? edge.length()
-                : cal_proj_dist(edge, out_mst.m_vertices[source].normal,
-                                out_mst.m_vertices[target].normal);
-
-        out_mst.add_edge(source, target, distance);
+        out_mst.add_edge(m_edge.source, m_edge.target);
     }
 }
 
@@ -1471,6 +1450,68 @@ auto split_components(
     );
 }
 
+void export_edges(const RSGraph& g, const std::string& out_path) {
+    std::ofstream file(out_path);
+    // Write vertices
+    file << "# List of geometric vertices" << std::endl;
+    for (int i = 0; i < g.m_vertices.size(); i++) {
+        Point this_coords = g.m_vertices[i].coords;
+        file << "v " << std::to_string(this_coords[0])
+            << " " << std::to_string(this_coords[1])
+            << " " << std::to_string(this_coords[2]) << "\n";
+    }
+
+    // Write lines
+    file << std::endl;
+    file << "# Line element" << std::endl;
+    for (int i = 0; i < g.m_vertices.size(); i += 2)
+        file << "l " << i + 1
+        << " " << i + 2 << "\n";
+    //file.close();
+}
+
+void export_graph(const RSGraph& g, const std::string& out_path) {
+    std::ofstream file(out_path);
+    // Write vertices
+    file << "# List of geometric vertices\n";
+    for (int i = 0; i < g.m_vertices.size(); i++) {
+        Point this_coords = g.m_vertices[i].coords;
+        file << "v " << std::to_string(this_coords[0])
+            << " " << std::to_string(this_coords[1])
+            << " " << std::to_string(this_coords[2]) << "\n";
+    }
+
+    // Write lines
+    file << "\n# Line elements\n";
+    for (int i = 0; i < g.m_edges.size(); ++i) {
+        auto edge = g.m_edges[i];
+        file << "l " << (edge.source + 1) << " " << (edge.target + 1) << "\n";
+    }
+}
+
+bool vec3_eq_(const Vec3& lhs, const Vec3& rhs, double eps = 1e-4)
+{
+    return lhs.all_le(rhs + Vec3(eps)) && lhs.all_ge(rhs - Vec3(eps));
+}
+
+
+RSGraph from_simp_graph(const SimpGraph& graph, const std::vector<Point>& points)
+{
+    RSGraph copy;
+
+    for (auto id: graph.node_ids()) {
+        copy.add_node(points.at(id));
+    }
+    for (auto id: graph.node_ids()) {
+        for (auto neighbor: graph.neighbors_lazy(id)) {
+            if (id < neighbor) {
+                copy.add_edge(id, neighbor);
+            }
+        }
+    }
+    return copy;
+}
+
 auto component_to_manifold(
     Util::IExecutor& pool,
     const RsROpts& opts,
@@ -1479,7 +1520,7 @@ auto component_to_manifold(
     const std::vector<Point>& smoothed_v,
     const Tree& kd_tree,
     const NeighborMap& neighbor_map
-) -> ::HMesh::Manifold
+) -> Manifold
 {
     Util::RSRTimer inner_timer;
     // Insert the number_of_data_points in the tree
@@ -1494,12 +1535,16 @@ auto component_to_manifold(
     std::vector<ConnectionLength> connection_lengths(vertices.size(), ConnectionLength());
     {
         inner_timer.start("init_graph");
-        SimpGraph g = init_graph(smoothed_v, smoothed_v, normals, neighbor_map, connection_lengths, opts.k, opts.theta,
+        SimpGraph g = init_graph(vertices, smoothed_v, normals, neighbor_map, connection_lengths, opts.k, opts.theta,
                                  opts.dist == Distance::EUCLIDEAN);
         inner_timer.end("init_graph");
         // Generate MST
         inner_timer.start("build_mst");
+
+
         build_mst(g, 0, mst, normals, smoothed_v, opts.dist == Distance::EUCLIDEAN);
+        //export_graph(from_simp_graph(g, vertices), "all_connected.obj");
+        //export_graph(mst, "mst.obj");
         inner_timer.end("build_mst");
 
         // Edge arrays and sort
@@ -1530,19 +1575,20 @@ auto component_to_manifold(
     mst.etf.reserve(6 * vertices.size());
     init_face_loop_label(mst);
 
-    std::vector<FaceType> faces;
-    // Vanilla MST imp
-    // Edge connection
+    std::vector<size_t> flattened_face;
+    flattened_face.reserve(vertices.size() * 2 * 3); // A fairly reasonable heuristic
+
+    std::vector<std::pair<Point, NodeID>> neighbors;
     inner_timer.start("edge_connection");
      for (auto& [this_edge, edge_len] : edge_length) {
          if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
-             vanilla_check(mst, this_edge, kd_tree)) {
+             vanilla_check(mst, this_edge, kd_tree, neighbors)) {
              auto result = register_face(mst, this_edge.from, this_edge.to);
              if (result.has_value()) {
-                 mst.add_edge(this_edge.from, this_edge.to, edge_len);
+                 mst.add_edge(this_edge.from, this_edge.to);
                  mst.maintain_face_loop(this_edge.from, this_edge.to);
                  for (const auto& face : result->faces) {
-                     add_face(mst, face, faces);
+                     add_face(mst, face, flattened_face);
                  }
              }
          }
@@ -1554,21 +1600,13 @@ auto component_to_manifold(
     inner_timer.start("triangulation");
     if (opts.genus != 0) {
         std::vector<NodeID> connected_handle_root;
-        connect_handle(smoothed_v, kd_tree, mst, connected_handle_root, opts.k, opts.n,
-                       opts.dist == Distance::EUCLIDEAN, opts.genus);
-        triangulate(faces, mst, opts.dist == Distance::EUCLIDEAN, connection_lengths, connected_handle_root);
+        connect_handle(smoothed_v, kd_tree, mst, connected_handle_root, opts.k, opts.n,opts.dist == Distance::EUCLIDEAN, opts.genus);
+        triangulate(flattened_face, mst, opts.dist == Distance::EUCLIDEAN, connection_lengths, connected_handle_root);
     }
     inner_timer.end("triangulation");
 
     inner_timer.start("build_manifold");
     Manifold res;
-
-    std::vector<size_t> flattened_face;
-    for (auto& face : faces) {
-        flattened_face.push_back(face[0]);
-        flattened_face.push_back(face[1]);
-        flattened_face.push_back(face[2]);
-    }
 
     build_manifold(res, vertices, flattened_face, 3);
     inner_timer.end("build_manifold");
@@ -1583,13 +1621,15 @@ auto component_to_manifold(
 auto point_cloud_to_mesh_impl(
     std::vector<Point>&& vertices_copy,
     std::vector<Vec3>&& normals_copy,
-    std::vector<Vec3>&& in_smoothed_v,
+    std::vector<Vec3>&& in_smoothed_v_,
     const Tree& kd_tree,
     Util::RSRTimer& timer,
     ThreadPool& pool,
-    const RsROpts& opts) -> HMesh::Manifold
+    const RsROpts& opts) -> Manifold
 {
     Manifold output;
+
+    auto in_smoothed_v = estimate_normals_and_smooth(pool, vertices_copy, normals_copy, opts.dist);
 
     // Find components
     timer.start("Split components");
