@@ -65,15 +65,11 @@ struct RsROpts {
 struct Vertex {
     using NormalRep = std::int64_t;
 
-    NodeID id = 0;
     NormalRep normal_rep = InvalidNormalRep;
     Vec3 coords = Vec3(0., 0., 0.);
     Vec3 normal = Vec3(0., 0., 0.);
 
-    bool operator==(const Vertex& rhs) const { return id == rhs.id; }
-
     struct Neighbor {
-        using TreeID = uint;
         double angle;
         uint v;
         uint tree_id = 0;
@@ -99,7 +95,6 @@ struct Vertex {
 
     static constexpr NormalRep InvalidNormalRep = -1;
     static constexpr NormalRep CollisionRep = -2;
-    //friend class RSGraph;
 
     //detail::OrderedMap<Neighbor, Neighbor::TreeID> ordered_neighbors;
     detail::OrderedSet<Neighbor> ordered_neighbors;
@@ -248,7 +243,7 @@ public:
         return AMGraph::valence(n);
     }
 
-    EdgeID add_edge(const NodeID source, const NodeID target, const double weight = 0.0)
+    EdgeID add_edge(const NodeID source, const NodeID target)
     {
         const EdgeID id = this->connect_nodes(source, target);
         GEL_ASSERT_NEQ(id, AMGraph::InvalidEdgeID);
@@ -269,7 +264,7 @@ public:
     {
         const NodeID n = AMGraph::add_node();
         GEL_ASSERT_EQ(m_vertices.size(), n);
-        m_vertices.emplace_back(n, Vertex::InvalidNormalRep, p, in_normal);
+        m_vertices.emplace_back(Vertex::InvalidNormalRep, p, in_normal);
         //m_vertices[n] = Vertex{.id = n, .normal_rep = Vertex::InvalidNormalRep, .coords = p, .normal = in_normal };
         return n;
     }
