@@ -9,11 +9,10 @@
  * @brief KD Tree implementation based on a binary heap.
  */
 
-#ifndef __GEOMETRY_KDTREE_H
-#define __GEOMETRY_KDTREE_H
+#ifndef GEOMETRY_KDTREE_H
+#define GEOMETRY_KDTREE_H
 
 #include <cmath>
-#include <queue>
 #include <vector>
 #include <algorithm>
 #include <GEL/CGLA/CGLA-util.h>
@@ -24,8 +23,10 @@
 #pragma warning (disable: 4018)
 #endif
 
-namespace {
-
+namespace Geometry
+{
+namespace detail
+{
 
 /** NQueue is a simple adapter for priority_queue which makes it simple to create an n-element
  list of items of arbitrary class. There must be a comparison operator for T */
@@ -70,11 +71,8 @@ public:
     }
 };
 
-    
-}
+} // namespace detail
 
-namespace Geometry
-{
     template<class KeyT, class ValT>
     struct KDTreeRecord {
         using ScalarType = typename KeyT::ScalarType;
@@ -158,12 +156,12 @@ namespace Geometry
         void in_sphere_priv(unsigned n,
                             const KeyType& p,
                             const ScalarType& dist,
-                            std::vector<int>& records) const;
+                            std::vector<std::pair<KeyT, ValT>>& records) const;
         
         void m_closest_priv(unsigned n,
                             const KeyType& p,
                             ScalarType& max_dist,
-                            NQueue<KDTreeRecord<KeyT, ValT>>& nq) const;
+                            detail::NQueue<KDTreeRecord<KeyT, ValT>>& nq) const;
         
         /** Finds the optimal discriminator. There are more ways, but this
          function traverses the vector and finds out what dimension has
@@ -243,15 +241,36 @@ namespace Geometry
             if(nodes.size()>1)
             {
                 ScalarType max_sq_dist = CGLA::sqr(dist);
-                std::vector<int> records;
+                std::vector<std::pair<KeyT, ValT>> records;
                 in_sphere_priv(1,p,max_sq_dist,records);
                 size_t N = records.size();
                 keys.resize(N);
                 vals.resize(N);
                 for (unsigned i=0;i<N;++i) {
-                    keys[i] = nodes[records[i]].key;
-                    vals[i] = nodes[records[i]].val;
+                    keys[i] = records[i].first;
+                    vals[i] = records[i].second;
                 }
+                return N;
+            }
+            return 0;
+        }
+
+        /// Find all the elements within a given radius (second argument) of
+        /// the key (first argument). The key value pairs inside the sphere are
+        /// returned in a vector passed as the last argument.
+        /// Note that we don't resize the vector to zero - so either
+        /// it should be an empty vector or you should desire appending the newly
+        /// found elements to this vector.
+        unsigned in_sphere(const KeyType& p,
+              ScalarType dist,
+              std::vector<std::pair<KeyT, ValT>>& kvs) const
+        {
+            assert(is_built);
+            if(nodes.size()>1)
+            {
+                ScalarType max_sq_dist = CGLA::sqr(dist);
+                in_sphere_priv(1, p, max_sq_dist,kvs);
+                size_t N = kvs.size();
                 return N;
             }
             return 0;
@@ -267,7 +286,7 @@ namespace Geometry
             if(nodes.size()>1)
             {
                 ScalarType max_sq_dist = CGLA::sqr(dist);
-                NQueue<KDTreeRecord<KeyT, ValT>> nq(m);
+                detail::NQueue<KDTreeRecord<KeyT, ValT>> nq(m);
                 m_closest_priv(1, p, max_sq_dist, nq);
                 nq.to_vector(nv);
             }
@@ -391,12 +410,12 @@ namespace Geometry
     void KDTree<KeyT,ValT>::in_sphere_priv(unsigned n,
                                            const KeyType& p,
                                            const ScalarType& dist,
-                                           std::vector<int>& records) const
+                                           std::vector<std::pair<KeyT, ValT>>& records) const
     {
         ScalarType this_dist = nodes[n].dist(p);
         assert(n<nodes.size());
         if(this_dist<dist)
-            records.push_back(n);
+            records.push_back(std::make_pair(nodes[n].key, nodes[n].val));
         if(nodes[n].dsc != -1)
         {
             const short dsc = nodes[n].dsc;
@@ -423,7 +442,7 @@ namespace Geometry
     void KDTree<KeyT,ValT>::m_closest_priv(unsigned n,
                                            const KeyType& p,
                                            ScalarType& max_dist,
-                                           NQueue<KDTreeRecord<KeyT, ValT>>& nq) const
+                                           detail::NQueue<KDTreeRecord<KeyT, ValT>>& nq) const
     {
         ScalarType dist = nodes[n].dist(p);
         assert(n<nodes.size());
