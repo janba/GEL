@@ -12,9 +12,9 @@
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/Geometry/Graph.h>
 
-#include <span>
 #include <vector>
 #include <numbers>
+#include <variant>
 
 #include <GEL/Geometry/QEM.h>
 
@@ -44,37 +44,99 @@ struct CollapseOpts {
     size_t max_collapses = 0;
 };
 
+struct ReexpansionState {
+    struct EdgeFlip {
+        HalfEdgeID flipped;
+
+        void forward(Manifold& manifold) const
+        {
+            manifold.flip_edge(flipped);
+        }
+
+        void backward(Manifold& manifold) const
+        {
+            manifold.flip_edge(flipped);
+        }
+    };
+    struct Split {
+        HalfEdgeID h_in;
+        HalfEdgeID h_out;
+        Vec3 latent_pos;
+        Vec3 active_pos;
+        Vec3 v_bar;
+
+        void forward(Manifold& manifold) const
+        {
+            manifold.positions[manifold.walker(h_in).vertex()] = active_pos;
+            auto v_new = manifold.split_vertex(h_in, h_out);
+            manifold.positions[v_new] = latent_pos;
+        }
+
+        void backward(Manifold& manifold) const
+        {
+            auto v_old = manifold.walker(h_out).next().vertex();
+            auto h = manifold.walker(h_out).prev().opp().halfedge();
+            { // TODO: check this is valid
+                GEL_ASSERT_EQ(active_pos, manifold.positions[v_old]);
+                auto v_new = manifold.walker(h).opp().vertex();
+                GEL_ASSERT_EQ(latent_pos, manifold.positions[v_new]);
+            }
+
+            manifold.collapse_edge(h);
+            manifold.positions[v_old] = v_bar;
+        }
+    };
+
+    std::variant<EdgeFlip, Split> state;
+
+    void forward(Manifold& manifold) const
+    {
+        std::visit([&](auto& x){x.forward(manifold);}, state);
+    }
+
+    void backward(Manifold& manifold) const
+    {
+        std::visit([&](auto& x){x.backward(manifold);}, state);
+    }
+};
+
 enum DebugMask {
-    RE_NONE = 0b0000,
-    RE_ITERATION = 0b0001,
-    RE_SPLITS = 0b0010,
-    RE_SPLIT_RESULTS = 0b0100,
-    RE_ERRORS = 0b1000,
-    RE_FIRST_FLIP = 0b1'0000,
-    RE_SECOND_FLIP = 0b10'0000,
+    RE_NONE            = 0,
+    RE_ITERATION       = 1,
+    RE_SPLITS          = 1 << 1,
+    RE_SPLIT_RESULTS   = 1 << 2,
+    RE_ERRORS          = 1 << 3,
+    RE_FIRST_FLIP      = 1 << 4,
+    RE_SECOND_FLIP     = 1 << 5,
+    RE_MARK_SPLITS     = 1 << 6,
+    RE_MARK_BAD_SPLITS = 1 << 7,
 };
 
 struct ReexpandOptions {
     bool enabled = true;
+    // DEBUG OPTIONS
+
     bool debug_print = false;
-    bool brute_force_repair = false;
     bool early_stop_at_error = false;
     int debug_mask = RE_NONE;
     int stop_at_error = 0;
     size_t stop_at_iteration = 0;
+    double angle_stop_threshold = 1.25;
+    unsigned refinement_iterations = 1;
+
     double angle_factor = 1;
     double valency_factor = 0.25 * 0.0; // TODO
     /// minimum angle to allow a triangle
     double angle_threshold = std::numbers::pi / 180.0 * 3.0;
 
     double valency_min_threshold = 3.0;
-    // double boundary_valency_min_threshold = 4.0;
     double valency_max_threshold = 8.0;
-    // double boundary_valency_max_threshold = 8.0;
     // TODO: might be worth considering whether to treat boundaries differently
 
     double angle_threshold_penalty = 0.1;
     double valency_threshold_penalty = 0.1;
+
+    double refinement_angle_threshold = 22.5;
 };
 
 inline auto project_point_to_line(const Vec3& to_project, const Point& p1, const Point& p2) -> double
@@ -123,6 +185,7 @@ private:
         Point position;
         Vec3 normal;
         GEO::QEM qem;
+        double weight = 1;
     };
 
     struct Edge {
@@ -157,11 +220,10 @@ private:
     };
 
 public:
-
-
     Util::AttribVec<NodeID, Vertex> m_vertices;
+private:
     Util::BTreeSet<Edge> m_collapse_queue;
-    Util::HashMap<edge_t, double, edge_t_hash> m_distance_cache;
+    Util::AttribVec<EdgeID, double> m_edges;
 
 public:
     auto add_node(const Point& position, const Vec3& normal) -> NodeID
@@ -169,6 +231,7 @@ public:
         const NodeID n = AMGraph::add_node();
         const auto qem = Geometry::QEM(position, normal);
         m_vertices[n] = Vertex{.position = position, .normal = normal, .qem = qem};
+        auto& v = m_vertices[n];
         return n;
     }
 
@@ -176,9 +239,9 @@ public:
     {
         if (n1 > n0) {
             const EdgeID e = AMGraph::connect_nodes(n0, n1);
-            auto [_, dist] = quadratic_distance(n0, n1);
+            auto [_, dist] = quadratic_distance_fast(n0, n1);
             m_collapse_queue.emplace(n0, n1, dist);
-            m_distance_cache[edge_t {n0, n1}] = dist;
+            m_edges[e] = dist;
             return e;
         }
         return InvalidEdgeID;
@@ -194,7 +257,7 @@ public:
             auto active = edge.from;
             auto latent = edge.to;
 
-            if (AMGraph::find_edge(active, latent) != InvalidEdgeID) {
+            if (AMGraph::find_edge(active, latent)) {
 
                 const auto active_coords = m_vertices[active].position;
                 const auto latent_coords = m_vertices[latent].position;
@@ -206,14 +269,16 @@ public:
                 for (auto v : AMGraph::neighbors_lazy(active)) {
                     auto v0 = std::min(v, active);
                     auto v1 = std::max(v, active);
-                    auto dist = m_distance_cache[edge_t {v0, v1}];
+                    auto edge_id = find_edge(v0, v1);
+                    auto dist = m_edges[edge_id];
                     m_collapse_queue.extract(Edge{v0, v1, dist});
                 }
 
                 for (auto v : AMGraph::neighbors_lazy(latent)) {
                     auto v0 = std::min(v, latent);
                     auto v1 = std::max(v, latent);
-                    auto dist = m_distance_cache[edge_t {v0, v1}];
+                    auto edge_id = find_edge(v0, v1);
+                    auto dist = m_edges[edge_id];
                     m_collapse_queue.extract(Edge{v0, v1, dist});
                 }
 
@@ -223,6 +288,7 @@ public:
                 const auto new_normal = lerp(m_vertices[latent].normal, m_vertices[active].normal, projected);
                 m_vertices[active].position = v_bar;
                 m_vertices[active].normal = new_normal;
+                m_vertices[active].weight += m_vertices[latent].weight;
                 //m_vertices[active].normal = m_vertices[latent].normal;
                 m_vertices[active].qem += m_vertices[latent].qem;
                 m_vertices[latent].position = Point(std::numeric_limits<double>::signaling_NaN());
@@ -282,6 +348,28 @@ private:
             return CGLA::CGLA_NAN;
     }
 
+    // Like quadratic_distance, but without calculating optimal position
+    [[nodiscard]]
+    std::pair<CGLA::Vec3d, double> quadratic_distance_fast(const NodeID n0, const NodeID n1) const
+    {
+        GEL_ASSERT(valid_node_id(n0) && valid_node_id(n1));
+        if (valid_node_id(n0) && valid_node_id(n1)) {
+            const auto& v0 = m_vertices[n0];
+            const auto& v1 = m_vertices[n1];
+
+            const auto center = (v0.position + v1.position) * 0.5;
+            //const auto center = (v0.position * v0.weight + v1.position * v1.weight) / (v0.weight + v1.weight);
+            const auto radius = CGLA::length(v0.position - v1.position) * 0.5;
+            const auto error = (v0.qem + v1.qem).error(center);
+            //const double error = 1.0;
+
+            return std::make_pair(center, std::max(error, 1e-8)  * radius);
+            //return std::make_pair(center, std::max(error, 1e-8)  * radius * (v0.weight + v1.weight));
+        } else {
+            return std::make_pair(CGLA::Vec3d(), CGLA::CGLA_NAN);
+        }
+    }
+
     [[nodiscard]]
     std::pair<CGLA::Vec3d, double> quadratic_distance(const NodeID n0, const NodeID n1) const
     {
@@ -293,6 +381,7 @@ private:
             // We want to clamp the position to be in a sphere bounded by the two points
             // This will get rid of potential outliers
             const auto center = (v0.position + v1.position) * 0.5;
+            //const auto center = (v0.position * v0.weight + v1.position * v1.weight) / (v0.weight + v1.weight);
             const auto radius = CGLA::length(v0.position - v1.position) * 0.5;
 
             const auto opt_position = qem.opt_pos(0.5, center);
@@ -300,7 +389,9 @@ private:
             const auto clamped = center + CGLA::normalize(opt_direction) * std::clamp(
                 CGLA::length(opt_direction), 0.0, radius);
             const auto error = qem.error(clamped);
+            //const double error = 1.0;
             return std::make_pair(clamped, std::max(error, 1e-8)  * radius);
+            return std::make_pair(center, std::max(error, 1e-8)  * radius * (v0.weight + v1.weight));
         } else {
             return std::make_pair(CGLA::Vec3d(), CGLA::CGLA_NAN);
         }
