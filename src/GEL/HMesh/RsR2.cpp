@@ -656,6 +656,7 @@ bool geometry_check(
     const Point search_center = (p1 + p2) * 0.5;
     const double radius = (p2 - p1).length() * 0.5;
 
+    neighbors.clear();
     kd_tree.in_sphere(search_center, radius * 3.0, neighbors);
 
     auto in_rejection_set = [&](NodeID neighbor) -> bool {
