@@ -32,7 +32,6 @@ namespace Geometry
                 U[2] = cross(U[0],U[1]);
                 break;
             default:
-                // GEL_ASSERT(false, "Unreachable");
                 break;
         }
         
