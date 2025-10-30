@@ -43,8 +43,10 @@ struct PointCloud {
 struct CollapseOpts {
     size_t max_iterations = 1;
     double reduction_per_iteration = 0.5;
-    size_t initial_neighbors = 8;
+    size_t initial_neighbors = 5;
     size_t max_collapses = 0;
+    double eps = 1.0;
+    Distance distance = Distance::Euclidean;
 };
 
 struct ReexpansionState {
@@ -103,6 +105,23 @@ struct ReexpansionState {
     }
 };
 
+/// @brief Calculate projection distance
+/// @param edge: the edge to be considered
+/// @param this_normal: normal of one vertex
+/// @param neighbor_normal: normal of another vertex
+/// @return projection distance
+inline double tangent_space_distance(const Vec3& edge, const Vec3& this_normal, const Vec3& neighbor_normal)
+{
+    const double euclidean_distance = edge.length();
+    if (std::abs(dot(this_normal, neighbor_normal)) < std::cos(15. / 180. * M_PI))
+        return euclidean_distance;
+    const double neighbor_normal_length = dot(edge, neighbor_normal);
+    const double normal_length = dot(edge, this_normal);
+    const double projection_dist = (std::sqrt((euclidean_distance * euclidean_distance) - (normal_length * normal_length))
+    + std::sqrt((euclidean_distance * euclidean_distance) - (neighbor_normal_length * neighbor_normal_length))) * 0.5;
+    return projection_dist;
+}
+
 enum DebugMask {
     RE_NONE            = 0,
     RE_ITERATION       = 1,
@@ -128,17 +147,10 @@ struct ReexpandOptions {
     unsigned refinement_iterations = 1;
 
     double angle_factor = 1;
-    double valency_factor = 0.25 * 0.0; // TODO
     /// minimum angle to allow a triangle
     double angle_threshold = std::numbers::pi / 180.0 * 3.0;
 
-    double valency_min_threshold = 3.0;
-    double valency_max_threshold = 8.0;
-    // TODO: might be worth considering whether to treat boundaries differently
-
     double angle_threshold_penalty = 0.1;
-    double valency_threshold_penalty = 0.1;
-
     double refinement_angle_threshold = 22.5;
 };
 
@@ -182,7 +194,7 @@ struct SingleCollapse {
     Point v_bar;
 };
 struct QuadraticCollapseGraphAlt : AMGraph {
-
+    double eps = 1e-8;
 private:
     struct Vertex {
         Point position;
@@ -234,7 +246,6 @@ public:
         const NodeID n = AMGraph::add_node();
         const auto qem = Geometry::QEM(position, normal);
         m_vertices[n] = Vertex{.position = position, .normal = normal, .qem = qem};
-        auto& v = m_vertices[n];
         return n;
     }
 
@@ -242,7 +253,7 @@ public:
     {
         if (n1 > n0) {
             const EdgeID e = AMGraph::connect_nodes(n0, n1);
-            auto [_, dist] = quadratic_distance_fast(n0, n1);
+            auto [_, dist] = distance_function(n0, n1);
             m_collapse_queue.emplace(n0, n1, dist);
             m_edges[e] = dist;
             return e;
@@ -257,8 +268,8 @@ public:
             auto edge = *edge_;
             m_collapse_queue.erase(edge_);
             //collapses++;
-            auto active = edge.from;
-            auto latent = edge.to;
+            const auto active = edge.from;
+            const auto latent = edge.to;
 
             if (AMGraph::find_edge(active, latent)) {
 
@@ -285,28 +296,27 @@ public:
                     m_collapse_queue.extract(Edge{v0, v1, dist});
                 }
 
-                auto [v_bar, dist] = quadratic_distance(active, latent);
-                const auto projected =
-                    project_point_to_line(v_bar, m_vertices[latent].position, m_vertices[active].position);
-                const auto new_normal = lerp(m_vertices[latent].normal, m_vertices[active].normal, projected);
+                double total_weight = m_vertices[latent].weight + m_vertices[active].weight;
+                const auto new_normal =
+                    lerp(m_vertices[latent].normal, m_vertices[active].normal, m_vertices[active].weight / total_weight);
+                const auto v_bar =
+                    lerp(m_vertices[latent].position, m_vertices[active].position, m_vertices[active].weight / total_weight);
                 m_vertices[active].position = v_bar;
                 m_vertices[active].normal = new_normal;
                 m_vertices[active].weight += m_vertices[latent].weight;
                 //m_vertices[active].normal = m_vertices[latent].normal;
-                m_vertices[active].qem += m_vertices[latent].qem;
+                //m_vertices[active].qem += m_vertices[latent].qem;
                 m_vertices[latent].position = Point(std::numeric_limits<double>::signaling_NaN());
                 m_vertices[latent].normal = Vec3(std::numeric_limits<double>::signaling_NaN());
 
                 // recalculate current edges
                 for (auto v : AMGraph::neighbors_lazy(active)) {
-                    auto v0 = std::min(v, active);
-                    auto v1 = std::max(v, active);
+                    auto [v0, v1] = std::minmax(v, active);
                     connect_nodes(v0, v1);
                 }
 
                 for (auto v : AMGraph::neighbors_lazy(latent)) {
-                    auto v0 = std::min(v, active);
-                    auto v1 = std::max(v, active);
+                    auto [v0, v1] = std::minmax(v, active);
                     connect_nodes(v0, v1);
                 }
                 AMGraph::erase_node(latent);
@@ -341,200 +351,22 @@ public:
     }
 
 private:
-    /// Compute sqr distance between two nodes - not necessarily connected.
-    [[nodiscard]]
-    double sqr_dist(const NodeID n0, const NodeID n1) const
-    {
-        if (valid_node_id(n0) && valid_node_id(n1))
-            return CGLA::sqr_length(m_vertices[n0].position - m_vertices[n1].position);
-        else
-            return CGLA::CGLA_NAN;
-    }
 
-    // Like quadratic_distance, but without calculating optimal position
     [[nodiscard]]
-    std::pair<CGLA::Vec3d, double> quadratic_distance_fast(const NodeID n0, const NodeID n1) const
+    std::pair<CGLA::Vec3d, double> distance_function(const NodeID n0, const NodeID n1) const
     {
         GEL_ASSERT(valid_node_id(n0) && valid_node_id(n1));
         if (valid_node_id(n0) && valid_node_id(n1)) {
             const auto& v0 = m_vertices[n0];
             const auto& v1 = m_vertices[n1];
 
-            const auto center = (v0.position + v1.position) * 0.5;
-            //const auto center = (v0.position * v0.weight + v1.position * v1.weight) / (v0.weight + v1.weight);
-            const auto radius = CGLA::length(v0.position - v1.position) * 0.5;
-            const auto error = (v0.qem + v1.qem).error(center);
-            //const double error = 1.0;
+            const auto total_weight = v0.weight + v1.weight;
+            const auto center = lerp(v0.position, v1.position, v0.weight / total_weight);
+            const auto tangent_distance =
+                tangent_space_distance(v0.position - v1.position, v0.normal, v1.normal);
 
-            return std::make_pair(center, std::max(error, 1e-8)  * radius);
-            //return std::make_pair(center, std::max(error, 1e-8)  * radius * (v0.weight + v1.weight));
-        } else {
-            return std::make_pair(CGLA::Vec3d(), CGLA::CGLA_NAN);
-        }
-    }
-
-    [[nodiscard]]
-    std::pair<CGLA::Vec3d, double> quadratic_distance(const NodeID n0, const NodeID n1) const
-    {
-        GEL_ASSERT(valid_node_id(n0) && valid_node_id(n1));
-        if (valid_node_id(n0) && valid_node_id(n1)) {
-            const auto& v0 = m_vertices[n0];
-            const auto& v1 = m_vertices[n1];
-            const auto qem = v0.qem + v1.qem;
-            // We want to clamp the position to be in a sphere bounded by the two points
-            // This will get rid of potential outliers
-            const auto center = (v0.position + v1.position) * 0.5;
-            //const auto center = (v0.position * v0.weight + v1.position * v1.weight) / (v0.weight + v1.weight);
-            const auto radius = CGLA::length(v0.position - v1.position) * 0.5;
-
-            const auto opt_position = qem.opt_pos(0.5, center);
-            const auto opt_direction = opt_position - center;
-            const auto clamped = center + CGLA::normalize(opt_direction) * std::clamp(
-                CGLA::length(opt_direction), 0.0, radius);
-            const auto error = qem.error(clamped);
-            //const double error = 1.0;
-            return std::make_pair(clamped, std::max(error, 1e-8)  * radius);
-            return std::make_pair(center, std::max(error, 1e-8)  * radius * (v0.weight + v1.weight));
-        } else {
-            return std::make_pair(CGLA::Vec3d(), CGLA::CGLA_NAN);
-        }
-    }
-};
-
-struct QuadraticCollapseGraph : AMGraph {
-
-private:
-    struct Vertex {
-        Point position;
-        Vec3 normal;
-        GEO::QEM qem;
-    };
-
-    struct Edge {
-        NodeID n0;
-        NodeID n1;
-    };
-
-public:
-    Util::AttribVec<EdgeID, Edge> m_edges;
-    Util::AttribVec<NodeID, Vertex> m_vertices;
-    Util::MutablePriorityQueue<EdgeID, double, std::hash<EdgeID>, std::equal_to<>, std::less<>> m_collapse_queue;
-
-public:
-    auto add_node(const Point& position, const Vec3& normal) -> NodeID
-    {
-        const NodeID n = AMGraph::add_node();
-        const auto qem = Geometry::QEM(position, normal);
-        m_vertices[n] = Vertex{.position = position, .normal = normal, .qem = qem};
-        return n;
-    }
-
-    auto connect_nodes(const NodeID n0, const NodeID n1) -> EdgeID
-    {
-        const EdgeID e = AMGraph::connect_nodes(n0, n1);
-        m_edges[e] = Edge{.n0 = n0, .n1 = n1};
-        auto [_, dist] = quadratic_distance(n0, n1);
-        std::array elem = {std::make_pair(e, dist)};
-        m_collapse_queue.insert_range(elem);
-
-        return e;
-    }
-
-    auto merge_nodes(const NodeID latent, const NodeID active, const Point& position) -> NodeID
-    {
-        GEL_ASSERT_NEQ(latent, active);
-        GEL_ASSERT_NEQ(AMGraph::find_edge(latent, active), InvalidEdgeID);
-
-        const auto projected =
-            project_point_to_line(position, m_vertices[latent].position, m_vertices[active].position);
-        const auto new_normal = lerp(m_vertices[latent].normal, m_vertices[active].normal, projected);
-        m_vertices[active].position = position;
-        m_vertices[active].normal = new_normal;
-        //m_vertices[active].normal = m_vertices[latent].normal;
-        m_vertices[active].qem += m_vertices[latent].qem;
-        m_vertices[latent].position = Point(std::numeric_limits<double>::signaling_NaN());
-        m_vertices[latent].normal = Vec3(std::numeric_limits<double>::signaling_NaN());
-
-        const auto edges_latent = AMGraph::edges(latent) | std::views::values;
-        const auto edges_active = AMGraph::edges(active) | std::views::values;
-        // clear up old ranges
-        m_collapse_queue.remove_range(edges_latent);
-        m_collapse_queue.remove_range(edges_active);
-
-        for (const auto n : neighbors_lazy(latent)) {
-            edge_map[n].erase(latent);
-            if (n != active && n != latent)
-                // reconnections handle the new insertions
-                connect_nodes(n, active);
-        }
-        for (const auto n : neighbors_lazy(active)) {
-            connect_nodes(n, active);
-        }
-        edge_map[latent].clear();
-        return active;
-    }
-
-    auto collapse_one() -> RawCollapse
-    {
-        const auto [edge, _] = m_collapse_queue.pop_front();
-
-        const auto active = m_edges[edge].n0;
-        const auto latent = m_edges[edge].n1;
-        const auto active_coordinate = m_vertices[active].position;
-        const auto latent_coordinate = m_vertices[latent].position;
-
-        const auto v_bar = quadratic_distance(active, latent).first;
-        merge_nodes(latent, active, v_bar);
-
-        return { active, latent, active_coordinate, latent_coordinate, v_bar};
-    }
-
-    /// Return the remaining points
-    auto to_point_cloud() -> PointCloud
-    {
-        std::vector<Point> points;
-        std::vector<Vec3> normals;
-        std::vector<NodeID> indices;
-        for (auto i = 0UL; i < m_vertices.size(); ++i) {
-            if (!m_vertices[i].position.any([](const double e) { return std::isnan(e); })) {
-                points.emplace_back(m_vertices[i].position);
-                normals.emplace_back(m_vertices[i].normal);
-                indices.emplace_back(i);
-            }
-        }
-        return PointCloud{std::move(points), std::move(normals), std::move(indices)};
-    }
-
-private:
-    /// Compute sqr distance between two nodes - not necessarily connected.
-    [[nodiscard]]
-    double sqr_dist(const NodeID n0, const NodeID n1) const
-    {
-        if (valid_node_id(n0) && valid_node_id(n1))
-            return CGLA::sqr_length(m_vertices[n0].position - m_vertices[n1].position);
-        else
-            return CGLA::CGLA_NAN;
-    }
-
-    [[nodiscard]]
-    std::pair<CGLA::Vec3d, double> quadratic_distance(const NodeID n0, const NodeID n1) const
-    {
-        GEL_ASSERT(valid_node_id(n0) && valid_node_id(n1));
-        if (valid_node_id(n0) && valid_node_id(n1)) {
-            const auto& v0 = m_vertices[n0];
-            const auto& v1 = m_vertices[n1];
-            const auto qem = v0.qem + v1.qem;
-            // We want to clamp the position to be in a sphere bounded by the two points
-            // This will get rid of potential outliers
-            const auto center = (v0.position + v1.position) * 0.5;
-            const auto radius = CGLA::length(v0.position - v1.position) * 0.5;
-
-            const auto opt_position = qem.opt_pos(0.5, center);
-            const auto opt_direction = opt_position - center;
-            const auto clamped = center + CGLA::normalize(opt_direction + Vec3(DBL_EPSILON)) * std::clamp(
-                CGLA::length(opt_direction), 0.0, radius);
-            const auto error = qem.error(clamped);
-             return std::make_pair(clamped, radius * std::max(error, 1e-8));
+            //const auto error = qem.error(clamped);
+            return std::make_pair(center, tangent_distance * total_weight);
         } else {
             return std::make_pair(CGLA::Vec3d(), CGLA::CGLA_NAN);
         }
@@ -556,10 +388,7 @@ using Record = Geometry::KDTreeRecord<Point, NodeID>;
 
 struct NeighborInfo {
     NodeID id;
-    double distance; // the added precision doesn't justify the usage of doubles
-
-    static constexpr NodeID invalid_id = -1;
-    //NeighborInfo() = default;
+    double distance;
 
     explicit NeighborInfo(const Record& record) noexcept : id(record.v), distance(std::sqrt(record.d))
     {}
@@ -589,7 +418,7 @@ Tree build_kd_tree_of_indices(const std::vector<Point>& vertices, const Indices&
 inline void knn_search(const Point& query, const Tree& kdTree, const int num, NeighborArray& neighbors)
 {
     // It might be a better idea for the caller to handle this to reduce some clutter
-    std::vector<Record> records = kdTree.m_closest(num + 1, query, INFINITY);
+    std::vector<Record> records = kdTree.m_closest(num, query, INFINITY);
     std::sort_heap(records.begin(), records.end());
 
     for (auto record : records) {
