@@ -5,7 +5,6 @@
 #include <vector>
 
 #include <GEL/Util/AssociativeContainers.h>
-#include <GEL/Util/SparseGraph.h>
 
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/etf.h>
@@ -43,11 +42,6 @@ namespace detail
 double cal_radians_3d(const Vec3& branch, const Vec3& normal);
 double cal_radians_3d(const Vec3& branch, const Vec3& normal, const Vec3& ref_vec);
 
-enum struct Distance {
-    EUCLIDEAN,
-    NEIGHBORS
-};
-
 /// TODO: documentation
 struct RsROpts {
     int32_t genus = -1;
@@ -55,7 +49,7 @@ struct RsROpts {
     double r = 20;
     double theta = 60;
     int32_t n = 50;
-    Distance dist = Distance::NEIGHBORS;
+    Distance dist = Distance::Euclidean;
 
     bool is_face_normal = true;
     bool is_face_loop = true;
@@ -69,45 +63,49 @@ struct Vertex {
     Vec3 coords = Vec3(0., 0., 0.);
     Vec3 normal = Vec3(0., 0., 0.);
 
-    struct Neighbor {
-        double angle;
-        uint v;
-        uint tree_id = 0;
-
-        Neighbor(const Vertex& u, const Vertex& v, const uint id)
-        {
-            this->v = id;
-            this->angle = cal_radians_3d(v.coords - u.coords, u.normal);
-        }
-
-        friend size_t hash_value(const Neighbor& p)
-        {
-            return std::hash<uint>()(p.v);
-        }
-
-        std::weak_ordering operator<=>(const Neighbor& rhs) const
-        {
-            if (this->v == rhs.v) return std::weak_ordering::equivalent;
-            if (this->angle < rhs.angle) return std::weak_ordering::less;
-            else return std::weak_ordering::greater;
-        }
-    };
-
     static constexpr NormalRep InvalidNormalRep = -1;
     static constexpr NormalRep CollisionRep = -2;
-
-    //detail::OrderedMap<Neighbor, Neighbor::TreeID> ordered_neighbors;
-    detail::OrderedSet<Neighbor> ordered_neighbors;
 };
 
+struct Neighbor {
+    double angle = 0.0;
+    uint v = -1;
+    uint tree_id = 0;
+
+    Neighbor(const Vertex& u, const Vertex& v, const uint id)
+    {
+        this->v = id;
+        this->angle = cal_radians_3d(v.coords - u.coords, u.normal);
+    }
+
+    // friend size_t hash_value(const Neighbor& p)
+    // {
+    //     return std::hash<uint>()(p.v);
+    // }
+    bool operator==(const Neighbor& rhs) const
+    {
+        return v == rhs.v;
+    }
+
+    bool operator<(const Neighbor& rhs) const
+    {
+        return angle < rhs.angle;
+    }
+
+    // std::weak_ordering operator<=>(const Neighbor& rhs) const
+    // {
+    //     if (this->v == rhs.v) return std::weak_ordering::equivalent;
+    //     if (this->angle < rhs.angle) return std::weak_ordering::less;
+    //     else return std::weak_ordering::greater;
+    // }
+};
+static_assert(std::is_trivially_destructible_v<Neighbor>);
 
 struct Edge {
     NodeID source = InvalidNodeID;
     NodeID target = InvalidNodeID;
     int ref_time = 0;
 };
-
-using Neighbor = Vertex::Neighbor;
 
 class SimpGraph /*: public Util::SparseGraph<double>*/ {
     AMGraph graph;
@@ -153,7 +151,7 @@ public:
 
     /// Disconnect nodes. This operation removes the edge from the edge maps of the two formerly connected
     /// vertices, but the number of edges reported by the super class AMGraph is not decremented, so the edge is only
-    /// invalidated. Call cleanup to finalize removal. */
+    /// invalidated. Call cleanup to finalize removal.
     void disconnect_nodes(const NodeID n0, const NodeID n1)
     {
         //return graph.remove_edge(n0, n1);
@@ -212,6 +210,7 @@ public:
 
     Geometry::ETF etf;
     std::vector<Vertex> m_vertices;
+    std::vector<detail::OrderedSet<Neighbor>> m_neighbors;
     std::vector<Edge> m_edges;
 
     void reserve(size_t nodes, int k)
@@ -253,8 +252,8 @@ public:
             m_edges[id] = Edge {.source = source, .target = target};
 
         // insert neighbors
-        m_vertices[source].ordered_neighbors.emplace(Neighbor(m_vertices[source], m_vertices[target], target));
-        m_vertices[target].ordered_neighbors.emplace(Neighbor(m_vertices[target], m_vertices[source], source));
+        m_neighbors[source].emplace(Neighbor(m_vertices[source], m_vertices[target], target));
+        m_neighbors[target].emplace(Neighbor(m_vertices[target], m_vertices[source], source));
 
         //return { source, target };
         return id;
@@ -265,6 +264,7 @@ public:
         const NodeID n = AMGraph::add_node();
         GEL_ASSERT_EQ(m_vertices.size(), n);
         m_vertices.emplace_back(Vertex::InvalidNormalRep, p, in_normal);
+        m_neighbors.emplace_back();
         //m_vertices[n] = Vertex{.id = n, .normal_rep = Vertex::InvalidNormalRep, .coords = p, .normal = in_normal };
         return n;
     }
@@ -299,10 +299,10 @@ public:
         GEL_ASSERT(m_vertices.size() > branch);
         auto& u = m_vertices.at(root);
         auto& v = m_vertices.at(branch);
-        GEL_ASSERT(!u.ordered_neighbors.empty()); // we need at least one neighbor to return
+        GEL_ASSERT(!m_neighbors[root].empty()); // we need at least one neighbor to return
         Neighbor temp = {u, v, static_cast<uint>(branch)};
-        auto iter = u.ordered_neighbors.lower_bound(temp);
-        if (iter == u.ordered_neighbors.begin()) iter = u.ordered_neighbors.end(); // Wrap around
+        auto iter = m_neighbors[root].lower_bound(temp);
+        if (iter == m_neighbors[root].begin()) iter = m_neighbors[root].end(); // Wrap around
         //auto& f = iter->first;
         //auto& s = iter->second;
         //return {f, s};
@@ -321,9 +321,9 @@ public:
     {
         auto& u = m_vertices.at(root);
         auto& v = m_vertices.at(branch);
-        GEL_ASSERT(!u.ordered_neighbors.empty()); // we need at least one neighbor to return
-        auto iter = u.ordered_neighbors.upper_bound(Neighbor(u, v, branch));
-        if (iter == u.ordered_neighbors.end()) iter = u.ordered_neighbors.begin(); // Wrap around
+        GEL_ASSERT(!m_neighbors[root].empty()); // we need at least one neighbor to return
+        auto iter = m_neighbors[root].upper_bound(Neighbor(u, v, branch));
+        if (iter == m_neighbors[root].end()) iter = m_neighbors[root].begin(); // Wrap around
         //auto& f = iter->first;
         //auto& s = iter->second;
         //return {f, s};
@@ -341,7 +341,7 @@ private:
     {
         auto& u = this->m_vertices.at(root);
         auto& v = this->m_vertices.at(branch);
-        auto iter = u.ordered_neighbors.lower_bound({u, v, static_cast<uint>(branch)});
+        auto iter = m_neighbors[root].lower_bound({u, v, static_cast<uint>(branch)});
         // TODO: tree_id does not invalidate ordered_neighbors, but it still has thread safety issues
         //auto& f = iter->first;
         //auto& s = iter->second;
