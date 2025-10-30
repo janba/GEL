@@ -29,7 +29,10 @@ using NodeID = size_t;
 using Geometry::AMGraph;
 using Geometry::AMGraph3D;
 
-//static constexpr bool DEBUG_PRINT = false;
+enum class Distance {
+    Euclidean,
+    Tangent,
+};
 
 struct PointCloud {
     std::vector<Point> points;
