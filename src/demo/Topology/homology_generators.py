@@ -223,7 +223,7 @@ if __name__ == "__main__":
     # way of finding the genus in addition to a way of cutting the surface.
     # Display the cut curves
     viewer = gl.Viewer()
-    viewer.display(m)
+    viewer.display(m, bg_col=(1,1,1))
 
     # We need to find a starting point for the MST. We can let the user do
     # this by clicking on a vertex. We use a KDTree to find the closest vertex
@@ -247,9 +247,9 @@ if __name__ == "__main__":
     for i in inst:
         loop = form_loop(m,htag,i)
         loops.append(loop)
-        viewer.display(m, loop_to_graph(m, loop), mode="g", smooth=False)
+        viewer.display(m, loop_to_graph(m, loop), mode="x", bg_col=(1,1,1), smooth=False)
 
     m_cut = cut_mesh(m, loops)
     hmesh.save(f"{argv[1].split('.')[0]}_cut.obj", m_cut)
     hmesh.laplacian_smooth(m_cut, 0.5, 1)
-    viewer.display(m_cut, smooth=True, mode='g')
+    viewer.display(m_cut, smooth=True, mode='x', bg_col=(1,1,1))

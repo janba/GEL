@@ -125,7 +125,6 @@ extern "C" {
     DLLEXPORT void kill_degenerate_face_loops(Manifold_ptr _m_ptr, double thresh);
 
     DLLEXPORT void stable_marriage_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
-
     
     DLLEXPORT MeshVec_ptr connected_components(Manifold_ptr _m_ptr);
 
@@ -136,6 +135,8 @@ extern "C" {
     DLLEXPORT void mesh_vec_del(MeshVec_ptr _mv_ptr);
 
     DLLEXPORT int count_boundary_curves(Manifold_ptr _m_ptr);
+
+    DLLEXPORT void sphere_delaunay(Manifold_ptr m_ptr, double* points, int num_points);
 
 #ifdef __cplusplus
 }

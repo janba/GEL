@@ -254,6 +254,8 @@ lib_py_gel.mesh_vec_get.restype = ct.c_void_p
 lib_py_gel.mesh_vec_del.argtypes = (ct.c_void_p,)
 lib_py_gel.count_boundary_curves.argtypes = (ct.c_void_p,)
 lib_py_gel.count_boundary_curves.restype = ct.c_int
+lib_py_gel.sphere_delaunay.argtypes = (ct.c_void_p, ndpointer(dtype=ct.c_double, flags='C'), ct.c_int)
+lib_py_gel.sphere_delaunay.restype = ct.c_void_p
 
 # MeshDistance allows us to compute the signed distance to a mesh
 lib_py_gel.MeshDistance_new.restype = ct.c_void_p

@@ -15,6 +15,7 @@
 #include <GEL/Geometry/graph_skeletonize.h>
 #include <GEL/Geometry/graph_util.h>
 #include <GEL/Geometry/GridAlgorithm.h>
+#include <GEL/Geometry/SphereDelaunay.h>
 #include <GEL/HMesh/RsR.h>
 #include "Graph.h"
 #include "Manifold.h"
@@ -323,4 +324,23 @@ int count_boundary_curves(Manifold_ptr _m_ptr) {
     Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
     return count_boundary_curves(*m_ptr);
 }
+
+void sphere_delaunay(Manifold_ptr _m_ptr, double* points, int num_points) {
+    Manifold* m_ptr = reinterpret_cast<Manifold*>(_m_ptr);
+    vector<Vec3d> pts;
+    for (int i=0;i<num_points;++i) {
+        double* p = &points[3*i];
+        pts.push_back(Vec3d(p[0], p[1], p[2]));
+    }
+    auto tri = SphereDelaunay(pts);
+    vector<int> verts_per_face(tri.size(), 3);
+    vector<size_t> indices;
+    for (const auto& t : tri) {
+        indices.push_back(t[0]);
+        indices.push_back(t[1]);
+        indices.push_back(t[2]);
+    }
+    build_manifold(*m_ptr, pts, indices, verts_per_face);
+}
+
 

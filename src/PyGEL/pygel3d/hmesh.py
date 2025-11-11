@@ -1028,3 +1028,12 @@ def analyze_topology(m: Manifold):
         g = -(V - E + F - 2 + b)//2 # Genus calculation
         output.append({'m': comp, 'V': V, 'E': E, 'F': F, 'b': b, 'g': g})
     return output
+
+def sphere_delaunay(pts):
+    """ Given a set of points on the unit sphere, compute the spherical Delaunay triangulation
+    and return it as a Manifold mesh. The points should be given as an array-like of shape (N,3). """
+    m = Manifold()
+    pts_data = np.asarray(pts, dtype=ct.c_double, order='C')
+    n_pts = pts_data.shape[0]
+    lib_py_gel.sphere_delaunay(m.obj, pts_data, n_pts)
+    return m
