@@ -17,19 +17,19 @@ __all__ = [
     'taubin_smooth', 'laplacian_smooth', 'anisotropic_smooth', 'volumetric_isocontour', 'triangulate',
     'extrude_faces', 'kill_face_loop', 'kill_degenerate_face_loops', 'graph_to_feq', 'skeleton_to_feq',
     'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_recon', 'connected_components',
-    'count_boundary_curves', 'analyze_topology'
+    'count_boundary_curves', 'analyze_topology', 'sphere_delaunay'
 ]
 
 import ctypes as ct
 import numpy as np
 from numpy import ndarray
+from numpy.typing import ArrayLike
+from typing import List, Dict, Any, Self
 from pygel3d import lib_py_gel, IntVector
 from pygel3d.graph import Graph
 from scipy.sparse import csc_matrix, vstack
 from scipy.sparse.linalg import lsqr
 from scipy.spatial import KDTree
-
-
 
 class Manifold:
     """ The Manifold class represents a halfedge based mesh. It is maybe a bit grand to call
@@ -43,7 +43,7 @@ class Manifold:
     mesh element. Using a plain integer to identify a mesh entity means that, for instance, a
     vertex index can also be used as an index into, say, a NumPy array without any conversion.
     """
-    def __init__(self,orig=None):
+    def __init__(self, orig: Self | ct.c_void_p | None = None):
         """ Construct a Manifold object. If orig is None, a new empty Manifold is created. If
         orig is a Manifold, a copy of it is created. If orig is a c_void_p, it is assumed to be
         a pointer to a Manifold object created in C++. In this case, the object is not copied,
@@ -59,7 +59,7 @@ class Manifold:
             raise TypeError("Manifold constructor takes either a Manifold or a c_void_p as argument, not %s" % type(orig))  
         
     @classmethod
-    def from_triangles(cls,vertices, faces):
+    def from_triangles(cls, vertices: ArrayLike, faces: ArrayLike) -> Self:
         """ Given a list of vertices and triangles (faces), this function produces
         a Manifold mesh."""
         m = cls()
@@ -68,7 +68,7 @@ class Manifold:
         m.obj = lib_py_gel.Manifold_from_triangles(len(vertices),len(faces),vertices,faces)
         return m
     @classmethod
-    def from_points(cls,pts,xaxis=np.array([1,0,0]),yaxis=np.array([0,1,0])):
+    def from_points(cls, pts: ArrayLike, xaxis: ArrayLike = np.array([1,0,0]), yaxis: ArrayLike = np.array([0,1,0])) -> Self:
         """ This function computes the Delaunay triangulation of pts. You need
         to specify xaxis and yaxis if they are not canonical. The function returns
         a Manifold with the resulting triangles. Clearly, this function will
@@ -76,65 +76,73 @@ class Manifold:
         well represented as a 2.5D surface, aka a height field. """
         m = cls()
         pts = np.asarray(pts,dtype=np.float64, order='C')
+        if pts.size % 3 != 0:
+            raise ValueError("from_points: pts must be a flat array with length a multiple of 3")
         xaxis = np.asarray(xaxis,dtype=np.float64, order='C')
+        if xaxis.size != 3:
+            raise ValueError("from_points: xaxis must be a 3D vector")
         yaxis = np.asarray(yaxis,dtype=np.float64, order='C')
+        if yaxis.size != 3:
+            raise ValueError("from_points: yaxis must be a 3D vector")
         m.obj = lib_py_gel.Manifold_from_points(len(pts), pts, xaxis, yaxis)
         return m
     def __del__(self):
         lib_py_gel.Manifold_delete(self.obj)
-    def merge_with(self, other):
+    def merge_with(self, other: Self):
         """ Merge this Manifold with another one given as the argument. This function
         does not return anything. It simply combines the two meshes in the Manifold on which
         the method is called. """
         lib_py_gel.Manifold_merge(self.obj, other.obj)
-    def add_face(self,pts):
+    def add_face(self, pts: ArrayLike) -> int:
         """ Add a face to the Manifold.
         This function takes a list of 3D points, pts, as argument and creates a face
         in the mesh with those points as vertices. The function returns the index
         of the created face.
         """
         pts = np.asarray(pts,dtype=np.float64, order='C')
+        if pts.size % 3 != 0:
+            raise ValueError("add_face: pts must be a flat array with length a multiple of 3")
         return lib_py_gel.Manifold_add_face(self.obj, len(pts), pts)
-    def positions(self):
+    def positions(self) -> ndarray:
         """ Retrieve an array containing the vertex positions of the Manifold.
         It is not a copy: any changes are made to the actual vertex positions. """
         pos = ct.POINTER(ct.c_double)()
         n = lib_py_gel.Manifold_positions(self.obj, ct.byref(pos))
         return np.ctypeslib.as_array(pos,(n,3))
-    def no_allocated_vertices(self):
+    def no_allocated_vertices(self) -> int:
         """ Number of vertices.
         This number could be higher than the number of actually
         used vertices, but corresponds to the size of the array allocated
         for vertices."""
         return lib_py_gel.Manifold_no_allocated_vertices(self.obj)
-    def no_allocated_faces(self):
+    def no_allocated_faces(self) -> int:
         """ Number of faces.
         This number could be higher than the number of actually
         used faces, but corresponds to the size of the array allocated
         for faces."""
         return lib_py_gel.Manifold_no_allocated_faces(self.obj)
-    def no_allocated_halfedges(self):
+    def no_allocated_halfedges(self) -> int:
         """ Number of halfedges.
         This number could be higher than the number of actually
         used halfedges, but corresponds to the size of the array allocated
         for halfedges."""
         return lib_py_gel.Manifold_no_allocated_halfedges(self.obj)
-    def vertices(self):
+    def vertices(self) -> IntVector:
         """ Returns an iterable containing all vertex indices"""
         verts = IntVector()
         lib_py_gel.Manifold_vertices(self.obj, verts.obj)
         return verts
-    def faces(self):
+    def faces(self) -> IntVector:
         """ Returns an iterable containing all face indices"""
         faces = IntVector()
         lib_py_gel.Manifold_faces(self.obj, faces.obj)
         return faces
-    def halfedges(self):
+    def halfedges(self) -> IntVector:
         """ Returns an iterable containing all halfedge indices"""
         hedges = IntVector()
         lib_py_gel.Manifold_halfedges(self.obj, hedges.obj)
         return hedges
-    def circulate_vertex(self, vid, mode='v'):
+    def circulate_vertex(self, vid: int, mode: str ='v') -> IntVector:
         """ Circulate a vertex. Passed a vertex index, vid, and second argument,
         mode='f', this function will return an iterable with all faces incident
         on vid arranged in counter clockwise order. Similarly, if mode is 'h',
@@ -143,7 +151,7 @@ class Manifold:
         nbrs = IntVector()
         lib_py_gel.Manifold_circulate_vertex(self.obj, vid, ct.c_char(mode.encode('ascii')), nbrs.obj)
         return nbrs
-    def circulate_face(self, fid, mode='v'):
+    def circulate_face(self, fid: int, mode: str ='v') -> IntVector:
         """ Circulate a face. Passed a face index, fid, and second argument,
         mode='f', this function will return an iterable with all faces that
         share an edge with fid (in counter clockwise order). If the argument is
@@ -152,26 +160,26 @@ class Manifold:
         nbrs = IntVector()
         lib_py_gel.Manifold_circulate_face(self.obj, fid, ct.c_char(mode.encode('ascii')), nbrs.obj)
         return nbrs
-    def next_halfedge(self,hid):
+    def next_halfedge(self, hid: int) -> int:
         """ Returns next halfedge to hid. """
         return lib_py_gel.Walker_next_halfedge(self.obj, hid)
-    def prev_halfedge(self,hid):
+    def prev_halfedge(self, hid: int) -> int:
         """ Returns previous halfedge to hid. """
         return lib_py_gel.Walker_prev_halfedge(self.obj, hid)
-    def opposite_halfedge(self,hid):
+    def opposite_halfedge(self, hid: int) -> int:
         """ Returns opposite halfedge to hid. """
         return lib_py_gel.Walker_opposite_halfedge(self.obj, hid)
-    def incident_face(self,hid):
+    def incident_face(self, hid: int) -> int:
         """ Returns face corresponding to hid. """
         return lib_py_gel.Walker_incident_face(self.obj, hid)
-    def incident_vertex(self,hid):
+    def incident_vertex(self, hid: int) -> int:
         """ Returns vertex corresponding to (or pointed to by) hid. """
         return lib_py_gel.Walker_incident_vertex(self.obj, hid)
-    def remove_vertex(self,vid):
+    def remove_vertex(self, vid: int) -> bool:
         """ Remove vertex vid from the Manifold. This function merges all faces
         around the vertex into one and then removes this resulting face. """
         return lib_py_gel.Manifold_remove_vertex(self.obj, vid)
-    def remove_face(self,fid):
+    def remove_face(self, fid: int) -> bool:
         """ Removes a face, fid, from the Manifold. If it is an interior face it is
         simply replaced by an invalid index. If the face contains boundary
         edges, these are removed. Situations may arise where the mesh is no
@@ -182,19 +190,19 @@ class Manifold:
         The function returns false if the index of the face is not valid,
         otherwise the function must complete. """
         return lib_py_gel.Manifold_remove_face(self.obj, fid)
-    def remove_edge(self,hid):
+    def remove_edge(self, hid: int) -> bool:
         """ Remove an edge, hid, from the Manifold. This function will remove the
         faces on either side and the edge itself in the process. Thus, it is a
         simple application of remove_face. """
         return lib_py_gel.Manifold_remove_edge(self.obj, hid)
-    def vertex_in_use(self,vid):
+    def vertex_in_use(self, vid: int) -> bool:
         """ check if vertex, vid, is in use. This function returns true if the id corresponds
         to a vertex that is currently in the mesh and false otherwise. vid could
         be invalid or it could correspond to a vertex which is not active. The function returns 
         false in both cases.  It is important to call this function before using a vertex id (vid)
         which might have been invalidated by a previous operation on the mesh."""
         return lib_py_gel.Manifold_vertex_in_use(self.obj, vid)
-    def face_in_use(self,fid):
+    def face_in_use(self, fid: int) -> bool:
         """ check if face, fid, is in use. This function returns true if the id corresponds
         to a face that is currently in the mesh and false otherwise. fid could
         be invalid or it could correspond to a face which is not active. The function returns 
@@ -202,14 +210,14 @@ class Manifold:
         which might have been invalidated by a previous operation on the mesh.
         """
         return lib_py_gel.Manifold_face_in_use(self.obj, fid)
-    def halfedge_in_use(self,hid):
+    def halfedge_in_use(self, hid: int) -> bool:
         """ check if halfedge hid is in use. This function returns true if the id corresponds
         to a halfedge that is currently in the mesh and false otherwise. hid could
         be invalid or it could correspond to a halfedge which is not active. The function returns 
         false in both cases.  It is important to call this function before using a halfedge id (hid)
         which might have been invalidated by a previous operation on the mesh."""
         return lib_py_gel.Manifold_halfedge_in_use(self.obj, hid)
-    def flip_edge(self,hid):
+    def flip_edge(self, hid: int) -> bool:
         """ Flip the edge, hid, separating two faces. The function first verifies that
         the edge is flippable. This entails making sure that all of the
         following are true.
@@ -219,7 +227,7 @@ class Manifold:
         If the tests are passed, the flip is performed and the function
         returns True. Otherwise False."""
         return lib_py_gel.Manifold_flip_edge(self.obj,hid)
-    def collapse_edge(self,hid, avg_vertices=False):
+    def collapse_edge(self, hid: int, avg_vertices: bool = False) -> bool:
         """ Collapse an edge hid.
         Before collapsing hid, a number of tests are made:
         ---
@@ -247,30 +255,30 @@ class Manifold:
         If the tests are passed, the collapse is performed and the function
         returns True. Otherwise False."""
         return lib_py_gel.Manifold_collapse_edge(self.obj, hid, avg_vertices)
-    def split_face_by_edge(self,fid,v0,v1):
+    def split_face_by_edge(self, fid: int, v0: int, v1: int) -> int:
         """   Split a face. The face, fid, is split by creating an edge with
         endpoints v0 and v1 (the next two arguments). The vertices of the old
         face between v0 and v1 (in counter clockwise order) continue to belong
         to fid. The vertices between v1 and v0 belong to the new face. A handle to
         the new face is returned. """
         return lib_py_gel.Manifold_split_face_by_edge(self.obj, fid, v0, v1)
-    def split_face_by_vertex(self,fid):
+    def split_face_by_vertex(self,fid: int) -> int:
         """   Split a polygon, fid, by inserting a vertex at the barycenter. This
         function is less likely to create flipped triangles than the
         split_face_triangulate function. On the other hand, it introduces more
         vertices and probably makes the triangles more acute. The vertex id of the
         inserted vertex is returned. """
         return lib_py_gel.Manifold_split_face_by_vertex(self.obj,fid)
-    def split_edge(self,hid):
+    def split_edge(self,hid: int) -> int:
         """   Insert a new vertex on halfedge hid. The new halfedge is insterted
         as the previous edge to hid. The vertex id of the inserted vertex is returned. """
         return lib_py_gel.Manifold_split_edge(self.obj,hid)
-    def stitch_boundary_edges(self,h0,h1):
+    def stitch_boundary_edges(self,h0: int, h1: int) -> bool:
         """   Stitch two halfedges. Two boundary halfedges, h0 and h1, can be stitched
         together. This can be used to build a complex mesh from a bunch of
         simple faces. """
         return lib_py_gel.Manifold_stitch_boundary_edges(self.obj, h0, h1)
-    def merge_faces(self,hid):
+    def merge_faces(self,hid: int) -> bool:
         """   Merges two faces into a single polygon. The merged faces are those shared
         by the edge for which hid is one of the two corresponding halfedges. This function returns
         true if the merging was possible and false otherwise. Currently merge
@@ -280,7 +288,7 @@ class Manifold:
             return False
         fid = self.incident_face(hid)
         return lib_py_gel.Manifold_merge_faces(self.obj, fid, hid)
-    def close_hole(self,hid):
+    def close_hole(self,hid: int) -> int:
         """ Close hole given by hid (i.e. the face referenced by hid). Returns
         index of the created face or the face that was already there if, in
         fact, hid was not next to a hole. """
@@ -292,51 +300,51 @@ class Manifold:
         or changed in other ways such that mesh entities have been removed. However, note
         that it invalidates any attributes that you might have stored in auxilliary arrays."""
         lib_py_gel.Manifold_cleanup(self.obj)
-    def is_halfedge_at_boundary(self, hid):
+    def is_halfedge_at_boundary(self, hid: int) -> bool:
         """ Returns True if hid is a boundary halfedge, i.e. face on either
         side is invalid. """
         return lib_py_gel.is_halfedge_at_boundary(self.obj, hid)
-    def is_vertex_at_boundary(self, vid):
+    def is_vertex_at_boundary(self, vid: int) -> bool:
         """ Returns True if vid lies on a boundary. """
         return lib_py_gel.is_vertex_at_boundary(self.obj, vid)
-    def edge_length(self, hid):
+    def edge_length(self, hid: int) -> float:
         """ Returns length of edge given by halfedge hid which is passed as argument. """
         return lib_py_gel.length(self.obj, hid)
-    def valency(self,vid):
+    def valency(self,vid: int) -> int:
         """ Returns valency of vid, i.e. number of incident edges."""
         return lib_py_gel.valency(self.obj,vid)
-    def face_normal(self, fid):
+    def face_normal(self, fid: int) -> ndarray:
         """ Compute the normal of a face fid. The normal is the average of the normals
         of the triangles formed from the centroid of face fix and each edge of the face."""
         n = ndarray(3, dtype=np.float64)
         lib_py_gel.face_normal(self.obj, fid, n)
         return n
-    def vertex_normal(self, vid):
+    def vertex_normal(self, vid: int) -> ndarray:
         """ Returns the vertex normal of vid. The vertex normal is computed as the
         angle weighted average of the normals of the incident faces."""
         n = ndarray(3,dtype=np.float64)
         lib_py_gel.vertex_normal(self.obj, vid, n)
         return n
-    def mixed_area(self, vid):
+    def mixed_area(self, vid: int) -> float:
         """ Returns the mixed area of vertex vid. The mixed area is an approximation
         of the Voronoi area of the vertex, i.e. the area of the mesh that is closer
         to vid than to any other vertex. For non-obtuse triangles, we can compute the
         part of the Voronoi area inside the triangle exacxtly, but for obtuse triangles
         the Voronoi area extends outside the triangle, and we approximate it. """
         return lib_py_gel.mixed_area(self.obj, vid)
-    def gaussian_curvature(self, vid):
+    def gaussian_curvature(self, vid: int) -> float:
         """ Returns the Gaussian curvature of vertex vid. The curvature is computed
         as the ratio of the angle defect and the mixed area of vid.
         The angle defect is 2*pi minus the sum of angles at the vertex. """
         return lib_py_gel.gaussian_curvature(self.obj, vid)
-    def mean_curvature(self, vid):
+    def mean_curvature(self, vid: int) -> float:
         """ Returns the mean curvature of vertex vid. The curvature is computed
         as the ratio of the length of the mean curvaure normal to the mixed area
         of vid. The mean curvature normal is obtained with the cotan formula, and 
         the sign is positive if the mean curvature normal points in the same direction
         as the vertex normal and negative otherwise. """
         return lib_py_gel.mean_curvature(self.obj, vid)
-    def principal_curvatures(self, vid):
+    def principal_curvatures(self, vid: int) -> tuple[float, float, ndarray, ndarray]:
         """ Returns the principal curvatures of vertex vid. The principal curvatures
         are computed by fitting a quadratic polynomial surface to the vertex and its
         one-ring neighbours. From the coefficients, we obtain the shape operator and 
@@ -352,51 +360,51 @@ class Manifold:
             pc_data[2:5],  # min direction
             pc_data[5:8]   # max direction
         )
-    def connected(self, v0, v1):
+    def connected(self, v0: int, v1: int) -> bool:
         """ Returns true if the two argument vertices, v0 and v1, are in each other's one-rings."""
         return lib_py_gel.connected(self.obj,v0,v1)
-    def no_edges(self, fid):
+    def no_edges(self, fid: int) -> int:
         """ Compute the number of edges of a face fid """
         return lib_py_gel.no_edges(self.obj, fid)
-    def area(self, fid):
+    def area(self, fid: int) -> float:
         """ Returns the area of a face fid. """
         return lib_py_gel.area(self.obj, fid)
-    def perimeter(self, fid):
+    def perimeter(self, fid: int) -> float:
         """ Returns the perimeter of a face fid. """
         return lib_py_gel.perimeter(self.obj, fid)
-    def centre(self, fid):
+    def centre(self, fid: int) -> ndarray:
         """ Returns the centre of a face. """
         c = ndarray(3, dtype=np.float64)
         lib_py_gel.centre(self.obj, fid, c)
         return c
 
-def valid(m: Manifold):
+def valid(m: Manifold) -> bool:
     """This function performs a series of tests to check that this
     is a valid manifold. This function is not rigorously constructed but seems
     to catch all problems so far. The function returns true if the mesh is valid
     and false otherwise. """
     return lib_py_gel.valid(m.obj)
 
-def closed(m: Manifold):
+def closed(m: Manifold) -> bool:
     """ Returns true if m is closed, i.e. has no boundary."""
     return lib_py_gel.closed(m.obj)
     
-def area(m: Manifold):
+def area(m: Manifold) -> float:
     """ This function computes the sum of all the faces' areas """
     return lib_py_gel.total_area(m.obj)
     
-def volume(m: Manifold):
+def volume(m: Manifold) -> float:
     """ Computes the volume of a mesh. Presupposes that the mesh is closed. """
     return lib_py_gel.volume(m.obj)
     
-def bbox(m: Manifold):
+def bbox(m: Manifold) -> tuple[ndarray, ndarray]:
     """ Returns the min and max corners of the bounding box of Manifold m. """
     pmin = ndarray(3,dtype=np.float64)
     pmax = ndarray(3,dtype=np.float64)
     lib_py_gel.bbox(m.obj, pmin, pmax)
     return pmin, pmax
 
-def bsphere(m: Manifold):
+def bsphere(m: Manifold) -> tuple[ndarray, float]:
     """ Calculate the bounding sphere of the manifold m.
     Returns centre,radius """
     c = ndarray(3,dtype=np.float64)
@@ -404,7 +412,7 @@ def bsphere(m: Manifold):
     lib_py_gel.bsphere(m.obj, c, ct.byref(r))
     return (c,r)
 
-def stitch(m: Manifold, rad=1e-30):
+def stitch(m: Manifold, rad: float = 1e-30) -> int:
     """ Stitch together edges of m whose endpoints coincide geometrically. This
     function allows you to create a mesh as a bunch of faces and then stitch
     these together to form a coherent whole. What this function adds is a
@@ -413,22 +421,22 @@ def stitch(m: Manifold, rad=1e-30):
     would introduce a non-manifold situation."""
     return lib_py_gel.stitch_mesh(m.obj,rad)
 
-def obj_save(fn, m: Manifold):
+def obj_save(fn: str, m: Manifold):
     """ Save Manifold m to Wavefront obj file. """
     s = ct.c_char_p(fn.encode('utf-8'))
     lib_py_gel.obj_save(s, m.obj)
 
-def off_save(fn, m: Manifold):
+def off_save(fn: str, m: Manifold):
     """ Save Manifold m to OFF file. """
     s = ct.c_char_p(fn.encode('utf-8'))
     lib_py_gel.off_save(s, m.obj)
 
-def x3d_save(fn, m: Manifold):
+def x3d_save(fn: str, m: Manifold):
     """ Save Manifold m to X3D file. """
     s = ct.c_char_p(fn.encode('utf-8'))
     lib_py_gel.x3d_save(s, m.obj)
 
-def obj_load(fn):
+def obj_load(fn: str) -> Manifold | None:
     """ Load and return Manifold from Wavefront obj file.
     Returns None if loading failed. """
     m = Manifold()
@@ -437,7 +445,7 @@ def obj_load(fn):
         return m
     return None
 
-def off_load(fn):
+def off_load(fn: str) -> Manifold | None:
     """ Load and return Manifold from OFF file.
     Returns None if loading failed."""
     m = Manifold()
@@ -446,7 +454,7 @@ def off_load(fn):
         return m
     return None
 
-def ply_load(fn):
+def ply_load(fn: str) -> Manifold | None:
     """ Load and return Manifold from Stanford PLY file.
     Returns None if loading failed. """
     m = Manifold()
@@ -455,7 +463,7 @@ def ply_load(fn):
         return m
     return None
 
-def x3d_load(fn):
+def x3d_load(fn: str) -> Manifold | None:
     """ Load and return Manifold from X3D file.
     Returns None if loading failed."""
     m = Manifold()
@@ -465,7 +473,7 @@ def x3d_load(fn):
     return None
 
 from os.path import splitext
-def load(fn):
+def load(fn: str) -> Manifold | None:
     """ Load a Manifold from an X3D/OBJ/OFF/PLY file. Return the
     loaded Manifold. Returns None if loading failed."""
     _, extension = splitext(fn)
@@ -479,7 +487,7 @@ def load(fn):
         return ply_load(fn)
     return None
 
-def save(fn, m: Manifold):
+def save(fn: str, m: Manifold):
     """ Save a Manifold, m, to an X3D/OBJ/OFF file. """
     _, extension = splitext(fn)
     if extension.lower() == ".x3d":
@@ -490,7 +498,7 @@ def save(fn, m: Manifold):
         off_save(fn, m)
 
 
-def remove_caps(m: Manifold, thresh=2.9):
+def remove_caps(m: Manifold, thresh: float = 2.9):
     """ Remove caps from a manifold, m, consisting of only triangles. A cap is a
     triangle with two very small angles and an angle close to pi, however a cap
     does not necessarily have a very short edge. Set the ang_thresh to a value
@@ -500,7 +508,7 @@ def remove_caps(m: Manifold, thresh=2.9):
     document more carefully !!! """
     lib_py_gel.remove_caps(m.obj,thresh)
 
-def remove_needles(m: Manifold, thresh=0.05, average_positions=False):
+def remove_needles(m: Manifold, thresh: float = 0.05, average_positions: bool = False):
     """  Remove needles from a manifold, m, consisting of only triangles. A needle
     is a triangle with a single very short edge. It is moved by collapsing the
     short edge. The thresh parameter sets the length threshold (in terms of the 
@@ -509,7 +517,7 @@ def remove_needles(m: Manifold, thresh=0.05, average_positions=False):
     abs_thresh = thresh * average_edge_length(m)
     lib_py_gel.remove_needles(m.obj,abs_thresh, average_positions)
 
-def close_holes(m: Manifold, max_size=100):
+def close_holes(m: Manifold, max_size: int = 100):
     """  This function replaces holes in m by faces. It is really a simple function
     that just finds all loops of edges next to missing faces. """
     lib_py_gel.close_holes(m.obj, max_size)
@@ -519,19 +527,19 @@ def flip_orientation(m: Manifold):
     will point the other way and clockwise becomes counter clockwise """
     lib_py_gel.flip_orientation(m.obj)
 
-def merge_coincident_boundary_vertices(m: Manifold, rad = 1.0e-30):
+def merge_coincident_boundary_vertices(m: Manifold, rad: float = 1.0e-30):
     """  Merge vertices of m that are boundary vertices and coincident.
         However, if one belongs to the other's one ring or the one
         rings share a vertex, they will not be merged. """
     lib_py_gel.merge_coincident_boundary_vertices(m.obj, rad)
 
-def minimize_curvature(m: Manifold,anneal=False):
+def minimize_curvature(m: Manifold, anneal: bool = False):
     """ Minimizes mean curvature of m by flipping edges. Hence, no vertices are moved.
     This is really the same as dihedral angle minimization, except that we weight by 
     edge length. """
     lib_py_gel.minimize_curvature(m.obj, anneal)
 
-def minimize_dihedral_angle(m: Manifold,max_iter=10000, anneal=False, alpha=False, gamma=4.0):
+def minimize_dihedral_angle(m: Manifold, max_iter: int = 10000, anneal: bool = False, alpha: bool = False, gamma: float = 4.0):
     """ Minimizes dihedral angles in m by flipping edges.
         Arguments:
         max_iter is the maximum number of iterations for simulated annealing.
@@ -541,21 +549,21 @@ def minimize_dihedral_angle(m: Manifold,max_iter=10000, anneal=False, alpha=Fals
     lib_py_gel.minimize_dihedral_angle(m.obj, max_iter, anneal,alpha,ct.c_double(gamma))
 
 
-def maximize_min_angle(m: Manifold,dihedral_thresh=0.95,anneal=False):
+def maximize_min_angle(m: Manifold, dihedral_thresh: float = 0.95, anneal: bool = False):
     """ Maximizes the minimum angle of triangles by flipping edges of m. Makes the 
     mesh more Delaunay."""
     lib_py_gel.maximize_min_angle(m.obj,dihedral_thresh,anneal)
 
-def optimize_valency(m: Manifold,anneal=False):
+def optimize_valency(m: Manifold, anneal: bool = False):
     """ Tries to achieve valence 6 internally and 4 along edges by flipping edges 
     of m. """
     lib_py_gel.optimize_valency(m.obj, anneal)
 
-def randomize_mesh(m: Manifold,max_iter=1):
+def randomize_mesh(m: Manifold, max_iter: int = 1):
     """  Make random flips in m. Useful for generating synthetic test cases. """
     lib_py_gel.randomize_mesh(m.obj, max_iter)
 
-def quadric_simplify(m: Manifold,keep_fraction,singular_thresh=1e-4,error_thresh=1):
+def quadric_simplify(m: Manifold, keep_fraction: float, singular_thresh: float = 1e-4, error_thresh: float = 1):
     """ Garland Heckbert simplification of mesh m. keep_fraction is the fraction of vertices
     to retain. The singular_thresh determines how subtle features are preserved. For values
     close to 1 the surface is treated as smooth even in the presence of sharp edges of low
@@ -574,7 +582,7 @@ def median_edge_length(m: Manifold):
     """ Returns the median edge length of m"""
     return lib_py_gel.median_edge_length(m.obj)
 
-def refine_edges(m: Manifold,threshold):
+def refine_edges(m: Manifold, threshold: float):
     """ Split all edges in m which are longer
     than the threshold (second arg) length. A split edge
     results in a new vertex of valence two."""
@@ -606,7 +614,7 @@ def butterfly_subdivide(m: Manifold):
     """ Butterfly subidiviosn on m. An interpolatory scheme. Creates the same connectivity as Loop. """
     lib_py_gel.butterfly_subdivide(m.obj)
 
-def cc_smooth(m: Manifold, no_iters=1):
+def cc_smooth(m: Manifold, no_iters: int = 1):
     """ If called after cc_split, this function completes a step of Catmull-Clark
     subdivision of m."""
     for _ in range(no_iters):
@@ -622,13 +630,13 @@ def loop_subdivide(m: Manifold):
     lib_py_gel.loop_split(m.obj)
     lib_py_gel.loop_smooth(m.obj)   
 
-def volume_preserving_cc_smooth(m: Manifold, no_iters):
+def volume_preserving_cc_smooth(m: Manifold, no_iters: int = 1):
     """ This function does the same type of smoothing as in Catmull-Clark
     subdivision, but to preserve volume it actually performs two steps, and the
     second step is negative as in Taubin smoothing."""
     lib_py_gel.volume_preserving_cc_smooth(m.obj, no_iters)
 
-def regularize_quads(m: Manifold, w=0.5, shrink=0.0, no_iters=1):
+def regularize_quads(m: Manifold, w: float = 0.5, shrink: float = 0.0, no_iters: int = 1):
     """ This function smooths a quad mesh by regularizing quads. Essentially,
     regularization just makes them more rectangular. """
     lib_py_gel.regularize_quads(m.obj, w, shrink, no_iters)
@@ -639,17 +647,17 @@ def loop_smooth(m: Manifold):
     subdivision of m. """
     lib_py_gel.loop_smooth(m.obj)
     
-def taubin_smooth(m: Manifold, no_iters=1):
+def taubin_smooth(m: Manifold, no_iters: int = 1):
     """ This function performs Taubin smoothing on the mesh m for iter number
     of iterations. """
     lib_py_gel.taubin_smooth(m.obj, no_iters)
 
-def laplacian_smooth(m: Manifold, w=0.5, no_iters=1):
+def laplacian_smooth(m: Manifold, w: float = 0.5, no_iters: int = 1):
     """ This function performs Laplacian smoothing on the mesh m for iter number
     of iterations. w is the weight applied. """
     lib_py_gel.laplacian_smooth(m.obj, w, no_iters)
-
-def anisotropic_smooth(m: Manifold, sharpness=0.5, no_iters=1):
+    
+def anisotropic_smooth(m: Manifold, sharpness: float = 0.5, no_iters: int = 1):
     """ This function performs anisotropic smoothing on the mesh m for iter number
     of iterations. A bilateral filtering controlled by sharpness is performed on 
     the face normals followed by a rotation of the faces to match the new normals.
@@ -660,11 +668,13 @@ def anisotropic_smooth(m: Manifold, sharpness=0.5, no_iters=1):
     face normals. The greater the sharpness, the more the smoothing is anisotropic."""
     lib_py_gel.anisotropic_smooth(m.obj, sharpness, no_iters)
     
-def volumetric_isocontour(data, bbox_min = None, bbox_max = None,
-                          tau=0.0,
-                          make_triangles=True,
-                          high_is_inside=True,
-                          dual_connectivity=False):
+def volumetric_isocontour(data: ArrayLike, 
+                          bbox_min: ArrayLike | None = None, 
+                          bbox_max: ArrayLike | None = None,
+                          tau: float = 0.0,
+                          make_triangles: bool = True,
+                          high_is_inside: bool = True,
+                          dual_connectivity: bool = False) -> Manifold:
     """ Creates a polygonal mesh from volumetric data by isocontouring. The dimensions
     are given by dims, bbox_min (defaults to [0,0,0] ) and bbox_max (defaults to dims) are
     the corners of the bounding box in R^3 that corresponds to the volumetric grid, tau is
@@ -688,7 +698,7 @@ def volumetric_isocontour(data, bbox_min = None, bbox_max = None,
                                      make_triangles, high_is_inside, dual_connectivity)
     return m
 
-def triangulate(m: Manifold, clip_ear=True):
+def triangulate(m: Manifold, clip_ear: bool = True):
     """ Turn a general polygonal mesh, m, into a triangle mesh by repeatedly
         splitting a polygon into smaller polygons. """
     if clip_ear:
@@ -696,7 +706,7 @@ def triangulate(m: Manifold, clip_ear=True):
     else:
         lib_py_gel.shortest_edge_triangulate(m.obj)
 
-def extrude_faces(m: Manifold, fset):
+def extrude_faces(m: Manifold, fset: ArrayLike | set[int]) -> set[int]:
     """ Inserts a new face loop around a set of faces given by fset."""
     fvec = np.asarray(list(fset), dtype=ct.c_int)
     face_loop_out = IntVector()
@@ -710,7 +720,7 @@ def kill_face_loop(m: Manifold):
     undefined effecto on a mesh that is not a pure quad mesh."""
     lib_py_gel.kill_face_loop(m.obj)
     
-def kill_degenerate_face_loops(m: Manifold, thresh=0.01):
+def kill_degenerate_face_loops(m: Manifold, thresh: float = 0.01):
     """ Removes face loops which contain very poorly shaped faces. Must be called on a pure
     quad mesh. """
     lib_py_gel.kill_degenerate_face_loops(m.obj, thresh)
@@ -724,7 +734,7 @@ class MeshDistance:
         self.obj = lib_py_gel.MeshDistance_new(m.obj)
     def __del__(self):
         lib_py_gel.MeshDistance_delete(self.obj)
-    def signed_distance(self,pts,upper=1e30):
+    def signed_distance(self, pts: ArrayLike, upper: float = 1e30) -> np.ndarray:
         """ Compute the signed distance from each point in pts to the mesh stored in
         this class instance. pts should be convertible to a length N>=1 array of 3D
         points. The function returns an array of N distance values with a single distance
@@ -743,7 +753,7 @@ class MeshDistance:
         d = np.ndarray(n, dtype=ct.c_float)
         lib_py_gel.MeshDistance_signed_distance(self.obj, n, p, d, upper)
         return d
-    def ray_inside_test(self,pts,no_rays=3):
+    def ray_inside_test(self, pts: ArrayLike, no_rays: int = 3) -> np.ndarray:
         """Check whether each point in pts is inside or outside the stored mesh by
         casting rays. pts should be convertible to a length N>=1 array of 3D points.
         Effectively, this is the sign of the distance. In some cases casting (multiple)
@@ -761,7 +771,7 @@ class MeshDistance:
         s = np.ndarray(n, dtype=ct.c_int)
         lib_py_gel.MeshDistance_ray_inside_test(self.obj,n,p,s,no_rays)
         return s
-    def intersect(self, p0, dir, _t=0):
+    def intersect(self, p0: ArrayLike, dir: ArrayLike, _t: float = 0) -> tuple[float, np.ndarray, np.ndarray] | None:
         """ Intersect the ray starting in p0 with direction, dir, with the stored mesh. Returns
         the point of intersection if there is one, otherwise None. """
         p0 = np.asarray(p0,dtype=ct.c_float)
@@ -773,7 +783,7 @@ class MeshDistance:
         return None
 
 
-def graph_to_feq(g: Graph, node_radii = None, symmetrize=True):
+def graph_to_feq(g: Graph, node_radii: ArrayLike | float | None = None, symmetrize: bool = True) -> Manifold:
     """ Turn a skeleton graph g into a Face Extrusion Quad Mesh m with given node_radii for each graph node.
     If symmetrize is True (default) the graph is made symmetrical. If node_radii are supplied then they
     are used in the reconstruction. Otherwise, the radii are obtained from the skeleton. They are stored in 
@@ -798,7 +808,7 @@ def graph_to_feq(g: Graph, node_radii = None, symmetrize=True):
 # Creating an alias for backward compatibility
 skeleton_to_feq = graph_to_feq
 
-def graph_to_cylinders(g: Graph, fudge=0.0):
+def graph_to_cylinders(g: Graph, fudge: float = 0.0) -> Manifold:
     """ Creates a Manifold mesh from the graph. The first argument, g, is the
     graph we want converted, and fudge is a constant that is used to increase the radius
     of every node. This is useful if the radii are 0. """
@@ -806,7 +816,7 @@ def graph_to_cylinders(g: Graph, fudge=0.0):
     lib_py_gel.graph_to_mesh_cyl(g.obj, m.obj, fudge)
     return m
 
-def graph_to_isosurface(g: Graph, fudge=0.0, res=256):
+def graph_to_isosurface(g: Graph, fudge: float = 0.0, res: int = 256) -> Manifold:
     """ Creates a Manifold mesh from the graph. The first argument, g, is the
     graph we want converted, and fudge is a constant that is used to increase the radius
     of every node. This is useful if the radii are 0. """
@@ -944,7 +954,7 @@ def _stable_marriage_registration(m, m_ref):
     lib_py_gel.stable_marriage_registration(m.obj, m_ref.obj)
 
     
-def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wt = 0.5, lap_wt = 1.0, iter=10):
+def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wt: float = 0.5, lap_wt: float = 1.0, iter: int = 10):
     """ Fits a skeletal mesh m to a reference mesh ref_mesh. """
     v_pos = m.positions()
     # ref_mesh = Manifold(m)
@@ -971,8 +981,8 @@ def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wt = 0.5, lap_wt = 1.0
         v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
 
 
-def rsr_recon(verts, normals=None, use_Euclidean_distance=False, genus=-1, k=70,
-              r=20, theta=60, n=50):
+def rsr_recon(verts: ArrayLike, normals:ArrayLike=None, use_Euclidean_distance:bool=False, genus:int=-1, k:int=70,
+              r:float=20, theta:float=60, n:int=50) -> Manifold:
     """ RsR Reconstruction. The first argument, verts, is the point cloud. The next argument,
         normals, are the normals associated with the vertices or empty list (default) if normals 
         need to be estimated during reconstruction. use_Euclidean_distance should be true if we 
@@ -996,7 +1006,7 @@ def rsr_recon(verts, normals=None, use_Euclidean_distance=False, genus=-1, k=70,
                          use_Euclidean_distance, genus, k, r, theta, n)
     return m
 
-def connected_components(m: Manifold):
+def connected_components(m: Manifold) -> List[Manifold]:
     """ Returns a list of Manifolds that form the connected components of the mesh m. """
     comp = lib_py_gel.connected_components(m.obj)
     N = lib_py_gel.mesh_vec_size(comp)
@@ -1009,11 +1019,11 @@ def connected_components(m: Manifold):
     lib_py_gel.mesh_vec_del(comp)
     return meshes
 
-def count_boundary_curves(m: Manifold):
+def count_boundary_curves(m: Manifold) -> int:
     """ Returns the number of boundary curves in the mesh m. """
     return lib_py_gel.count_boundary_curves(m.obj)
 
-def analyze_topology(m: Manifold):
+def analyze_topology(m: Manifold) -> List[Dict[str, Any]]:
     """ Returns a list of dictionaries with information about the connected components of the mesh m.
     Each dictionary contains the Manifold ('m'), number of vertices ('V'), edges ('E'), faces ('F'), 
     boundary curves ('b'), and the genus ('g') of the component. The genus is calculated using the 
@@ -1029,11 +1039,13 @@ def analyze_topology(m: Manifold):
         output.append({'m': comp, 'V': V, 'E': E, 'F': F, 'b': b, 'g': g})
     return output
 
-def sphere_delaunay(pts):
+def sphere_delaunay(pts: ArrayLike) -> Manifold:
     """ Given a set of points on the unit sphere, compute the spherical Delaunay triangulation
     and return it as a Manifold mesh. The points should be given as an array-like of shape (N,3). """
     m = Manifold()
     pts_data = np.asarray(pts, dtype=ct.c_double, order='C')
+    if pts_data.size % 3 != 0:
+        raise ValueError("pts should be of shape (N,3)")
     n_pts = pts_data.shape[0]
     lib_py_gel.sphere_delaunay(m.obj, pts_data, n_pts)
     return m
