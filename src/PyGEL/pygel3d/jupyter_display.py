@@ -1,6 +1,8 @@
 """ This is a module with a function, display, that provides functionality for displaying a
     Manifold or a Graph as an interactive 3D model in a Jupyter Notebook. It is based on 
     plotly. """
+
+from numpy.typing import ArrayLike
 from pygel3d.hmesh import Manifold, triangulate
 from pygel3d.graph import Graph
 from numpy import array
@@ -9,7 +11,7 @@ import plotly.offline as py
 
 EXPORT_MODE = False
 
-def set_export_mode(_exp_mode=True):
+def set_export_mode(_exp_mode: bool = True):
     """ Calling this function will set export mode to true. It is necessary
     to do so if we wish to export a notebook containing interactive
     plotly graphics (made with display below) to HTML. In other words, this function
@@ -24,7 +26,7 @@ def set_export_mode(_exp_mode=True):
     if EXPORT_MODE:
         py.init_notebook_mode(connected=False)
 
-def display(m,wireframe=True,smooth=True,data=None):
+def display(m: Manifold | Graph, wireframe: bool = True, smooth: bool = True, data: ArrayLike | None = None):
     """ The display function shows an interactive presentation of the Manifold, m, inside
         a Jupyter Notebook. wireframe=True means that a wireframe view of the mesh is
         superimposed on the 3D model. If smooth=True, the mesh is rendered with vertex

@@ -56,7 +56,7 @@ class Manifold:
         elif isinstance(orig, ct.c_void_p):
             self.obj = orig
         else:
-            raise TypeError("Manifold constructor takes either a Manifold or a c_void_p as argument, not %s" % type(orig))  
+            raise TypeError(f"Manifold constructor takes either a Manifold or a c_void_p as argument, not {type(orig)}")
         
     @classmethod
     def from_triangles(cls, vertices: ArrayLike, faces: ArrayLike) -> Self:
@@ -748,7 +748,7 @@ class MeshDistance:
         elif ndim==2:
             n = p.shape[0]
         else:
-            raise Exception("you must pass signed_distance pts as a 1D array or a 2D array of dim nx3")
+            raise ValueError("you must pass signed_distance pts as a 1D array or a 2D array of dim nx3")
         
         d = np.ndarray(n, dtype=ct.c_float)
         lib_py_gel.MeshDistance_signed_distance(self.obj, n, p, d, upper)

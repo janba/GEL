@@ -1,4 +1,4 @@
-# About PyGEL3D
+# About PyGEL
 
 ## What is GEL?
 
@@ -6,13 +6,13 @@ GEL is a C++ library of geometry processing tools primarily intended for compute
 
 ## History and Development
 
-GEL has been developed over many years at the Technical University of Denmark (DTU) by Jakob Andreas Bærentzen and contributors. It has been used in research, teaching, and practical applications in computer graphics and geometry processing.
+GEL has been developed over many years at the Technical University of Denmark (DTU) by Andreas Bærentzen and contributors. It has been used in research, teaching, and practical applications in computer graphics and geometry processing.
 
-## PyGEL3D: Python Bindings
+## PyGEL: Python Bindings
 
-PyGEL3D provides Python bindings for a subset of GEL's functionality, making geometry processing accessible to Python developers and researchers. It wraps the most commonly used features of GEL while maintaining the performance benefits of the underlying C++ implementation.
+PyGEL provides Python bindings for a subset of GEL's functionality, making geometry processing accessible to Python developers and researchers. It wraps the most commonly used features of GEL while maintaining the performance benefits of the underlying C++ implementation.
 
-### Why PyGEL3D?
+### Why PyGEL?
 
 - **Ease of Use**: Python interface for complex geometry operations
 - **Performance**: C++ backend for computational efficiency
@@ -24,7 +24,6 @@ PyGEL3D provides Python bindings for a subset of GEL's functionality, making geo
 
 ### Halfedge Mesh Data Structure
 A mature and efficient implementation that enables:
-- Constant-time topological queries
 - Flexible mesh traversal
 - Support for arbitrary polygons
 - Rich editing operations

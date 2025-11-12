@@ -1,4 +1,7 @@
 """ This modules provides an OpenGL based viewer for graphs and meshes """
+
+from numpy.typing import ArrayLike
+from typing import Self
 from pygel3d import lib_py_gel
 from pygel3d.hmesh import Manifold
 from pygel3d.graph import Graph
@@ -29,7 +32,7 @@ try:
             chdir(current_directory) # Necessary because init_glfw changes cwd
         def __del__(self):
             lib_py_gel.GLManifoldViewer_delete(self.obj)
-        def clone_controller(self, other):
+        def clone_controller(self, other: Self):
             """ Clone the controller from another GLManifoldViewer. This is useful if you
             want to display a mesh in a different window but keep the same view controller.
             """
@@ -37,7 +40,15 @@ try:
                 lib_py_gel.GLManifoldViewer_clone_controller(self.obj, other.obj)
             else:
                 raise TypeError("Argument must be an instance of Viewer")
-        def display(self, m: Manifold, g: Graph=None, mode='w', smooth=True, bg_col=(0.3,0.3,0.3), data=None, reset_view=False, once=False):
+        def display(self,
+                    m: Manifold,
+                    g: Graph=None,
+                    mode: str='w',
+                    smooth: bool=True,
+                    bg_col: tuple[float, float, float]=(0.3,0.3,0.3),
+                    data: ArrayLike|None=None,
+                    reset_view: bool=False,
+                    once: bool=False):
             """ Display a mesh
 
             Args:
@@ -88,7 +99,7 @@ try:
             elif isinstance(g,Graph):
                 lib_py_gel.GLManifoldViewer_display(self.obj, 0, g.obj, ct.c_char(mode.encode('ascii')),smooth,bg_col_a,data_a,reset_view,once)
                 
-        def annotation_points(self):
+        def annotation_points(self) -> ArrayLike:
             """ Retrieve a vector of annotation points. This vector is not a copy,
             so any changes made to the points will be reflected in the viewer. """
             pos = ct.POINTER(ct.c_double)()
@@ -96,9 +107,14 @@ try:
             if n == 0:
                 return None
             return np.ctypeslib.as_array(pos,(n,3))
-        def set_annotation_points(self, pts):
-            n = int(np.size(pts)/3)
+        def set_annotation_points(self, pts: ArrayLike):
+            """ Set the annotation points to the given list of points. The points
+            should be given as a flat list or array of size 3n where n is the
+            number of points. """
             pts_ct = np.array(pts,dtype=ct.c_double).ctypes
+            if pts_ct.size % 3 != 0:
+                raise ValueError("Annotation points must be given as a flat array of size 3n")
+            n = int(pts_ct.size // 3)
             pts_a = pts_ct.data_as(ct.POINTER(ct.c_double))
             lib_py_gel.GLManifoldViewer_set_annotation_points(self.obj, n, pts_a)
         @staticmethod

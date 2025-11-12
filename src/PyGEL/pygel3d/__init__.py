@@ -324,7 +324,7 @@ class IntVector:
         lib_py_gel.IntVector_delete(self.obj)
     def __len__(self):
         return int(lib_py_gel.IntVector_size(self.obj))
-    def __getitem__(self,key):
+    def __getitem__(self, key: int):
         return lib_py_gel.IntVector_get(self.obj,key)
     def __iter__(self):
         n = lib_py_gel.IntVector_size(self.obj)
@@ -343,7 +343,7 @@ class Vec3dVector:
         lib_py_gel.Vec3dVector_delete(self.obj)
     def __len__(self):
         return int(lib_py_gel.Vec3dVector_size(self.obj))
-    def __getitem__(self,key):
+    def __getitem__(self,key: int):
         return lib_py_gel.Vec3dVector_get(self.obj,key)
     def __iter__(self):
         n = lib_py_gel.Vec3dVector_size(self.obj)
