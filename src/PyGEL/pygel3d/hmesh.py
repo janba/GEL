@@ -981,8 +981,14 @@ def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wt: float = 0.5, lap_w
         v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
 
 
-def rsr_recon(verts: ArrayLike, normals:ArrayLike=None, use_Euclidean_distance:bool=False, genus:int=-1, k:int=70,
-              r:float=20, theta:float=60, n:int=50) -> Manifold:
+def rsr_recon(verts: ArrayLike, 
+              normals: ArrayLike=None, 
+              use_Euclidean_distance: bool=False, 
+              genus: int=-1,
+              k: int=70,
+              r: float=20,
+              theta: float=60,
+              n: int=50) -> Manifold:
     """ RsR Reconstruction. The first argument, verts, is the point cloud. The next argument,
         normals, are the normals associated with the vertices or empty list (default) if normals 
         need to be estimated during reconstruction. use_Euclidean_distance should be true if we 

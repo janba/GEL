@@ -11,6 +11,7 @@
 *.vc120.*
 *.sdf
 *.opensdf
+.DS_Store
 
 # obj files not in data.
 /GEL_WIN/*/*/*.obj
@@ -37,9 +38,11 @@ doc/intro.pdf
 doc/intro.synctex.gz
 doc/intro.toc
 doc/html/
+doc/site/                          
 
 # scikit-build files
 _skbuild/
 dist/
 src/PyGEL3D.egg-info/
+
 
