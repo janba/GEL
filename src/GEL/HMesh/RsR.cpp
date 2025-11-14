@@ -1,5 +1,8 @@
 #include <sstream>
 #include "RsR.h"
+
+namespace HMesh::detail
+{
 static bool isGTNormal = true;
 static bool isEuclidean = true;
 static bool isFaceLoop = true;
@@ -1662,7 +1665,7 @@ void connect_handle(const std::vector<Point>& smoothed_v, Tree& KDTree,
             int steps = find_shortest_path(mst, this_v, connected_neighbor, step_thresh, path);
             if (steps > step_thresh) {
                 //if(steps >= 9){
-                    //std::cout << "This is connected" << std::endl;
+                //std::cout << "This is connected" << std::endl;
                 isFind = true;
                 m_Edge candidate(this_v, connected_neighbor);
                 if (geometry_check(mst, candidate, KDTree)) {
@@ -2227,10 +2230,15 @@ void reset_static() {
     recon_timer = RsR_Timer();
     bettiNum_1 = 0;
 }
+}
 
+namespace HMesh
+{
 
-void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertices,
-    std::vector<Vector>& org_normals, bool in_isEuclidean, int in_genus, 
+using namespace detail;
+
+void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertices,
+    std::vector<Vec3d>& org_normals, bool in_isEuclidean, int in_genus,
     int in_k, int in_r, int in_theta, int in_n) {
     isEuclidean = in_isEuclidean;
     exp_genus = in_genus;
@@ -2500,4 +2508,5 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Point>& org_vertice
     reset_static();
 
     return;
+}
 }
