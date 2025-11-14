@@ -2,8 +2,23 @@
 // Created by Cem Akarsubasi on 8/4/25.
 //
 
+/// @file GEL/CGLA/Definitions.h
+/// This is a definition file that replaces the 20+ separate classes in different headers that CGLA previously
+/// included. Do not include this directly, instead include @ref GEL/CGLA/Vec.h and @ref GEL/CGLA/Mat.h
+
 #ifndef CGLA_DEFINITIONS_H
 #define CGLA_DEFINITIONS_H
+
+#define GEL_STRINGIFY0(x) #x
+#define GEL_STRINGIFY1(x) GEL_STRINGIFY0(x)
+#ifdef __GNUC__
+    #define GEL_COMPILER_WARNING_COMPOSE(x) GCC warning x
+#else // Mainly MSVC
+    #define GEL_COMPILER_WARNING_COMPOSE(x) message(x)
+#endif
+#define GEL_WARNING(x) _Pragma(GEL_STRINGIFY1(GEL_COMPILER_WARNING_COMPOSE(x)))
+
+#define GEL_CGLA_VEC_DEPRECATED GEL_WARNING("This file is deprecated, include GEL/CGLA/Vec.h instead")
 
 #include <concepts>
 #include <cstdint>

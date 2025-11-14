@@ -12,5 +12,6 @@
 #define CGLA_VEC3F_H
 
 #include <GEL/CGLA/Vec.h>
+GEL_CGLA_VEC_DEPRECATED
 
 #endif
