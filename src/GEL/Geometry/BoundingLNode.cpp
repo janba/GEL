@@ -5,6 +5,7 @@
  * ----------------------------------------------------------------------- */
 
 #include <GEL/Geometry/AABox.h>
+#include <GEL/Geometry/OBox.h>
 #include <GEL/Geometry/BoundingLNode.h>
 
 namespace Geometry

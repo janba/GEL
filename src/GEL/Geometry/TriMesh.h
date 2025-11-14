@@ -9,10 +9,10 @@
 * @brief Triangle mesh class based on indexed face set data structure.
 */
 
-#ifndef __GEOMETRY_TRIMESH_H__
-#define __GEOMETRY_TRIMESH_H__
+#ifndef GEOMETRY_TRIMESH_H
+#define GEOMETRY_TRIMESH_H
 
-#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/CGLA/Mat.h>
 #include <GEL/Geometry/IndexedFaceSet.h>
 #include <GEL/Geometry/Material.h>
 

@@ -4,9 +4,7 @@
 * For license and list of authors, see ../../doc/intro.pdf
 * ----------------------------------------------------------------------- */
 
-#include <GEL/CGLA/Vec3f.h>
-#include <stdio.h>
-#include <iostream>
+#include <GEL/CGLA/Vec.h>
 #include <set>
 
 #include <GEL/Geometry/TriMesh.h>

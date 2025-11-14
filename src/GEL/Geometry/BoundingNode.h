@@ -9,15 +9,12 @@
  * @brief Abstract ancestor of the nodes of a bounding hierarchy.
  */
 
-#ifndef __GEOMETRY_BOUNDINGNODE_H
-#define __GEOMETRY_BOUNDINGNODE_H
+#ifndef GEOMETRY_BOUNDINGNODE_H
+#define GEOMETRY_BOUNDINGNODE_H
 
 #include <vector>
-#include <GEL/CGLA/Vec3f.h>
 #include <GEL/Geometry/Ray.h>
 #include <GEL/Geometry/Triangle.h>
-#include <GEL/Geometry/AABox.h>
-#include <GEL/Geometry/OBox.h>
 
 namespace Geometry
 {

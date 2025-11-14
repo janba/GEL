@@ -12,9 +12,8 @@
 #include <vector>
 #include <random>
 
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/Implicit.h>
-//#include <GEL/HMesh/Manifold.h>
 #include <GEL/HMesh/AttributeVector.h>
 #include <GEL/HMesh/triangulate.h>
 #include <GEL/HMesh/smooth.h>

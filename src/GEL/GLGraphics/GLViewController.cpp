@@ -6,7 +6,7 @@
 
 #include <GEL/GL/glew.h>
 #include <GEL/GLGraphics/GLViewController.h>
-#include <GEL/CGLA/Mat3x3f.h>
+#include <GEL/CGLA/Mat.h>
 
 using namespace std;
 using namespace CGLA;

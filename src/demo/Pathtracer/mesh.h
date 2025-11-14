@@ -1,5 +1,5 @@
-#ifndef __PATHTRACER_MESH__H__
-#define __PATHTRACER_MESH__H__
+#ifndef PATHTRACER_MESH_H
+#define PATHTRACER_MESH_H
 
 #include "luminaire.h"
 #include "material.h"

@@ -15,9 +15,8 @@
 #include <GEL/HMesh/load.h>
 #include <GEL/HMesh/curvature.h>
 
-#include <GEL/CGLA/Mat3x3d.h>
-#include <GEL/CGLA/Vec3d.h>
-#include <GEL/CGLA/Vec4d.h>
+#include <GEL/CGLA/Mat.h>
+#include <GEL/CGLA/Vec.h>
 
 using namespace std;
 using namespace CGLA;

@@ -1,5 +1,5 @@
-#ifndef __PATHTRACER_PLASTIC__H__
-#define __PATHTRACER_PLASTIC__H__
+#ifndef PATHTRACER_PLASTIC_H
+#define PATHTRACER_PLASTIC_H
 
 #include "material.h"
 

@@ -12,10 +12,8 @@
 #define CGLA_QUATF_H
 
 #include <GEL/CGLA/ArithQuat.h>
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Vec4f.h>
-#include <GEL/CGLA/Mat3x3f.h>
-#include <GEL/CGLA/Mat4x4f.h>
+#include <GEL/CGLA/Vec.h>
+#include <GEL/CGLA/Mat.h>
 
 
 namespace CGLA {

@@ -7,8 +7,7 @@
 #include <vector>
 #include <GEL/HMesh/cleanup.h>
 
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/QEM.h>
 #include <GEL/Geometry/KDTree.h>
 

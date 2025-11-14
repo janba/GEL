@@ -4,7 +4,7 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/TriMesh.h>
 
 #include <GEL/Geometry/BSPTree.h>
@@ -371,7 +371,7 @@ namespace Geometry
 ////inline bool Intersect(TriAccel &acc,Ray &ray)
 //#define ku modulo[acc.k+1]
 //#define kv modulo[acc.k+2]
-//    // don’t prefetch here, assume data has already been prefetched
+//    // donï¿½t prefetch here, assume data has already been prefetched
 //    // start high-latency division as early as possible
 //    const double nd = 1.0/((double)ray.direction[acc.k] + (double)acc.n_u * (double)ray.direction[ku] + (double)acc.n_v * (double)ray.direction[kv]);
 //    const double f = ((double)acc.n_d - (double)ray.origin[acc.k]   - (double)acc.n_u * (double)ray.origin[ku] - (double)acc.n_v * (double)ray.origin[kv]) * nd;
@@ -603,7 +603,7 @@ namespace Geometry
   {
     tri_calls++;
 
-    // This is the Möller-Trumbore method
+    // This is the Mï¿½ller-Trumbore method
     Vec3d direction(ray.direction);
     Vec3d edge0(isecttri.edge0);
     Vec3d edge1(isecttri.edge1);

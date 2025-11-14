@@ -9,12 +9,11 @@
  * @brief Triangle class for use with bbox hierarchies.
  */
 
-#ifndef __GEOMETRY_TRIANGLE_H
-#define __GEOMETRY_TRIANGLE_H
+#ifndef GEOMETRY_TRIANGLE_H
+#define GEOMETRY_TRIANGLE_H
 
-#include <GEL/CGLA/Vec2f.h>
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Mat3x3f.h>
+#include <GEL/CGLA/Vec.h>
+#include <GEL/CGLA/Mat.h>
 
 namespace Geometry
 {

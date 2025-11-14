@@ -5,7 +5,7 @@
  * ----------------------------------------------------------------------- */
 
 #include <GEL/Geometry/TriMesh.h>
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 #include <fstream>
 #include <iostream>
 

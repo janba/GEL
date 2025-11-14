@@ -9,10 +9,10 @@
  * @brief Bounding box class (ancestor of AABox and OBox)
  */
 
-#ifndef __GEOMETRY_BBOX_H__
-#define __GEOMETRY_BBOX_H__
+#ifndef GEOMETRY_BBOX_H
+#define GEOMETRY_BBOX_H
 
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 
 #include <GEL/Geometry/Ray.h>
 

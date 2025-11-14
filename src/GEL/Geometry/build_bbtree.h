@@ -9,10 +9,12 @@
  * @brief Contains functions for building a bounding box tree.
  */
 
-#ifndef __GEOMETRY_BUILD_BBTREE_H
-#define __GEOMETRY_BUILD_BBTREE_H
+#ifndef GEOMETRY_BUILD_BBTREE_H
+#define GEOMETRY_BUILD_BBTREE_H
 
 #include <GEL/Geometry/BoundingTree.h>
+#include <GEL/Geometry/OBox.h>
+#include <GEL/Geometry/AABox.h>
 
 namespace HMesh
 {

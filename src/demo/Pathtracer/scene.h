@@ -1,5 +1,5 @@
-#ifndef __PATHTRACER_SCENE__H__
-#define __PATHTRACER_SCENE__H__
+#ifndef PATHTRACER_SCENE_H
+#define PATHTRACER_SCENE_H
 
 #include "core.h"
 #include "luminaire.h"

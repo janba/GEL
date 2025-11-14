@@ -3,8 +3,7 @@
 
 #include <GEL/GL/glew.h>
 
-#include "GEL/CGLA/Vec2f.h"
-#include "GEL/CGLA/Vec3f.h"
+#include "GEL/CGLA/Vec.h"
 
 #include "GEL/Geometry/Ray.h"
 

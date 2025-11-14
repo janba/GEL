@@ -9,7 +9,7 @@
 #include <string.h>
 #include <GEL/Geometry/rply.h>
 #include <GEL/Geometry/ply_load.h>
-#include <GEL/CGLA/Vec4f.h>
+#include <GEL/CGLA/Vec.h>
 
 namespace Geometry
 {

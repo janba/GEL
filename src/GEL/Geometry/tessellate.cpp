@@ -9,8 +9,7 @@
 #include <queue>
 
 #include <GEL/Util/Grid2D.h>
-#include <GEL/CGLA/Vec3f.h>
-#include <GEL/CGLA/Vec2f.h>
+#include <GEL/CGLA/Vec.h>
 
 #include <GEL/Geometry/tessellate.h>
 

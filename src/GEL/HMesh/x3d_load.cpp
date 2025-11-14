@@ -10,13 +10,12 @@
 #include <vector>
 #include <string>
 
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Util/Timer.h>
 #include <GEL/Util/Parse.h>
 #include <GEL/Util/XmlParser.h>
 
 #include <GEL/HMesh/Manifold.h>
-#include <GEL/HMesh/load.h>
 
 namespace HMesh
 {

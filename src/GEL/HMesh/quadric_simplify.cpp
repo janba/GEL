@@ -8,9 +8,8 @@
 #include <iostream>
 #include <thread>
 #include <algorithm>
-#include <random>
 
-#include <GEL/CGLA/Vec3d.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/Geometry/QEM.h>
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/HMesh/AttributeVector.h>

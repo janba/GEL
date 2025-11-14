@@ -11,43 +11,7 @@
 #ifndef CGLA_VEC4I_H
 #define CGLA_VEC4I_H
 
-#include <GEL/CGLA/ArithVec4Int.h>
+#include <GEL/CGLA/Vec.h>
+GEL_CGLA_VEC_DEPRECATED
 
-namespace CGLA 
-{
-	class Vec4f;
-	class Vec4uc;
-	class Vec4usi;
-
-	/** \brief 4D integer vector. 
-
-	    This class does not really extend the template
-			and hence provides only the basic facilities of an ArithVec. 
-			The class is typically used for indices to 4D voxel grids. */
-	class Vec4i: public ArithVec4Int<int,Vec4i>
-	{
-	public:
-  
-		/// Construct 0 vector.
-		constexpr Vec4i() = default;
-
-		/// Construct a 4D integer vector.
-		constexpr Vec4i(int _a,int _b,int _c, int _d): ArithVec4Int<int,Vec4i>(_a,_b,_c,_d) {}
-
-		/// Construct a 4D integer vector with 4 identical coordinates.
-		constexpr explicit Vec4i(int a): ArithVec4Int<int,Vec4i>(a,a,a,a) {}
-	
-		/// Construct from a Vec4f.
-		explicit Vec4i(const Vec4f& v);
-
-		/// Construct from a Vec4uc.
-		explicit Vec4i(const Vec4uc& v);
-
-		/// Construct from a Vec4usi.
-		explicit Vec4i(const Vec4usi& v);
-
-	};
-
-
-}
 #endif

@@ -9,13 +9,12 @@
  * @brief Cell class for a voxel grid in a 2 level grid.
  */
 
-#ifndef __GEOMETRY_CELL_H
-#define __GEOMETRY_CELL_H
+#ifndef GEOMETRY_CELL_H
+#define GEOMETRY_CELL_H
 
 #include <vector>
-#include <GEL/CGLA/Vec3i.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/CGLA/BitMask.h>
-#include <GEL/Geometry/RGrid.h>
 
 namespace Geometry 
 {

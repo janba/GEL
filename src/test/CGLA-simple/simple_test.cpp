@@ -1,4 +1,4 @@
-#include <GEL/CGLA/Vec3f.h>
+#include <GEL/CGLA/Vec.h>
 #include <GEL/CGLA/Quaternion.h>
 
 using namespace std;
