@@ -21,6 +21,9 @@
 #include <GEL/CGLA/Quatd.h>
 #include <GEL/Util/Timer.h>
 
+// Rudimentary pointless inclusion to see if we are doing something wrong.
+#include <GEL/CGLA/Vec3d.h>
+
 using namespace std;
 using namespace CGLA;
 using namespace Util;
