@@ -12,5 +12,6 @@
 #define CGLA_MAT2X2F_H
 
 #include <GEL/CGLA/Mat.h>
+GEL_CGLA_MAT_DEPRECATED
 
 #endif

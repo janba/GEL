@@ -19,6 +19,7 @@
 #define GEL_WARNING(x) _Pragma(GEL_STRINGIFY1(GEL_COMPILER_WARNING_COMPOSE(x)))
 
 #define GEL_CGLA_VEC_DEPRECATED GEL_WARNING("This file is deprecated, include GEL/CGLA/Vec.h instead")
+#define GEL_CGLA_MAT_DEPRECATED GEL_WARNING("This file is deprecated, include GEL/CGLA/Mat.h instead")
 
 #include <concepts>
 #include <cstdint>
