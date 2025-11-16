@@ -139,9 +139,9 @@ namespace Geometry {
         
         /// Return the edges - map from NodeID to EdgeID of the current node.
         [[nodiscard]]
-        std::ranges::input_range auto edges(const NodeID n) const {
+        std::ranges::input_range auto& edges(const NodeID n) const {
             GEL_ASSERT(valid_node_id(n));
-            return edge_map[n] | std::views::all;
+            return edge_map[n];
         }
 
         [[nodiscard]] std::ranges::input_range
