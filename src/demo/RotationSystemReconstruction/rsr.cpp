@@ -1,6 +1,9 @@
 #include <sstream>
-#include "GEL/HMesh/RsR.h"
-#include "GEL/HMesh/obj_save.h"
+#include <GEL/HMesh/RsR.h>
+#include <GEL/HMesh/obj_save.h>
+
+using Point = CGLA::Vec3d;
+using Vector = CGLA::Vec3d;
 
 struct PointCloud {
     std::vector<Point> vertices;
