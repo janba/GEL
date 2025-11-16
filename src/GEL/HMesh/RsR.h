@@ -433,8 +433,8 @@ namespace detail
  *   - Input vectors org_vertices and org_normals must be of the same length.
  *   - Algorithmic parameters may need tuning for different datasets.
  */
-void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertices,
-                        std::vector<Vec3d>& org_normals, bool in_isEuclidean = false, int in_genus = -1,
+void reconstruct_single(HMesh::Manifold& output, std::vector<CGLA::Vec3d>& org_vertices,
+                        std::vector<CGLA::Vec3d>& org_normals, bool in_isEuclidean = false, int in_genus = -1,
                         int in_k = 70, int in_r = 20, int in_theta = 60, int in_n = 50);
 }
 
