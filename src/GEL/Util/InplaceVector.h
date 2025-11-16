@@ -9,7 +9,8 @@
 
 #include <GEL/Util/Assert.h>
 
-namespace Util {
+// Should be a private type
+namespace Util::detail {
 
     /// Variable-sized container that stores its data vector inside it
 template<typename T, size_t N = 8>
@@ -33,14 +34,19 @@ public:
 
     // constructors and destructors
 
-    constexpr InplaceVector() noexcept = default;
+    constexpr InplaceVector() noexcept: m_size(0)
+    {
+        // Always false
+        for (size_type i = 0; i < m_size; ++i) {
+            new (&m_data[i]) T();
+        }
+    }
 
     explicit constexpr InplaceVector(const size_type size) : m_size(0)
     {
         GEL_ASSERT(size <= N);
         for (size_type i = 0; i < size; ++i) {
             new (&m_data[i]) T();
-            // emplace_back();
         }
     }
 
@@ -49,7 +55,6 @@ public:
         GEL_ASSERT(size <= N);
         for (size_type i = 0; i < size; ++i) {
             new (&m_data[i]) T(value);
-            // emplace_back(value);
         }
     }
 
