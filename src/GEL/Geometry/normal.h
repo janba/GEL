@@ -2,8 +2,7 @@
 #define GEOMETRY_NORMAL_H
 #pragma once
 
-#include <GEL/CGLA/Vec3d.h>
-#include <GEL/CGLA/Mat3x3d.h>
+#include <GEL/CGLA/Mat.h>
 
 namespace Geometry
 {
