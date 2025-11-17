@@ -39,3 +39,5 @@ add_subdirectory(Manifold)
 # The following two rely on key input in order to exit
 #add_subdirectory(CGLA-ogl)
 #add_subdirectory(GLGraphics-console)
+
+add_subdirectory(Util)

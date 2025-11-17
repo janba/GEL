@@ -2,17 +2,13 @@
 // Created by Cem Akarsubasi on 5/21/25.
 //
 
-#include <GEL/Util/RawObj.h>
+#include "../common/RawObj.h"
 
 #define DOCTEST_CONFIG_IMPLEMENT_WITH_MAIN
 #include <doctest.h>
 
 using namespace Util;
 using namespace Util::Combinators;
-
-static constexpr auto FILE_CAPITAL_A = "../../../../data/PointClouds/Capital_A.obj";
-static constexpr auto FILE_BUNNY_SIMPLE = "../../../../data/bunny.obj";
-static constexpr auto FILE_BUNNY_COMPLEX = "../../../../data/PointClouds/bun_complete.obj";
 
 TEST_CASE("ignore_spaces")
 {
@@ -72,20 +68,3 @@ TEST_CASE("parse triplet")
         CHECK_EQ(parse_prefix_then_float_triplet("v", view2), std::nullopt);
     }
 }
-
-bool float_eq(const double a, const double b, const float eps = 1.0e-6)
-{
-    return std::abs(a - b) < eps;
-}
-
-// TEST_CASE("read raw obj")
-// {
-//     auto file_path = "../../../../data/bunny.obj";
-//     auto file_path_str = std::string(file_path);
-//     auto robj = read_raw_obj(file_path);
-//     auto pc = read_obj(file_path_str);
-//     CHECK_EQ(robj.vertices.size(), pc.vertices.size());
-//     CHECK_EQ(robj.normals.size(), pc.normals.size());
-//
-//     std::cout << pc.vertices.size() << std::endl;
-// }
