@@ -41,3 +41,4 @@ add_subdirectory(Manifold)
 #add_subdirectory(GLGraphics-console)
 
 add_subdirectory(Util-ThreadPool)
+add_subdirectory(Util)
