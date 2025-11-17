@@ -4,17 +4,14 @@
  * For license and list of authors, see ../../doc/intro.pdf
  * ----------------------------------------------------------------------- */
 
-#include <iostream>
-
 #include <GEL/Geometry/QEM.h>
 #include <GEL/CGLA/eigensolution.h>
 
 using namespace CGLA;
-using namespace std;
 
 namespace Geometry
 {
-	Vec3d QEM::opt_pos(double sv_thresh, const CGLA::Vec3d& p0) const
+	Vec3d QEM::opt_pos(double QEM_thresh, const CGLA::Vec3d& p0) const
 	{
         // Compute eigensolution of the symmetric matrix A. This
         // allows us to factorize it into A = U L U^T and compute
@@ -34,14 +31,16 @@ namespace Geometry
             case 2:
                 U[2] = cross(U[0],U[1]);
                 break;
+            default:
+                break;
         }
         
         // For each eigenvalue, we compute the corresponding component
         // of either the least squares or least norm solution.
-        double limit = abs(sv_thresh * L[0][0]);
+        const double limit = std::abs(QEM_thresh * L[0][0]);
         Vec3d x(0);
         for(int i=0;i<3;++i) {
-            if(abs(L[i][i])<limit)
+            if(std::abs(L[i][i])<limit)
                 x += U[i] * dot(U[i], p0);
             else
                 x -= U[i] * dot(U[i], 0.5*b)/L[i][i];
