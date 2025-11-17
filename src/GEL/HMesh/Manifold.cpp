@@ -386,7 +386,40 @@ namespace HMesh
             add_boundary_face(hn, h_out);
 
             return vn;
-            // xor
+        } else if (kernel.face(h_out) == InvalidFaceID) {
+            auto h_out_opp = kernel.opp(h_out);
+            auto f_dummy = add_boundary_face(kernel.prev(h_out), h_out);
+
+            GEL_ASSERT_NEQ(kernel.face(h_in), InvalidFaceID);
+            GEL_ASSERT_NEQ(kernel.face(h_out_opp), InvalidFaceID);
+
+            const auto vn = slit_vertex_impl(h_in, kernel.opp(h_out_opp));
+            GEL_ASSERT_NEQ(vn, InvalidVertexID);
+
+            const auto f = close_hole(kernel.out(vn));
+
+            split_face_by_edge(f, v, vn);
+
+            GEL_ASSERT(remove_face(f_dummy));
+
+            return vn;
+        } else if (kernel.face(h_in) == InvalidFaceID) {
+            auto h_in_opp = kernel.opp(h_in);
+            auto f_dummy = add_boundary_face(h_in, kernel.next(h_in));
+
+            GEL_ASSERT_NEQ(kernel.face(h_in_opp), InvalidFaceID);
+            GEL_ASSERT_NEQ(kernel.face(h_out), InvalidFaceID);
+
+            const auto vn = slit_vertex_impl(kernel.opp(h_in_opp), h_out);
+            GEL_ASSERT_NEQ(vn, InvalidVertexID);
+
+            const auto f = close_hole(kernel.out(vn));
+
+            split_face_by_edge(f, v, vn);
+
+            GEL_ASSERT(remove_face(f_dummy));
+
+            return vn;
         } else if ((kernel.face(kernel.opp(h_in)) == InvalidFaceID) != (kernel.face(kernel.opp(h_out)) == InvalidFaceID)) {
             const auto v_new = slit_vertex_impl(h_in, h_out);
             GEL_ASSERT_NEQ(v_new, InvalidVertexID);
@@ -410,6 +443,9 @@ namespace HMesh
         } else {
             const auto vn = slit_vertex_impl(h_in, h_out);
             GEL_ASSERT_NEQ(vn, InvalidVertexID);
+
+            GEL_ASSERT_NEQ(kernel.face(h_in), InvalidFaceID);
+            GEL_ASSERT_NEQ(kernel.face(h_out), InvalidFaceID);
 
             const auto f = close_hole(kernel.out(vn));
 
