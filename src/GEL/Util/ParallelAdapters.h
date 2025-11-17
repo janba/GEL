@@ -15,7 +15,7 @@
 #include <limits> // std::numeric_limits
 #endif
 
-namespace Util {
+namespace Util::detail {
     /// Concepts for constraining the inputs of parallel adapters
     namespace Concepts {
 

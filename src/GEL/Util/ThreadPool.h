@@ -12,7 +12,7 @@
 #include <queue>
 #include <vector>
 
-namespace Util
+namespace Util::detail
 {
 
 class IExecutor {
@@ -27,6 +27,7 @@ public:
     virtual void waitAll() = 0;
 };
 
+/// A "thread pool" that just spawns a new thread for each given task
 class ImmediatePool final : public IExecutor {
     using thread_t = std::thread;
     size_t m_size;

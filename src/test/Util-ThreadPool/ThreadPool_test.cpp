@@ -15,9 +15,9 @@
 
 #include <GEL/Util/ParallelAdapters.h>
 
-using Util::ThreadPool;
-using namespace Util::Parallel;
-using namespace Util;
+using Util::detail::ThreadPool;
+using namespace Util::detail::Parallel;
+using namespace Util::detail;
 
 // bool test_empty()
 // {
