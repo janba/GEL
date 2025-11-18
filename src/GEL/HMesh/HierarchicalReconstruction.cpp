@@ -2,7 +2,7 @@
 // Created by Cem Akarsubasi on 9/10/25.
 //
 
-#include "Collapse.h"
+#include "HierarchicalReconstruction.h"
 
 #include <unordered_map>
 
@@ -621,8 +621,17 @@ auto reexpand_points(Manifold& manifold, Collapse&& collapse, const ReexpandOpti
             }
 
             manifold.positions[new_vid] = latent_pos;
-            for (const auto id : manifold_ids) {
-                point_to_manifold_ids.emplace(active_pos, id);
+
+            if (std::ranges::distance(manifold_ids) < 4) {
+                InplaceVector<VertexID> copy(manifold_ids.begin(), manifold_ids.end());
+                for (auto id: copy) {
+                    point_to_manifold_ids.emplace(active_pos, id);
+                }
+            } else {
+                std::vector copy(manifold_ids.begin(), manifold_ids.end());
+                for (auto id: copy) {
+                    point_to_manifold_ids.emplace(active_pos, id);
+                }
             }
             point_to_manifold_ids.emplace(latent_pos, new_vid);
             point_to_manifold_ids.erase(v_bar);

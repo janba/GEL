@@ -3,7 +3,7 @@
 //
 
 #include <GEL/HMesh/RsR.h>
-#include <GEL/HMesh/RsR2.h>
+#include <GEL/HMesh/RSRExperimental.h>
 #include <GEL/HMesh/HMesh.h>
 #include "../common/RawObj.h"
 

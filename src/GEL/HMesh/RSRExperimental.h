@@ -9,7 +9,7 @@
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/etf.h>
 
-#include <GEL/HMesh/Collapse.h>
+#include <GEL/HMesh/HierarchicalReconstruction.h>
 
 /// @brief Rotation System Reconstruction
 namespace HMesh::RSR
