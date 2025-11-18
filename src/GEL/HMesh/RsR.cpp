@@ -706,7 +706,7 @@ void estimate_normal(const std::vector<Point>& vertices,
 
     if (!isGTNormal)
         normals.clear();
-    int neighbor_num = std::max<int>(int(vertices.size() / 2000.), 192);
+    int neighbor_num = 30;// std::max<int>(int(vertices.size() / 2000.), 192);
     // Data type transfer & Cal diagonal size
     std::vector<float> min{ INFINITY, INFINITY, INFINITY },
         max{ -INFINITY, -INFINITY, -INFINITY };
@@ -933,7 +933,7 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
                 continue;
             Vector neighbor_normal = normals[neighbors[j]];
 
-            float angle_weight = cal_angle_based_weight(this_normal, neighbor_normal);
+            float edge_weight = (0.01+cal_angle_based_weight(this_normal, neighbor_normal)) * dists[j];
             if (i == neighbors[j] && j != 0) {
                 std::cout << i << std::endl;
                 std::cout << j << std::endl;
@@ -945,10 +945,9 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
                 }
                 std::cout << "error" << std::endl;
             }
-            if (angle_weight < 0)
+            if (edge_weight < 0)
                 std::cout << "error" << std::endl;
-            g_angle.connect_nodes(i, neighbors[j], angle_weight);
-            //g_angle.add_edge(i, neighbors[j], angle_weight);
+            g_angle.connect_nodes(i, neighbors[j], edge_weight);
         }
     }
 
