@@ -7,7 +7,8 @@
 
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/Util/Assert.h>
-#include <GEL/Util/ParallelAdapters.h>
+
+#include <GEL/CGLA/ArithVec.h>
 
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/Geometry/Graph.h>
@@ -18,6 +19,7 @@
 
 #include <GEL/Geometry/QEM.h>
 
+#include <GEL/Util/ParallelAdapters.h>
 #include <GEL/Util/InplaceVector.h>
 
 
@@ -209,9 +211,8 @@ public:
 
                 const auto active_coords = m_vertices[active].position;
                 const auto latent_coords = m_vertices[latent].position;
-
-                GEL_ASSERT_FALSE(CGLA::any(active_coords, [](auto d){ return std::isnan(d); }));
-                GEL_ASSERT_FALSE(CGLA::any(latent_coords, [](auto d){ return std::isnan(d); }));
+                GEL_ASSERT_FALSE(active_coords.any([](auto d){ return std::isnan(d); }));
+                GEL_ASSERT_FALSE(latent_coords.any([](auto d){ return std::isnan(d); }));
 
                 // recalculate current edges
                 for (auto v : AMGraph::neighbors_lazy(active)) {
@@ -362,7 +363,7 @@ inline void knn_search(const Point& query, const Tree& kdTree, const int num, Ne
 
 template <typename Indices>
 auto calculate_neighbors(
-    Util::IExecutor& pool,
+    Util::detail::IExecutor& pool,
     const std::vector<Point>& vertices,
     const Indices& indices,
     const Tree& kdTree,
@@ -385,12 +386,12 @@ auto calculate_neighbors(
         auto vertex = vertices.at(index);
         knn_search(vertex, kdTree, k, neighbor);
     };
-    Util::Parallel::foreach2(pool, indices, neighbors_memoized, cache_kNN_search);
+    Util::detail::Parallel::foreach2(pool, indices, neighbors_memoized, cache_kNN_search);
     return neighbors_memoized;
 }
 
 inline auto calculate_neighbors(
-    Util::IExecutor& pool,
+    Util::detail::IExecutor& pool,
     const std::vector<Point>& vertices,
     const Tree& kdTree,
     const int k,

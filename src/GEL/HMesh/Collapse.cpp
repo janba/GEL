@@ -5,12 +5,12 @@
 #include "Collapse.h"
 
 #include <unordered_map>
-#include <GEL/Util/RangeTools.h>
 
 namespace HMesh::RSR
 {
 
 using namespace detail;
+using namespace Util::detail;
 
 bool vec3_eq(const Vec3& lhs, const Vec3& rhs, double eps = 1e-4)
 {
@@ -375,7 +375,7 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
     }
     std::cout << "Collapsing..." << std::endl;
     GEL_ASSERT_EQ(vertices.size(), normals.size());
-    Util::ImmediatePool pool;
+    ImmediatePool pool;
     QuadraticCollapseGraph graph;
 
     // initialize graph

@@ -4,18 +4,18 @@
 #include <GEL/Util/ParallelAdapters.h>
 #include <ranges> // std::views
 #include <algorithm>
-#include <GEL/Util/RangeTools.h>
+//#include <GEL/Util/RangeTools.h>
 
 #include "GEL/Util/InplaceVector.h"
 
 namespace HMesh::RSR
 {
 using namespace detail;
+using namespace Util::detail;
 
-using ThreadPool = Util::ImmediatePool;
 using Geometry::estimateNormal;
 using namespace ::HMesh;
-using namespace Util::Ranges;
+//using namespace Util::Ranges;
 using Util::AttribVec;
 using HMesh::Manifold;
 
@@ -284,7 +284,7 @@ int find_shortest_path(const RSGraph& mst, const NodeID start, const NodeID targ
 /// @param neighbors_map
 /// @param smoothed_v: [OUT] vertices after smoothing
 void weighted_smooth(
-    Util::IExecutor& pool,
+    IExecutor& pool,
     const std::vector<Point>& vertices,
     const std::vector<Vec3>& normals,
     const NeighborMap& neighbors_map,
@@ -302,7 +302,7 @@ void weighted_smooth(
             double vert_length = 0.0;
             double weight = 0.0;
         };
-        Util::InplaceVector<LengthWeight, 192> length_weights;
+        InplaceVector<LengthWeight, 192> length_weights;
         const std::intptr_t limit = (neighbors.size() < 192) ? static_cast<intptr_t>(neighbors.size()) : 192;
         length_weights.reserve(limit);
         for (const auto& neighbor: neighbors | std::views::take(192)) {
@@ -343,7 +343,7 @@ void weighted_smooth(
         const Vec3 move = amp_sum * normal;
         return vertex + move;
     };
-    Util::Parallel::enumerate_map2(pool, vertices, neighbors_map, smoothed_v, lambda);
+    Parallel::enumerate_map2(pool, vertices, neighbors_map, smoothed_v, lambda);
 }
 
 auto normalize_normals(std::vector<Vec3>& normals) -> void
@@ -354,7 +354,7 @@ auto normalize_normals(std::vector<Vec3>& normals) -> void
 }
 
 void estimate_normal_no_normals_memoized(
-    Util::IExecutor& pool,
+    IExecutor& pool,
     const std::vector<Point>& vertices,
     const NeighborMap& neighbors,
     std::vector<Vec3>& normals)
@@ -376,7 +376,7 @@ void estimate_normal_no_normals_memoized(
         }
         return normal;
     };
-    Util::Parallel::map(pool, neighbors, normals, lambda);
+    Parallel::map(pool, neighbors, normals, lambda);
 }
 
 /// @brief Calculate cos angle weight for correcting normal orientation
@@ -489,7 +489,7 @@ SimpGraph minimum_spanning_tree(const SimpGraph& g, NodeID root)
 /// @param normals: [OUT] normal of the point cloud with orientation corrected
 /// @param k
 void correct_normal_orientation(
-    Util::IExecutor& pool,
+    IExecutor& pool,
     const Tree& kdTree,
     const std::vector<Point>& in_smoothed_v,
     std::vector<Vec3>& normals,
@@ -782,7 +782,7 @@ void add_face(RSGraph& graph, const FaceType& item,
 }
 
 struct RegisterFaceResult {
-    Util::InplaceVector<FaceType, 2> faces;
+    InplaceVector<FaceType, 2> faces;
 };
 auto register_face(const RSGraph& mst, const NodeID v1, const NodeID v2) -> std::optional<RegisterFaceResult>
 {
@@ -804,7 +804,7 @@ auto register_face(const RSGraph& mst, const NodeID v1, const NodeID v2) -> std:
                                        mst.m_vertices[possible_root2].normal,
                                        p1 - mst.m_vertices[possible_root2].coords);
 
-    Util::InplaceVector<FaceType, 2> temp;
+    InplaceVector<FaceType, 2> temp;
     for (const auto v3 : shared_neighbors) {
         FaceType triangle{v1, v2, v3};
         if (v3 == possible_root1 && angle1 < M_PI) {
@@ -1347,7 +1347,7 @@ auto estimate_normals_no_normals(
 
 [[nodiscard]]
 auto estimate_normals_and_smooth(
-    Util::IExecutor& pool,
+    IExecutor& pool,
     const std::vector<Point>& org_vertices,
     std::vector<Vec3>& org_normals,
     Distance dist) -> std::vector<Point>
@@ -1378,7 +1378,7 @@ struct Components {
 /// @return Split components
 [[nodiscard]]
 auto split_components(
-    Util::IExecutor& pool,
+    IExecutor& pool,
     const NeighborMap& neighbor_map,
     std::vector<Point>&& vertices,
     std::vector<Vec3>&& normals,
@@ -1524,7 +1524,7 @@ RSGraph from_simp_graph(const SimpGraph& graph, const std::vector<Point>& points
 }
 
 auto component_to_manifold(
-    Util::IExecutor& pool,
+    IExecutor& pool,
     const RsROpts& opts,
     const std::vector<Point>& vertices,
     const std::vector<Vec3>& normals,
@@ -1642,7 +1642,7 @@ auto point_cloud_to_mesh_impl(
     std::cout << "Split components\n";
     // Note: the cross connection filtering needs to be synced with the inner loop, else there are issues
     auto neighbor_map = calculate_neighbors(pool, in_smoothed_v, kd_tree, opts.k);
-    Util::Parallel::foreach(pool, std::views::iota(0UL, vertices_copy.size()), [&](const NodeID idx) {
+    Parallel::foreach(pool, std::views::iota(0UL, vertices_copy.size()), [&](const NodeID idx) {
         filter_out_cross_connection(neighbor_map[idx], normals_copy, idx, opts.theta, opts.dist == Distance::Euclidean);
     });
 
@@ -1675,7 +1675,7 @@ auto point_cloud_to_mesh_impl(
         Tree kd_tree_of_this = build_kd_tree_of_indices(smoothed_v_of_this, indices_of_this);
 
         auto neighbor_map_of_this = calculate_neighbors(pool, smoothed_v_of_this, kd_tree_of_this, opts.k);
-        //Util::Parallel::foreach(pool, std::views::iota(0UL, smoothed_v_of_this.size()), [&](NodeID idx) {
+        //Parallel::foreach(pool, std::views::iota(0UL, smoothed_v_of_this.size()), [&](NodeID idx) {
         //    filter_out_cross_connection(neighbor_map_of_this[idx], normals_of_this, idx, opts.theta,
         //                                opts.dist == Distance::EUCLIDEAN);
         //});
