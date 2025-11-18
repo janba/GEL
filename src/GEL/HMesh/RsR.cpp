@@ -706,7 +706,7 @@ void estimate_normal(const std::vector<Point>& vertices,
 
     if (!isGTNormal)
         normals.clear();
-    int neighbor_num = 30;// std::max<int>(int(vertices.size() / 2000.), 192);
+    int neighbor_num = 10;// std::max<int>(int(vertices.size() / 2000.), 192);
     // Data type transfer & Cal diagonal size
     std::vector<float> min{ INFINITY, INFINITY, INFINITY },
         max{ -INFINITY, -INFINITY, -INFINITY };
@@ -933,7 +933,7 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
                 continue;
             Vector neighbor_normal = normals[neighbors[j]];
 
-            float edge_weight = (0.01+cal_angle_based_weight(this_normal, neighbor_normal)) * dists[j];
+            float edge_weight = cal_angle_based_weight(this_normal, neighbor_normal) + (dists[j]/last_dist);
             if (i == neighbors[j] && j != 0) {
                 std::cout << i << std::endl;
                 std::cout << j << std::endl;
@@ -950,6 +950,23 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
             g_angle.connect_nodes(i, neighbors[j], edge_weight);
         }
     }
+
+    // for (int iter = 0; iter < 1; iter++)
+    //     for (int i = 0; i < in_smoothed_v.size(); i++) {
+    //         Vector normal(0,0,0);
+    //         Vector normal_i = normals[i];
+    //         double w_sum = 0.;
+    //         for (auto j: g_angle.neighbors(i)) {
+    //             Vector normal_j = normals[j];
+    //             if (dot(normal_i, normal_j) < 0) {
+    //                 normal_j = -normal_j;
+    //             }
+    //             double w = 1.0/(0.0000001 + g_angle.get_weight(i, j));
+    //             normal +=  w*normal_j;
+    //             w_sum += w;
+    //         }
+    //         normals[i] = normalize(normal/w_sum + normal_i);
+    //     }
 
     std::vector<AMGraph::NodeSet> components_vec;
 
