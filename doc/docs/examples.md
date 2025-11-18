@@ -8,28 +8,34 @@ This page provides complete, runnable examples demonstrating common PyGEL3D work
 
 ```python
 import pygel3d.hmesh as hmesh
+from sys import argv
+
+def print_stats(m):
+    # Print statistics
+    print(f"Vertices: {len(m.vertices())}")
+    print(f"Faces: {len(m.faces())}")
+    print(f"Valid: {hmesh.valid(m)}")
+    print(f"Closed: {hmesh.closed(m)}")
 
 # Load mesh
-m = hmesh.load("input.obj")
+m = hmesh.load(argv[1])
+print_stats(m)
 
-# Print statistics
-print(f"Vertices: {m.no_vertices()}")
-print(f"Faces: {m.no_faces()}")
-print(f"Valid: {hmesh.valid(m)}")
-print(f"Closed: {hmesh.closed(m)}")
+# Close holes and clean
+hmesh.close_holes(m)
+hmesh.triangulate(m)
+hmesh.remove_caps(m)
+hmesh.remove_needles(m)
 
-# Clean and repair
-hmesh.stitch_mesh(m, 1e-6)
-hmesh.close_holes(m, 100)
+# Print statistics after cleaning
+print("After cleaning:")
+print_stats(m)
 
 # Smooth
-hmesh.cc_smooth(m)
-
-# Triangulate
-hmesh.shortest_edge_triangulate(m)
+hmesh.taubin_smooth(m,30)
 
 # Save result
-hmesh.save("output.obj", m)
+hmesh.save(argv[2], m)
 ```
 
 ### Mesh Simplification Pipeline
@@ -37,20 +43,21 @@ hmesh.save("output.obj", m)
 ```python
 import pygel3d.hmesh as hmesh
 import pygel3d.gl_display as gl
+from sys import argv
 
 # Load high-resolution mesh
-m = hmesh.load("high_res_model.obj")
-original_faces = m.no_faces()
+m = hmesh.load(argv[1])
+original_faces = len(m.faces())
 
-# Simplify to 50% of original faces
-hmesh.quadric_simplify(m, keep_fraction=0.5)
-simplified_faces = m.no_faces()
+# Simplify to 5% of original faces
+hmesh.quadric_simplify(m, keep_fraction=0.05)
+simplified_faces = len(m.faces())
 
 print(f"Reduced from {original_faces} to {simplified_faces} faces")
 
 # Visualize result
 viewer = gl.Viewer()
-viewer.display(m, mode='g')
+viewer.display(m, mode='w', bg_col=(1,1,1), smooth=False)
 ```
 
 ## Mesh Analysis
@@ -60,20 +67,13 @@ viewer.display(m, mode='g')
 ```python
 import pygel3d.hmesh as hmesh
 import pygel3d.gl_display as gl
+from sys import argv
 
 # Load mesh
-m = hmesh.load("model.obj")
+m = hmesh.load(argv[1])
 
 # Compute mean curvature at each vertex
-curvatures = []
-for v in m.vertices():
-    curv = abs(hmesh.mean_curvature(m, v))
-    curvatures.append(curv)
-
-# Normalize for visualization
-max_curv = max(curvatures)
-if max_curv > 0:
-    curvatures = [c/max_curv for c in curvatures]
+curvatures = [m.mean_curvature(v) for v in m.vertices()]
 
 # Display with color-coded curvature
 viewer = gl.Viewer()
@@ -84,21 +84,21 @@ viewer.display(m, mode='s', data=curvatures)
 
 ```python
 import pygel3d.hmesh as hmesh
+from sys import argv
 
 def analyze_mesh(filename):
     m = hmesh.load(filename)
     
-    # Basic counts
-    print(f"Mesh: {filename}")
-    print(f"  Vertices: {m.no_vertices()}")
-    print(f"  Faces: {m.no_faces()}")
-    print(f"  Halfedges: {m.no_halfedges()}")
-    
     # Topology
-    print(f"  Valid: {hmesh.valid(m)}")
-    print(f"  Closed: {hmesh.closed(m)}")
-    print(f"  Boundaries: {hmesh.count_boundary_curves(m)}")
-    
+    components = hmesh.analyze_topology(m)
+    for i,comp in enumerate(components):
+        print(f"Component {i+1}:")
+        print(f"- Vertices: {comp['V']}")
+        print(f"- Edges: {comp['E']}")
+        print(f"- Faces: {comp['F']}")
+        print(f"- Number of boundary curves: {comp['b']}")
+        print(f"- Genus: {comp['g']}")
+
     # Geometry
     bbox_min, bbox_max = hmesh.bbox(m)
     print(f"  Bounding box: {bbox_min} to {bbox_max}")
@@ -106,7 +106,7 @@ def analyze_mesh(filename):
     sphere_center, sphere_radius = hmesh.bsphere(m)
     print(f"  Bounding sphere: center {sphere_center}, radius {sphere_radius}")
     
-    print(f"  Total area: {hmesh.total_area(m):.4f}")
+    print(f"  Total area: {hmesh.area(m):.4f}")
     if hmesh.closed(m):
         print(f"  Volume: {hmesh.volume(m):.4f}")
     
@@ -117,7 +117,7 @@ def analyze_mesh(filename):
     print(f"  Median edge length: {med_len:.4f}")
 
 # Analyze a mesh
-analyze_mesh("bunny.obj")
+analyze_mesh(argv[1])
 ```
 
 ## Graph Processing

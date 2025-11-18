@@ -66,24 +66,26 @@ namespace HMesh
         double area_mixed = 0;
         //For each triangle T from the 1-ring neighborhood of x
         for(Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()){
-            double f_area = area(m, w.face());
+            if(w.face() != InvalidFaceID) {
+                double f_area = area(m, w.face());
 
-            Vec3d v0(m.pos(v));
-            Vec3d v1(m.pos(w.vertex()));
-            Vec3d v2(m.pos(w.next().vertex()));
+                Vec3d v0(m.pos(v));
+                Vec3d v1(m.pos(w.vertex()));
+                Vec3d v2(m.pos(w.next().vertex()));
 
-            double a0 = acos(dot(v1-v0, v2-v0)/(length(v1-v0)*length(v2-v0)));
-            double a1 = acos(dot(v2-v1, v0-v1)/(length(v2-v1)*length(v0-v1)));
-            double a2 = acos(dot(v0-v2, v1-v2)/(length(v0-v2)*length(v1-v2)));
+                double a0 = acos(dot(v1-v0, v2-v0)/(length(v1-v0)*length(v2-v0)));
+                double a1 = acos(dot(v2-v1, v0-v1)/(length(v2-v1)*length(v0-v1)));
+                double a2 = acos(dot(v0-v2, v1-v2)/(length(v0-v2)*length(v1-v2)));
 
-            if(a0<(M_PI/2.0) && a1<(M_PI/2.0) && a2<(M_PI/2.0)) // f is non-obtuse
-                area_mixed += (1.0/8) * 
-                    ((1.0/tan(a1)) * sqr_length(v2-v0) + 
-                    (1.0/tan(a2)) * sqr_length(v1-v0));
-            else if (a0>=(M_PI/2.0)) // a0 is the obtuse angle
-                area_mixed += f_area/2;
-            else
-                area_mixed += f_area/4;
+                if(a0<(M_PI/2.0) && a1<(M_PI/2.0) && a2<(M_PI/2.0)) // f is non-obtuse
+                    area_mixed += (1.0/8) * 
+                        ((1.0/tan(a1)) * sqr_length(v2-v0) + 
+                        (1.0/tan(a2)) * sqr_length(v1-v0));
+                else if (a0>=(M_PI/2.0)) // a0 is the obtuse angle
+                    area_mixed += f_area/2;
+                else
+                    area_mixed += f_area/4;
+            }
         }
         return area_mixed;
     }

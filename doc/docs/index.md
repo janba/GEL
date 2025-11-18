@@ -48,19 +48,17 @@ PyGEL3D consists of five main modules:
 ## Quick Example
 
 ```python
-import pygel3d.hmesh as hmesh
-import pygel3d.gl_display as gl
+from pygel3d import hmesh, gl_display as gl
+from sys import argv
 
-# Load a mesh
-m = hmesh.load("bunny.obj")
+m = hmesh.load(argv[1])
 
-# Process the mesh
-hmesh.cc_smooth(m)
+hmesh.close_holes(m)
 hmesh.triangulate(m)
+hmesh.quadric_simplify(m, 0.05)
 
-# Visualize
-viewer = gl.Viewer()
-viewer.display(m)
+v = gl.Viewer()
+v.display(m) # Hit ESC to exit
 ```
 
 ## Getting Started

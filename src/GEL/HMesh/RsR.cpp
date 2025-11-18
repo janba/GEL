@@ -723,6 +723,7 @@ void estimate_normal(const std::vector<Point>& vertices,
             else {
                 normals[idx] = normalize(normals[idx]);
             }
+            // std::cout << "GT!!!!!!!" << normal << std::endl;
         }
         else {
             std::vector<NodeID> neighbors;
@@ -736,7 +737,8 @@ void estimate_normal(const std::vector<Point>& vertices,
             for (auto idx : neighbors) {
                 neighbor_coords.push_back(vertices[idx]);
             }
-            Vector normal = estimateNormal(neighbor_coords);
+            Vector normal = estimateNormal(neighbor_coords, last_dist);
+            // std::cout << normal << " " << neighbor_coords.size() << " " << last_dist << std::endl;
             if (std::isnan(normal.length())) {
                 std::cout << neighbors.size() << std::endl;
                 std::cout << "error" << std::endl;
@@ -803,7 +805,7 @@ void add_normal_noise(float angle, std::vector<Vector>& normals) {
     * @return angle weight calculated
     */
 float cal_angle_based_weight(const Vector& this_normal, const Vector& neighbor_normal) {
-    float dot_pdt = std::abs(CGLA::dot(this_normal, neighbor_normal) / this_normal.length() / neighbor_normal.length());
+    float dot_pdt = std::abs(CGLA::dot(this_normal, neighbor_normal) / (this_normal.length() * neighbor_normal.length()));
     dot_pdt = clamp(dot_pdt, 1., 0.);
     if (1. - dot_pdt < 0)
         std::cout << "error" << std::endl;
@@ -953,7 +955,6 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
     std::vector<AMGraph::NodeSet> components_vec;
 
     components_vec = connected_components(g_angle, sets);
-
     for (int i = 0; i < components_vec.size(); i++) {
         SimpGraph mst_angle;
         NodeID root = *components_vec[i].begin();
@@ -967,12 +968,12 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
         while (!to_visit.empty()) {
             NodeID node_id = to_visit.front();
             to_visit.pop();
-            visited_vertex[node_id] = true;
             Vector this_normal = normals[node_id];
             auto neighbours = mst_angle.neighbors(node_id);
             for (auto vd : neighbours) {
                 if (!visited_vertex[int(vd)]) {
                     to_visit.push(int(vd));
+                    visited_vertex[int(vd)] = true;
                     Vector neighbor_normal = normals[int(vd)];
                     if (CGLA::dot(this_normal, neighbor_normal) < 0) {
                         normals[int(vd)] = -normals[int(vd)];
