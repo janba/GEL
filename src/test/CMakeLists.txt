@@ -40,10 +40,9 @@ add_subdirectory(Util-Assert)
 add_subdirectory(Manifold)
 
 add_subdirectory(RsR)
+add_subdirectory(Util)
 add_subdirectory(Util-ThreadPool)
+
 # The following two rely on key input in order to exit
 #add_subdirectory(CGLA-ogl)
 #add_subdirectory(GLGraphics-console)
-
-add_subdirectory(Util-ThreadPool)
-add_subdirectory(Util)
