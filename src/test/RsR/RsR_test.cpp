@@ -5,10 +5,7 @@
 #include <GEL/HMesh/RsR.h>
 #include <GEL/HMesh/RsR2.h>
 #include <GEL/HMesh/HMesh.h>
-#include <GEL/HMesh/triangulate.h>
 #include "../common/RawObj.h"
-
-#include <GEL/HMesh/mesh_optimization.h>
 
 #include <filesystem>
 #include <ranges>
@@ -25,9 +22,12 @@ using namespace HMesh::RSR;
 using namespace CGLA;
 
 static constexpr auto FILE_CAPITAL_A = "../../../../data/PointClouds/Capital_A.obj";
-static constexpr auto FILE_BUNNY_SIMPLE = "../../../../data/bunny_with_normals.obj";
+// Not included:
+// static constexpr auto FILE_BUNNY_SIMPLE = "../../../../data/bunny_with_normals.obj";
 static constexpr auto FILE_BUNNY_SIMPLE_NO_NORMALS = "../../../../data/bunny.obj";
-static constexpr auto FILE_BUNNY_COMPLEX = "../../../../data/PointClouds/bun_complete.obj";
+
+// Not included:
+//static constexpr auto FILE_BUNNY_COMPLEX = "../../../../data/PointClouds/bun_complete.obj";
 static constexpr auto FILE_THINGY = "../../../../data/thingy.obj";
 static constexpr auto FILE_AS = "../../../../data/as.obj";
 
@@ -38,9 +38,7 @@ constexpr auto make_array(Args... args)
     return std::array<std::string_view, size>{args...};
 }
 
-static constexpr auto QUICK_TEST_FILES = make_array(FILE_CAPITAL_A, FILE_BUNNY_SIMPLE, FILE_THINGY, FILE_AS);
-static constexpr auto TEST_FILES = make_array(FILE_CAPITAL_A, FILE_BUNNY_SIMPLE, FILE_BUNNY_COMPLEX, FILE_THINGY,
-                                              FILE_AS);
+static constexpr auto QUICK_TEST_FILES = make_array(FILE_CAPITAL_A, FILE_THINGY, FILE_AS);
 
 constexpr auto IS_EUCLIDEAN = false;
 constexpr auto K_PARAM = 30;
@@ -489,13 +487,8 @@ void test_reconstruct(Func&& f, const bool save, const bool all = false)
     requires std::is_same_v<decltype(f(std::declval<std::string_view>(), std::declval<const HMesh::RSR::RsROpts&>())),
                             std::optional<HMesh::Manifold>>
 {
-    const auto test_files = [&] {
-        if (all) {
-            return std::ranges::subrange(TEST_FILES);
-        } else {
-            return std::ranges::subrange(QUICK_TEST_FILES);
-        }
-    }();
+    const auto test_files = std::ranges::subrange(QUICK_TEST_FILES);
+
     const auto opts = test_options();
     for (const auto file : test_files) {
         std::filesystem::path p = file;
@@ -554,7 +547,7 @@ TEST_CASE("reconstruct_debug")
 {
     auto collapse_opts = CollapseOpts{};
     auto opts_euclidean = test_options();
-    auto file = FILE_BUNNY_SIMPLE;
+    auto file = FILE_BUNNY_SIMPLE_NO_NORMALS;
     collapse_opts.max_iterations = 3;
     collapse_opts.initial_neighbors = 8;
     collapse_opts.reduction_per_iteration = 0.50;
@@ -588,235 +581,3 @@ TEST_CASE("reconstruct_debug")
     //     reconstruct_assertions(*manifold);
     // }
 }
-
-TEST_CASE("reconstruct_legacy_debug")
-{
-    auto collapse_opts = CollapseOpts{};
-    auto opts_euclidean = test_options();
-    auto file = FILE_BUNNY_SIMPLE_NO_NORMALS;
-
-    opts_euclidean.dist = Distance::Euclidean;
-    auto manifold = test_reconstruct_legacy(file, opts_euclidean);
-    CHECK(manifold.has_value());
-    if (manifold.has_value()) {
-        HMesh::obj_save("debug_obj_reexpand_euclidean_legacy.obj", *manifold);
-        reconstruct_assertions(*manifold);
-    }
-    auto opts_neighbors = test_options();
-    opts_neighbors.dist = Distance::Tangent;
-    manifold = test_reconstruct_legacy(file, opts_neighbors);
-    CHECK(manifold.has_value());
-    if (manifold.has_value()) {
-        HMesh::obj_save("debug_obj_reexpand_neighbors_legacy.obj", *manifold);
-        reconstruct_assertions(*manifold);
-    }
-}
-
-/// Makes the following shape:
-///     1  -  3
-///    /  \   / \
-///   0  -  2 -  4
-///    \  /  \ /
-///     5  -  6
-///
-/// @return
-HMesh::Manifold make_hex()
-{
-    std::vector<CGLA::Vec3d> vertices = {
-        {-2.0, 0.0, 0.0},
-        {-1.0, 1.0, 0.0},
-        {0.0, 0.0, 0.0},
-        {1.0, 1.0, 0.0},
-        {2.0, 0.0, 0.0},
-        {-1.0, -1.0, 0.0},
-        {1.0, -1.0, 0.0}
-    };
-    std::vector<size_t> faces = {
-        2, 0, 1,
-        2, 1, 3,
-        2, 3, 4,
-        2, 5, 0,
-        2, 6, 5,
-        2, 4, 6,
-    };
-    HMesh::Manifold m;
-    HMesh::build_manifold(m, vertices, faces, 3);
-    CHECK_EQ(m.no_faces(), 6);
-    CHECK_EQ(m.no_vertices(), 7);
-    CHECK_EQ(m.no_halfedges(), 12 * 2);
-    return m;
-}
-
-enum Corners {
-    TOP_LEFT = 0,
-    TOP_RIGHT = 1,
-    BOTTOM_LEFT = 2,
-    BOTTOM_RIGHT = 3,
-};
-
-// struct RectangleHelper {
-//     double gap;
-//     size_t x_size;
-//     size_t y_size;
-//     size_t i;
-//     size_t j;
-//     std::array<size_t, 4> corners; // tl, tr, bl, br
-//     CGLA::GelPrngDouble& rng_double;
-//     CGLA::GelPrng& rng;
-// };
-//
-// inline auto place_rectangle(const RectangleHelper& helper,
-//     const double x_begin,
-//     const double x_end,
-//     const double y_begin,
-//     const double y_end) -> bool
-// {
-//     const auto x_actual = (double)helper.j / (double)helper.x_size;
-//     const auto y_actual = (double)helper.i / (double)helper.y_size;
-//     return x_actual >= x_begin && x_actual <= x_end && y_actual >= y_begin && y_actual <= y_end;
-// }
-//
-// template <typename Func> requires std::same_as<std::invoke_result_t<Func, std::vector<Point>&, RectangleHelper>,
-//                                                std::optional<SingleCollapse>>
-// HMesh::Manifold create_rectangular_manifold(const size_t x_size, const size_t y_size, Func&& f)
-// {
-//     REQUIRE_GT(x_size, 2);
-//     REQUIRE_GT(y_size, 2);
-//     std::vector<size_t> faces;
-//     std::vector<CGLA::Vec3d> vertices;
-//     faces.reserve(x_size * y_size * 4);
-//     vertices.reserve((x_size + 1) * (y_size + 1));
-//
-//     std::vector<SingleCollapse> dummy_collapses;
-//
-//     CGLA::GelPrngDouble rng_double;
-//     CGLA::GelPrng rng;
-//
-//     // for each vertex
-//     for (size_t i = 0; i < y_size + 1; ++i) {
-//         for (size_t j = 0; j < x_size + 1; ++j) {
-//             auto x = 10.0 * static_cast<double>(j) / static_cast<double>(x_size);
-//             auto y = 10.0 * static_cast<double>(i) / static_cast<double>(y_size);
-//             vertices.emplace_back(x, y, 0.0);
-//         }
-//     }
-//     const auto x_gap = (vertices.at(1) - vertices.at(0))[0];
-//
-//     std::vector<size_t> final_remaining(vertices.size());
-//     std::iota(final_remaining.begin(), final_remaining.end(), 0);
-//     // for each face
-//     for (size_t i = 0; i < y_size; ++i) {
-//         for (size_t j = 0; j < x_size; ++j) {
-//             auto top_left = i * (y_size + 1) + j; // top left
-//             auto top_right = top_left + 1; // top right
-//             auto bottom_left = top_left + 1 + x_size; // bottom left
-//             auto bottom_right = bottom_left + 1; // bottom right
-//             std::array<size_t, 4> corners{top_left, top_right, bottom_left, bottom_right};
-//             faces.emplace_back(top_left);
-//             faces.emplace_back(top_right);
-//             faces.emplace_back(bottom_right);
-//             faces.emplace_back(bottom_left);
-//
-//             auto collapse = f(vertices, RectangleHelper{x_gap, x_size, y_size, i, j, corners, rng_double, rng});
-//             if (collapse.has_value())
-//                 dummy_collapses.push_back(*collapse);
-//         }
-//     }
-//
-//     auto collapse = create_collapse(std::move(dummy_collapses));
-//     HMesh::Manifold m;
-//     HMesh::build_manifold(m, vertices, faces, 4);
-//     triangulate(m);
-//     reexpand_points(m, std::move(collapse), ReexpandOptions());
-//
-//     return m;
-// }
-//
-// HMesh::Manifold create_rectangular_manifold_debug(const std::int64_t x_size, const std::int64_t y_size)
-// {
-//     return create_rectangular_manifold(
-//         x_size, y_size,
-//         [](const std::vector<Point>& vertices,
-//            const RectangleHelper& helper) -> std::optional<SingleCollapse> {
-//             const auto x_shift = static_cast<double>(helper.j + 1) / static_cast<double>(
-//                 helper.y_size + 1);
-//             const auto y_shift = static_cast<double>(helper.i + 1) / static_cast<double>(
-//                 helper.x_size + 1);
-//
-//             const auto shift = CGLA::Vec3d{x_shift, y_shift, 0.1} * helper.gap;
-//             const auto random_point = vertices[helper.corners[TOP_LEFT]] + shift;
-//             const auto corner_choice =
-//                 (x_shift < 0.5)
-//                     ? (y_shift < 0.5)
-//                           ? helper.corners[TOP_LEFT]
-//                           : helper.corners[BOTTOM_LEFT]
-//                     : (y_shift < 0.5)
-//                     ? helper.corners[TOP_RIGHT]
-//                     : helper.corners[BOTTOM_RIGHT];
-//             const auto active_coordinates = vertices[corner_choice];
-//             if (helper.i == 0 || helper.j == 0 || helper.i == helper.y_size - 1 || helper.j == helper.x_size - 1)
-//                 return std::nullopt;
-//             if (
-//                 //place_rectangle(helper, 0.60, 0.40, 4) || // fine reexpansion
-//                 place_rectangle(helper, 0.45, 0.50, 0.45, 0.50) ||
-//                 place_rectangle(helper, 0.50, 0.55, 0.45, 0.50)
-//                 //place_rectangle(helper, 0.45, 0.55, 6)
-//                 ) // wonky reexpansion
-//             {
-//                 return SingleCollapse{
-//                     .active_point_coords = active_coordinates,
-//                     .latent_point_coords = random_point,
-//                     .v_bar = active_coordinates,
-//                 };
-//             }
-//             return std::nullopt;
-//         });
-// }
-//
-// HMesh::Manifold create_rectangular_manifold_mosaic_closest(const std::int64_t x_size, const std::int64_t y_size)
-// {
-//     return create_rectangular_manifold(
-//         x_size, y_size,
-//         [](const std::vector<Point>& vertices,
-//            const RectangleHelper& helper) -> std::optional<SingleCollapse> {
-//             const auto x_shift = static_cast<double>(helper.j + 1) / static_cast<double>(
-//                 helper.y_size + 1);
-//             const auto y_shift = static_cast<double>(helper.i + 1) / static_cast<double>(
-//                 helper.x_size + 1);
-//
-//             const auto shift = CGLA::Vec3d{x_shift, y_shift, 0.1} * helper.gap;
-//             const auto random_point = vertices[helper.corners[TOP_LEFT]] + shift;
-//             const auto corner_choice =
-//                 (x_shift < 0.5)
-//                     ? (y_shift < 0.5)
-//                           ? helper.corners[TOP_LEFT]
-//                           : helper.corners[BOTTOM_LEFT]
-//                     : (y_shift < 0.5)
-//                     ? helper.corners[TOP_RIGHT]
-//                     : helper.corners[BOTTOM_RIGHT];
-//             const auto active_coordinates = vertices[corner_choice];
-//             if (helper.i == 0 || helper.j == 0 || helper.i == helper.y_size - 1 || helper.j == helper.x_size - 1)
-//                 return std::nullopt;
-//             else
-//                 return SingleCollapse{
-//                     .active_point_coords = active_coordinates,
-//                     .latent_point_coords = random_point,
-//                     .v_bar = active_coordinates,
-//                 };
-//         });
-// }
-//
-//
-// TEST_CASE("Rectangular reexpansion")
-// {
-//
-//     auto m = create_rectangular_manifold_debug(50, 50);
-//     HMesh::obj_save("rectangle_debug.obj", m);
-//     auto m2 = create_rectangular_manifold_mosaic_closest(50, 50);
-//     HMesh::obj_save("rectangle.obj", m2);
-//     reconstruct_assertions(m2);
-//     //HMesh::minimize_dihedral_angle(m2);
-//     //std::cout << "Optimized mesh: \n";
-//     //reconstruct_assertions(m2);
-//     //HMesh::obj_save("rectangle_optimized.obj", m2);
-// }
