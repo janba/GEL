@@ -934,7 +934,7 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
             Vector neighbor_normal = normals[neighbors[j]];
 
 //            float edge_weight = 0.0*cal_angle_based_weight(this_normal, neighbor_normal) + (dists[j]/last_dist);
-            float edge_weight = cal_angle_based_weight(this_normal, neighbor_normal) +
+            float edge_weight = cal_angle_based_weight(this_normal, neighbor_normal)*
                 (abs(dot(vertex - in_smoothed_v[neighbors[j]], this_normal)) +
                 abs(dot(vertex - in_smoothed_v[neighbors[j]], neighbor_normal)))/last_dist;
             if (i == neighbors[j] && j != 0) {
@@ -954,11 +954,11 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
         }
     }
 
-    for (int iter = 0; iter < 1; iter++)
+    for (int iter = 0; iter < 3; iter++) {
+        auto new_normals = normals;
         for (int i = 0; i < in_smoothed_v.size(); i++) {
-            Vector normal(0,0,0);
             Vector normal_i = normals[i];
-            double w_sum = 0.;
+            Vector normal = normal_i;
             for (auto j: g_angle.neighbors(i)) {
                 Vector normal_j = normals[j];
                 if (dot(normal_i, normal_j) < 0) {
@@ -966,10 +966,11 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
                 }
                 double w = 1.0/(0.0000001 + g_angle.get_weight(i, j));
                 normal +=  w*normal_j;
-                w_sum += w;
             }
-            normals[i] = normalize(normal/w_sum + normal_i);
+            new_normals[i] = normalize(normal);
         }
+        normals = new_normals;
+    }   
 
     std::vector<AMGraph::NodeSet> components_vec;
 

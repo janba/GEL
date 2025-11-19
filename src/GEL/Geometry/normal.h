@@ -25,7 +25,7 @@ CGLA::Vec3d estimateNormal(Range&& neighbors, double radius)
     CGLA::Mat3x3d covariance(0.0f);
     for (const auto& point : neighbors) {
         CGLA::Vec3d diff = point - centroid;
-        covariance += CGLA::outer_product(diff, diff);
+        covariance += CGLA::outer_product(diff, diff);// * exp(-4*CGLA::sqr_length(diff)/(radius*radius));
     }
 
     CGLA::Mat3x3d eigenvectors(0), eigenvalues(0);
