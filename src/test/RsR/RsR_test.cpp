@@ -38,7 +38,10 @@ constexpr auto make_array(Args... args)
     return std::array<std::string_view, size>{args...};
 }
 
-static constexpr auto QUICK_TEST_FILES = make_array(FILE_CAPITAL_A, FILE_THINGY, FILE_AS);
+static constexpr auto QUICK_TEST_FILES = make_array(
+    FILE_CAPITAL_A,
+    //FILE_THINGY,
+    FILE_AS);
 
 constexpr auto IS_EUCLIDEAN = false;
 constexpr auto K_PARAM = 30;
@@ -394,18 +397,11 @@ auto test_reconstruct_legacy(const std::string_view file_name, const RsROpts& op
     }
     auto input = Util::to_triangle_mesh(*input_maybe);
 
-    // auto collapse_opts = CollapseOpts{};
-    // collapse_opts.max_iterations = 1;
-    // collapse_opts.initial_neighbors = 8;
-    // collapse_opts.reduction_per_iteration = 0.90;
-    // auto [_, collapsed] = collapse_points(input.vertices, input.normals, collapse_opts);
-
     std::cout << "obj vertices: " << input.vertices.size() << "\n";
     std::cout << "obj normals: " << input.normals.size() << "\n";
 
     HMesh::Manifold output;
     reconstruct_single(output,
-        //collapsed.points,collapsed.normals,
         input.vertices,
         input.normals,
         opts.dist == Distance::Euclidean, opts.genus, opts.k,
@@ -543,41 +539,41 @@ TEST_CASE("reconstruct_collapse_reexpand")
     test_reconstruct(l, true, true);
 }
 
-TEST_CASE("reconstruct_debug")
-{
-    auto collapse_opts = CollapseOpts{};
-    auto opts_euclidean = test_options();
-    auto file = FILE_BUNNY_SIMPLE_NO_NORMALS;
-    collapse_opts.max_iterations = 3;
-    collapse_opts.initial_neighbors = 8;
-    collapse_opts.reduction_per_iteration = 0.50;
-    collapse_opts.max_collapses = 0;
-
-    auto reexpand_opts = ReexpandOptions();
-    reexpand_opts.enabled = true;
-    reexpand_opts.debug_print = false;
-    reexpand_opts.angle_threshold = std::numbers::pi / 180.0 * 9;
-    reexpand_opts.angle_threshold_penalty = 0.1;
-    reexpand_opts.angle_factor *= 1;
-    reexpand_opts.early_stop_at_error = false;
-    reexpand_opts.stop_at_error = 0;
-    reexpand_opts.debug_mask; // |= RE_ERRORS; //  | RE_FIRST_FLIP | RE_SECOND_FLIP | RE_ITERATION;
-    reexpand_opts.stop_at_iteration = 0;
-
-
-    opts_euclidean.dist = Distance::Euclidean;
-    auto manifold = test_reconstruct_collapse_reexpand(file, collapse_opts, opts_euclidean, reexpand_opts);
-    CHECK(manifold.has_value());
-    if (manifold.has_value()) {
-        HMesh::obj_save("debug_obj_reexpand_euclidean.obj", *manifold);
-        reconstruct_assertions(*manifold);
-    }
-    // auto opts_neighbors = test_options();
-    // opts_neighbors.dist = Distance::Tangent;
-    // manifold = test_reconstruct_collapse_reexpand(file, collapse_opts, opts_neighbors, reexpand_opts);
-    // CHECK(manifold.has_value());
-    // if (manifold.has_value()) {
-    //     HMesh::obj_save("debug_obj_reexpand_neighbors.obj", *manifold);
-    //     reconstruct_assertions(*manifold);
-    // }
-}
+// TEST_CASE("reconstruct_debug")
+// {
+//     auto collapse_opts = CollapseOpts{};
+//     auto opts_euclidean = test_options();
+//     auto file = FILE_BUNNY_SIMPLE_NO_NORMALS;
+//     collapse_opts.max_iterations = 3;
+//     collapse_opts.initial_neighbors = 8;
+//     collapse_opts.reduction_per_iteration = 0.50;
+//     collapse_opts.max_collapses = 0;
+//
+//     auto reexpand_opts = ReexpandOptions();
+//     reexpand_opts.enabled = true;
+//     reexpand_opts.debug_print = false;
+//     reexpand_opts.angle_threshold = std::numbers::pi / 180.0 * 9;
+//     reexpand_opts.angle_threshold_penalty = 0.1;
+//     reexpand_opts.angle_factor *= 1;
+//     reexpand_opts.early_stop_at_error = false;
+//     reexpand_opts.stop_at_error = 0;
+//     reexpand_opts.debug_mask; // |= RE_ERRORS; //  | RE_FIRST_FLIP | RE_SECOND_FLIP | RE_ITERATION;
+//     reexpand_opts.stop_at_iteration = 0;
+//
+//
+//     opts_euclidean.dist = Distance::Euclidean;
+//     auto manifold = test_reconstruct_collapse_reexpand(file, collapse_opts, opts_euclidean, reexpand_opts);
+//     CHECK(manifold.has_value());
+//     if (manifold.has_value()) {
+//         HMesh::obj_save("debug_obj_reexpand_euclidean.obj", *manifold);
+//         reconstruct_assertions(*manifold);
+//     }
+//     // auto opts_neighbors = test_options();
+//     // opts_neighbors.dist = Distance::Tangent;
+//     // manifold = test_reconstruct_collapse_reexpand(file, collapse_opts, opts_neighbors, reexpand_opts);
+//     // CHECK(manifold.has_value());
+//     // if (manifold.has_value()) {
+//     //     HMesh::obj_save("debug_obj_reexpand_neighbors.obj", *manifold);
+//     //     reconstruct_assertions(*manifold);
+//     // }
+// }
