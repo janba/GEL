@@ -12,7 +12,6 @@ namespace Geometry
 #include <array>
 #include <cmath>
 #include <iostream>
-#include <utility>
 
 /// Given an input range of coordinates, estimate a normal vector
 template <std::ranges::input_range Range>
