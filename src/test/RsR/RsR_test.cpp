@@ -52,7 +52,7 @@ constexpr auto N_PARAM = 50;
 
 auto test_options()
 {
-    RsROpts opts;
+    RSROpts opts;
     opts.dist = IS_EUCLIDEAN ? Distance::Euclidean : Distance::Tangent;
     opts.k = K_PARAM;
     opts.genus = GENUS;
@@ -353,7 +353,7 @@ auto all(const Range& range, Func&& f) -> bool
 // Test functions begin
 
 
-auto test_reconstruct_new(const std::string_view file_name, const RsROpts& opts) -> std::optional<HMesh::Manifold>
+auto test_reconstruct_new(const std::string_view file_name, const RSROpts& opts) -> std::optional<HMesh::Manifold>
 {
     std::cout << "======================\n"
         << "Begin new function\n";
@@ -375,7 +375,7 @@ auto test_reconstruct_new(const std::string_view file_name, const RsROpts& opts)
     return output;
 }
 
-auto point_cloud_to_mesh_legacy(std::vector<CGLA::Vec3d> const& points, const std::vector<CGLA::Vec3d>& normals, const RsROpts& opts) -> HMesh::Manifold
+auto point_cloud_to_mesh_legacy(std::vector<CGLA::Vec3d> const& points, const std::vector<CGLA::Vec3d>& normals, const RSROpts& opts) -> HMesh::Manifold
 {
     auto points_copy = points;
     auto normals_copy = normals;
@@ -386,7 +386,7 @@ auto point_cloud_to_mesh_legacy(std::vector<CGLA::Vec3d> const& points, const st
 }
 
 
-auto test_reconstruct_legacy(const std::string_view file_name, const RsROpts& opts) -> std::optional<HMesh::Manifold>
+auto test_reconstruct_legacy(const std::string_view file_name, const RSROpts& opts) -> std::optional<HMesh::Manifold>
 {
     std::cout << "======================\n"
         << "Begin original function\n";
@@ -414,7 +414,7 @@ auto test_reconstruct_legacy(const std::string_view file_name, const RsROpts& op
 }
 
 auto test_reconstruct_collapse_reexpand(const std::string_view file_name, const CollapseOpts& collapse_opts,
-                                        const RsROpts& rsr_opts, const ReexpandOptions& reexpand) -> std::optional<HMesh::Manifold>
+                                        const RSROpts& rsr_opts, const ReexpandOpts& reexpand) -> std::optional<HMesh::Manifold>
 {
     std::cout << "======================\n"
         << "Begin new function\n";
@@ -480,7 +480,7 @@ auto reconstruct_assertions(const HMesh::Manifold& manifold) -> void
 
 template <typename Func>
 void test_reconstruct(Func&& f, const bool save, const bool all = false)
-    requires std::is_same_v<decltype(f(std::declval<std::string_view>(), std::declval<const HMesh::RSR::RsROpts&>())),
+    requires std::is_same_v<decltype(f(std::declval<std::string_view>(), std::declval<const HMesh::RSR::RSROpts&>())),
                             std::optional<HMesh::Manifold>>
 {
     const auto test_files = std::ranges::subrange(QUICK_TEST_FILES);
@@ -534,7 +534,7 @@ TEST_CASE("reconstruct")
 TEST_CASE("reconstruct_collapse_reexpand")
 {
     auto l = []<typename T0, typename T1>(T0&& PH1, T1&& PH2) {
-        return test_reconstruct_collapse_reexpand(std::forward<T0>(PH1), CollapseOpts(), std::forward<T1>(PH2), ReexpandOptions());
+        return test_reconstruct_collapse_reexpand(std::forward<T0>(PH1), CollapseOpts(), std::forward<T1>(PH2), ReexpandOpts());
     };
     test_reconstruct(l, true, true);
 }

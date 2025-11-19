@@ -152,7 +152,7 @@ auto one_ring_max_angle(const Manifold& manifold, const VertexID vid) -> double
 }
 
 Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v_new_position,
-                     const Vec3& v_old_position, const ReexpandOptions& opts, double angle_threshold_cos)
+                     const Vec3& v_old_position, const ReexpandOpts& opts, double angle_threshold_cos)
 {
     const auto angle_factor = opts.angle_factor;
     const auto angle_threshold_penalty = opts.angle_threshold_penalty;
@@ -448,7 +448,7 @@ std::optional<HalfEdgeID> find_crossed_edge(
     const VertexID id,
     const Point& active_pos,
     const Point& latent_pos,
-    const ReexpandOptions& opts)
+    const ReexpandOpts& opts)
 {
     for (auto he: manifold.incident_halfedges(id)) {
         auto walker = manifold.walker(he);
@@ -533,7 +533,7 @@ namespace
     }
 }
 
-auto reexpand_points(Manifold& manifold, Collapse&& collapse, const ReexpandOptions& opts) -> void
+auto reexpand_points(Manifold& manifold, Collapse&& collapse, const ReexpandOpts& opts) -> void
 {
     std::cout << "reexpanding" << std::endl;
     const auto& manifold_positions = manifold.positions;

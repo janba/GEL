@@ -10,7 +10,339 @@
 
 namespace HMesh::RSR
 {
-using namespace detail;
+using Vec3 = CGLA::Vec3d;
+using Point = Vec3;
+using NodeID = AMGraph::NodeID;
+
+using uint = Geometry::uint;
+
+inline constexpr NodeID InvalidNodeID = AMGraph::InvalidNodeID;
+inline constexpr NodeID InvalidEdgeID = AMGraph::InvalidEdgeID;
+
+template <typename T>
+using OrderedSet = Util::BTreeSet<T>;
+
+template <typename T>
+using UnorderedSet = Util::HashSet<T>;
+
+template <typename K, typename V, typename Hash>
+using Map = std::unordered_map<K, V, Hash>;
+
+template <typename K, typename V>
+using OrderedMap = Util::BTreeMap<K, V>;
+
+double cal_radians_3d(const Vec3& branch, const Vec3& normal);
+double cal_radians_3d(const Vec3& branch, const Vec3& normal, const Vec3& ref_vec);
+
+/// Graph definition. The RsR graph here is integrated with the rotation system based on AMGraph
+struct Vertex {
+    using NormalRep = std::int64_t;
+
+    NormalRep normal_rep = InvalidNormalRep;
+    Vec3 coords = Vec3(0., 0., 0.);
+    Vec3 normal = Vec3(0., 0., 0.);
+
+    static constexpr NormalRep InvalidNormalRep = -1;
+    static constexpr NormalRep CollisionRep = -2;
+};
+
+struct Neighbor {
+    double angle = 0.0;
+    uint v = -1;
+    uint tree_id = 0;
+
+    Neighbor(const Vertex& u, const Vertex& v, const uint id)
+    {
+        this->v = id;
+        this->angle = cal_radians_3d(v.coords - u.coords, u.normal);
+    }
+
+    // friend size_t hash_value(const Neighbor& p)
+    // {
+    //     return std::hash<uint>()(p.v);
+    // }
+    bool operator==(const Neighbor& rhs) const
+    {
+        return v == rhs.v;
+    }
+
+    bool operator<(const Neighbor& rhs) const
+    {
+        return angle < rhs.angle;
+    }
+
+    // std::weak_ordering operator<=>(const Neighbor& rhs) const
+    // {
+    //     if (this->v == rhs.v) return std::weak_ordering::equivalent;
+    //     if (this->angle < rhs.angle) return std::weak_ordering::less;
+    //     else return std::weak_ordering::greater;
+    // }
+};
+
+static_assert(std::is_trivially_destructible_v<Neighbor>);
+
+struct Edge {
+    NodeID source = InvalidNodeID;
+    NodeID target = InvalidNodeID;
+    int ref_time = 0;
+};
+
+class SimpGraph /*: public Util::SparseGraph<double>*/ {
+    AMGraph graph;
+    std::vector<double> m_edges; // Edge weight
+
+public:
+    using NodeID = decltype(graph)::NodeID;
+    static constexpr auto InvalidEdgeID = decltype(graph)::InvalidEdgeID;
+
+    void reserve(size_t vertices, int k)
+    {
+        m_edges.reserve(vertices * k);
+    }
+
+    // connected components
+    [[nodiscard]]
+    auto inner() const -> const decltype(graph)&
+    {
+        return graph;
+    }
+
+    // generic algorithms
+    auto add_node() -> NodeID
+    {
+        return graph.add_node();
+    }
+
+    auto connect_nodes(const NodeID source, const NodeID target, const double weight = 0.)
+    {
+        const auto id =
+            graph.connect_nodes(source, target);
+        if (id == m_edges.size())
+            m_edges.push_back(weight);
+        else
+            m_edges[id] = weight;
+        return id;
+    }
+
+    [[nodiscard]] double get_weight(const NodeID n1, const NodeID n2) const
+    {
+        return m_edges[graph.find_edge(n1, n2)];
+    }
+
+    /// Disconnect nodes. This operation removes the edge from the edge maps of the two formerly connected
+    /// vertices, but the number of edges reported by the super class AMGraph is not decremented, so the edge is only
+    /// invalidated. Call cleanup to finalize removal.
+    void disconnect_nodes(const NodeID n0, const NodeID n1)
+    {
+        //return graph.remove_edge(n0, n1);
+        //remove_edge(n0, n1);
+        // if (graph.valid_node_id(n0) && graph.valid_node_id(n1)) {
+        //     graph.edge_map[n0].erase(n1);
+        //     graph.edge_map[n1].erase(n0);
+        // }
+        graph.erase_edge(n0, n1);
+    }
+
+    [[nodiscard]]
+    auto find_edge(NodeID from, NodeID to) const
+    {
+        return graph.find_edge(from, to);
+    }
+
+    [[nodiscard]]
+    auto node_ids() const
+    {
+        return graph.node_ids();
+    }
+
+    [[nodiscard]]
+    auto no_nodes() const -> size_t
+    {
+        return graph.no_nodes();
+    }
+
+    [[nodiscard]]
+    auto no_edges() const -> size_t
+    {
+        return graph.no_edges();
+    }
+
+    [[nodiscard]]
+    auto neighbors_lazy(NodeID from) const
+    {
+        return graph.neighbors_lazy(from);
+    }
+
+    auto collapse(NodeID to_keep, NodeID to_remove)
+    {
+        for (auto n : neighbors_lazy(to_remove)) {
+            double weight = get_weight(n, to_remove);
+            connect_nodes(to_keep, n, weight);
+        }
+        graph.erase_node(to_remove);
+    }
+};
+
+class RSGraph : private AMGraph {
+public:
+    static constexpr auto InvalidEdgeID = std::nullopt;
+
+    Geometry::ETF etf;
+    std::vector<Vertex> m_vertices;
+    std::vector<OrderedSet<Neighbor>> m_neighbors;
+    std::vector<Edge> m_edges;
+
+    void reserve(size_t nodes, int k)
+    {
+        m_vertices.reserve(nodes * k);
+    }
+
+    [[nodiscard]]
+    auto no_nodes() const -> size_t
+    {
+        return AMGraph::no_nodes();
+    }
+
+    [[nodiscard]]
+    auto neighbors_lazy(NodeID n) const
+    {
+        return AMGraph::neighbors_lazy(n);
+    }
+
+    [[nodiscard]]
+    auto shared_neighbors_lazy(NodeID n1, NodeID n2) const
+    {
+        return AMGraph::shared_neighbors_lazy(n1, n2);
+    }
+
+    [[nodiscard]]
+    auto valence(NodeID n) const
+    {
+        return AMGraph::valence(n);
+    }
+
+    EdgeID add_edge(const NodeID source, const NodeID target)
+    {
+        const EdgeID id = this->connect_nodes(source, target);
+        GEL_ASSERT_NEQ(id, AMGraph::InvalidEdgeID);
+        if (m_edges.size() == id)
+            m_edges.emplace_back(source, target);
+        else
+            m_edges[id] = Edge{.source = source, .target = target};
+
+        // insert neighbors
+        m_neighbors[source].emplace(Neighbor(m_vertices[source], m_vertices[target], target));
+        m_neighbors[target].emplace(Neighbor(m_vertices[target], m_vertices[source], source));
+
+        //return { source, target };
+        return id;
+    }
+
+    NodeID add_node(const Vec3& p, const Vec3& in_normal = Vec3(0., 0., 0.))
+    {
+        const NodeID n = AMGraph::add_node();
+        GEL_ASSERT_EQ(m_vertices.size(), n);
+        m_vertices.emplace_back(Vertex::InvalidNormalRep, p, in_normal);
+        m_neighbors.emplace_back();
+        //m_vertices[n] = Vertex{.id = n, .normal_rep = Vertex::InvalidNormalRep, .coords = p, .normal = in_normal };
+        return n;
+    }
+
+    void increment_ref_time(NodeID n1, NodeID n2)
+    {
+        auto edge = AMGraph::find_edge(n1, n2);
+        if (edge != AMGraph::InvalidEdgeID) {
+            m_edges[edge].ref_time += 1;
+        }
+    }
+
+    [[nodiscard]]
+    std::optional<Edge> find_edge(NodeID n1, NodeID n2) const
+    {
+        const EdgeID id = AMGraph::find_edge(n1, n2);
+        if (id == AMGraph::InvalidEdgeID) {
+            return std::nullopt;
+        }
+        return m_edges[id];
+    }
+
+    /// @brief Get last neighbor information
+    /// @param root: root vertex index
+    /// @param branch: current outgoing branch
+    /// @return reference to last neighbor struct
+    // TODO: const correctness
+    [[nodiscard]]
+    Neighbor& predecessor(const NodeID& root, const NodeID& branch) const
+    {
+        GEL_ASSERT(m_vertices.size() > root);
+        GEL_ASSERT(m_vertices.size() > branch);
+        auto& u = m_vertices.at(root);
+        auto& v = m_vertices.at(branch);
+        GEL_ASSERT(!m_neighbors[root].empty()); // we need at least one neighbor to return
+        Neighbor temp = {u, v, static_cast<uint>(branch)};
+        auto iter = m_neighbors[root].lower_bound(temp);
+        if (iter == m_neighbors[root].begin()) iter = m_neighbors[root].end(); // Wrap around
+        //auto& f = iter->first;
+        //auto& s = iter->second;
+        //return {f, s};
+        //return std::tie(f, s);
+        return const_cast<Neighbor&>(*(std::prev(iter)));
+    }
+
+    /// @brief Get the next neighbor information
+    ///
+    /// @param root: root vertex index
+    /// @param branch: current outgoing branch
+    ///
+    /// @return reference to the next neighbor struct
+    [[nodiscard]]
+    const Neighbor& successor(const NodeID& root, const NodeID& branch) const
+    {
+        auto& u = m_vertices.at(root);
+        auto& v = m_vertices.at(branch);
+        GEL_ASSERT(!m_neighbors[root].empty()); // we need at least one neighbor to return
+        auto iter = m_neighbors[root].upper_bound(Neighbor(u, v, branch));
+        if (iter == m_neighbors[root].end()) iter = m_neighbors[root].begin(); // Wrap around
+        //auto& f = iter->first;
+        //auto& s = iter->second;
+        //return {f, s};
+        //return std::tie(f, s);
+        //return const_cast<Neighbor&>(*(iter));
+        return (*iter);
+    }
+
+private:
+    /// @brief Get the neighbor information
+    /// @param root: root vertex index
+    /// @param branch: the outgoing branch
+    /// @return reference to the neighbor struct
+    Neighbor& get_neighbor_info(const NodeID root, const NodeID branch)
+    {
+        auto& u = this->m_vertices.at(root);
+        auto& v = this->m_vertices.at(branch);
+        auto iter = m_neighbors[root].lower_bound({u, v, static_cast<uint>(branch)});
+        // TODO: tree_id does not invalidate ordered_neighbors, but it still has thread safety issues
+        //auto& f = iter->first;
+        //auto& s = iter->second;
+        //return {f, s};
+        return const_cast<Neighbor&>(*(iter));
+    }
+
+public:
+    void maintain_face_loop(const NodeID source, const NodeID target)
+    {
+        auto& this_v_tree = this->predecessor(source, target).tree_id;
+        auto& neighbor_tree = this->predecessor(target, source).tree_id;
+
+        auto [fst, snd] = this->etf.insert(this_v_tree, neighbor_tree);
+
+        get_neighbor_info(source, target).tree_id = fst;
+        get_neighbor_info(target, source).tree_id = snd;
+    }
+};
+
+
+//using namespace detail;
 using namespace Util::detail;
 
 using Geometry::estimateNormal;
@@ -38,6 +370,7 @@ struct TEdge {
     NodeID from;
     NodeID to;
 };
+
 struct PEdgeLength {
     TEdge edge;
     float length;
@@ -137,8 +470,11 @@ double cal_proj_dist(const Vec3& edge, const Vec3& this_normal, const Vec3& neig
         return euclidean_distance;
     const double neighbor_normal_length = dot(edge, neighbor_normal);
     const double normal_length = dot(edge, this_normal);
-    const double projection_dist = (std::sqrt((euclidean_distance * euclidean_distance) - (normal_length * normal_length))
-    + std::sqrt((euclidean_distance * euclidean_distance) - (neighbor_normal_length * neighbor_normal_length))) * 0.5;
+    const double projection_dist = (std::sqrt(
+                (euclidean_distance * euclidean_distance) - (normal_length * normal_length))
+            + std::sqrt((euclidean_distance * euclidean_distance) - (neighbor_normal_length * neighbor_normal_length)))
+        *
+        0.5;
     return projection_dist;
 }
 
@@ -209,9 +545,9 @@ SimpGraph init_graph(
             //if (id_other <= id_this) continue;
             //GEL_ASSERT_NEQ(id_other, id_this, "Vertex connects back to its own");
 
-            const Vec3&  neighbor_normal = normals[id_other];
+            const Vec3& neighbor_normal = normals[id_other];
             const Point& neighbor_pos = smoothed_v[id_other];
-            const Vec3  edge = neighbor_pos - vertex;
+            const Vec3 edge = neighbor_pos - vertex;
             const auto weight =
                 (is_euclidean)
                     ? (edge.length())
@@ -305,7 +641,7 @@ void weighted_smooth(
         InplaceVector<LengthWeight, 192> length_weights;
         const std::intptr_t limit = (neighbors.size() < 192) ? static_cast<intptr_t>(neighbors.size()) : 192;
         length_weights.reserve(limit);
-        for (const auto& neighbor: neighbors | std::views::take(192)) {
+        for (const auto& neighbor : neighbors | std::views::take(192)) {
             const Point neighbor_pos = vertices[neighbor.id];
             const Vec3 n2this = neighbor_pos - vertex;
             if (dot(normals[neighbor.id], normal) < std::cos(30. / 180. * M_PI)) {
@@ -368,7 +704,8 @@ void estimate_normal_no_normals_memoized(
         auto neighbor_coords = neighbors_of_this | std::views::transform([&](const auto& neighbor) {
             return vertices[neighbor.id];
         });
-        const Vec3 normal = estimateNormal(neighbor_coords);
+        // FIXME: the radius parameter might be needed in the future
+        const Vec3 normal = estimateNormal(neighbor_coords, 0.0);
 
         if (std::isnan(normal.length())) [[unlikely]] {
             std::cerr << _debug << ": error" << std::endl;
@@ -393,10 +730,13 @@ double cal_angle_based_weight(const Vec3& this_normal, const Vec3& neighbor_norm
 
 /// Generic template for creating an MST
 template </*std::derived_from<AMGraph>*/ typename TargetGraph,
-    /*std::derived_from<AMGraph>*/ typename SourceGraph,
-    std::invocable<TargetGraph&, NodeID> NodeInserter, // TargetGraph -> NodeID -> ()
-    std::invocable<const SourceGraph&, NodeID, NodeID> DistanceFunc, // SourceGraph -> NodeID -> NodeID -> double
-    std::invocable<TargetGraph&, NodeID, NodeID> EdgeInserterFunc> // TargetGraph -> NodeID -> NodeID -> ()
+                                         /*std::derived_from<AMGraph>*/ typename SourceGraph,
+                                         std::invocable<TargetGraph&, NodeID> NodeInserter,
+                                         // TargetGraph -> NodeID -> ()
+                                         std::invocable<const SourceGraph&, NodeID, NodeID> DistanceFunc,
+                                         // SourceGraph -> NodeID -> NodeID -> double
+                                         std::invocable<TargetGraph&, NodeID, NodeID> EdgeInserterFunc>
+// TargetGraph -> NodeID -> NodeID -> ()
 TargetGraph make_mst(
     const SourceGraph& g,
     NodeID root,
@@ -441,7 +781,7 @@ TargetGraph make_mst(
 
             GEL_ASSERT(std::ranges::distance(g.neighbors_lazy(id2)) > 0);
             for (auto neighbor : g.neighbors_lazy(id2)
-                | std::views::filter([&](auto&& nb){return !in_tree[nb].inner;})) {
+                 | std::views::filter([&](auto&& nb) { return !in_tree[nb].inner; })) {
                 const auto distance2 = distance_function(g, neighbor, id2);
                 queue.emplace(distance2, id2, neighbor);
             }
@@ -513,11 +853,11 @@ void correct_normal_orientation(
             const auto& this_normal = normals[i];
 
             for (const auto neighbor : neighbors
-                    | std::views::drop(1)
-                    | std::views::filter([&i, &g_angle_temp](auto&& nb)
-                        {return g_angle_temp.find_edge(i, nb.id) == AMGraph::InvalidEdgeID;})
-                        ) {
-
+                 | std::views::drop(1)
+                 | std::views::filter([&i, &g_angle_temp](auto&& nb) {
+                     return g_angle_temp.find_edge(i, nb.id) == AMGraph::InvalidEdgeID;
+                 })
+            ) {
                 //if (g_angle_temp.find_edge(i, neighbor.id) != AMGraph::InvalidEdgeID)
                 //    continue;
                 const auto& neighbor_normal = normals[neighbor.id];
@@ -609,14 +949,14 @@ bool is_intersecting(const RSGraph& mst, const NodeID v1, const NodeID v2, const
 {
     const auto& p1 = mst.m_vertices[v1].coords;
     const auto& p2 = mst.m_vertices[v2].coords;
-    const auto& n1  = mst.m_vertices[v1].normal;
-    const auto& n2  = mst.m_vertices[v2].normal;
+    const auto& n1 = mst.m_vertices[v1].normal;
+    const auto& n2 = mst.m_vertices[v2].normal;
     const Vec3 normal_12 = (n1 + n2) / 2.;
 
     const auto& p3 = mst.m_vertices[v3].coords;
     const auto& p4 = mst.m_vertices[v4].coords;
-    const auto& n3  = mst.m_vertices[v3].normal;
-    const auto& n4  = mst.m_vertices[v4].normal;
+    const auto& n3 = mst.m_vertices[v3].normal;
+    const auto& n4 = mst.m_vertices[v4].normal;
     const Vec3 normal_34 = (n3 + n4) / 2.;
 
     auto check_intersection = [](auto&& p1, auto&& p2, auto&& p3, auto&& p4, auto&& normal) -> bool {
@@ -673,21 +1013,21 @@ bool geometry_check(
 
     auto in_rejection_set = [&](NodeID neighbor) -> bool {
         return
-            (neighbor != v1 &&
+        (neighbor != v1 &&
             neighbor != v2 &&
             CGLA::dot(mst.m_vertices[neighbor].normal, mean_normal) > 0.5); // std::cos(60. / 180. * M_PI));
     };
     for (const auto neighbor : neighbors
          | std::views::values
          | std::views::filter(in_rejection_set)) {
-
         if (std::ranges::any_of(
             mst.m_neighbors[neighbor] |
             std::views::transform([](auto&& x) { return x.v; }) |
             std::views::filter(in_rejection_set), [&](const auto& rej_neighbor_neighbor) {
                 return is_intersecting(mst, v1, v2, neighbor, rej_neighbor_neighbor);
             }
-        )) return false;
+        ))
+            return false;
     }
     return true;
 }
@@ -784,6 +1124,7 @@ void add_face(RSGraph& graph, const FaceType& item,
 struct RegisterFaceResult {
     InplaceVector<FaceType, 2> faces;
 };
+
 auto register_face(const RSGraph& mst, const NodeID v1, const NodeID v2) -> std::optional<RegisterFaceResult>
 {
     GEL_ASSERT_EQ(mst.find_edge(v1, v2), RSGraph::InvalidEdgeID);
@@ -829,7 +1170,7 @@ auto register_face(const RSGraph& mst, const NodeID v1, const NodeID v2) -> std:
     if (temp.empty())
         return std::nullopt; // false
 
-    return RegisterFaceResult {
+    return RegisterFaceResult{
         temp,
     }; // true
 }
@@ -900,8 +1241,7 @@ void connect_handle(
         const auto& neighbors = neighbors_map[i];
 
         // Potential handle collection
-        for (auto& neighbor: neighbors | std::views::drop(1)) {
-
+        for (auto& neighbor : neighbors | std::views::drop(1)) {
             if (mst.find_edge(this_v, neighbor.id) != RSGraph::InvalidEdgeID)
                 continue;
             const auto tree = mst.etf.representative(mst.predecessor(this_v, neighbor.id).tree_id);
@@ -954,7 +1294,6 @@ void connect_handle(
                 isFind = true;
                 const auto candidate = TEdge(this_v, connected_neighbor);
                 if (geometry_check(mst, candidate, kd_tree)) {
-
                     mst.add_edge(this_v, connected_neighbor);
                     connected_handle_root.push_back(this_v);
                     connected_handle_root.push_back(connected_neighbor);
@@ -1383,7 +1722,7 @@ auto split_components(
     std::vector<Point>&& vertices,
     std::vector<Vec3>&& normals,
     std::vector<Point>&& smoothed_v,
-    const RsROpts& opts)
+    const RSROpts& opts)
     -> Components
 {
     GEL_ASSERT_EQ(vertices.size(), normals.size());
@@ -1461,7 +1800,8 @@ auto split_components(
     );
 }
 
-void export_edges(const RSGraph& g, const std::string& out_path) {
+void export_edges(const RSGraph& g, const std::string& out_path)
+{
     std::ofstream file(out_path);
     // Write vertices
     file << "# List of geometric vertices" << std::endl;
@@ -1477,11 +1817,12 @@ void export_edges(const RSGraph& g, const std::string& out_path) {
     file << "# Line element" << std::endl;
     for (int i = 0; i < g.m_vertices.size(); i += 2)
         file << "l " << i + 1
-        << " " << i + 2 << "\n";
+            << " " << i + 2 << "\n";
     //file.close();
 }
 
-void export_graph(const RSGraph& g, const std::string& out_path) {
+void export_graph(const RSGraph& g, const std::string& out_path)
+{
     std::ofstream file(out_path);
     // Write vertices
     file << "# List of geometric vertices\n";
@@ -1510,11 +1851,11 @@ RSGraph from_simp_graph(const SimpGraph& graph, const std::vector<Point>& points
 {
     RSGraph copy;
 
-    for (auto id: graph.node_ids()) {
+    for (auto id : graph.node_ids()) {
         copy.add_node(points.at(id));
     }
-    for (auto id: graph.node_ids()) {
-        for (auto neighbor: graph.neighbors_lazy(id)) {
+    for (auto id : graph.node_ids()) {
+        for (auto neighbor : graph.neighbors_lazy(id)) {
             if (id < neighbor) {
                 copy.add_edge(id, neighbor);
             }
@@ -1525,7 +1866,7 @@ RSGraph from_simp_graph(const SimpGraph& graph, const std::vector<Point>& points
 
 auto component_to_manifold(
     IExecutor& pool,
-    const RsROpts& opts,
+    const RSROpts& opts,
     const std::vector<Point>& vertices,
     const std::vector<Vec3>& normals,
     const std::vector<Point>& smoothed_v,
@@ -1587,19 +1928,19 @@ auto component_to_manifold(
 
     std::vector<std::pair<Point, NodeID>> neighbors;
     inner_timer.start("edge_connection");
-     for (auto& [this_edge, edge_len] : edge_length) {
-         if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
-             vanilla_check(mst, this_edge, kd_tree, neighbors)) {
-             auto result = register_face(mst, this_edge.from, this_edge.to);
-             if (result.has_value()) {
-                 mst.add_edge(this_edge.from, this_edge.to);
-                 mst.maintain_face_loop(this_edge.from, this_edge.to);
-                 for (const auto& face : result->faces) {
-                     add_face(mst, face, flattened_face);
-                 }
-             }
-         }
-     }
+    for (auto& [this_edge, edge_len] : edge_length) {
+        if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
+            vanilla_check(mst, this_edge, kd_tree, neighbors)) {
+            auto result = register_face(mst, this_edge.from, this_edge.to);
+            if (result.has_value()) {
+                mst.add_edge(this_edge.from, this_edge.to);
+                mst.maintain_face_loop(this_edge.from, this_edge.to);
+                for (const auto& face : result->faces) {
+                    add_face(mst, face, flattened_face);
+                }
+            }
+        }
+    }
     inner_timer.end("edge_connection");
     std::cout << "edge length length: " << edge_length.size() << "\n";
 
@@ -1607,7 +1948,8 @@ auto component_to_manifold(
     inner_timer.start("triangulation");
     if (opts.genus != 0) {
         std::vector<NodeID> connected_handle_root;
-        connect_handle(smoothed_v, kd_tree, mst, connected_handle_root, opts.k, opts.n,opts.dist == Distance::Euclidean, opts.genus);
+        connect_handle(smoothed_v, kd_tree, mst, connected_handle_root, opts.k, opts.n,
+                       opts.dist == Distance::Euclidean, opts.genus);
         triangulate(flattened_face, mst, opts.dist == Distance::Euclidean, connection_lengths, connected_handle_root);
     }
     inner_timer.end("triangulation");
@@ -1630,7 +1972,7 @@ auto point_cloud_to_mesh_impl(
     std::vector<Vec3>&& normals_copy,
     Util::RSRTimer& timer,
     ThreadPool& pool,
-    const RsROpts& opts) -> Manifold
+    const RSROpts& opts) -> Manifold
 {
     Manifold output;
 
@@ -1647,8 +1989,8 @@ auto point_cloud_to_mesh_impl(
     });
 
     auto [component_vertices,
-          component_smoothed_v,
-          component_normals] =
+            component_smoothed_v,
+            component_normals] =
         split_components(pool,
                          neighbor_map,
                          std::move(vertices_copy),
@@ -1661,7 +2003,8 @@ auto point_cloud_to_mesh_impl(
     // rely on this loop for good parallelization opportunities.
     timer.start("Algorithm");
     for (size_t component_id = 0; component_id < component_vertices.size(); component_id++) {
-        std::cout << "Reconstructing component " << std::to_string(component_id) << " ... (" << component_vertices[component_id].size() << " vertices)" << std::endl;
+        std::cout << "Reconstructing component " << std::to_string(component_id) << " ... (" << component_vertices[
+            component_id].size() << " vertices)" << std::endl;
 
         std::vector<Point> vertices_of_this = std::move(component_vertices[component_id]);
         std::vector<Vec3> normals_of_this = std::move(component_normals[component_id]);
@@ -1704,7 +2047,7 @@ auto point_cloud_to_mesh_impl(
 auto point_cloud_to_mesh(
     const std::vector<Point>& vertices_in,
     const std::vector<Vec3>& normals_in,
-    const RsROpts& opts) -> Manifold
+    const RSROpts& opts) -> Manifold
 {
     Util::RSRTimer timer;
     ThreadPool pool;
@@ -1713,10 +2056,10 @@ auto point_cloud_to_mesh(
     if (!normals_in.empty()) {
         GEL_ASSERT_EQ(vertices_in.size(), normals_in.size(), "Vertices and normals must be the same size");
     }
-    for (const auto& point: vertices_in) {
+    for (const auto& point : vertices_in) {
         GEL_ASSERT_FALSE(std::isnan(point[0]) || std::isnan(point[1]) || std::isnan(point[2]), "Bad point input");
     }
-    for (const auto& normal: normals_in) {
+    for (const auto& normal : normals_in) {
         GEL_ASSERT_FALSE(std::isnan(normal[0]) || std::isnan(normal[1]) || std::isnan(normal[2]), "Bad normal input");
         GEL_ASSERT_NEQ(normal, Vec3(0.0), "Bad normal input");
     }
@@ -1765,17 +2108,19 @@ auto indexed_select(const Collection& collection,
     return result;
 }
 
-std::vector<Vec3> validate_normals(ThreadPool& pool, const std::vector<Point>& vertices, const std::vector<Vec3>& normals, const RsROpts& reconstruction_options)
+std::vector<Vec3> validate_normals(ThreadPool& pool, const std::vector<Point>& vertices,
+                                   const std::vector<Vec3>& normals, const RSROpts& reconstruction_options)
 {
     auto check = [&]() {
         if (!normals.empty() && vertices.size() != normals.size()) {
             std::cerr << "Bad normal input: normals must either be empty or the same size as vertices" << "\n";
             return false;
         }
-        for (const auto& point: vertices) {
-            GEL_ASSERT_FALSE(std::isnan(point[0]) || std::isnan(point[1]) || std::isnan(point[2]), "Bad point input: Found a NaN coordinate.");
+        for (const auto& point : vertices) {
+            GEL_ASSERT_FALSE(std::isnan(point[0]) || std::isnan(point[1]) || std::isnan(point[2]),
+                             "Bad point input: Found a NaN coordinate.");
         }
-        for (const auto& normal: normals) {
+        for (const auto& normal : normals) {
             if (std::isnan(normal[0]) || std::isnan(normal[1]) || std::isnan(normal[2])) {
                 std::cerr << "Bad normal input: normal is NaN" << "\n";
                 return false;
@@ -1795,15 +2140,14 @@ std::vector<Vec3> validate_normals(ThreadPool& pool, const std::vector<Point>& v
         auto smoothed_points = estimate_normals_and_smooth(pool, vertices, normals_copy, reconstruction_options.dist);
         return normals_copy;
     }
-
 }
 
 auto point_cloud_collapse_reexpand(
     const std::vector<Point>& vertices_in,
     const std::vector<Vec3>& normals_in,
     const CollapseOpts& collapse_options,
-    const RsROpts& rsr_opts,
-    const ReexpandOptions& reexpand_opts) -> Manifold
+    const RSROpts& rsr_opts,
+    const ReexpandOpts& reexpand_opts) -> Manifold
 {
     if (collapse_options.max_iterations == 0) {
         return point_cloud_to_mesh(vertices_in, normals_in, rsr_opts);
@@ -1816,10 +2160,10 @@ auto point_cloud_collapse_reexpand(
     if (!normals_in.empty()) {
         GEL_ASSERT_EQ(vertices_in.size(), normals_in.size(), "Vertices and normals must be the same size");
     }
-    for (const auto& point: vertices_in) {
+    for (const auto& point : vertices_in) {
         GEL_ASSERT_FALSE(std::isnan(point[0]) || std::isnan(point[1]) || std::isnan(point[2]), "Bad point input");
     }
-    for (const auto& normal: normals_in) {
+    for (const auto& normal : normals_in) {
         GEL_ASSERT_FALSE(std::isnan(normal[0]) || std::isnan(normal[1]) || std::isnan(normal[2]), "Bad normal input");
         GEL_ASSERT_NEQ(normal, Vec3(0.0), "Bad normal input");
     }
@@ -1830,9 +2174,9 @@ auto point_cloud_collapse_reexpand(
 
     // Estimate normals & orientation & weighted smoothing
     timer.start("Estimate and smooth normals");
-    std::vector<Point> in_smoothed_v = estimate_normals_and_smooth(pool, vertices_copy, normals_copy, collapse_options.distance);
+    std::vector<Point> in_smoothed_v = estimate_normals_and_smooth(pool, vertices_copy, normals_copy,
+                                                                   collapse_options.distance);
     timer.end("Estimate and smooth normals");
-
 
 
     if (normals_in.empty()) {

@@ -79,7 +79,7 @@ enum DebugMask {
     RE_MARK_BAD_SPLITS = 1 << 7,
 };
 
-struct ReexpandOptions {
+struct ReexpandOpts {
     bool enabled = true;
     // DEBUG OPTIONS
 
@@ -408,7 +408,7 @@ auto collapse_points(
     const CollapseOpts& options
 ) -> std::pair<Collapse, PointCloud>;
 
-auto reexpand_points(Manifold& manifold, Collapse&& collapse, const ReexpandOptions& opts = ReexpandOptions()) -> void;
+auto reexpand_points(Manifold& manifold, Collapse&& collapse, const ReexpandOpts& opts = ReexpandOpts()) -> void;
 
 } // namespace HMesh
 
