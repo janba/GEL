@@ -1,12 +1,19 @@
 #include <GEL/Util/RSRTimer.h>
-#include <GEL/Geometry/normal.h>
-#include <GEL/HMesh/RSRExperimental.h>
 #include <GEL/Util/ParallelAdapters.h>
+#include <GEL/Util/InplaceVector.h>
+#include <GEL/Util/AssociativeContainers.h>
+
+#include <GEL/Geometry/Graph.h>
+#include <GEL/Geometry/normal.h>
+#include <GEL/Geometry/NeighborUtil.h>
+#include <GEL/Geometry/etf.h>
+
+#include <GEL/HMesh/RSRExperimental.h>
+
 #include <ranges> // std::views
 #include <algorithm>
 //#include <GEL/Util/RangeTools.h>
 
-#include "GEL/Util/InplaceVector.h"
 
 namespace HMesh::RSR
 {
@@ -14,6 +21,8 @@ using Vec3 = CGLA::Vec3d;
 using Point = Vec3;
 using NodeID = AMGraph::NodeID;
 
+using namespace detail;
+using namespace Geometry;
 using uint = Geometry::uint;
 
 inline constexpr NodeID InvalidNodeID = AMGraph::InvalidNodeID;

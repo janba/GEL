@@ -1,20 +1,14 @@
-#ifndef GEL_HMesh_RsR2_hpp
-#define GEL_HMesh_RsR2_hpp
+#ifndef GEL_RSR_EXPERIMENTAL_H
+#define GEL_RSR_EXPERIMENTAL_H
 #pragma once
 
 #include <vector>
-
-#include <GEL/Util/AssociativeContainers.h>
-
-#include <GEL/Geometry/Graph.h>
-#include <GEL/Geometry/etf.h>
 
 #include <GEL/HMesh/HierarchicalReconstruction.h>
 
 /// @brief Rotation System Reconstruction
 namespace HMesh::RSR
 {
-
 /// Options struct for point cloud reconstruction
 struct RSROpts {
     /// Expected genus of the manifold, -1 to auto-detect. This value
@@ -65,17 +59,6 @@ auto point_cloud_to_mesh(const std::vector<Point>& vertices_in,
                          const std::vector<Vec3>& normals_in,
                          const RSROpts& opts) -> HMesh::Manifold;
 
-struct NormalEstimationResult {
-    std::vector<Point> vertices;
-    std::vector<Vec3> normals;
-    std::vector<Vec3> smoothed_v;
-};
-
-auto point_cloud_normal_estimate(const std::vector<Point>& vertices,
-                                 const std::vector<Vec3>& normals,
-                                 bool is_euclidean) -> NormalEstimationResult;
-
-
 /// Convert a point cloud into a Manifold using the hierarchical collapse
 /// and reexpansion method. Rotation system reconstruction is used to perform
 /// the intermediate reconstruction.
@@ -91,6 +74,20 @@ auto point_cloud_collapse_reexpand(
     const CollapseOpts& collapse_options,
     const RSROpts& reconstruction_options,
     const ReexpandOpts& reexpand_options) -> HMesh::Manifold;
+
+// TODO: probably remove these
+namespace detail
+{
+    struct NormalEstimationResult {
+        std::vector<Point> vertices;
+        std::vector<Vec3> normals;
+        std::vector<Vec3> smoothed_v;
+    };
+
+    auto point_cloud_normal_estimate(const std::vector<Point>& vertices,
+                                     const std::vector<Vec3>& normals,
+                                     bool is_euclidean) -> NormalEstimationResult;
+}
 } // namespace HMesh::RSR
 
 #endif // GEL_HMesh_RsR2_hpp

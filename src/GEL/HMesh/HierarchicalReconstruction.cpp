@@ -2,7 +2,10 @@
 // Created by Cem Akarsubasi on 9/10/25.
 //
 
-#include "HierarchicalReconstruction.h"
+#include <GEL/Util/InplaceVector.h>
+
+#include <GEL/HMesh/HierarchicalReconstruction.h>
+
 
 #include <unordered_map>
 
@@ -11,6 +14,187 @@ namespace HMesh::RSR
 
 using namespace detail;
 using namespace Util::detail;
+
+struct RawCollapse {
+    NodeID active;
+    NodeID latent;
+    Point active_point_coords;
+    Point latent_point_coords;
+    Point v_bar;
+};
+
+struct CollapseGraph : AMGraph {
+private:
+    struct Vertex {
+        Point position;
+        Vec3 normal;
+        double weight = 1;
+    };
+
+    struct Edge {
+        NodeID from;
+        NodeID to;
+        double dist;
+
+        bool operator==(const Edge& rhs) const
+        {
+            return (from == rhs.from && to == rhs.to) || (from == rhs.to && to == rhs.from);
+        }
+
+        bool operator<(const Edge& other) const
+        {
+            return dist < other.dist;
+        }
+    };
+
+    struct edge_t {
+        NodeID from;
+        NodeID to;
+
+        bool operator==(const edge_t& rhs) const = default;
+    };
+
+    struct edge_t_hash {
+        auto operator()(const edge_t& edge) const -> std::size_t
+        {
+            std::hash<NodeID> h;
+            return h(edge.from) ^ (h(edge.to) << 1);
+        }
+    };
+
+public:
+    Util::AttribVec<NodeID, Vertex> m_vertices;
+private:
+    Util::BTreeSet<Edge> m_collapse_queue;
+    Util::AttribVec<EdgeID, double> m_edges;
+
+public:
+    auto add_node(const Point& position, const Vec3& normal) -> NodeID
+    {
+        const NodeID n = AMGraph::add_node();
+        m_vertices[n] = Vertex{.position = position, .normal = normal};
+        return n;
+    }
+
+    auto connect_nodes(const NodeID n0, const NodeID n1) -> EdgeID
+    {
+        if (n1 > n0) {
+            const EdgeID e = AMGraph::connect_nodes(n0, n1);
+            auto [_, dist] = distance_function(n0, n1);
+            m_collapse_queue.emplace(n0, n1, dist);
+            m_edges[e] = dist;
+            return e;
+        }
+        return InvalidEdgeID;
+    }
+
+    auto collapse_one() -> RawCollapse
+    {
+        while (!m_collapse_queue.empty()) {
+            auto edge_ = m_collapse_queue.begin();
+            const auto edge = *edge_;
+            m_collapse_queue.erase(edge_);
+            const auto active = edge.from;
+            const auto latent = edge.to;
+
+            if (AMGraph::find_edge(active, latent) != AMGraph::InvalidEdgeID) {
+
+                const auto active_coords = m_vertices[active].position;
+                const auto latent_coords = m_vertices[latent].position;
+                GEL_ASSERT_FALSE(active_coords.any([](auto d){ return std::isnan(d); }));
+                GEL_ASSERT_FALSE(latent_coords.any([](auto d){ return std::isnan(d); }));
+
+                // recalculate current edges
+                for (auto v : AMGraph::neighbors_lazy(active)) {
+                    auto v0 = std::min(v, active);
+                    auto v1 = std::max(v, active);
+                    auto edge_id = find_edge(v0, v1);
+                    auto dist = m_edges[edge_id];
+                    m_collapse_queue.extract(Edge{v0, v1, dist});
+                }
+
+                for (auto v : AMGraph::neighbors_lazy(latent)) {
+                    auto v0 = std::min(v, latent);
+                    auto v1 = std::max(v, latent);
+                    auto edge_id = find_edge(v0, v1);
+                    auto dist = m_edges[edge_id];
+                    m_collapse_queue.extract(Edge{v0, v1, dist});
+                }
+
+                double total_weight = m_vertices[latent].weight + m_vertices[active].weight;
+                const auto new_normal =
+                    lerp(m_vertices[latent].normal, m_vertices[active].normal, m_vertices[active].weight / total_weight);
+                const auto v_bar =
+                    lerp(m_vertices[latent].position, m_vertices[active].position, m_vertices[active].weight / total_weight);
+                m_vertices[active].position = v_bar;
+                m_vertices[active].normal = new_normal;
+                m_vertices[active].weight += m_vertices[latent].weight;
+                m_vertices[latent].position = Point(std::numeric_limits<double>::signaling_NaN());
+                m_vertices[latent].normal = Vec3(std::numeric_limits<double>::signaling_NaN());
+
+                // recalculate current edges
+                for (auto v : AMGraph::neighbors_lazy(active)) {
+                    auto [v0, v1] = std::minmax(v, active);
+                    connect_nodes(v0, v1);
+                }
+
+                for (auto v : AMGraph::neighbors_lazy(latent)) {
+                    auto [v0, v1] = std::minmax(v, active);
+                    connect_nodes(v0, v1);
+                }
+                AMGraph::erase_node(latent);
+
+                return RawCollapse{
+                    .active = active,
+                    .latent = latent,
+                    .active_point_coords = active_coords,
+                    .latent_point_coords = latent_coords,
+                    .v_bar = v_bar
+                };
+            }
+        }
+        GEL_ASSERT(false);
+        return RawCollapse{};
+    }
+
+    /// Return the remaining points
+    auto to_point_cloud() -> PointCloud
+    {
+        std::vector<Point> points;
+        std::vector<Vec3> normals;
+        std::vector<NodeID> indices;
+        for (auto i = 0UL; i < m_vertices.size(); ++i) {
+            if (!m_vertices[i].position.any([](const double e) { return std::isnan(e); })) {
+                points.emplace_back(m_vertices[i].position);
+                normals.emplace_back(m_vertices[i].normal);
+                indices.emplace_back(i);
+            }
+        }
+        return PointCloud{std::move(points), std::move(normals), std::move(indices)};
+    }
+
+private:
+
+    [[nodiscard]]
+    std::pair<CGLA::Vec3d, double> distance_function(const NodeID n0, const NodeID n1) const
+    {
+        GEL_ASSERT(valid_node_id(n0) && valid_node_id(n1));
+        if (valid_node_id(n0) && valid_node_id(n1)) {
+            const auto& v0 = m_vertices[n0];
+            const auto& v1 = m_vertices[n1];
+
+            const auto total_weight = v0.weight + v1.weight;
+            const auto center = lerp(v0.position, v1.position, v0.weight / total_weight);
+            const auto tangent_distance =
+                Geometry::tangent_space_distance(v0.position - v1.position, v0.normal, v1.normal);
+
+            //const auto error = qem.error(clamped);
+            return std::make_pair(center, tangent_distance * total_weight);
+        } else {
+            return std::make_pair(CGLA::Vec3d(), CGLA::CGLA_NAN);
+        }
+    }
+};
 
 bool vec3_eq(const Vec3& lhs, const Vec3& rhs, double eps = 1e-4)
 {
@@ -368,15 +552,15 @@ auto angle_flip_check(const Manifold& manifold, const HalfEdgeID he, double angl
 }
 
 auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>& normals,
-                     const CollapseOpts& options) -> std::pair<Collapse, PointCloud>
+                     const CollapseOpts& opts) -> std::pair<Collapse, PointCloud>
 {
-    if (options.max_iterations == 0) {
+    if (opts.max_iterations == 0) {
         return std::make_pair(Collapse(), PointCloud(vertices, normals));
     }
     std::cout << "Collapsing..." << std::endl;
     GEL_ASSERT_EQ(vertices.size(), normals.size());
     ImmediatePool pool;
-    QuadraticCollapseGraph graph;
+    CollapseGraph graph;
 
     // initialize graph
     for (auto i = 0UL; i < vertices.size(); ++i) {
@@ -388,8 +572,8 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
         return temp;
     }();
 
-    const auto kd_tree = build_kd_tree_of_indices(vertices, indices);
-    const auto neighbor_map = calculate_neighbors(pool, vertices, kd_tree, options.initial_neighbors);
+    const auto kd_tree = Geometry::build_kd_tree_of_indices(vertices, indices);
+    const auto neighbor_map = Geometry::calculate_neighbors(pool, vertices, kd_tree, opts.initial_neighbors);
 
     // This also initializes distances
     for (const auto& neighbors : neighbor_map) {
@@ -402,13 +586,13 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
 
     std::vector<std::vector<SingleCollapse>> collapses;
 
-    for (size_t iter = 0; iter < options.max_iterations; ++iter) {
+    for (size_t iter = 0; iter < opts.max_iterations; ++iter) {
         // TODO: stricter checking
         const size_t max_collapses =
             [&]() -> size_t {
-                if (options.max_collapses != 0) return options.max_collapses;
+                if (opts.max_collapses != 0) return opts.max_collapses;
 
-                return vertices.size() * std::pow(0.5, iter) * options.reduction_per_iteration;
+                return vertices.size() * std::pow(0.5, iter) * opts.reduction_per_iteration;
             }();
 
         std::vector<SingleCollapse> activity;
@@ -423,7 +607,8 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
         collapses.emplace_back(std::move(activity));
         std::cout << "Collapsed " << count << " of " << max_collapses << std::endl;
     }
-    return std::make_pair(Collapse {std::move(collapses)}, graph.to_point_cloud()); // TODO
+    Collapse collapse(std::move(collapses));
+    return std::make_pair(std::move(collapse), graph.to_point_cloud());
 }
 
 struct PointHash {
@@ -533,13 +718,11 @@ namespace
     }
 }
 
-auto reexpand_points(Manifold& manifold, Collapse&& collapse, const ReexpandOpts& opts) -> void
+void reexpand_points(Manifold& manifold, const Collapse& collapse, const ReexpandOpts& opts)
 {
     std::cout << "reexpanding" << std::endl;
     const auto& manifold_positions = manifold.positions;
 
-    // TODO: Replace this with the collection in Util
-    // TODO: factor this out
     std::unordered_multimap<Point, VertexID, PointHash, PointEquals> point_to_manifold_ids;
     for (auto manifold_vid : manifold.vertices()) {
         auto pos = manifold_positions[manifold_vid];
