@@ -934,7 +934,7 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
             Vector neighbor_normal = normals[neighbors[j]];
 
 //            float edge_weight = 0.0*cal_angle_based_weight(this_normal, neighbor_normal) + (dists[j]/last_dist);
-            float edge_weight = cal_angle_based_weight(this_normal, neighbor_normal)*
+            float edge_weight = cal_angle_based_weight(this_normal, neighbor_normal) +
                 (abs(dot(vertex - in_smoothed_v[neighbors[j]], this_normal)) +
                 abs(dot(vertex - in_smoothed_v[neighbors[j]], neighbor_normal)))/last_dist;
             if (i == neighbors[j] && j != 0) {
@@ -954,7 +954,7 @@ void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
         }
     }
 
-    for (int iter = 0; iter < 3; iter++) {
+    for (int iter = 0; iter < 0; iter++) {
         auto new_normals = normals;
         for (int i = 0; i < in_smoothed_v.size(); i++) {
             Vector normal_i = normals[i];
