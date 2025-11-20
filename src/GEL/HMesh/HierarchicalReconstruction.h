@@ -5,27 +5,12 @@
 #ifndef GEL_HMESH_COLLAPSE_H
 #define GEL_HMESH_COLLAPSE_H
 
-#include <GEL/Util/ParallelAdapters.h>
-#include <GEL/Util/Assert.h>
-
-#include <GEL/CGLA/ArithVec.h>
-
-#include <GEL/Geometry/Graph.h>
-#include <GEL/Geometry/QEM.h>
-#include <GEL/Geometry/NeighborUtil.h>
-
 #include <GEL/HMesh/Manifold.h>
 
 #include <vector>
-#include <numbers>
 
 namespace HMesh::RSR
 {
-using Vec3 = CGLA::Vec3d;
-using Point = Vec3;
-using NodeID = size_t;
-using Geometry::AMGraph;
-
 enum class Distance {
     Euclidean,
     Tangent,
@@ -37,12 +22,6 @@ struct CollapseOpts {
     size_t initial_neighbors = 5;
     size_t max_collapses = 0;
     Distance distance = Distance::Euclidean;
-};
-
-struct PointCloud {
-    std::vector<Point> points;
-    std::vector<Vec3> normals;
-    std::vector<NodeID> indices;
 };
 
 enum DebugMask {
@@ -80,18 +59,25 @@ struct ReexpandOpts {
 // Fat 72 bytes
 struct SingleCollapse {
     /// Old coordinates of the active point
-    Point active_point_coords;
+    CGLA::Vec3d active_point_coords;
     /// Old coordinates of the latent point
-    Point latent_point_coords;
+    CGLA::Vec3d latent_point_coords;
     /// Current coordinates of the active point
-    Point v_bar;
+    CGLA::Vec3d v_bar;
 };
 
 // FIXME: move this to CGLA
-constexpr auto lerp(const Vec3& v1, const Vec3& v2, double t) -> Vec3
+constexpr auto lerp(const CGLA::Vec3d& v1, const CGLA::Vec3d& v2, double t) -> CGLA::Vec3d
 {
     return v1 * (1.0 - t) + v2 * t;
 }
+
+struct PointCloud {
+    std::vector<CGLA::Vec3d> points;
+    std::vector<CGLA::Vec3d> normals;
+    //std::vector<size_t> indices;
+};
+
 
 /// Contains data needed for a reexpansion
 struct Collapse {
@@ -101,10 +87,11 @@ private:
     // Private constructors can only be called from friend functions
     Collapse() = default;
     explicit Collapse(std::vector<std::vector<SingleCollapse>>&& _collapses) : collapses(_collapses) {}
+
 public:
     friend auto collapse_points(
-        const std::vector<Point>& vertices,
-        const std::vector<Vec3>& normals,
+        const std::vector<CGLA::Vec3d>& vertices,
+        const std::vector<CGLA::Vec3d>& normals,
         const CollapseOpts& opts
     ) -> std::pair<Collapse, PointCloud>;
 
@@ -115,8 +102,8 @@ public:
 };
 
 auto collapse_points(
-    const std::vector<Point>& vertices,
-    const std::vector<Vec3>& normals,
+    const std::vector<CGLA::Vec3d>& vertices,
+    const std::vector<CGLA::Vec3d>& normals,
     const CollapseOpts& opts = CollapseOpts()
 ) -> std::pair<Collapse, PointCloud>;
 
@@ -124,7 +111,6 @@ void reexpand_points(
     Manifold& manifold,
     const Collapse& collapse,
     const ReexpandOpts& opts = ReexpandOpts());
-
 } // namespace HMesh
 
 #endif // GEL_HMESH_COLLAPSE_H

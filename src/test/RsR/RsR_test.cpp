@@ -20,6 +20,7 @@
 using HMesh::RSR::point_cloud_to_mesh;
 using namespace HMesh::RSR;
 using namespace CGLA;
+using NodeID = size_t;
 
 static constexpr auto FILE_CAPITAL_A = "../../../../data/PointClouds/Capital_A.obj";
 // Not included:

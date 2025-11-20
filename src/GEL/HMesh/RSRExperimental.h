@@ -55,8 +55,8 @@ struct RSROpts {
 /// @param normals_in normals of the point cloud or empty vector
 /// @param opts reconstruction options
 /// @return reconstructed manifold mesh
-auto point_cloud_to_mesh(const std::vector<Point>& vertices_in,
-                         const std::vector<Vec3>& normals_in,
+auto point_cloud_to_mesh(const std::vector<CGLA::Vec3d>& vertices_in,
+                         const std::vector<CGLA::Vec3d>& normals_in,
                          const RSROpts& opts) -> HMesh::Manifold;
 
 /// Convert a point cloud into a Manifold using the hierarchical collapse
@@ -69,8 +69,8 @@ auto point_cloud_to_mesh(const std::vector<Point>& vertices_in,
 /// @param reexpand_options reexpansion options
 /// @return reconstructed manifold mesh
 auto point_cloud_collapse_reexpand(
-    const std::vector<Point>& vertices,
-    const std::vector<Vec3>& normals,
+    const std::vector<CGLA::Vec3d>& vertices,
+    const std::vector<CGLA::Vec3d>& normals,
     const CollapseOpts& collapse_options,
     const RSROpts& reconstruction_options,
     const ReexpandOpts& reexpand_options) -> HMesh::Manifold;
@@ -79,13 +79,13 @@ auto point_cloud_collapse_reexpand(
 namespace detail
 {
     struct NormalEstimationResult {
-        std::vector<Point> vertices;
-        std::vector<Vec3> normals;
-        std::vector<Vec3> smoothed_v;
+        std::vector<CGLA::Vec3d> vertices;
+        std::vector<CGLA::Vec3d> normals;
+        std::vector<CGLA::Vec3d> smoothed_v;
     };
 
-    auto point_cloud_normal_estimate(const std::vector<Point>& vertices,
-                                     const std::vector<Vec3>& normals,
+    auto point_cloud_normal_estimate(const std::vector<CGLA::Vec3d>& vertices,
+                                     const std::vector<CGLA::Vec3d>& normals,
                                      bool is_euclidean) -> NormalEstimationResult;
 }
 } // namespace HMesh::RSR

@@ -6,14 +6,23 @@
 
 #include <GEL/HMesh/HierarchicalReconstruction.h>
 
+#include <GEL/Geometry/NeighborUtil.h>
+#include <GEL/Geometry/Graph.h>
 
+#include <numbers>
 #include <unordered_map>
 
 namespace HMesh::RSR
 {
 
+using NodeID = size_t;
+using Point = CGLA::Vec3d;
+using Vec3 = CGLA::Vec3d;
+
 using namespace detail;
 using namespace Util::detail;
+
+using Geometry::AMGraph;
 
 struct RawCollapse {
     NodeID active;
@@ -170,7 +179,9 @@ public:
                 indices.emplace_back(i);
             }
         }
-        return PointCloud{std::move(points), std::move(normals), std::move(indices)};
+        return PointCloud{std::move(points), std::move(normals),
+        //    std::move(indices)
+        };
     }
 
 private:

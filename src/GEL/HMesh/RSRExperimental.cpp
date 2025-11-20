@@ -19,6 +19,8 @@ namespace HMesh::RSR
 {
 using Vec3 = CGLA::Vec3d;
 using Point = Vec3;
+using Geometry::AMGraph;
+
 using NodeID = AMGraph::NodeID;
 
 using namespace detail;
@@ -2201,7 +2203,7 @@ auto point_cloud_collapse_reexpand(
     auto [collapse, point_cloud] = collapse_points(vertices_copy, normals_copy, collapse_options);
     timer.end("Collapse");
 
-    auto [points_collapsed, normals_collapsed, indices_collapsed] = std::move(point_cloud);
+    auto [points_collapsed, normals_collapsed] = std::move(point_cloud);
 
     Manifold manifold = point_cloud_to_mesh_impl(
         std::move(points_collapsed),
