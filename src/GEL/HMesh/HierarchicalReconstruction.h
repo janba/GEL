@@ -8,6 +8,7 @@
 #include <GEL/HMesh/Manifold.h>
 
 #include <vector>
+#include <numbers>
 
 namespace HMesh::RSR
 {
