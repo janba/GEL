@@ -791,8 +791,10 @@ TargetGraph make_mst(
             edge_insertion(gn, id1, id2);
 
             GEL_ASSERT(std::ranges::distance(g.neighbors_lazy(id2)) > 0);
-            for (auto neighbor : g.neighbors_lazy(id2)
-                 | std::views::filter([&](auto&& nb) { return !in_tree[nb].inner; })) {
+            // FIXME: no idea why MSVC is dying at this
+            auto filtered_neighbors = g.neighbors_lazy(id2)
+            | std::views::filter([&](auto nb) { return !in_tree[nb].inner; });
+            for (auto neighbor : filtered_neighbors) {
                 const auto distance2 = distance_function(g, neighbor, id2);
                 queue.emplace(distance2, id2, neighbor);
             }
