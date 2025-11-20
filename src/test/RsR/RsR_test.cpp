@@ -275,81 +275,6 @@ auto manifold_valency_histogram_non_boundary(const HMesh::Manifold& manifold) ->
     return hist;
 }
 
-template <typename Collection>
-auto collection_all_unique(const Collection& collection) -> bool
-{
-    using T = typename Collection::value_type;
-    std::unordered_set<T> set;
-    for (auto& elem : collection) {
-        set.insert(elem);
-    }
-    return set.size() == collection.size();
-}
-
-auto manifold_is_identical(const HMesh::Manifold& left, const HMesh::Manifold& right) -> bool
-{
-    // This is a horrendous way of actually checking if two manifolds are identical,
-    // but assuming we did not mess something up during construction, they should be
-    // using identical IDs, which is good enough for quick regression analysis
-
-    const auto left_edges = left.halfedges();
-    const auto right_edges = right.halfedges();
-    for (auto left_begin = left_edges.begin(), right_begin = right_edges.begin();
-         left_begin != left_edges.end() && right_begin != right_edges.end();
-         ++left_begin, ++right_begin) {
-        if (*left_begin != *right_begin) {
-            return false;
-        }
-    }
-    return true;
-}
-
-template <typename T>
-auto set_is_disjoint(const std::unordered_set<T>& s1, const std::unordered_set<T>& s2) -> bool
-{
-    return std::ranges::all_of(s1, [&s2](const auto& e) {
-        return !s2.contains(e);
-    });
-}
-
-template <typename T>
-auto set_is_subset_of(const std::unordered_set<T>& super_set, const std::unordered_set<T>& sub_set) -> bool
-{
-    return std::ranges::all_of(sub_set, [&super_set](const auto& e) {
-        return super_set.contains(e);
-    });
-}
-
-template <typename T>
-auto set_union(const std::unordered_set<T>& s1, const std::unordered_set<T>& s2) -> std::unordered_set<T>
-{
-    std::unordered_set<T> result;
-    for (auto& elem : s1) {
-        result.insert(elem);
-    }
-    for (auto& elem : s2) {
-        result.insert(elem);
-    }
-    return result;
-}
-
-template <std::ranges::range Range>
-auto range_is_unique(const Range& range) -> bool
-{
-    auto filtered = std::ranges::unique_copy(range);
-    return std::ranges::size(filtered) == std::ranges::size(range);
-}
-
-template <std::ranges::range Range, std::invocable Func>
-auto all(const Range& range, Func&& f) -> bool
-{
-    for (auto& elem : range) {
-        if (!f(elem)) return false;
-    }
-    return true;
-}
-
-
 // Test functions begin
 
 
@@ -435,17 +360,6 @@ auto test_reconstruct_collapse_reexpand(const std::string_view file_name, const 
     std::cout << output.positions.size() << "\n";
 
     return output;
-}
-
-template <typename Indices>
-Tree build_kd_tree_of_indices(const std::vector<Point>& vertices, const Indices& indices)
-{
-    Tree kd_tree;
-    for (const auto idx : indices) {
-        kd_tree.insert(vertices.at(idx), idx);
-    }
-    kd_tree.build();
-    return kd_tree;
 }
 
 auto reconstruct_assertions(const HMesh::Manifold& manifold) -> void
