@@ -349,8 +349,8 @@ auto one_ring_max_angle(const Manifold& manifold, const VertexID vid) -> double
 Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v_new_position,
                      const Vec3& v_old_position, const ReexpandOpts& opts, double angle_threshold_cos)
 {
-    const auto angle_factor = opts.angle_factor;
-    const auto angle_threshold_penalty = opts.angle_threshold_penalty;
+    const auto angle_factor = opts.min_angle_weight;
+    const auto angle_threshold_penalty = opts.min_angle_threshold_penalty;
 
     // this is getting too complicated
     const auto print_hedge = [&m](HalfEdgeID he) {
@@ -494,7 +494,7 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
                 h_in_opp_alt = h1;
                 h_out_alt = h2;
             }
-            if (opts.debug_mask & RE_SPLITS) {
+            if (opts.debug_opts.debug_mask & RE_SPLITS) {
                 std::cout << "h1: ";
                 print_hedge(h1);
                 std::cout << "h2: ";
@@ -505,7 +505,7 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
         }
     }
     if (max_angle > dihedral_threshold && max_angle_alt < dihedral_threshold) {
-        if (opts.debug_mask & RE_SPLIT_RESULTS) {
+        if (opts.debug_opts.debug_mask & RE_SPLIT_RESULTS) {
             std::cout << "using alternative split\n";
             std::cout << "h_in_opp: "; print_hedge(h_in_opp_alt);
             std::cout << "h_out:    "; print_hedge(h_out_alt);
@@ -516,7 +516,7 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
         }
         return Split{m.walker(h_in_opp_alt).opp().halfedge(), h_out_alt, max_angle_alt};
     }
-    if (opts.debug_mask & RE_SPLIT_RESULTS) {
+    if (opts.debug_opts.debug_mask & RE_SPLIT_RESULTS) {
         std::cout << "using regular split\n";
         std::cout << "h_in_opp: "; print_hedge(h_in_opp);
         std::cout << "h_out:    "; print_hedge(h_out);
@@ -596,13 +596,11 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
     }
 
     std::vector<std::vector<SingleCollapse>> collapses;
-
+    size_t total_collapses = 0;
     for (size_t iter = 0; iter < opts.max_iterations; ++iter) {
         // TODO: stricter checking
         const size_t max_collapses =
             [&]() -> size_t {
-                if (opts.max_collapses != 0) return opts.max_collapses;
-
                 return vertices.size() * std::pow(0.5, iter) * opts.reduction_per_iteration;
             }();
 
@@ -610,13 +608,20 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
 
         size_t count = 0;
         while (count < max_collapses) {
+            total_collapses++;
             count++;
             auto [active, latent, active_point_coords, latent_point_coords, v_bar] = graph.collapse_one();
 
             activity.emplace_back(active_point_coords, latent_point_coords, v_bar);
+            if (total_collapses == max_collapses) {
+                break;
+            }
         }
         collapses.emplace_back(std::move(activity));
         std::cout << "Collapsed " << count << " of " << max_collapses << std::endl;
+        if (total_collapses == max_collapses) {
+            break;
+        }
     }
     Collapse collapse(std::move(collapses));
     return std::make_pair(std::move(collapse), graph.to_point_cloud());
@@ -652,7 +657,7 @@ std::optional<HalfEdgeID> find_crossed_edge(
         auto v1 = manifold.positions[walker.vertex()];
         auto v2 = manifold.positions[walker.next().vertex()];
         auto tangent = normalize(v1 - v2);
-        if (opts.debug_mask & RE_FIRST_FLIP) {
+        if (opts.debug_opts.debug_mask & RE_CROSSING_FLIP) {
             std::cout << v1 << "\n";
             std::cout << v2 << "\n";
         }
@@ -678,7 +683,7 @@ std::optional<HalfEdgeID> find_crossed_edge(
 
         auto p = l0 + d * l;
         auto distance = (p - p0).length();
-        if (opts.debug_mask & RE_FIRST_FLIP) {
+        if (opts.debug_opts.debug_mask & RE_CROSSING_FLIP) {
             std::cout << "d  : " << d << "\n";
             std::cout << "len: " << len << "\n";
         }
@@ -687,7 +692,7 @@ std::optional<HalfEdgeID> find_crossed_edge(
         }
 
         if (d > 0 && len > (d * 0.90) && manifold.precond_flip_edge(flip_maybe)) {
-            if (opts.debug_mask & RE_FIRST_FLIP) {
+            if (opts.debug_opts.debug_mask & RE_CROSSING_FLIP) {
                 std::cout << "flipped!" << "\n";
             }
             return flip_maybe;
@@ -748,7 +753,7 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
     // insert latent point to stored latent position
     // update active point position to the stored coordinate
 
-    double angle_threshold_cos = std::cos(opts.angle_threshold);
+    double angle_threshold_cos = std::cos(opts.min_angle_threshold);
     // Now we need to consider two position candidates
 
     size_t expansion_failures = 0;
@@ -767,17 +772,17 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
             const auto latent_pos = single_collapse.latent_point_coords;
             const auto v_bar = single_collapse.v_bar;
             // FIXME: Debug info
-            if (opts.debug_mask & RE_ITERATION) {
+            if (opts.debug_opts.debug_mask & RE_ITERATION) {
                 std::cout << "--------------------------------\n";
                 std::cout << "@iteration: " << iteration << "\n";
                 std::cout << "active pos: " << active_pos << "\n";
                 std::cout << "latent pos: " << latent_pos << "\n";
                 std::cout << "combin pos: " << v_bar << "\n";
             }
-            if (opts.debug_mask & RE_MARK_SPLITS) {
+            if (opts.debug_opts.debug_mask & RE_MARK_SPLITS) {
                 manifold.add_face({active_pos, latent_pos, v_bar});
             }
-            if (opts.debug_mask & RE_FIRST_FLIP) {
+            if (opts.debug_opts.debug_mask & RE_CROSSING_FLIP) {
                 std::cout << "First flip:\n";
             }
             // repair local geometry maybe
@@ -830,11 +835,6 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
             point_to_manifold_ids.emplace(latent_pos, new_vid);
             point_to_manifold_ids.erase(v_bar);
 
-            if (opts.debug_mask & RE_SECOND_FLIP) {
-                std::cout << "Second flip:\n";
-            }
-
-
             one_ring.clear();
             circle.clear();
             two_ring.clear();
@@ -865,7 +865,7 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
                 auto threshold = opts.refinement_angle_threshold;
                 quick_sort(one_ring, cmp);
                 for (HalfEdgeID h : one_ring | std::views::reverse) {
-                    bool flipped = angle_flip_check(manifold, h, M_PI / 180.0 * threshold);
+                    bool flipped = angle_flip_check(manifold, h, threshold);
                     if (flipped) {
                         manifold.flip_edge(h);
                     }
@@ -873,7 +873,7 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
                 }
                 quick_sort(circle, cmp);
                 for (HalfEdgeID h : circle | std::views::reverse) {
-                    bool flipped = angle_flip_check(manifold, h, M_PI / 180.0 * threshold);
+                    bool flipped = angle_flip_check(manifold, h, threshold);
                     if (flipped) {
                         manifold.flip_edge(h);
                     }
@@ -881,7 +881,7 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
                 }
                 quick_sort(two_ring, cmp);
                 for (HalfEdgeID h : two_ring | std::views::reverse) {
-                    bool flipped = angle_flip_check(manifold, h, M_PI / 180.0 * threshold);
+                    bool flipped = angle_flip_check(manifold, h, threshold);
                     if (flipped) {
                         manifold.flip_edge(h);
                     }
@@ -889,28 +889,28 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
                 }
             }
 
-            if (opts.debug_mask & RE_ERRORS) {
+            if (opts.debug_opts.debug_mask & RE_ERRORS) {
                 const auto v_new_max_angle = one_ring_max_angle(manifold, new_vid);
                 const auto v_old_max_angle = one_ring_max_angle(manifold, manifold_ids.front());
-                if (v_new_max_angle > opts.angle_stop_threshold || v_old_max_angle > opts.angle_stop_threshold) {
+                if (v_new_max_angle > opts.debug_opts.angle_bad_threshold || v_old_max_angle > opts.debug_opts.angle_bad_threshold) {
                     bad_expansions++;
-                    if (opts.debug_mask & RE_ERRORS) {
+                    if (opts.debug_opts.debug_mask & RE_ERRORS) {
                         auto normal = manifold.normal(new_vid);
                         manifold.add_face({active_pos, latent_pos, v_bar + (active_pos-latent_pos).length() * normal});
                         std::cout << "v_new max angle: " << v_new_max_angle << "\n";
                         std::cout << "v_old max angle: " << v_old_max_angle << "\n";
                         std::cout << "failed at iteration " << iteration << "\n";
                     }
-                    if (opts.early_stop_at_error && opts.stop_at_error == 0) {
+                    if (opts.debug_opts.early_stop_at_error && opts.debug_opts.stop_at_error == 0) {
                         goto EXIT;
                     }
-                    if (opts.stop_at_error > 0 && opts.stop_at_error == bad_expansions) {
+                    if (opts.debug_opts.stop_at_error > 0 && opts.debug_opts.stop_at_error == bad_expansions) {
                         goto EXIT;
                     }
                 }
             }
 
-            if (opts.stop_at_iteration > 0 && iteration == opts.stop_at_iteration) {
+            if (opts.debug_opts.stop_at_iteration > 0 && iteration == opts.debug_opts.stop_at_iteration) {
                 std::cout << "stopped early at " << iteration << "\n";
                 goto EXIT;
             }
