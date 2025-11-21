@@ -15,6 +15,7 @@
 #include <GEL/Geometry/etf.h>
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/Geometry/normal.h>
+#include <omp.h>
 
 namespace HMesh
 {
@@ -111,6 +112,23 @@ namespace detail
                 edge_map[n0].erase(n1);
                 edge_map[n1].erase(n0);
             }
+        }
+    };
+
+    struct WArc {
+        NodeID src;
+        NodeID trg;
+        float weight;
+
+        WArc(NodeID s, NodeID t, std::vector<Vector>& normals)
+            : src(s), trg(t)
+        {
+            weight = std::abs(dot(normals[s], normals[t])); // alignment score
+        }
+
+        // priority_queue: max-heap
+        bool operator<(const WArc& other) const {
+            return weight < other.weight;
         }
     };
 
@@ -281,6 +299,9 @@ namespace detail
                                RSGraph& gn, std::vector<Vector>& normals, std::vector<Point>& vertices);
 
     void minimum_spanning_tree(const SimpGraph& g, NodeID root, SimpGraph& gn);
+
+    void new_correct_normal_orientation(std::vector<Point>& in_smoothed_v,
+        Tree& kdTree, std::vector<Vector>& normals);
 
     void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
                                     Tree& kdTree, std::vector<Vector>& normals);
