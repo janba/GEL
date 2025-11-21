@@ -27,7 +27,7 @@ viewer = gl.Viewer()
 if len(argv) > 1:
     # Load from command line argument
     vertices, normals = obj_load(argv[1])
-    m = rsr_recon(vertices, normals, use_Euclidean_distance=True)
+    m = rsr_recon(vertices, use_Euclidean_distance=True)
     flip_orientation(m)
     viewer.display(m, smooth=False, mode='g')
     save("out.obj", m)

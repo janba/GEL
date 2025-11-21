@@ -15,7 +15,6 @@
 #include <GEL/Geometry/etf.h>
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/Geometry/normal.h>
-#include <omp.h>
 
 namespace HMesh
 {
@@ -120,10 +119,14 @@ namespace detail
         NodeID trg;
         float weight;
 
-        WArc(NodeID s, NodeID t, std::vector<Vector>& normals)
+        WArc(NodeID s, NodeID t, std::vector<Vector>& positions, double rad, std::vector<Vector>& normals)
             : src(s), trg(t)
         {
-            weight = std::abs(dot(normals[s], normals[t])); // alignment score
+            weight = 0.0;
+            weight += std::abs(dot(normals[s], normals[t])); // alignment score
+            // Vector diff = positions[s] - positions[t];
+            // weight -= std::abs(CGLA::dot(diff, normals[t]))/rad; // distance score
+            // weight -= std::abs(CGLA::dot(diff, normals[s]))/rad;
         }
 
         // priority_queue: max-heap

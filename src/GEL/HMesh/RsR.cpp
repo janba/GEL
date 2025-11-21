@@ -938,7 +938,7 @@ void new_correct_normal_orientation(std::vector<Point>& in_smoothed_v,
             if (neighbors[j] == i)
                 continue;
             if (visited.find(neighbors[j]) == visited.end()) {
-                pq.emplace(i, neighbors[j], normals);
+                pq.emplace(i, neighbors[j], in_smoothed_v, last_dist, normals);
             }
         }
 
@@ -960,7 +960,7 @@ void new_correct_normal_orientation(std::vector<Point>& in_smoothed_v,
                     if (neighbors[j] == a.trg)
                         continue;
                     if (visited.find(neighbors[j]) == visited.end()) {
-                        pq.emplace(a.trg, neighbors[j], normals);
+                        pq.emplace(a.trg, neighbors[j], in_smoothed_v, last_dist, normals);
                     }
                 }
             }
