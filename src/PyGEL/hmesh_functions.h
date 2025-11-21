@@ -118,6 +118,10 @@ extern "C" {
         double* normals, int v_num, int n_num, bool isEuclidean = false, int genus = 0,
         int k = 70, int r = 20, int theta = 60, int n = 50);
 
+    DLLEXPORT void rsr_recon_experimental(Manifold_ptr m_ptr, double* verts,
+        double* normals, int v_num, int n_num, bool isEuclidean = false, int genus = 0,
+        int k = 70, int r = 20, int theta = 60, int n = 50);
+
     DLLEXPORT void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr);
 
     DLLEXPORT void kill_face_loop(Manifold_ptr _m_ptr);
