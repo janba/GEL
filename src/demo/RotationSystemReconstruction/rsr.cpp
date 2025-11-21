@@ -156,5 +156,17 @@ int main() {
 
         HMesh::obj_save("capital_A-out.obj", output);
     }
+
+    // For new normal computation
+    //{
+    //    PointCloud input;
+    //    // Test on genus-0 shape
+    //    //read_obj("../../../data/PointClouds/asn.obj", input);
+    //    read_obj("../../../data/as.obj", input);
+    //    HMesh::Manifold output;
+    //    reconstruct_single(output, input.vertices,
+    //    input.normals, true, 30, 20, 60, 40);
+    //    HMesh::obj_save("as-neighbor15-out.obj", output);
+    //}
 	return 0;
 }

@@ -637,20 +637,22 @@ int find_shortest_path(const RSGraph& mst, NodeID start, NodeID target, int thre
 void weighted_smooth(const std::vector<Point>& vertices,
     std::vector<Point>& smoothed_v, const std::vector<Vector>& normals,
     const Tree& kdTree, float diagonal_length) {
-    int idx = 0;
     double last_dist = INFINITY;
     Point last_v(0., 0., 0.);
-    for (auto& vertex : vertices) {
+    smoothed_v = std::vector<Point>(vertices.size());
+#pragma omp parallel for schedule(static)
+    for (int i = 0; i < vertices.size(); i++){
+        Point vertex = vertices[i];
         std::vector<NodeID> neighbors;
         std::vector<double> neighbor_dist;
-        Vector normal = normals[idx];
+        Vector normal = normals[i];
 
         int neighbor_num = 192;
-        last_dist += (vertex - last_v).length();
+        //last_dist += (vertex - last_v).length();
         kNN_search(vertex, kdTree, neighbor_num,
             neighbors, neighbor_dist, last_dist, true);
-        last_dist = neighbor_dist[neighbor_dist.size() - 1];
-        last_v = vertex;
+        //last_dist = neighbor_dist[neighbor_dist.size() - 1];
+        //last_v = vertex;
 
         double weight_sum = 0.;
         double amp_sum = 0.;
@@ -684,9 +686,9 @@ void weighted_smooth(const std::vector<Point>& vertices,
             vertical_length.push_back(vertical);
             added++;
         }
-        for (int i = 0; i < vertical_length.size(); i++) {
-            amp_sum += vertical_length[i] * (weights[i] + max_dist);
-            weight_sum += weights[i] + max_dist;
+        for (int j = 0; j < vertical_length.size(); j++) {
+            amp_sum += vertical_length[j] * (weights[j] + max_dist);
+            weight_sum += weights[j] + max_dist;
         }
 
         if (weight_sum == 0.)
@@ -695,8 +697,7 @@ void weighted_smooth(const std::vector<Point>& vertices,
         if (!std::isfinite(amp_sum))
             std::cout << "error" << std::endl;
         Vector move = amp_sum * normal;
-        smoothed_v.push_back(vertex + move);
-        idx++;
+        smoothed_v[i] = (vertex + move);
     }
 }
 
@@ -705,47 +706,56 @@ void estimate_normal(const std::vector<Point>& vertices,
     float& diagonal_length) {
 
     if (!isGTNormal)
-        normals.clear();
-    int neighbor_num = 10;// std::max<int>(int(vertices.size() / 2000.), 192);
+        normals = std::vector<Vector>(vertices.size());
+    int neighbor_num = 15;
+    if (!isEuclidean)
+        neighbor_num = std::max<int>(int(vertices.size() / 2000.), 192);
     // Data type transfer & Cal diagonal size
     std::vector<float> min{ INFINITY, INFINITY, INFINITY },
         max{ -INFINITY, -INFINITY, -INFINITY };
-    NodeID idx = 0;
 
     double last_dist = INFINITY;
     Point last_v(0., 0., 0.);
-    for (auto& point : vertices) {
-        if (isGTNormal) {
-            Vector normal = normals[idx];
+
+    if (isGTNormal) {
+        for (int i = 0; i < normals.size(); i++){
+            Vector normal = normals[i];
             if (normal.length() == 0) {
-                zero_normal_id.push_back(idx);
+                zero_normal_id.push_back(i);
             }
             else {
-                normals[idx] = normalize(normals[idx]);
+                normals[i] = normalize(normals[i]);
             }
-            // std::cout << "GT!!!!!!!" << normal << std::endl;
         }
-        else {
+    }
+    else {
+#pragma omp parallel for schedule(static)
+        for (int i = 0; i < vertices.size(); i++) {
+            Point point = vertices[i];
+
             std::vector<NodeID> neighbors;
             std::vector<double> neighbor_dist;
-            last_dist += (point - last_v).length();
+            //last_dist += (point - last_v).length();
             kNN_search(point, kdTree, neighbor_num, neighbors, neighbor_dist, last_dist, true);
-            last_dist = neighbor_dist[neighbor_dist.size() - 1];
+            //last_dist = neighbor_dist[neighbor_dist.size() - 1];
             last_v = point;
 
             std::vector<Point> neighbor_coords;
             for (auto idx : neighbors) {
                 neighbor_coords.push_back(vertices[idx]);
             }
-            Vector normal = estimateNormal(neighbor_coords, last_dist);
+            //Vector normal = estimateNormal(neighbor_coords, last_dist);
+            Vector normal = estimateNormalJet(neighbor_coords, last_dist);
             // std::cout << normal << " " << neighbor_coords.size() << " " << last_dist << std::endl;
             if (std::isnan(normal.length())) {
                 std::cout << neighbors.size() << std::endl;
                 std::cout << "error" << std::endl;
             }
-            normals.push_back(normal);
+            normals[i] = normal;
         }
-
+    }
+    
+    for (const auto& point : vertices) {
         if (point[0] < min[0])
             min[0] = point[0];
         if (point[1] < min[1])
@@ -758,7 +768,6 @@ void estimate_normal(const std::vector<Point>& vertices,
             max[1] = point[1];
         if (point[2] > max[2])
             max[2] = point[2];
-        idx++;
     }
     Point min_p(min[0], min[1], min[2]), max_p(max[0], max[1], max[2]);
     diagonal_length = (max_p - min_p).length();
@@ -889,6 +898,71 @@ void minimum_spanning_tree(const SimpGraph& g, NodeID root, SimpGraph& gn) {
             for (auto nn : g.neighbors(m)) {
                 auto d_nn_m = g.get_weight(nn, m);
                 Q.push(std::make_tuple(-d_nn_m, m, nn));
+            }
+        }
+    }
+
+    return;
+}
+
+/**
+    * @brief Determine the normal orientation
+    *
+    * @param G_angle graph whose edges have angle-based weight
+    * @param normals: [OUT] normal of the point cloud with orientation corrected
+    *
+    * @return None
+    */
+void new_correct_normal_orientation(std::vector<Point>& in_smoothed_v,
+    Tree& kdTree, std::vector<Vector>& normals) {
+
+    // Init kNN graph
+    std::unordered_set<NodeID> visited;
+    std::priority_queue<WArc> pq;
+    double last_dist = INFINITY;
+    Point last_v(0., 0., 0.);
+    for (NodeID i = 0; i < in_smoothed_v.size(); i++) {
+
+        if (visited.find(i) != visited.end())
+            continue;
+
+        Point vertex = in_smoothed_v[i];
+
+        std::vector<NodeID> neighbors;
+        std::vector<double> dists;
+        kNN_search(vertex, kdTree, k, neighbors, dists, last_dist, false);
+
+        // Update pq
+        visited.insert(i);
+        for (int j = 0; j < neighbors.size(); j++) {
+            if (neighbors[j] == i)
+                continue;
+            if (visited.find(neighbors[j]) == visited.end()) {
+                pq.emplace(i, neighbors[j], normals);
+            }
+        }
+
+        while (!pq.empty()) {
+            WArc a = pq.top();
+            pq.pop();
+
+            if (visited.find(a.trg) == visited.end()) {
+                visited.insert(a.trg);
+
+                // Flip normal if inconsistent
+                if (dot(normals[a.src], normals[a.trg]) < 0.0f)
+                    normals[a.trg] = -normals[a.trg];
+
+                vertex = in_smoothed_v[a.trg];
+                neighbors.clear();
+                kNN_search(vertex, kdTree, k, neighbors, dists, last_dist, false);
+                for (int j = 0; j < neighbors.size(); j++) {
+                    if (neighbors[j] == a.trg)
+                        continue;
+                    if (visited.find(neighbors[j]) == visited.end()) {
+                        pq.emplace(a.trg, neighbors[j], normals);
+                    }
+                }
             }
         }
     }
@@ -2302,7 +2376,6 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertice
         std::iota(indices.begin(), indices.end(), 0);
         build_KDTree(kdTree, org_vertices, indices);
 
-
         float diagonal_length;
 
         if (org_normals.size() == 0) {
@@ -2310,17 +2383,19 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertice
         }
 
         std::vector<NodeID> zero_normal_id;
-        estimate_normal(org_vertices, kdTree, org_normals, zero_normal_id, diagonal_length);
-
-        // Fix zero normal
-        if (zero_normal_id.size() > 0) {
-            throw std::runtime_error("Zero normal exists!");
-        }
 
         if (true) {
             std::cout << "Start first round smoothing ..." << std::endl;
-            if (!isEuclidean)
+            if (!isEuclidean) {
+                
+                estimate_normal(org_vertices, kdTree, org_normals, zero_normal_id, diagonal_length);
+
+                // Fix zero normal
+                if (zero_normal_id.size() > 0) {
+                    throw std::runtime_error("Zero normal exists!");
+                }
                 weighted_smooth(org_vertices, in_smoothed_v, org_normals, kdTree, diagonal_length);
+            }   
             else
                 in_smoothed_v = org_vertices;
 
@@ -2359,7 +2434,7 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertice
     std::vector<std::vector<Point>> component_smoothed_v;
     std::vector<std::vector<Vector>> component_normals;
     {
-        // Build kdTree - CGAL
+        // Build kdTree - CGLA
         std::vector<NodeID> indices(in_smoothed_v.size());
         std::iota(indices.begin(), indices.end(), 0);
 
@@ -2368,13 +2443,11 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertice
         build_KDTree(kdTree, in_smoothed_v, indices);
 
         // Correct orientation
-        // 
-        // TODO: Seems not considerring the number of connected components when correct orientation!!!
-
-        std::cout << "correct normal orientation" << std::endl;
 
         if (!isGTNormal) {
-            correct_normal_orientation(in_smoothed_v, kdTree, org_normals);
+            std::cout << "correct normal orientation" << std::endl;
+            //correct_normal_orientation(in_smoothed_v, kdTree, org_normals);
+            new_correct_normal_orientation(in_smoothed_v, kdTree, org_normals);
         }
 
         std::cout << "find components" << std::endl;
