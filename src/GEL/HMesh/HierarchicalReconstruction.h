@@ -53,7 +53,7 @@ struct CollapseOpts {
 
 /// Debug options for the reconstruction phase.
 /// Use operator| to combine debug options.
-enum ReconstructionDebugOpts {
+enum ReexpandDebugOpts {
     /// No debug options
     RE_NONE            = 0,
     /// Debug prints for each iteration. Very verbose.
@@ -80,7 +80,7 @@ enum ReconstructionDebugOpts {
 
 struct ReexpandDebug {
     bool early_stop_at_error = false;
-    ReconstructionDebugOpts debug_mask = RE_NONE;
+    ReexpandDebugOpts debug_mask = RE_NONE;
     int stop_at_error = 0;
     size_t stop_at_iteration = 0;
     double angle_bad_threshold = 1.25;
