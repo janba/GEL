@@ -406,13 +406,15 @@ void test_reconstruct(Func&& f, const bool save, const bool all = false)
         auto opts_neighbors = opts;
         opts_neighbors.dist = Distance::Tangent;
 
-        auto case_name = p.stem().concat("_neighbors");
+        // MSVC lacks implicit conversions from fs::path to string
+        // And if we rely on .string() inline, we end up creating a dangling pointer
+        std::string case_name = p.stem().concat("_neighbors").string();
         SUBCASE(case_name.c_str()) {
             std::optional<HMesh::Manifold> manifold = f(file, opts_neighbors);
             if (manifold.has_value()) {
                 auto out_path = p.stem().concat("_neighbors").concat(".obj");
                 if (save)
-                    HMesh::obj_save(out_path, *manifold);
+                    HMesh::obj_save(out_path.string(), *manifold);
                 reconstruct_assertions(*manifold);
             }
         }
@@ -423,13 +425,15 @@ void test_reconstruct(Func&& f, const bool save, const bool all = false)
         auto opts_euclidean = opts;
         opts_euclidean.dist = Distance::Euclidean;
 
-        auto case_name = p.stem().concat("_euclidean");
+        // MSVC lacks implicit conversions from fs::path to string
+        // And if we rely on .string() inline, we end up creating a dangling pointer
+        std::string case_name = p.stem().concat("_euclidean").string();
         SUBCASE(case_name.c_str()) {
             std::optional<HMesh::Manifold> manifold = f(file, opts_euclidean);
             if (manifold.has_value()) {
                 auto out_path = p.stem().concat("_euclidean").concat(".obj");
                 if (save)
-                    HMesh::obj_save(out_path, *manifold);
+                    HMesh::obj_save(out_path.string(), *manifold);
                 reconstruct_assertions(*manifold);
             }
         }
