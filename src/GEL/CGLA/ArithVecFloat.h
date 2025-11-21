@@ -89,6 +89,14 @@ constexpr V cond_normalize(const ArithVecFloat<T, V, N>& v)
     return v * 1.0;
 }
 
+/// Returns the linear interpolation of v1 and v2 given t in [0, 1].
+/// Values of t out of this range will still return a valid value but probably does not do what you want
+template <class T, class V, unsigned int N>
+constexpr V lerp(const ArithVecFloat<T, V, N>& v1, const ArithVecFloat<T, V, N>& v2, double t)
+{
+    return v1 * (1.0 - t) + v2 * t;
+}
+
 /// @}
 
 /** The template below is used to map vector types to matrix types. In each of the floating point vector classes
