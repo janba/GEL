@@ -34,3 +34,25 @@ def rsr_recon(verts: ArrayLike,
     lib_py_gel.rsr_recon_experimental(m.obj, verts_data, normal_data, n_verts, n_normal,
                          use_Euclidean_distance, genus, k, r, theta, n)
     return m
+
+def hrsr_recon(verts: ArrayLike,
+              normals: ArrayLike=None,
+              collapse_iters = 4,
+              use_Euclidean_distance: bool=False,
+              genus: int=-1,
+              k: int=70,
+              r: float=20,
+              theta: float=60,
+              n: int=50,
+              skip_reexpansion = False) -> Manifold:
+    m = Manifold()
+    verts_data = np.asarray(verts, dtype=ct.c_double, order='F')
+    n_verts = len(verts)
+    n_normal = 0 if normals is None else len(normals)
+    if(n_normal==0):
+        normals = [[]]
+    normal_data = np.asarray(normals, dtype=ct.c_double, order='F')
+
+    lib_py_gel.hrsr_recon_experimental(m.obj, verts_data, normal_data, n_verts, n_normal,
+                                      collapse_iters, use_Euclidean_distance, genus, k, r, theta, n, skip_reexpansion)
+    return m
