@@ -640,7 +640,6 @@ void weighted_smooth(const std::vector<Point>& vertices,
     double last_dist = INFINITY;
     Point last_v(0., 0., 0.);
     smoothed_v = std::vector<Point>(vertices.size());
-#pragma omp parallel for schedule(static)
     for (int i = 0; i < vertices.size(); i++){
         Point vertex = vertices[i];
         std::vector<NodeID> neighbors;
@@ -729,7 +728,6 @@ void estimate_normal(const std::vector<Point>& vertices,
         }
     }
     else {
-#pragma omp parallel for schedule(static)
         for (int i = 0; i < vertices.size(); i++) {
             Point point = vertices[i];
 

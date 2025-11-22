@@ -15,7 +15,7 @@
 #include <GEL/Geometry/etf.h>
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/Geometry/normal.h>
-#include <omp.h>
+
 
 namespace HMesh
 {
