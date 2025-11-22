@@ -30,7 +30,7 @@ generic class, so this is perhaps not the most important part of PyGEL.
 PyGEL is based on the C++ GEL library and provides a Python interface for most but not
 all of the functionality of GEL. 
 """
-__all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial"]
+__all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial", "experimental"]
 
 import os
 from sys import platform, prefix
@@ -205,6 +205,8 @@ lib_py_gel.off_load.argtypes = (ct.c_char_p, ct.c_void_p)
 lib_py_gel.ply_load.argtypes = (ct.c_char_p, ct.c_void_p)
 lib_py_gel.x3d_load.argtypes = (ct.c_char_p, ct.c_void_p)
 lib_py_gel.rsr_recon.argtypes = (ct.c_void_p, ndpointer(ndim=2, dtype=ct.c_double,flags='F'), ndpointer(ndim=2, dtype=ct.c_double,flags='F'), ct.c_int, ct.c_int, ct.c_bool, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int)
+lib_py_gel.rsr_recon_experimental.argtypes = (ct.c_void_p, ndpointer(ndim=2, dtype=ct.c_double,flags='F'), ndpointer(ndim=2, dtype=ct.c_double,flags='F'), ct.c_int, ct.c_int, ct.c_bool, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int)
+lib_py_gel.hrsr_recon_experimental.argtypes = (ct.c_void_p, ndpointer(ndim=2, dtype=ct.c_double,flags='F'), ndpointer(ndim=2, dtype=ct.c_double,flags='F'), ct.c_size_t, ct.c_size_t, ct.c_int, ct.c_bool, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_int, ct.c_bool)
 lib_py_gel.remove_caps.argtypes = (ct.c_void_p, ct.c_float)
 lib_py_gel.remove_needles.argtypes = (ct.c_void_p, ct.c_float, ct.c_bool)
 lib_py_gel.close_holes.argtypes = (ct.c_void_p,ct.c_int)

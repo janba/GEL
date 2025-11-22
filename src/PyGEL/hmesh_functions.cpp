@@ -10,6 +10,7 @@
 #include <string>
 #include <GEL/HMesh/HMesh.h>
 #include <GEL/HMesh/face_loop.h>
+#include <GEL/HMesh/RSRExperimental.h>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/graph_io.h>
 #include <GEL/Geometry/graph_skeletonize.h>
@@ -258,8 +259,67 @@ void rsr_recon(Manifold_ptr m_ptr, double* verts, double* normals, int v_num, in
 
     reconstruct_single(*(reinterpret_cast<Manifold*>(m_ptr)), vertices, norm, 
         isEuclidean, genus, k, r, theta, n);
+}
 
-    return; 
+void rsr_recon_experimental(Manifold_ptr m_ptr, double* verts,
+    double* normals, int v_num, int n_num, bool isEuclidean, int genus,
+    int k, int r, int theta, int n)
+{
+    vector<Vec3d> vertices;
+    vector<Vec3d> norm;
+    vertices.reserve(v_num);
+    norm.reserve(n_num);
+    for (int i = 0; i < v_num; i++) {
+        vertices.emplace_back(verts[i], verts[i + v_num], verts[i + 2 * v_num]);
+    }
+
+    for (int i = 0; i < n_num; i++) {
+        norm.emplace_back(normals[i], normals[i + n_num], normals[i + 2 * n_num]);
+    }
+    RSR::RSROpts opts;
+    opts.dist = (isEuclidean) ? RSR::Distance::Euclidean : RSR::Distance::Tangent;
+    opts.genus = genus;
+    opts.k = k;
+    opts.r = r;
+    opts.theta = theta;
+    opts.n = n;
+
+    Manifold result = RSR::point_cloud_to_mesh(vertices, norm, opts);
+    *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
+}
+
+void hrsr_recon_experimental(Manifold_ptr m_ptr, double* verts, double* normals, size_t v_num, size_t n_num,
+    int collapse_iters, bool is_euclidean,
+    int genus, int k, int r, int theta, int n,
+    bool skip_reexpansion
+    )
+{
+    vector<Vec3d> vertices;
+    vector<Vec3d> norm;
+    vertices.reserve(v_num);
+    norm.reserve(n_num);
+    for (int i = 0; i < v_num; i++) {
+        vertices.emplace_back(verts[i], verts[i + v_num], verts[i + 2 * v_num]);
+    }
+
+    for (int i = 0; i < n_num; i++) {
+        norm.emplace_back(normals[i], normals[i + n_num], normals[i + 2 * n_num]);
+    }
+
+    RSR::CollapseOpts collapse_opts;
+    collapse_opts.max_iterations = collapse_iters;
+    collapse_opts.distance = (is_euclidean) ? RSR::Distance::Euclidean : RSR::Distance::Tangent;
+    RSR::RSROpts rsr_opts;
+    rsr_opts.genus = genus;
+    rsr_opts.k = k;
+    rsr_opts.r = r;
+    rsr_opts.theta = theta;
+    rsr_opts.n = n;
+    RSR::ReexpandOpts reexpand_opts;
+    reexpand_opts.enabled = !skip_reexpansion;
+
+    Manifold result = RSR::point_cloud_collapse_reexpand(vertices, norm, collapse_opts, rsr_opts, reexpand_opts);
+    *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
 }
 
 using IntVector = vector<size_t>;
