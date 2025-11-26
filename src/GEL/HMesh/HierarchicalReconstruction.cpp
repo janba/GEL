@@ -611,30 +611,23 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
     std::vector<std::vector<SingleCollapse>> collapses;
     size_t total_collapses = 0;
     for (size_t iter = 0; iter < opts.max_iterations; ++iter) {
-        // TODO: stricter checking
-        const size_t max_collapses =
-            [&]() -> size_t {
-                return vertices.size() * std::pow(0.5, iter) * opts.reduction_per_iteration;
-            }();
+        const auto this_iter_collapses =
+            static_cast<size_t>(static_cast<double>(vertices.size()) * std::pow(0.5, iter) * opts.reduction_per_iteration);
 
         std::vector<SingleCollapse> activity;
-
         size_t count = 0;
-        while (count < max_collapses) {
+        for (;count < this_iter_collapses; ++count) {
             total_collapses++;
-            count++;
             auto [active, latent, active_point_coords, latent_point_coords, v_bar] = graph.collapse_one();
 
             activity.emplace_back(active_point_coords, latent_point_coords, v_bar);
-            if (total_collapses == max_collapses) {
+            if (opts.max_collapses != 0 && total_collapses >= opts.max_collapses)
                 break;
-            }
         }
         collapses.emplace_back(std::move(activity));
-        std::cout << "Collapsed " << count << " of " << max_collapses << std::endl;
-        if (total_collapses == max_collapses) {
+        std::cout << "Collapsed " << count << " of " << this_iter_collapses << std::endl;
+        if (opts.max_collapses != 0 && total_collapses >= opts.max_collapses)
             break;
-        }
     }
     Collapse collapse(std::move(collapses));
     return std::make_pair(std::move(collapse), graph.to_point_cloud());
