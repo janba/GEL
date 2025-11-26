@@ -1,5 +1,5 @@
 from sys import argv
-from pygel3d.hmesh import rsr_recon, Manifold, save, flip_orientation
+from pygel3d.hmesh import rsr_recon, hrsr_recon, Manifold, save, flip_orientation
 from pygel3d import gl_display as gl
 
 def obj_load(file_path):
@@ -27,8 +27,8 @@ viewer = gl.Viewer()
 if len(argv) > 1:
     # Load from command line argument
     vertices, normals = obj_load(argv[1])
-    m = rsr_recon(vertices, use_Euclidean_distance=True)
-    flip_orientation(m)
+    m = hrsr_recon(vertices, collapse_iters=4, use_Euclidean_distance=True, genus=0, k=70, r=20, theta=60, n=50)
+    # flip_orientation(m)
     viewer.display(m, smooth=False, mode='g')
     save("out.obj", m)
 

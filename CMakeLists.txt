@@ -17,7 +17,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
     add_definitions(-DGLEW_STATIC)
 endif ()
 if (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-    set(CMAKE_OSX_ARCHITECTURES "x86_64;arm64" CACHE STRING "Build architectures for MacOS" FORCE)
+    set(CMAKE_OSX_ARCHITECTURES "arm64;x86_64" CACHE STRING "Build architectures for MacOS" FORCE)
 endif ()
 
 option(Use_GLGraphics "Compile the OpenGL Viewer" ON)

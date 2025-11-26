@@ -17,7 +17,7 @@ __all__ = [
     'taubin_smooth', 'laplacian_smooth', 'anisotropic_smooth', 'volumetric_isocontour', 'triangulate',
     'extrude_faces', 'kill_face_loop', 'kill_degenerate_face_loops', 'graph_to_feq', 'skeleton_to_feq',
     'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_recon', 'connected_components',
-    'count_boundary_curves', 'analyze_topology', 'sphere_delaunay'
+    'count_boundary_curves', 'analyze_topology', 'sphere_delaunay', 'hrsr_recon'
 ]
 
 import ctypes as ct
@@ -1054,4 +1054,27 @@ def sphere_delaunay(pts: ArrayLike) -> Manifold:
         raise ValueError("pts should be of shape (N,3)")
     n_pts = pts_data.shape[0]
     lib_py_gel.sphere_delaunay(m.obj, pts_data, n_pts)
+    return m
+
+
+def hrsr_recon(verts: ArrayLike,
+              normals: ArrayLike=None,
+              collapse_iters = 4,
+              use_Euclidean_distance: bool=False,
+              genus: int=-1,
+              k: int=70,
+              r: float=20,
+              theta: float=60,
+              n: int=50,
+              skip_reexpansion = False) -> Manifold:
+    m = Manifold()
+    verts_data = np.asarray(verts, dtype=ct.c_double, order='F')
+    n_verts = len(verts)
+    n_normal = 0 if normals is None else len(normals)
+    if(n_normal==0):
+        normals = [[]]
+    normal_data = np.asarray(normals, dtype=ct.c_double, order='F')
+
+    lib_py_gel.hrsr_recon_experimental(m.obj, verts_data, normal_data, n_verts, n_normal,
+                                      collapse_iters, use_Euclidean_distance, genus, k, r, theta, n, skip_reexpansion)
     return m

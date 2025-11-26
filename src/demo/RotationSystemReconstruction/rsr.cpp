@@ -130,43 +130,43 @@ void read_ply(std::string file_path, PointCloud& pc) {
 }
 
 int main() {
-    {    
-        PointCloud input;
-        // Test on genus-0 shape
-        read_obj("../../../data/PointClouds/owl-little.obj", input);
-        HMesh::Manifold output;
-        reconstruct_single(output, input.vertices,
-        input.normals, false);
-        HMesh::obj_save("owl-little-out.obj", output);
-    }
+    // {    
+    //     PointCloud input;
+    //     // Test on genus-0 shape
+    //     read_obj("../../../data/PointClouds/owl-little.obj", input);
+    //     HMesh::Manifold output;
+    //     reconstruct_single(output, input.vertices,
+    //     input.normals, false);
+    //     HMesh::obj_save("owl-little-out.obj", output);
+    // }
 
-    {
-        PointCloud input;
-        // Test on high-genus shape
-        read_obj("../../../data/PointClouds/capital_A.obj", input);
-        HMesh::Manifold output;
-        reconstruct_single(output, input.vertices,
-            input.normals, 
-            true,   // Use Euclidean distance
-            -1,     // Genus auto-detect
-            30,     // Neighborhood size
-            20,     // Radius for local operations
-            60,     // Angle threshold in degrees
-            40);    // Sample count
+    // {
+    //     PointCloud input;
+    //     // Test on high-genus shape
+    //     read_obj("../../../data/PointClouds/capital_A.obj", input);
+    //     HMesh::Manifold output;
+    //     reconstruct_single(output, input.vertices,
+    //         input.normals, 
+    //         true,   // Use Euclidean distance
+    //         -1,     // Genus auto-detect
+    //         30,     // Neighborhood size
+    //         20,     // Radius for local operations
+    //         60,     // Angle threshold in degrees
+    //         40);    // Sample count
 
-        HMesh::obj_save("capital_A-out.obj", output);
-    }
+    //     HMesh::obj_save("capital_A-out.obj", output);
+    // }
 
     // For new normal computation
-    //{
-    //    PointCloud input;
-    //    // Test on genus-0 shape
-    //    //read_obj("../../../data/PointClouds/asn.obj", input);
-    //    read_obj("../../../data/as.obj", input);
-    //    HMesh::Manifold output;
-    //    reconstruct_single(output, input.vertices,
-    //    input.normals, true, 30, 20, 60, 40);
-    //    HMesh::obj_save("as-neighbor15-out.obj", output);
-    //}
+    {
+       PointCloud input;
+       // Test on genus-0 shape
+       //read_obj("../../../data/PointClouds/asn.obj", input);
+       read_obj("../../../data/as.obj", input);
+       std::cout << HMesh::DUMMY << std::endl;
+       HMesh::Manifold output;
+       HMesh::reconstruct_single(output, input.vertices, input.normals, true, -1, 10, 20, 60, 40);
+       HMesh::obj_save("as-neighbor15-out.obj", output);
+    }
 	return 0;
 }
