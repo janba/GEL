@@ -1,4 +1,9 @@
+# TreeGEL
+
+This is TreeGEL - a feature branch of GEL. While TreeGEL contains all of GEL it also includes bespoke code for reconstruction of botanical trees from point clouds. The pipeline for reconstruction involves GEL's local separator skeletonization but it also includes many other steps. The bespoke parts of TreeGEL were developed by Helen Alina Pabst during her PhD studies; some components were based on work by Ida Bukh Villesen conducted during her BSc project. 
+
 # GEL
+
 GEL is a C++ library of geometry processing tools mostly intended for computer graphics applications. Python bindings for GEL are found in the included PyGEL library which is also available from PyPI under the package name PyGEL3D.
 ![inverse skeletonized structure created using diffusion limited aggregation](./doc/teaser.png)
 
