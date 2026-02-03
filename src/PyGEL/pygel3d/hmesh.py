@@ -229,6 +229,9 @@ class Manifold:
         return lib_py_gel.Manifold_flip_edge(self.obj,hid)
     def collapse_edge(self, hid: int, avg_vertices: bool = False) -> bool:
         """ Collapse an edge hid.
+        The vertex incident_vertex(opposite_halfedge) is the one being removed 
+        while incident_vertex(hid) survives. avg_vertices indicates whether the
+        positions of the two vertices should be averaged when collapsed.
         Before collapsing hid, a number of tests are made:
         ---
         1.  For the two vertices adjacent to the edge, we generate a list of all their neighbouring vertices.
@@ -408,9 +411,9 @@ def bsphere(m: Manifold) -> tuple[ndarray, float]:
     """ Calculate the bounding sphere of the manifold m.
     Returns centre,radius """
     c = ndarray(3,dtype=np.float64)
-    r = (ct.c_double)()
+    r = ct.c_double()
     lib_py_gel.bsphere(m.obj, c, ct.byref(r))
-    return (c,r)
+    return (c,r.value)
 
 def stitch(m: Manifold, rad: float = 1e-30) -> int:
     """ Stitch together edges of m whose endpoints coincide geometrically. This

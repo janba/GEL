@@ -8,32 +8,13 @@ PyGEL3D is a collection of classes and functions for geometry processing tasks, 
 
 ## Key Features
 
-### **Halfedge Mesh Data Structure**
-- Rich API for mesh traversal and manipulation
-- Support for polygonal meshes (not just triangles)
-- Extensive mesh processing operations
+GEL/PyGEL3D contains several data structures for spatial data. Our mature halfedge data structure for polygonal meshes and a graph data structure are the most important components. 
 
-### **Graph Processing**
-- 3D spatial graphs with vertices and edges
-- Local Separator Skeletonization for curve skeleton extraction
-- Inverse skeletonization (Face Extrusion Quad meshes from graphs)
+Several algorithms that build on these data structure are offered by the library. Some of these are based directly on our own research. For instance, the Rotations System Reconstruction (RSR) algorithm for reconstruction of triangle meshes from point clouds and the Local Separator Skeletonization method for extracting curve skeletons from anything represented as a spatially embedded graph are both implemented in this library.
 
-### **Spatial Data Structures**
-- kD-Tree for efficient spatial queries
-- Distance computations to triangle meshes
-- Bounding volume hierarchies
+A number of standard techniques have also been implemented. For instance, Garland-Heckbert simplification, several schemes for subdivision, curvature computation methods, and a number of methods for smoothing (including feature preserving smoothing) are also provided by the library.
 
-### **Visualization**
-- OpenGL-based viewer for interactive 3D visualization
-- Jupyter notebook integration with Plotly widgets
-- Export notebooks to HTML with embedded 3D graphics
-
-### **Advanced Features**
-- Garland-Heckbert mesh simplification
-- Signed distance field computation
-- Iso-surface polygonization
-- Mesh smoothing (anisotropic, Taubin, and more)
-- Topological analysis
+Finally, both in the C++ and Python library, tools are provided for analysis and editing a mesh. Since the half-edge based representation is not restricted to triangles, these tools work for general polygonal meshes.
 
 ## Modules
 
