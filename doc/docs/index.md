@@ -8,13 +8,15 @@ PyGEL3D is a collection of classes and functions for geometry processing tasks, 
 
 ## Key Features
 
-GEL/PyGEL3D contains several data structures for spatial data. Our mature halfedge data structure for polygonal meshes and a graph data structure are the most important components. 
+GEL contains several data structures for spatial data, and our mature halfedge data structure for polygonal meshes and a graph data structure are also exposed in PyGEL.
 
-Several algorithms that build on these data structure are offered by the library. Some of these are based directly on our own research. For instance, the Rotations System Reconstruction (RSR) algorithm for reconstruction of triangle meshes from point clouds and the Local Separator Skeletonization method for extracting curve skeletons from anything represented as a spatially embedded graph are both implemented in this library.
+Several algorithms developed as part of our research are exposed in GEL and PyGEL. For instance, the Rotations System Reconstruction (RSR) algorithm for reconstruction of triangle meshes from point clouds and the Local Separator Skeletonization method for extracting curve skeletons from anything represented as a spatially embedded graph are both implemented in this library.
 
-A number of standard techniques have also been implemented. For instance, Garland-Heckbert simplification, several schemes for subdivision, curvature computation methods, and a number of methods for smoothing (including feature preserving smoothing) are also provided by the library.
+A number of standard techniques have also been implemented. For instance, Garland-Heckbert simplification, several schemes for subdivision, curvature computation methods, signed distance field computation, and a number of methods for smoothing (including feature preserving smoothing) are also provided by the library.
 
-Finally, both in the C++ and Python library, tools are provided for analysis and editing a mesh. Since the half-edge based representation is not restricted to triangles, these tools work for general polygonal meshes.
+Both in the C++ and Python library, tools are provided for analysis and editing of polygonal meshes through primitive (Euler) operations (splitting faces by inserting an edge or a vertex, collapsing edges or removing edges, etc.). Since the halfedge based representation is not restricted to triangles, these tools work for general polygonal meshes.
+
+A number of tools for visualization are also provided. Perhaps most importantly, the Python package provides a simple viewer and a component for visualization in Jupyter notebooks that is based on Plotly. 
 
 ## Modules
 
