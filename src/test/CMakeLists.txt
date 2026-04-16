@@ -39,7 +39,7 @@ add_subdirectory(Geometry-kdtree)
 add_subdirectory(Util-Assert)
 add_subdirectory(Manifold)
 
-add_subdirectory(RsR)
+# add_subdirectory(RsR)
 add_subdirectory(Util)
 add_subdirectory(Util-ThreadPool)
 
