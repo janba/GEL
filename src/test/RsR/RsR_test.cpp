@@ -30,7 +30,8 @@ static constexpr auto FILE_BUNNY_SIMPLE_NO_NORMALS = "../../../../data/bunny.obj
 // Not included:
 //static constexpr auto FILE_BUNNY_COMPLEX = "../../../../data/PointClouds/bun_complete.obj";
 static constexpr auto FILE_THINGY = "../../../../data/thingy.obj";
-static constexpr auto FILE_AS = "../../../../data/as.obj";
+
+static constexpr auto FILE_AS = "../../../../data/arma_comp_new.obj";
 
 template <typename... Args>
 constexpr auto make_array(Args... args)
@@ -40,9 +41,10 @@ constexpr auto make_array(Args... args)
 }
 
 static constexpr auto QUICK_TEST_FILES = make_array(
-    FILE_CAPITAL_A,
+    //FILE_CAPITAL_A,
     //FILE_THINGY,
     FILE_AS);
+
 
 constexpr auto IS_EUCLIDEAN = false;
 constexpr auto K_PARAM = 30;
@@ -293,7 +295,8 @@ auto test_reconstruct_new(const std::string_view file_name, const RSROpts& opts)
     std::cout << "obj vertices: " << input.vertices.size() << "\n";
     std::cout << "obj normals: " << input.normals.size() << "\n";
 
-    HMesh::Manifold output = point_cloud_to_mesh(input.vertices, {}, opts);
+    HMesh::Manifold output; 
+    point_cloud_to_mesh(input.vertices, {}, opts, output);
     // k: 70 is too large
     // r: needs isEuclidean false
     std::cout << output.positions.size() << "\n";
@@ -354,8 +357,9 @@ auto test_reconstruct_collapse_reexpand(const std::string_view file_name, const 
     std::cout << "obj vertices: " << input.vertices.size() << "\n";
     std::cout << "obj normals: " << input.normals.size() << "\n";
 
-    HMesh::Manifold output = point_cloud_collapse_reexpand(input.vertices, input.normals, collapse_opts, rsr_opts,
-                                                           reexpand);
+    HMesh::Manifold output;
+    point_cloud_collapse_reexpand(input.vertices, input.normals, collapse_opts, rsr_opts,
+                                                           reexpand, output);
     // k: 70 is too large
     // r: needs isEuclidean false
     std::cout << output.positions.size() << "\n";
@@ -432,7 +436,10 @@ void test_reconstruct(Func&& f, const bool save, const bool all = false)
             std::optional<HMesh::Manifold> manifold = f(file, opts_euclidean);
             if (manifold.has_value()) {
                 auto out_path = p.stem().concat("_euclidean").concat(".obj");
+                std::cout << out_path << std::endl;
                 if (save)
+                    std::cout << "Current working directory: "
+                    << std::filesystem::current_path() << std::endl;
                     HMesh::obj_save(out_path.string(), *manifold);
                 reconstruct_assertions(*manifold);
             }

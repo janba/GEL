@@ -8,7 +8,7 @@
 
 #include <GEL/Geometry/NeighborUtil.h>
 #include <GEL/Geometry/Graph.h>
-
+#include <GEL/HMesh/obj_save.h>
 #include <numbers>
 #include <unordered_map>
 
@@ -17,6 +17,7 @@ namespace HMesh::RSR
 using NodeID = size_t;
 using Point = CGLA::Vec3d;
 using Vec3 = CGLA::Vec3d;
+using Vec2 = CGLA::Vec2d;
 
 using namespace detail;
 using namespace Util::detail;
@@ -289,6 +290,7 @@ struct Split {
     HMesh::HalfEdgeID h_out = InvalidHalfEdgeID;
     /// From 0.0 (0 degrees) to 2.0 (180 degrees)
     double max_dihedral_angle = 0.0;
+    bool isSameSide = false;
 };
 
 /// An abstraction of a triangle to make it simple to perform a fold operation over a circular
@@ -343,6 +345,33 @@ auto one_ring_max_dihedral_angle(const Manifold& manifold, const VertexID vid) -
     }
     return max_angle;
 }
+
+double clamp_local(double value, double upper_bound, double lower_bound) {
+    double output = value;
+    if (output > upper_bound)
+        output = upper_bound;
+    if (output < lower_bound)
+        output = lower_bound;
+    return output;
+}
+
+double cal_radians_3d_local(const Vec3& branch_vec, const Vec3& normal, const Vec3& ref_vec) {
+    Vec3 proj_vec = branch_vec - dot(normal, branch_vec) /
+        normal.length() * normal;
+    if (std::abs(proj_vec.length()) < 1e-8)
+        return 0.;
+
+    Vec3 proj_ref = ref_vec - dot(normal, ref_vec) /
+        normal.length() * normal;
+    float value = clamp_local(
+        dot(proj_vec, proj_ref) / proj_vec.length() /
+        proj_ref.length(), 1, -1);
+    double radian = std::acos(value);
+    if (dot(CGLA::cross(proj_vec, proj_ref), normal) > 0)
+        radian = 2 * M_PI - radian;
+    return radian;
+}
+
 
 /// Find the best edge pair for
 Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v_new_position,
@@ -537,6 +566,126 @@ Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v
     return Split{m.walker(h_in_opp).opp().halfedge(), h_out, max_angle};
 }
 
+
+Split find_edge_pair(const Manifold& m, const VertexID center_idx, const Vec3& v_new_position,
+    const Vec3& v_old_position) {
+
+    auto v_bar = m.positions[center_idx];
+    auto norm = m.normal(center_idx);
+    norm /= norm.length();
+    Vec3 v_new_vector = v_new_position - v_bar;
+    Point v_new_plane = v_new_position - dot(v_new_vector, norm) * norm;
+
+    std::vector<double> radians;
+    std::vector<HalfEdgeID> hids;
+
+    double max_difference = 0.;
+    HalfEdgeID hmax1, hmax2;
+    int idx1, idx2;
+    bool isSameSide = true;
+
+    // Calculate radians first
+    for (auto h1 : m.incident_halfedges(center_idx)) {
+        auto v1 = m.positions[m.walker(h1).vertex()];
+        radians.push_back(cal_radians_3d_local(v1 - v_bar, norm, v_new_plane - v_bar));
+        hids.push_back(h1);
+    }
+
+    // Search the best pair
+    for (int i = 0; i < radians.size(); i++) {
+        double max_difference_this_v = 0.;
+        bool isSameSide_this = true;
+        HalfEdgeID hmax_this_v;
+        int maxidx;
+        for (int j = 0; j < radians.size(); j++) {
+            if (i == j)
+                continue;
+            double diff = std::abs(radians[i] - radians[j]);
+            if (diff > M_PI)
+                diff = 2 * M_PI - diff;
+            
+            // Shortcut
+            if (isSameSide_this) {
+                if ((radians[i] <= M_PI && radians[j] > M_PI)
+                    || (radians[j] <= M_PI && radians[i] > M_PI)) {
+                    isSameSide_this = false;
+                    max_difference_this_v = diff;
+                    hmax_this_v = hids[j];
+                    maxidx = j;
+                }
+                else {
+                    if (diff > max_difference_this_v) {
+                        max_difference_this_v = diff;
+                        hmax_this_v = hids[j];
+                        maxidx = j;
+                    }
+                }
+            }
+            else {
+                if ((radians[i] <= M_PI && radians[j] > M_PI)
+                    || (radians[j] <= M_PI && radians[i] > M_PI)) {
+                    if (diff > max_difference_this_v) {
+                        max_difference_this_v = diff;
+                        hmax_this_v = hids[j];
+                        maxidx = j;
+                    }
+                }
+            }
+        }
+
+        // Update maximum
+        if (isSameSide) {
+            if (!isSameSide_this) {
+                isSameSide = false;
+                max_difference = max_difference_this_v;
+                hmax1 = hids[i];
+                hmax2 = hmax_this_v;
+                idx1 = i;
+                idx2 = maxidx;
+            }
+            else {
+                if (max_difference_this_v > max_difference) {
+                    max_difference = max_difference_this_v;
+                    hmax1 = hids[i];
+                    hmax2 = hmax_this_v;
+                    idx1 = i;
+                    idx2 = maxidx;
+                }
+            }
+        }
+        else {
+            if (isSameSide_this) {
+
+            }
+            else {
+                if (max_difference_this_v > max_difference) {
+                    max_difference = max_difference_this_v;
+                    hmax1 = hids[i];
+                    hmax2 = hmax_this_v;
+                    idx1 = i;
+                    idx2 = maxidx;
+                }
+            }
+        }
+    }
+
+    // Decide which one is h_in, which one is h_out, align with v_new, v_old.
+    // Smaller radian should be h_in
+    HalfEdgeID hin, hout;
+    if (radians[idx1] < radians[idx2]) {
+        hin = hmax1;
+        hout = hmax2;
+    }
+    else {
+        hin = hmax2;
+        hout = hmax1;
+    }
+
+    //std::cout << norm << std::endl;
+
+    return Split{ m.walker(hin).opp().halfedge(), hout, max_difference, isSameSide };
+}
+
 /// For the refinement, returns true if an edge flip will not degenerate the mesh and has at least
 /// one corner where the angle is below our given threshold angle (in radians).
 auto angle_flip_check(const Manifold& manifold, const HalfEdgeID he, double angle_threshold) -> bool
@@ -575,6 +724,89 @@ auto angle_flip_check(const Manifold& manifold, const HalfEdgeID he, double angl
     return false;
 }
 
+void triangle_cosines(double a2, double b2, double c2,
+    double& cosA, double& cosB, double& cosC)
+{
+    const double eps = 1e-12;
+
+    a2 = std::max(a2, eps);
+    b2 = std::max(b2, eps);
+    c2 = std::max(c2, eps);
+
+    cosA = (b2 + c2 - a2) / (2.0 * sqrt(b2 * c2));
+    cosB = (a2 + c2 - b2) / (2.0 * sqrt(a2 * c2));
+    cosC = (a2 + b2 - c2) / (2.0 * sqrt(a2 * b2));
+
+    cosA = std::clamp(cosA, -1.0, 1.0);
+    cosB = std::clamp(cosB, -1.0, 1.0);
+    cosC = std::clamp(cosC, -1.0, 1.0);
+}
+
+auto angle_flip_check_new(const Manifold& manifold, const HalfEdgeID he) {
+    if (!manifold.precond_flip_edge(he))
+        return false;
+    auto walker = manifold.walker(he);
+    auto v1 = manifold.positions[walker.vertex()];
+    auto v2 = manifold.positions[walker.next().vertex()];
+    auto v3 = manifold.positions[walker.opp().vertex()];
+    auto v4 = manifold.positions[walker.opp().next().vertex()];
+    
+
+    // before flip
+    auto e_shared = v1 - v3;
+    auto e_next = v2 - v1;
+    auto e_prev = v2 - v3;
+    auto e_opp_next = v4 - v1;
+    auto e_opp_prev = v4 - v3;
+    double cosa, cosb, cosc;
+    triangle_cosines(CGLA::dot(e_shared, e_shared), CGLA::dot(e_next, e_next),
+        CGLA::dot(e_prev, e_prev), cosa, cosb, cosc);
+    double maximum_cos = std::max({cosa, cosb, cosc});
+    triangle_cosines(CGLA::dot(e_shared, e_shared), CGLA::dot(e_opp_next, e_opp_next),
+        CGLA::dot(e_opp_prev, e_opp_prev), cosa, cosb, cosc);
+    maximum_cos = std::max({ cosa, cosb, cosc, maximum_cos });
+
+    //after flip
+    e_shared = v2 - v4;
+    e_next = v1 - v2;
+    e_prev = v1 - v4;
+    e_opp_next = v3 - v2;
+    e_opp_prev = v3 - v4;
+
+    triangle_cosines(CGLA::dot(e_shared, e_shared), CGLA::dot(e_next,e_next),
+        CGLA::dot(e_prev,e_prev), cosa, cosb, cosc);
+    double maximum_cos2 = std::max({ cosa, cosb, cosc });
+    triangle_cosines(CGLA::dot(e_shared, e_shared), CGLA::dot(e_opp_next, e_opp_next),
+        CGLA::dot(e_opp_prev, e_opp_prev), cosa, cosb, cosc);
+    maximum_cos2 = std::max({ cosa, cosb, cosc, maximum_cos2 });
+
+    return (maximum_cos2 < maximum_cos);
+}
+
+void export_graph(const CollapseGraph& g, const std::string& out_path)
+{
+    std::ofstream file(out_path);
+    // Write vertices
+    file << "# List of geometric vertices\n";
+    for (int i = 0; i < g.m_vertices.size(); i++) {
+        Point this_coords = g.m_vertices[i].position;
+        file << "v " << std::to_string(this_coords[0])
+            << " " << std::to_string(this_coords[1])
+            << " " << std::to_string(this_coords[2]) << "\n";
+    }
+
+    // Write lines
+    file << "\n# Line elements\n";
+    for (auto i : g.node_ids()) {
+        for (auto neighbor : g.neighbors(i)) {
+            if (neighbor < i) {
+                file << "l " << (i + 1) << " " << (neighbor + 1) << "\n";
+            }
+        }
+    }
+}
+
+
 auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>& normals,
                      const CollapseOpts& opts) -> std::pair<Collapse, PointCloud>
 {
@@ -596,17 +828,22 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
         return temp;
     }();
 
-    const auto kd_tree = Geometry::build_kd_tree_of_indices(vertices, indices);
+    Geometry::Tree kd_tree;
+    Geometry::build_kd_tree_of_indices(vertices, indices, kd_tree);
     const auto neighbor_map = Geometry::calculate_neighbors(pool, vertices, kd_tree, opts.initial_neighbors);
 
     // This also initializes distances
     for (const auto& neighbors : neighbor_map) {
         const NodeID this_id = neighbors[0].id;
         for (const auto& neighbor : neighbors | std::views::drop(1)) {
+            if (CGLA::dot(normals[neighbor.id], normals[this_id]) < 0.)
+                continue;
             // kNN connection
             graph.connect_nodes(this_id, neighbor.id);
         }
     }
+
+    //export_graph(graph, "collapse_graph.obj");
 
     std::vector<std::vector<SingleCollapse>> collapses;
     size_t total_collapses = 0;
@@ -614,7 +851,8 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
         // TODO: stricter checking
         const size_t max_collapses =
             [&]() -> size_t {
-                return vertices.size() * std::pow(0.5, iter) * opts.reduction_per_iteration;
+                return vertices.size() * std::pow((1. - opts.reduction_per_iteration), iter) * opts.reduction_per_iteration;
+            //return vertices.size() * std::pow(opts.reduction_per_iteration, iter + 1);
             }();
 
         std::vector<SingleCollapse> activity;
@@ -626,16 +864,17 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
             auto [active, latent, active_point_coords, latent_point_coords, v_bar] = graph.collapse_one();
 
             activity.emplace_back(active_point_coords, latent_point_coords, v_bar);
-            if (total_collapses == max_collapses) {
+            /*if (total_collapses == max_collapses) {
                 break;
-            }
+            }*/
         }
         collapses.emplace_back(std::move(activity));
         std::cout << "Collapsed " << count << " of " << max_collapses << std::endl;
-        if (total_collapses == max_collapses) {
+        /*if (total_collapses == max_collapses) {
             break;
-        }
+        }*/
     }
+    std::cout << "Collapsed " << total_collapses << " edges" << std::endl;
     Collapse collapse(std::move(collapses));
     return std::make_pair(std::move(collapse), graph.to_point_cloud());
 }
@@ -656,6 +895,138 @@ struct PointEquals {
         return (left[0] == right[0]) && (left[1] == right[1]) && (left[2] == right[2]);
     }
 };
+
+std::optional<HalfEdgeID> find_crossed_edge_new(
+    const Manifold& manifold,
+    const VertexID id,
+    const Point& starting_pos,
+    const Point& end_pos,
+    const ReexpandOpts& opts)
+{
+    const double eps = 1e-8;
+    const double eps_dist = 1e-6;
+
+    for (auto he : manifold.incident_halfedges(id)) {
+        auto walker = manifold.walker(he);
+        auto flip_maybe = walker.next().halfedge();
+
+        Vec3 v1 = manifold.positions[walker.vertex()];
+        Vec3 v2 = manifold.positions[walker.next().vertex()];
+
+        if (opts.debug_opts.debug_mask & RE_CROSSING_FLIP) {
+            std::cout << v1 << "\n";
+            std::cout << v2 << "\n";
+        }
+
+        // ---------------------------------------
+        // 1. Construct plane {v1, v2, starting_pos}
+        // ---------------------------------------
+        Vec3 e = v2 - v1;
+        Vec3 n = CGLA::cross(e, starting_pos - v1);
+        double n_len = length(n);
+
+        if (n_len < eps) {
+            // Degenerate: starting_pos lies on edge line
+            continue;
+        }
+        n /= n_len;
+
+        // ---------------------------------------
+        // 2. Project segment onto plane
+        // ---------------------------------------
+        auto project = [&](const Vec3& p) {
+            return p - dot(p - v1, n) * n;
+            };
+
+        Vec3 p0 = project(starting_pos);
+        Vec3 p1 = project(end_pos);
+        Vec3 q0 = v1;
+        Vec3 q1 = v2;
+
+        // ---------------------------------------
+        // 3. Build 2D frame
+        // ---------------------------------------
+        Vec3 u = normalize(q1 - q0);
+        Vec3 v = normalize(cross(n, u));
+
+        auto to2D = [&](const Vec3& p) {
+            Vec3 d = p - q0;
+            return Vec2(dot(d, u), dot(d, v));
+            };
+
+        Vec2 P0 = to2D(p0);
+        Vec2 P1 = to2D(p1);
+        Vec2 Q0(0.0, 0.0);
+        Vec2 Q1(length(q1 - q0), 0.0);
+
+        // ---------------------------------------
+        // 4. 2D intersection test
+        // ---------------------------------------
+        auto orient = [](const Vec2& a, const Vec2& b, const Vec2& c) {
+            return (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]);
+            };
+
+        auto on_segment = [&](const Vec2& a, const Vec2& b, const Vec2& p) {
+            return std::min(a[0], b[0]) - eps <= p[0] && p[0] <= std::max(a[0], b[0]) + eps &&
+                std::min(a[1], b[1]) - eps <= p[1] && p[1] <= std::max(a[1], b[1]) + eps;
+            };
+
+        double o1 = orient(P0, P1, Q0);
+        double o2 = orient(P0, P1, Q1);
+        double o3 = orient(Q0, Q1, P0);
+        double o4 = orient(Q0, Q1, P1);
+
+        bool intersect = false;
+
+        // Proper intersection
+        if ((o1 * o2 < -eps) && (o3 * o4 < -eps)) {
+            intersect = true;
+        }
+
+        // Endpoint / collinear cases
+        if (!intersect) {
+            if (std::abs(o1) < eps && on_segment(P0, P1, Q0)) intersect = true;
+            if (std::abs(o2) < eps && on_segment(P0, P1, Q1)) intersect = true;
+            if (std::abs(o3) < eps && on_segment(Q0, Q1, P0)) intersect = true;
+            if (std::abs(o4) < eps && on_segment(Q0, Q1, P1)) intersect = true;
+        }
+
+        // ---------------------------------------
+        // 5. Near-miss (endpoint very close) FIX
+        // ---------------------------------------
+        if (!intersect) {
+            auto point_segment_dist2 = [](const Vec2& p, const Vec2& a, const Vec2& b) {
+                Vec2 ab = b - a;
+                double denom = dot(ab, ab);
+                if (denom < 1e-12) return dot(p - a, p - a);
+
+                double t = dot(p - a, ab) / denom;
+                t = std::max(0.0, std::min(1.0, t));
+                Vec2 proj = a + t * ab;
+                return dot(p - proj, p - proj);
+                };
+
+            if (point_segment_dist2(P1, Q0, Q1) < eps_dist ||
+                point_segment_dist2(Q0, P0, P1) < eps_dist ||
+                point_segment_dist2(Q1, P0, P1) < eps_dist)
+            {
+                intersect = true;
+            }
+        }
+
+        // ---------------------------------------
+        // 6. Final decision
+        // ---------------------------------------
+        if (intersect && manifold.precond_flip_edge(flip_maybe)) {
+            if (opts.debug_opts.debug_mask & RE_CROSSING_FLIP) {
+                std::cout << "flipped!" << "\n";
+            }
+            return flip_maybe;
+        }
+    }
+
+    return std::nullopt;
+}
 
 /// If an edge plane would be crossed, returns that edge to be flipped
 std::optional<HalfEdgeID> find_crossed_edge(
@@ -748,6 +1119,66 @@ namespace
     }
 }
 
+void fix_flipped_edge(Manifold& manifold, VertexID center_v, Vec3& normal) {
+    bool isValid = false;
+
+    while (!isValid) {
+        bool isFlipped = false;
+        for (auto h : manifold.incident_halfedges(center_v)) {
+            if (manifold.walker(h).face() == InvalidFaceID && manifold.walker(h).opp().face() != InvalidFaceID) {
+                if (!manifold.in_use(h))
+                    continue;
+                Point v1 = manifold.positions[manifold.walker(h).opp().next().vertex()];
+                Point v_root = manifold.positions[manifold.walker(h).vertex()];
+                Point v0 = manifold.positions[center_v];
+                Vec3 cross_p = CGLA::cross(v0 - v_root, v1 - v_root);
+                /*std::cout << normal << std::endl;
+                std::cout << cross_p << std::endl;
+                std::cout << "flip_case1" << std::endl;
+                std::cout << center_v << std::endl;
+                std::cout << (CGLA::dot(cross_p, normal) <= 0.) << std::endl;*/
+                if (CGLA::dot(cross_p, normal) <= 0.) {
+                    isFlipped = true;
+                    manifold.remove_edge(h);
+                    break;
+                }
+            }
+            else if (manifold.walker(h).opp().face() == InvalidFaceID && manifold.walker(h).face() != InvalidFaceID) {
+                if (!manifold.in_use(h))
+                    continue;
+                Point v1 = manifold.positions[manifold.walker(h).next().vertex()];
+                Point v_root = manifold.positions[manifold.walker(h).vertex()];
+                Point v0 = manifold.positions[center_v];
+                Vec3 cross_p = CGLA::cross(v1 - v_root, v0 - v_root);
+                /*std::cout << cross_p << std::endl;
+                std::cout << "flip_case2" << std::endl;*/
+                if (CGLA::dot(cross_p, normal) <= 0.) {
+                    isFlipped = true;
+                    manifold.remove_edge(h);
+                    break;
+                }
+            }
+        }
+        if (!isFlipped)
+            isValid = true;
+    }
+    return;
+}
+
+void showProgressBar(float progress) {
+    int barWidth = 70;  // Width of the progress bar
+
+    std::cout << "[";
+    int pos = barWidth * progress;
+    for (int i = 0; i < barWidth; ++i) {
+        if (i < pos) std::cout << "=";
+        else if (i == pos) std::cout << ">";
+        else std::cout << " ";
+    }
+    std::cout << "] " << int(progress * 100.0) << " %\r";  // \r returns to the beginning of the line
+    std::cout.flush();  // Flush the output to show the progress
+}
+
 void reexpand_points(Manifold& manifold, const Collapse& collapse, const ReexpandOpts& opts)
 {
     std::cout << "reexpanding" << std::endl;
@@ -773,17 +1204,43 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
     size_t bad_expansions = 0;
     size_t flips = 0;
     int iteration = 0;
+    int step = 0;
+    int total_collapse = 0;
+    for (const auto& collapse_iter : collapse.collapses | std::views::reverse) {
+        total_collapse += collapse_iter.size();
+    }
+    std::cout << "Total reexpansion: " << total_collapse << std::endl;
     std::vector<HalfEdgeID> one_ring;
     std::vector<HalfEdgeID> circle;
     std::vector<HalfEdgeID> two_ring;
+
+    /*int save_step1 = int(total_collapse * 0.2);
+    int save_step2 = int(total_collapse * 0.5);
+    int save_step3 = int(total_collapse * 0.8);*/
+
+
     for (const auto& collapse_iter : collapse.collapses | std::views::reverse) {
+        iteration++;
         for (auto single_collapse : collapse_iter | std::views::reverse) {
-            iteration++;
+            step++;
+            /*if(step == save_step1)
+                HMesh::obj_save("step_1.obj", manifold);
+            if (step == save_step2)
+                HMesh::obj_save("step_2.obj", manifold);
+            if (step == save_step3)
+                HMesh::obj_save("step_3.obj", manifold);*/
+
+            //showProgressBar(float(step) / float(total_collapse));
+            //std::cout << "Total reexpansion: " << total_collapse << std::endl;
+            //std::cout << "current_step: " << step << std::endl;
+            bool output_all = (step == 7);
+            output_all = false;
             // find the manifold_ids for the active vertex
 
             const auto active_pos = single_collapse.active_point_coords;
             const auto latent_pos = single_collapse.latent_point_coords;
             const auto v_bar = single_collapse.v_bar;
+            
             // FIXME: Debug info
             if (opts.debug_opts.debug_mask & RE_ITERATION) {
                 std::cout << "--------------------------------\n";
@@ -800,28 +1257,124 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
             }
             // repair local geometry maybe
             const auto manifold_ids = position_to_manifold_iter(v_bar);
+            Vec3 v_bar_norm;
+            bool isFailed = false;
             for (const auto id : manifold_ids) {
-                auto maybe1 = find_crossed_edge(manifold, id, latent_pos, active_pos, opts);
-                if (maybe1) {
-                    manifold.flip_edge(*maybe1);
+                v_bar_norm = manifold.normal(id);
+                if (false) {
+                    auto maybe1 = find_crossed_edge(manifold, id, latent_pos, active_pos, opts);
+                    if (maybe1) {
+                        manifold.flip_edge(*maybe1);
+                    }
+                    auto maybe2 = find_crossed_edge(manifold, id, active_pos, latent_pos, opts);
+                    if (maybe2) {
+                        manifold.flip_edge(*maybe2);
+                    }
+                    manifold.positions[id] = active_pos;
                 }
-                auto maybe2 = find_crossed_edge(manifold, id, active_pos, latent_pos, opts);
-                if (maybe2) {
-                    manifold.flip_edge(*maybe2);
-                }
+                // Fix crossed edge new
+                else{
+                    bool isBDRY_removed = false;
+                    bool isValid = false;
+                    int find_time = 0;
 
-                manifold.positions[id] = active_pos;
+                    while (!isValid) {
+                        isValid = true;
+                        auto maybe1 = find_crossed_edge(manifold, id, active_pos, latent_pos, opts);
+                        //auto maybe1 = find_crossed_edge_new(manifold, id, v_bar, active_pos, opts);
+                        if (maybe1) {
+                            // Decide remove or flip
+                            if (manifold.walker(*maybe1).opp().face() == InvalidFaceID) {
+                                // Intersecting boundary edge -- remove this boundary edge
+                                manifold.remove_edge(*maybe1);
+                                isBDRY_removed = true;
+                            }
+                            else {
+                                if (manifold.precond_flip_edge(*maybe1))
+                                    manifold.flip_edge(*maybe1);
+                                else {
+                                    //std::cout << "Can't flip" << std::endl;
+                                    isFailed = true;
+                                }
+                                isValid = false;
+                            }
+                        }
+                        auto maybe2 = find_crossed_edge(manifold, id, latent_pos, active_pos, opts);
+                        //auto maybe2 = find_crossed_edge_new(manifold, id, v_bar, latent_pos, opts);
+                        if (maybe2) {
+                            // Decide remove or flip
+                            if (manifold.walker(*maybe2).opp().face() == InvalidFaceID) {
+                                // Intersecting boundary edge -- remove this boundary edge
+                                manifold.remove_edge(*maybe2);
+                                isBDRY_removed = true;
+                            }
+                            else {
+                                if (manifold.precond_flip_edge(*maybe2)) {
+                                    manifold.flip_edge(*maybe2);
+                                }
+                                else {
+                                    //std::cout << "Can't flip" << std::endl;
+                                    isFailed = true;
+                                }
+                                isValid = false;
+                            }
+                        }
+                        find_time++;
+                        if (find_time > 100) {
+                            std::cout << "Failed" << std::endl;
+                            isFailed = true;
+                        }
+                        if (isFailed)
+                            break;
+                    }
+
+                    //std::cout << "crossed_edge fixed" << std::endl;
+
+                    if (output_all)
+                        HMesh::obj_save("C:/Users/ruicu/Desktop/SGP26/Results/debug/" +
+                            std::to_string(step) + "_after_flip.obj", manifold);
+
+                    manifold.positions[id] = active_pos;
+                    if (output_all)
+                        HMesh::obj_save("C:/Users/ruicu/Desktop/SGP26/Results/debug/" +
+                            std::to_string(step) + "_after_reposition.obj", manifold);
+                    if (false) {
+                        if (v_bar_norm.length() < 1e-8 || std::isnan(v_bar_norm.length()) ||
+                            std::isinf(v_bar_norm.length())) {
+                            isFailed = true;
+                            break;
+                        }
+                        fix_flipped_edge(manifold, id, v_bar_norm);
+                    }
+
+                    if (output_all)
+                        HMesh::obj_save("C:/Users/ruicu/Desktop/SGP26/Results/debug/" +
+                            std::to_string(step) + "_after_fix.obj", manifold);
+                } 
             }
-
+            
+            if (isFailed) {
+                expansion_failures++;
+                continue;
+            }
             // actually do the expansion
+            //std::cout << "find edge pair" << std::endl;
+            Split info;
+            VertexID org_v;
+            Vec3 org_norm;
             const auto new_vid = [&]() -> VertexID {
                 // we want to get as close to 90 degrees as possible here
                 for (const auto this_vert : manifold_ids) {
                     const auto candidate = find_edge_pair(manifold, this_vert, latent_pos, active_pos, opts,
                                                           angle_threshold_cos);
+                    org_norm = manifold.normal(this_vert);
+                    //const auto candidate = find_edge_pair(manifold, this_vert, latent_pos, active_pos);
+                    
                     if (candidate.h_in != InvalidHalfEdgeID) {
                         const auto vnew = manifold.split_vertex(candidate.h_in, candidate.h_out);
                         GEL_ASSERT_NEQ(vnew, InvalidVertexID);
+                        info = candidate;
+                        org_v = this_vert;
                         return vnew;
                     }
                 }
@@ -834,6 +1387,170 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
             }
 
             manifold.positions[new_vid] = latent_pos;
+            //std::cout << "find edge pair done" << std::endl;
+
+            // Fix same side case: find the flipped face and newly added edge, remove them
+            /*std::cout << info.isSameSide << std::endl;
+            std::cout << manifold.walker(info.h_in).opp().vertex() << std::endl;
+            std::cout << manifold.walker(info.h_out).vertex() << std::endl;
+            */
+            if (false) {
+                bool isValid = false;
+                while (!isValid) {
+                    bool isRemove = false;
+                    isValid = true;
+                    for (const auto edge_id : manifold.incident_halfedges(org_v)) {
+                        if (manifold.walker(edge_id).face() != InvalidFaceID) {
+                            HalfEdgeID fan_edge = manifold.walker(edge_id).next().halfedge();
+                            if (manifold.walker(fan_edge).opp().face() == InvalidFaceID) {
+                                Vec3 vec1 = manifold.positions[manifold.walker(fan_edge).vertex()] -
+                                    manifold.positions[manifold.walker(fan_edge).opp().vertex()];
+                                Vec3 vec2 = manifold.positions[manifold.walker(fan_edge).next().vertex()] -
+                                    manifold.positions[manifold.walker(fan_edge).vertex()];
+                                if (CGLA::dot(CGLA::cross(vec1, vec2), org_norm) < 0.) {
+                                    manifold.remove_edge(fan_edge);
+                                    isRemove = true;
+                                    break;
+                                }
+                                //std::cout << "Triangle " << manifold.walker(split_edge).next().vertex() << " removed" << std::endl;
+                            }
+                        }
+                    }
+
+                    for (const auto edge_id : manifold.incident_halfedges(new_vid)) {
+                        if (manifold.walker(edge_id).face() != InvalidFaceID) {
+                            HalfEdgeID fan_edge = manifold.walker(edge_id).next().halfedge();
+                            if (manifold.walker(fan_edge).opp().face() == InvalidFaceID) {
+                                Vec3 vec1 = manifold.positions[manifold.walker(fan_edge).vertex()] -
+                                    manifold.positions[manifold.walker(fan_edge).opp().vertex()];
+                                Vec3 vec2 = manifold.positions[manifold.walker(fan_edge).next().vertex()] -
+                                    manifold.positions[manifold.walker(fan_edge).vertex()];
+                                if (CGLA::dot(CGLA::cross(vec1, vec2), org_norm) < 0.) {
+                                    manifold.remove_edge(fan_edge);
+                                    isRemove = true;
+                                    break;
+                                }
+                                //std::cout << "Triangle " << manifold.walker(split_edge).next().vertex() << " removed" << std::endl;
+                            }
+                        }
+                    }
+                    if (isRemove)
+                        isValid = false;
+                }
+                
+            }
+
+            if (false) {
+                if (info.isSameSide) {
+                    // find the halfedge {v_old, v_new}
+                    HalfEdgeID split_edge;
+                    for (const auto edge_id : manifold.incident_halfedges(org_v)) {
+                        if (manifold.walker(edge_id).vertex() == new_vid)
+                            split_edge = edge_id;
+                    }
+
+                    // Check if both face align with original normal, if not, delete the new face and new edge
+                    // First triangle
+                    if (manifold.walker(split_edge).face() != InvalidFaceID) {
+                        Vec3 v_split_edge = manifold.positions[manifold.walker(split_edge).vertex()] -
+                            manifold.positions[manifold.walker(split_edge).opp().vertex()];
+                        Vec3 v_next_edge = manifold.positions[manifold.walker(split_edge).next().vertex()] -
+                            manifold.positions[manifold.walker(split_edge).vertex()];
+                        if (CGLA::dot(CGLA::cross(v_next_edge, -v_split_edge), org_norm) < 0.) {
+                            HalfEdgeID to_remove = manifold.walker(split_edge).next().halfedge();
+                            HalfEdgeID to_remove_2 = manifold.walker(to_remove).next().halfedge();
+                            if (manifold.walker(to_remove).opp().face() == InvalidFaceID)
+                                manifold.remove_edge(to_remove);
+                            else if (manifold.walker(to_remove_2).opp().face() == InvalidFaceID)
+                                manifold.remove_edge(to_remove_2);
+                        }
+                        //std::cout << "Triangle " << manifold.walker(split_edge).next().vertex() << " removed" << std::endl;
+                    }
+                    // Second triangle
+                    HalfEdgeID split_edge_opp = manifold.walker(split_edge).opp().halfedge();
+                    if (manifold.walker(split_edge_opp).face() != InvalidFaceID) {
+                        Vec3 v_split_edge = manifold.positions[manifold.walker(split_edge_opp).vertex()] -
+                            manifold.positions[manifold.walker(split_edge_opp).opp().vertex()];
+                        Vec3 v_next_edge = manifold.positions[manifold.walker(split_edge_opp).next().vertex()] -
+                            manifold.positions[manifold.walker(split_edge_opp).vertex()];
+                        if (CGLA::dot(CGLA::cross(v_next_edge, -v_split_edge), org_norm) < 0.) {
+                            HalfEdgeID to_remove = manifold.walker(split_edge_opp).next().halfedge();
+                            HalfEdgeID to_remove_2 = manifold.walker(to_remove).next().halfedge();
+                            if (manifold.walker(to_remove).opp().face() == InvalidFaceID)
+                                manifold.remove_edge(to_remove);
+                            else if (manifold.walker(to_remove_2).opp().face() == InvalidFaceID)
+                                manifold.remove_edge(to_remove_2);
+                        }
+                        //std::cout << "Triangle " << manifold.walker(split_edge).next().vertex() << " removed" << std::endl;
+
+                    }
+                }
+
+                // Repair flipped triangles
+                // Check org_v
+                bool no_flip = false;
+                int num_flip = 0;
+                while (!no_flip) {
+                    no_flip = true;
+                    for (const auto h : manifold.incident_halfedges(org_v)) {
+                        const auto& h_walker = manifold.walker(h);
+                        if (h_walker.face() != InvalidFaceID) {
+                            Point v1 = manifold.positions[h_walker.next().vertex()];
+                            Point v_root = manifold.positions[h_walker.vertex()];
+                            Point v0 = manifold.positions[org_v];
+                            Vec3 cross_p = CGLA::cross(v1 - v_root, v0 - v_root);
+                            if (CGLA::dot(cross_p, org_norm) <= 0. && manifold.precond_flip_edge(h)) {
+                                manifold.flip_edge(h);
+                                no_flip = false;
+                                break;
+                            }
+                        }
+                    }
+                    num_flip++;
+                    if (num_flip > 100) {
+                        isFailed = true;
+                        break;
+                    }
+                }
+                if (isFailed) {
+                    expansion_failures++;
+                    continue;
+                }
+                
+                // Check new_v
+                no_flip = false;
+                num_flip = 0;
+                while (!no_flip) {
+                    no_flip = true;
+                    for (const auto h : manifold.incident_halfedges(new_vid)) {
+                        const auto& h_walker = manifold.walker(h);
+                        if (h_walker.face() != InvalidFaceID) {
+                            Point v1 = manifold.positions[h_walker.next().vertex()];
+                            Point v_root = manifold.positions[h_walker.vertex()];
+                            Point v0 = manifold.positions[new_vid];
+                            Vec3 cross_p = CGLA::cross(v1 - v_root, v0 - v_root);
+                            if (CGLA::dot(cross_p, org_norm) <= 0. && manifold.precond_flip_edge(h)) {
+                                manifold.flip_edge(h);
+                                no_flip = false;
+                                break;
+                            }
+                        }
+                    }
+                    num_flip++;
+                    if (num_flip > 100) {
+                        isFailed = true;
+                        break;
+                    }
+                }
+
+                if (isFailed) {
+                    expansion_failures++;
+                    continue;
+                }
+
+            }
+            
+            //std::cout << "post-processing done" << std::endl;
 
             // Update the point to manifold id map
             // we need to copy the data to avoid invalidating iterators when we mutate point_to_manifold_ids
@@ -851,6 +1568,9 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
             point_to_manifold_ids.emplace(latent_pos, new_vid);
             point_to_manifold_ids.erase(v_bar);
 
+            //HMesh::obj_save("C:/Users/ruicu/Desktop/SGP26/Results/debug/" +
+                //std::to_string(step) + "_after_exp.obj", manifold);
+            //std::cout << new_vid << std::endl;
             // populate a bunch of vectors for the optimization phase
             one_ring.clear();
             circle.clear();
@@ -867,6 +1587,7 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
                 two_ring.push_back(two_ring_he2);
             });
 
+            //std::cout << "start optimizing" << std::endl;
             // sort from longest to shortest edge
             const auto& manifold_cref = manifold;
             auto cmp = [&manifold_cref](const HalfEdgeID& e1, const HalfEdgeID& e2) -> bool {
@@ -879,11 +1600,13 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
             };
 
             // perform optimization/refinement
+            //std::cout << opts.refinement_iterations << std::endl;
             for (int i = 0; i < opts.refinement_iterations; ++i) {
                 auto threshold = opts.refinement_angle_threshold;
                 quick_sort(one_ring, cmp);
                 for (HalfEdgeID h : one_ring | std::views::reverse) {
                     bool flipped = angle_flip_check(manifold, h, threshold);
+                    //bool flipped = angle_flip_check_new(manifold, h);
                     if (flipped) {
                         manifold.flip_edge(h);
                     }
@@ -892,6 +1615,7 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
                 quick_sort(circle, cmp);
                 for (HalfEdgeID h : circle | std::views::reverse) {
                     bool flipped = angle_flip_check(manifold, h, threshold);
+                    //bool flipped = angle_flip_check_new(manifold, h);
                     if (flipped) {
                         manifold.flip_edge(h);
                     }
@@ -900,6 +1624,7 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
                 quick_sort(two_ring, cmp);
                 for (HalfEdgeID h : two_ring | std::views::reverse) {
                     bool flipped = angle_flip_check(manifold, h, threshold);
+                    //bool flipped = angle_flip_check_new(manifold, h);
                     if (flipped) {
                         manifold.flip_edge(h);
                     }
@@ -907,6 +1632,8 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
                 }
             }
 
+            //HMesh::obj_save("C:/Users/ruicu/Desktop/SGP26/Results/debug/" +
+                //std::to_string(step) + ".obj", manifold);
             if (opts.debug_opts.debug_mask & RE_ERRORS) {
                 const auto v_new_max_angle = one_ring_max_dihedral_angle(manifold, new_vid);
                 const auto v_old_max_angle = one_ring_max_dihedral_angle(manifold, manifold_ids.front());
@@ -936,6 +1663,8 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
                 goto EXIT;
             }
         }
+        // DEBUG
+        //HMesh::obj_save("iteration_" + std::to_string(iteration) + ".obj", manifold);
     }
 EXIT:
     std::cout << "flips: " << flips << "\n";

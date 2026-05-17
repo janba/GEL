@@ -59,33 +59,36 @@ void remove_duplicate_vertices(std::vector<Point>& vertices,
     for (auto& vertex : vertices) {
         std::vector<NodeID> neighbors;
         std::vector<double> neighbor_distance;
-        last_dist += (vertex - last_v).length();
-        kNN_search(vertex, kdTree, k, neighbors, neighbor_distance, last_dist, true);
-        last_dist = neighbor_distance[neighbor_distance.size() - 1];
-        last_v = vertex;
-
         bool isInsert = true;
-        for (int i = 0; i < neighbors.size(); i++) {
-            NodeID idx = neighbors[i];
-            double length = neighbor_distance[i];
+        if (std::isinf(vertex[0]) || std::isinf(vertex[1]) || std::isinf(vertex[2]))
+            isInsert = false;
+        if (std::isnan(vertex[0]) || std::isnan(vertex[1]) || std::isnan(vertex[2]))
+            isInsert = false;
+        //last_dist += (vertex - last_v).length();
+        if (isInsert) {
+            kNN_search(vertex, kdTree, k, neighbors, neighbor_distance, last_dist, true);
+            //last_dist = neighbor_distance[neighbor_distance.size() - 1];
+            //last_v = vertex;
 
-            if (this_idx == idx)
-                continue;
+            for (int i = 0; i < neighbors.size(); i++) {
+                NodeID idx = neighbors[i];
+                double length = neighbor_distance[i];
 
-            // Remove duplicate vertices
-            if (length < 1e-8 && this_idx != idx) {
-                isInsert = false;
-                removed++;
-                break;
-            }
-            else {
-                break;
+                if (this_idx == idx)
+                    continue;
+
+                // Remove duplicate vertices
+                if (length < 1e-8 && this_idx != idx) {
+                    isInsert = false;
+                    removed++;
+                    break;
+                }
             }
         }
-        
+
         if (isInsert) {
             new_vertices.push_back(vertex);
-            if (normals.size() != 0)
+            if (normals.size() == vertices.size())
                 new_normals.push_back(normals[this_idx]);
         }
         this_idx++;
@@ -229,9 +232,10 @@ void kNN_search(const Point& query, const Tree& kdTree,
     records = kdTree.m_closest(num + 1, query, INFINITY);
 
     // Sort to the normal order from heap
-    for (size_t i = records.size(); i > 0; --i) {
+    std::sort_heap(records.begin(), records.end());
+    /*for (size_t i = records.size(); i > 0; --i) {
         std::pop_heap(records.begin(), records.begin() + i);
-    }
+    }*/
 
     int idx = 0;
     for (auto& record : records) {
@@ -700,6 +704,43 @@ void weighted_smooth(const std::vector<Point>& vertices,
     }
 }
 
+bool examine_valid_normal(std::vector<Vector>& normals, int v_size) {
+    bool isValid = normals.size() == v_size;
+    if (isValid) {
+        for (int i = 0; i < normals.size(); i++) {
+            Vector normal = normals[i];
+            if (normal.length() == 0) {
+                isValid = false;
+                break;
+            }
+            else {
+                normals[i] = normalize(normals[i]);
+            }
+        }
+    }
+    return isValid;
+}
+
+void save_point_cloud_obj(const std::vector<CGLA::Vec3d>& pts,
+    const std::string& filename)
+{
+    std::ofstream out(filename);
+
+    if (!out)
+    {
+        std::cerr << "Failed to open file: " << filename << std::endl;
+        return;
+    }
+
+    for (const auto& p : pts)
+    {
+        out << "v "
+            << p[0] << " "
+            << p[1] << " "
+            << p[2] << "\n";
+    }
+}
+
 void estimate_normal(const std::vector<Point>& vertices,
     const Tree& kdTree, std::vector<Vector>& normals, std::vector<NodeID>& zero_normal_id,
     float& diagonal_length) {
@@ -708,7 +749,7 @@ void estimate_normal(const std::vector<Point>& vertices,
         normals = std::vector<Vector>(vertices.size());
     int neighbor_num = 15;
     if (!isEuclidean)
-        neighbor_num = std::max<int>(int(vertices.size() / 2000.), 192);
+        neighbor_num = std::min<int>(int(vertices.size() / 2000.), 192);
     // Data type transfer & Cal diagonal size
     std::vector<float> min{ INFINITY, INFINITY, INFINITY },
         max{ -INFINITY, -INFINITY, -INFINITY };
@@ -716,41 +757,35 @@ void estimate_normal(const std::vector<Point>& vertices,
     double last_dist = INFINITY;
     Point last_v(0., 0., 0.);
 
-    if (isGTNormal) {
-        for (int i = 0; i < normals.size(); i++){
-            Vector normal = normals[i];
-            if (normal.length() == 0) {
-                zero_normal_id.push_back(i);
-            }
-            else {
-                normals[i] = normalize(normals[i]);
-            }
-        }
-    }
-    else {
-        for (int i = 0; i < vertices.size(); i++) {
-            Point point = vertices[i];
+    for (int i = 0; i < vertices.size(); i++) {
+        Point point = vertices[i];
 
-            std::vector<NodeID> neighbors;
-            std::vector<double> neighbor_dist;
-            //last_dist += (point - last_v).length();
-            kNN_search(point, kdTree, neighbor_num, neighbors, neighbor_dist, last_dist, true);
-            //last_dist = neighbor_dist[neighbor_dist.size() - 1];
-            last_v = point;
+        std::vector<NodeID> neighbors;
+        std::vector<double> neighbor_dist;
+        //last_dist += (point - last_v).length();
+        kNN_search(point, kdTree, neighbor_num, neighbors, neighbor_dist, last_dist, true);
+        //last_dist = neighbor_dist[neighbor_dist.size() - 1];
+        last_v = point;
 
-            std::vector<Point> neighbor_coords;
-            for (auto idx : neighbors) {
-                neighbor_coords.push_back(vertices[idx]);
-            }
-            //Vector normal = estimateNormal(neighbor_coords, last_dist);
-            Vector normal = estimateNormalJet(neighbor_coords, last_dist);
-            // std::cout << normal << " " << neighbor_coords.size() << " " << last_dist << std::endl;
-            if (std::isnan(normal.length())) {
-                std::cout << neighbors.size() << std::endl;
-                std::cout << "error" << std::endl;
-            }
-            normals[i] = normal;
+        std::vector<Point> neighbor_coords;
+        for (auto idx : neighbors) {
+            neighbor_coords.push_back(vertices[idx]);
         }
+        if (neighbor_coords.size() < neighbor_num) {
+            std::cout << "This should not be this case" << std::endl;
+            std::cout << neighbor_coords.size() << std::endl;
+            std::cout << point << std::endl;
+        }
+        Vector normal = estimateNormal(neighbor_coords, last_dist);
+        //Vector normal = estimateNormalJet(neighbor_coords, last_dist);
+        // std::cout << normal << " " << neighbor_coords.size() << " " << last_dist << std::endl;
+        if (std::isnan(normal.length())) {
+            std::cout << neighbor_num << std::endl;
+            std::cout << neighbors.size() << std::endl;
+            std::cout << "error" << std::endl;
+            save_point_cloud_obj(neighbor_coords, "error_points.obj");
+        }
+        normals[i] = normal;
     }
     
     for (const auto& point : vertices) {
@@ -928,7 +963,7 @@ void new_correct_normal_orientation(std::vector<Point>& in_smoothed_v,
 
         std::vector<NodeID> neighbors;
         std::vector<double> dists;
-        kNN_search(vertex, kdTree, k, neighbors, dists, last_dist, false);
+        kNN_search(vertex, kdTree, 20, neighbors, dists, last_dist, false);
 
         // Update pq
         visited.insert(i);
@@ -2088,7 +2123,7 @@ void checkAndForce(NodeID v_u, NodeID v_w, RSGraph& G, m_priority_queue& queue,
     return;
 }
 
-void triangulate(std::vector<std::vector<NodeID>>& faces, RSGraph& G,
+void triangulate(std::vector<std::vector<NodeID>>& faces, RSGraph& G, SimpGraph& g_org,
     const Tree& KDTree, bool isFaceLoop, bool isEuclidean
     , std::vector<float>& length_thresh, std::vector<NodeID>& connected_handle_root,
     std::vector<int>& betti, bool isFinalize = false) {
@@ -2126,6 +2161,13 @@ void triangulate(std::vector<std::vector<NodeID>>& faces, RSGraph& G,
             //if (item.first[1] == 345 && item.first[2] == 426)
             //    std::cout << item.second << std::endl;
 
+            if (false) {
+                if (g_org.find_edge(item.first[1], item.first[2]) == AMGraph::InvalidEdgeID)
+                    continue;
+                std::vector<NodeID> this_triangle{ item.first[1], item.first[2], item.first[0] };
+                if (routine_check(G, this_triangle));
+                continue;
+            }
             if (item.second >= 0) {
                 // Validity check
                 bool isValid = check_validity(G, item, KDTree, isFaceLoop, isFinalize);
@@ -2332,6 +2374,22 @@ namespace HMesh
 
 using namespace detail;
 
+bool is_valid_point(const CGLA::Vec3d& p)
+{
+    return std::isfinite(p[0]) &&
+        std::isfinite(p[1]) &&
+        std::isfinite(p[2]);
+}
+
+bool is_reasonable(const CGLA::Vec3d& p)
+{
+    const double MAX_VAL = 1e6;
+
+    return std::abs(p[0]) < MAX_VAL &&
+        std::abs(p[1]) < MAX_VAL &&
+        std::abs(p[2]) < MAX_VAL;
+}
+
 void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertices,
     std::vector<Vec3d>& org_normals, bool in_isEuclidean, int in_genus,
     int in_k, int in_r, int in_theta, int in_n) {
@@ -2361,37 +2419,64 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertice
     recon_timer.start("Estimate normals");
     std::vector<Point> in_smoothed_v;
     {
+        std::vector<Vec3d> clean, clean_normal;
+        
+        int ii = 0;
+        int invalid_num = 0;
+        for (auto& p : org_vertices)
+        {
+            if (!is_valid_point(p) || !is_reasonable(p)) {
+                invalid_num++;
+                continue;
+            }
+            clean.push_back(p);
+            if (org_normals.size() == org_vertices.size())
+                clean_normal.push_back(org_normals[ii]);
+            ii++;
+        }
+
+        org_vertices = clean;
+        org_normals = clean_normal;
+        clean_normal.clear();
+        clean.clear();
+        std::cout << invalid_num << " invalid vertices are removed" << std::endl;
+
         std::vector<NodeID> indices(org_vertices.size());
         std::iota(indices.begin(), indices.end(), 0);
         // Insert number_of_data_points in the tree
-        Tree kdTree, tree_before_remove;
-        build_KDTree(tree_before_remove, org_vertices, indices);
+        Tree kdTree;
+        build_KDTree(kdTree, org_vertices, indices);
 
-        remove_duplicate_vertices(org_vertices, org_normals, tree_before_remove);
+        //remove_duplicate_vertices(org_vertices, org_normals, tree_before_remove);
 
-        indices.clear();
+        /*indices.clear();
         indices = std::vector<NodeID>(org_vertices.size());
         std::iota(indices.begin(), indices.end(), 0);
-        build_KDTree(kdTree, org_vertices, indices);
+        build_KDTree(kdTree, org_vertices, indices);*/
 
         float diagonal_length;
 
-        if (org_normals.size() == 0) {
-            isGTNormal = false;
+        if (isGTNormal) {
+            if (!examine_valid_normal(org_normals, org_vertices.size())) {
+                isGTNormal = false;
+                std::cout << "No input normal / input normal has issue, will estimate normal by myself" << std::endl;
+            }
         }
 
         std::vector<NodeID> zero_normal_id;
+        if (!isGTNormal) {
+            std::cout << "Estimating normals for a point cloud of size " << org_vertices.size() << std::endl;
+            estimate_normal(org_vertices, kdTree, org_normals, zero_normal_id, diagonal_length);
+        }
+
+        // Fix zero normal
+        if (zero_normal_id.size() > 0) {
+            throw std::runtime_error("Zero normal exists!");
+        }
 
         if (true) {
             std::cout << "Start first round smoothing ..." << std::endl;
             if (!isEuclidean) {
-                
-                estimate_normal(org_vertices, kdTree, org_normals, zero_normal_id, diagonal_length);
-
-                // Fix zero normal
-                if (zero_normal_id.size() > 0) {
-                    throw std::runtime_error("Zero normal exists!");
-                }
                 weighted_smooth(org_vertices, in_smoothed_v, org_normals, kdTree, diagonal_length);
             }   
             else
@@ -2400,8 +2485,9 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertice
             Tree temp_tree1;
             build_KDTree(temp_tree1, in_smoothed_v, indices);
 
-            estimate_normal(in_smoothed_v, temp_tree1, org_normals,
-                zero_normal_id, diagonal_length);
+            if (!isGTNormal)
+                estimate_normal(in_smoothed_v, temp_tree1, org_normals,
+                    zero_normal_id, diagonal_length);
 
             // Another round of smoothing
             if (true) {
@@ -2411,11 +2497,13 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertice
                     in_smoothed_v.clear();
                     weighted_smooth(temp, in_smoothed_v, org_normals, temp_tree1, diagonal_length);
 
-                    Tree temp_tree2;
-                    build_KDTree(temp_tree2, in_smoothed_v, indices);
+                    if (!isGTNormal) {
+                        Tree temp_tree2;
+                        build_KDTree(temp_tree2, in_smoothed_v, indices);
 
-                    estimate_normal(in_smoothed_v, temp_tree2, org_normals,
-                        zero_normal_id, diagonal_length);
+                        estimate_normal(in_smoothed_v, temp_tree2, org_normals,
+                            zero_normal_id, diagonal_length);
+                    }
                 }
             }
         }
@@ -2444,8 +2532,8 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertice
 
         if (!isGTNormal) {
             std::cout << "correct normal orientation" << std::endl;
-            //correct_normal_orientation(in_smoothed_v, kdTree, org_normals);
-            new_correct_normal_orientation(in_smoothed_v, kdTree, org_normals);
+            correct_normal_orientation(in_smoothed_v, kdTree, org_normals);
+            //new_correct_normal_orientation(in_smoothed_v, kdTree, org_normals);
         }
 
         std::cout << "find components" << std::endl;
@@ -2487,8 +2575,8 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertice
         std::vector<float> pre_max_length(vertices.size(), 0.);
         mst.isEuclidean = isEuclidean;
         mst.exp_genus = exp_genus;
+        SimpGraph g;
         {
-            SimpGraph g;
             init_graph(smoothed_v, smoothed_v, normals,
                 kdTree, g, connection_max_length,
                 pre_max_length, theta);
@@ -2569,7 +2657,7 @@ void reconstruct_single(HMesh::Manifold& output, std::vector<Vec3d>& org_vertice
             std::vector<NodeID> connected_handle_root;
             connect_handle(smoothed_v, kdTree, mst, connected_handle_root, betti_1);
             isFaceLoop = false;
-            triangulate(faces, mst, kdTree, isFaceLoop, isEuclidean, connection_max_length, connected_handle_root, betti_1);
+            triangulate(faces, mst, g, kdTree, isFaceLoop, isEuclidean, connection_max_length, connected_handle_root, betti_1);
         }
 
         betti_1.push_back(bettiNum_1);

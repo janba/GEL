@@ -13,7 +13,7 @@
 
 //#include "LogMap.h"
 #include <GEL/CGLA/CGLA.h>
-#include <GEL/GLGraphics/ManifoldRenderer.h>
+//#include <GEL/GLGraphics/ManifoldRenderer.h>
 #include <GEL/Geometry/GridAlgorithm.h>
 #include <GEL/Geometry/KDTree.h>
 #include <GEL/HMesh/HMesh.h>
@@ -23,7 +23,7 @@ using namespace Util;
 using namespace std;
 using namespace CGLA;
 using namespace Geometry;
-using namespace GLGraphics;
+//using namespace GLGraphics;
 
 namespace HMesh {
 
@@ -790,7 +790,7 @@ FaceSet extrude_halfedge_set(Manifold& m, HalfEdgeSet& halfedge_set)
                         Walker w = m.walker(h);
                         FaceID f = w.face();
                         touched[f] = 1;
-                        DebugRenderer::face_colors[f] = Vec3f(1.0-l.cylindricity,0.3,l.cylindricity);
+                        //DebugRenderer::face_colors[f] = Vec3f(1.0-l.cylindricity,0.3,l.cylindricity);
                         VertexID v0 = w.vertex();
                         VertexID v1 = w.opp().vertex();
                         graph.pos[n0] += m.pos(v0);

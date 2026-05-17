@@ -9,6 +9,7 @@
 /// @brief Rotation System Reconstruction
 namespace HMesh::RSR
 {
+
 /// Options struct for point cloud reconstruction
 struct RSROpts {
     /// Expected genus of the manifold, -1 to auto-detect. This value
@@ -55,9 +56,10 @@ struct RSROpts {
 /// @param normals_in normals of the point cloud or empty vector
 /// @param opts reconstruction options
 /// @return reconstructed manifold mesh
-auto point_cloud_to_mesh(const std::vector<CGLA::Vec3d>& vertices_in,
+void point_cloud_to_mesh(const std::vector<CGLA::Vec3d>& vertices_in,
                          const std::vector<CGLA::Vec3d>& normals_in,
-                         const RSROpts& opts) -> HMesh::Manifold;
+                         const RSROpts& opts,
+                         HMesh::Manifold& result);
 
 /// Convert a point cloud into a Manifold using the hierarchical collapse
 /// and reexpansion method. Rotation system reconstruction is used to perform
@@ -68,12 +70,13 @@ auto point_cloud_to_mesh(const std::vector<CGLA::Vec3d>& vertices_in,
 /// @param reconstruction_options reconstruction options
 /// @param reexpand_options reexpansion options
 /// @return reconstructed manifold mesh
-auto point_cloud_collapse_reexpand(
+void point_cloud_collapse_reexpand(
     const std::vector<CGLA::Vec3d>& vertices,
     const std::vector<CGLA::Vec3d>& normals,
     const CollapseOpts& collapse_options,
     const RSROpts& reconstruction_options,
-    const ReexpandOpts& reexpand_options) -> HMesh::Manifold;
+    const ReexpandOpts& reexpand_options,
+    Manifold& manifold);
 
 // TODO: probably remove these
 namespace detail

@@ -284,7 +284,8 @@ void rsr_recon_experimental(Manifold_ptr m_ptr, double* verts,
     opts.theta = theta;
     opts.n = n;
 
-    Manifold result = RSR::point_cloud_to_mesh(vertices, norm, opts);
+    Manifold result;
+    RSR::point_cloud_to_mesh(vertices, norm, opts, result);
     *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
 }
 
@@ -318,7 +319,8 @@ void hrsr_recon_experimental(Manifold_ptr m_ptr, double* verts, double* normals,
     RSR::ReexpandOpts reexpand_opts;
     reexpand_opts.enabled = !skip_reexpansion;
 
-    Manifold result = RSR::point_cloud_collapse_reexpand(vertices, norm, collapse_opts, rsr_opts, reexpand_opts);
+    Manifold result;
+    RSR::point_cloud_collapse_reexpand(vertices, norm, collapse_opts, rsr_opts, reexpand_opts, result);
     *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
 }
 
