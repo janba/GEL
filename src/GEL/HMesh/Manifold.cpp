@@ -1661,25 +1661,18 @@ namespace HMesh
         c /= k;
         Manifold::Vec norm(0);
         for(int i=0;i<k;++i)
-            norm += cross(vertices[i]-c,vertices[(i+1)%k]-c);
+        {
+            auto d = vertices[i]-vertices[(i+1)%k];
+            auto s = vertices[i]+vertices[(i+1)%k];
+            norm += Manifold::Vec(d[1]*s[2], d[2]*s[0], d[0]*s[1]);
+        }
         return 0.5 * norm;
     }
     
     double Manifold::area(FaceID fid) const
     {
-        // Get all projected vertices
-        std::vector<Manifold::Vec> vertices;
-        int N = circulate_face_ccw(*this, fid, [&](VertexID vid) {
-            vertices.push_back(positions[vid]);
-        });
-        
-        double area = 0;
-        Manifold::Vec norm = normal(fid);
-        for(int i = 1; i < N-1; ++i)
-            area += 0.5 * dot(norm,cross(vertices[i]-vertices[0], vertices[(i+1 )]-vertices[0]));
-        return area;
+        return area_normal(fid).length();
     }
-
 
     bool closed(const Manifold& m)
     {
