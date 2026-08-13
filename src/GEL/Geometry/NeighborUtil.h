@@ -49,14 +49,14 @@ using NeighborArray = std::vector<NeighborInfo>;
 using NeighborMap = std::vector<NeighborArray>;
 
 template <typename Indices>
-Tree build_kd_tree_of_indices(const std::vector<CGLA::Vec3d>& vertices, const Indices& indices)
+void build_kd_tree_of_indices(const std::vector<CGLA::Vec3d>& vertices, const Indices& indices, Tree& kd_tree)
 {
-    Tree kd_tree;
     for (const auto idx : indices) {
         kd_tree.insert(vertices.at(idx), idx);
     }
+    std::cout << "kdtree start building..." << std::endl;
     kd_tree.build();
-    return kd_tree;
+    return;
 }
 
 /// @brief k nearest neighbor search

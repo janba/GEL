@@ -4,8 +4,14 @@ set(CMAKE_FIND_FRAMEWORK NEVER)
 set(CMAKE_CXX_STANDARD 20)
 include_directories(../..)
 
-# Locate the GEL library
-find_library(GEL_LIB GEL PATHS ../../../../build)
-
 add_executable(meshdist meshdist.cpp)
-target_link_libraries(meshdist ${GEL_LIB})
+
+if(TARGET GEL)
+	target_link_libraries(meshdist PRIVATE GEL)
+else()
+	set(GEL_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../build/libGEL.a")
+	if(NOT EXISTS "${GEL_LIB_PATH}")
+		message(FATAL_ERROR "Could not find GEL static library at ${GEL_LIB_PATH}. Build GEL first with cmake --build build.")
+	endif()
+	target_link_libraries(meshdist PRIVATE "${GEL_LIB_PATH}")
+endif()

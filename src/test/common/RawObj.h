@@ -132,7 +132,7 @@ inline std::istream& operator>>(std::istream& is, RawObj& obj)
             obj.normals.emplace_back(*pos);
         }
         if (auto pos = parse_prefix_then_float_triplet("vt", line_view)) {
-            obj.normals.emplace_back(*pos);
+            obj.texture_coordinates.emplace_back(*pos);
         }
         if (auto face = parse_face_element(line_view)) {
             obj.faces.push_back(std::move(face->triplets));

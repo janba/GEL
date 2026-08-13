@@ -33,7 +33,21 @@ class ImmediatePool final : public IExecutor {
     size_t m_size;
     std::vector<thread_t> m_threads;
 public:
-    explicit ImmediatePool(const size_t size = std::thread::hardware_concurrency()) : m_size{size} {}
+    //explicit ImmediatePool(const size_t size = std::thread::hardware_concurrency()) : m_size{size} {}
+    explicit ImmediatePool(size_t size = 0) {
+        if (size == 0) {
+            if (const char* env = std::getenv("SLURM_CPUS_PER_TASK")) {
+                m_size = std::stoul(env);
+            }
+            else {
+                m_size = std::thread::hardware_concurrency();
+            }
+        }
+        else {
+            m_size = size;
+        }
+    }
+    
     ~ImmediatePool() override
     {
         waitAll();

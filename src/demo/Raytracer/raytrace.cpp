@@ -1,4 +1,5 @@
 #include <iostream>
+#include <fstream>
 #include <vector>
 #include <algorithm>
 #include <cmath>
@@ -72,7 +73,8 @@ namespace
     vector<const TriMesh*> mesh_vector(1, &mesh);
     vector<Mat4x4f> transforms(1, identity_Mat4x4f());
     
-    double light_pow = 1.0;
+    double light_pow = 0.85;
+    double ambient = 0.20;
     Vec3f light_dir = normalize(Vec3f(1.0, 1.0, 1.0));
     Vec3d background(0.8, 0.9, 1.0);
     
@@ -90,6 +92,17 @@ namespace
     }
     
     AABBTree bb_tree;
+
+    string find_existing_path(const vector<string>& candidates)
+    {
+        for(const auto& path : candidates)
+        {
+            ifstream f(path.c_str());
+            if(f.good())
+                return path;
+        }
+        return string();
+    }
 }
 
 void spin(int x);
@@ -150,9 +163,20 @@ void initGL()
     glShadeModel(GL_SMOOTH);
     glDisable(GL_CULL_FACE);
     glFrontFace(GL_CCW);
+    glViewport(0, 0, static_cast<GLsizei>(winx), static_cast<GLsizei>(winy));
     
     glClearColor(1.0, 1.0, 1.0, 1.0);
     glColor3f(0.0, 0.0, 0.0);
+
+    const GLubyte* vendor = glGetString(GL_VENDOR);
+    const GLubyte* renderer = glGetString(GL_RENDERER);
+    const GLubyte* version = glGetString(GL_VERSION);
+    if(vendor && renderer && version)
+    {
+        cout << "OpenGL vendor: " << vendor << endl;
+        cout << "OpenGL renderer: " << renderer << endl;
+        cout << "OpenGL version: " << version << endl;
+    }
 }
 
 
@@ -167,7 +191,8 @@ double shadow_shade(Ray& r)
     double s = tree.intersect(shadow) ? 0.0 : 1.0;
     
     r.compute_normal();
-    return s*light_pow*dot(r.hit_normal, light_dir);
+    double ndotl = fabs(static_cast<double>(dot(normalize(r.hit_normal), light_dir)));
+    return min(1.0, ambient + s*light_pow*ndotl);
 }
 
 double lambertian_shade(Ray& r)
@@ -175,7 +200,8 @@ double lambertian_shade(Ray& r)
 #ifdef USE_BSP
 	r.compute_normal();
 #endif
-    return light_pow*dot(r.hit_normal, light_dir);
+    double ndotl = fabs(static_cast<double>(dot(normalize(r.hit_normal), light_dir)));
+    return min(1.0, ambient + light_pow*ndotl);
 }
 
 double (*shade_ray[2])(Ray&) = { lambertian_shade,
@@ -269,7 +295,7 @@ void drawOBJ()
                 {
                     Vec3f norm = normalize(mesh.normals.vertex(n_face[j]));
                     glNormal3fv(norm.get());
-                    shade = light_pow*dot(norm, light_dir);
+                    shade = ambient + light_pow*fabs(static_cast<double>(dot(norm, light_dir)));
                 }
                 
                 glColor3d(shade, shade, shade);
@@ -293,6 +319,17 @@ void drawOBJ()
 void display()
 {
     static bool first = true;
+
+    // Some GLUT backends do not issue an initial reshape callback.
+    // Refresh the viewport from the current drawable size every frame.
+    int current_w = glutGet(GLUT_WINDOW_WIDTH);
+    int current_h = glutGet(GLUT_WINDOW_HEIGHT);
+    if(current_w > 0 && current_h > 0)
+    {
+        winx = static_cast<unsigned int>(current_w);
+        winy = static_cast<unsigned int>(current_h);
+        glViewport(0, 0, current_w, current_h);
+    }
     
     if(first)
     {
@@ -387,6 +424,7 @@ void display()
         glDisable(GL_DEPTH_TEST);
     }
     
+    glFlush();
     glutSwapBuffers();
 }
 
@@ -478,6 +516,7 @@ int main(int argc, char** argv)
     glutInitWindowSize(winx, winy);
     glutCreateWindow("Press 'r' to raytrace");
     glutDisplayFunc(display);
+    glutIdleFunc(display);
     glutReshapeFunc(reshape);
     glutKeyboardFunc(keyboard);
     glutMouseFunc(mouse);
@@ -488,6 +527,12 @@ int main(int argc, char** argv)
     if(argc > 1)
     {
         filename = argv[1];
+        ifstream f(filename.c_str());
+        if(!f.good())
+        {
+            cerr << "Input mesh not found: " << filename << endl;
+            return 1;
+        }
         cout << "Loading " << filename << endl;
         
         obj_load(filename, mesh);
@@ -501,7 +546,21 @@ int main(int argc, char** argv)
     }
     else
     {
-        obj_load("../../../data/dolphins.obj", mesh);
+        filename = find_existing_path({
+            "data/dolphins.obj",
+            "../data/dolphins.obj",
+            "../../data/dolphins.obj",
+            "../../../data/dolphins.obj"
+        });
+
+        if(filename.empty())
+        {
+            cerr << "Could not find default mesh data/dolphins.obj from current working directory." << endl;
+            return 1;
+        }
+
+        cout << "Loading " << filename << endl;
+        obj_load(filename, mesh);
         
         cout << "Computing normals" << endl;
         mesh.compute_normals();

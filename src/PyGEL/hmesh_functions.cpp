@@ -10,6 +10,7 @@
 #include <string>
 #include <GEL/HMesh/HMesh.h>
 #include <GEL/HMesh/face_loop.h>
+#include <GEL/HMesh/RSRExperimental.h>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/graph_io.h>
 #include <GEL/Geometry/graph_skeletonize.h>
@@ -241,25 +242,94 @@ void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
     non_rigid_registration(*m_ptr, *m_ref_ptr);
 }
 
-void rsr_recon(Manifold_ptr m_ptr, double* verts, double* normals, int v_num, int n_num,
-    bool isEuclidean, int genus, int k, int r, int theta, int n) {
+void rsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, int vertex_count, int normal_count,
+    bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist) {
 
-    vector<Vec3d> vertices;
+    vector<Vec3d> point_cloud_vertices;
     vector<Vec3d> norm;
-    vertices.reserve(v_num);
-    norm.reserve(n_num);
-    for (int i = 0; i < v_num; i++) {
-        vertices.emplace_back(verts[i], verts[i + v_num], verts[i + 2 * v_num]);
+    point_cloud_vertices.reserve(vertex_count);
+    norm.reserve(normal_count);
+    for (int i = 0; i < vertex_count; i++) {
+        point_cloud_vertices.emplace_back(vertices[i], vertices[i + vertex_count], vertices[i + 2 * vertex_count]);
     }
 
-    for (int i = 0; i < n_num; i++) {
-        norm.emplace_back(normals[i], normals[i + n_num], normals[i + 2 * n_num]);
+    for (int i = 0; i < normal_count; i++) {
+        norm.emplace_back(normals[i], normals[i + normal_count], normals[i + 2 * normal_count]);
     }
 
-    reconstruct_single(*(reinterpret_cast<Manifold*>(m_ptr)), vertices, norm, 
-        isEuclidean, genus, k, r, theta, n);
+    RSR::RSROpts opts;
+    opts.dist = (use_Euclid_dist) ? RSR::Distance::Euclidean : RSR::Distance::Tangent;
+    opts.genus = genus;
+    opts.num_neighbors = num_neighbors;
+    opts.max_neighbor_dist = max_neighbor_dist;
+    opts.max_normal_ang = max_normal_ang;
+    opts.max_handle_dist = max_handle_dist;
+
+    Manifold result;
+    RSR::point_cloud_to_mesh(point_cloud_vertices, norm, opts, result);
+    *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
 }
 
+void rsr_recon_experimental(Manifold_ptr m_ptr, double* vertices,
+    double* normals, int vertex_count, int normal_count, bool use_Euclid_dist, int genus,
+    int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist)
+{
+    vector<Vec3d> point_cloud_vertices;
+    vector<Vec3d> norm;
+    point_cloud_vertices.reserve(vertex_count);
+    norm.reserve(normal_count);
+    for (int i = 0; i < vertex_count; i++) {
+        point_cloud_vertices.emplace_back(vertices[i], vertices[i + vertex_count], vertices[i + 2 * vertex_count]);
+    }
+
+    for (int i = 0; i < normal_count; i++) {
+        norm.emplace_back(normals[i], normals[i + normal_count], normals[i + 2 * normal_count]);
+    }
+    RSR::RSROpts opts;
+    opts.dist = (use_Euclid_dist) ? RSR::Distance::Euclidean : RSR::Distance::Tangent;
+    opts.genus = genus;
+    opts.num_neighbors = num_neighbors;
+    opts.max_neighbor_dist = max_neighbor_dist;
+    opts.max_normal_ang = max_normal_ang;
+    opts.max_handle_dist = max_handle_dist;
+
+    Manifold result;
+    RSR::point_cloud_to_mesh(point_cloud_vertices, norm, opts, result);
+    *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
+}
+
+void hrsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, size_t vertex_count, size_t normal_count,
+    int collapse_iters, bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist, bool skip_reexpansion)
+{
+    vector<Vec3d> point_cloud_vertices;
+    vector<Vec3d> norm;
+    point_cloud_vertices.reserve(vertex_count);
+    norm.reserve(normal_count);
+    for (int i = 0; i < vertex_count; i++) {
+        point_cloud_vertices.emplace_back(vertices[i], vertices[i + vertex_count], vertices[i + 2 * vertex_count]);
+    }
+
+    for (int i = 0; i < normal_count; i++) {
+        norm.emplace_back(normals[i], normals[i + normal_count], normals[i + 2 * normal_count]);
+    }
+
+    RSR::CollapseOpts collapse_opts;
+    collapse_opts.max_iterations = collapse_iters;
+    collapse_opts.distance = (use_Euclid_dist) ? RSR::Distance::Euclidean : RSR::Distance::Tangent;
+    RSR::RSROpts rsr_opts;
+    rsr_opts.dist = collapse_opts.distance;
+    rsr_opts.genus = genus;
+    rsr_opts.num_neighbors = num_neighbors;
+    rsr_opts.max_neighbor_dist = max_neighbor_dist;
+    rsr_opts.max_normal_ang = max_normal_ang;
+    rsr_opts.max_handle_dist = max_handle_dist;
+    RSR::ReexpandOpts reexpand_opts;
+    reexpand_opts.enabled = !skip_reexpansion;
+
+    Manifold result;
+    RSR::point_cloud_collapse_reexpand(point_cloud_vertices, norm, collapse_opts, rsr_opts, reexpand_opts, result);
+    *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
+}
 
 using IntVector = vector<size_t>;
 

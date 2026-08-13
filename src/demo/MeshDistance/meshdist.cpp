@@ -3,7 +3,7 @@
 #include <GEL/Util/Timer.h>
 #include <GEL/Util/ArgExtracter.h>
 
-#include <GEL/CGLA/Mat4x4d.h>
+#include <GEL/CGLA/Mat.h>
 
 #include <GEL/Geometry/RGrid.h>
 #include <GEL/Geometry/HGrid.h>
@@ -122,7 +122,7 @@ int main(int argc, char** argv)
 {
 	// LOAD OBJ
     Manifold m;
-    string fn = "../../data/bunny-little.x3d";
+    string fn = "../../../data/bunny-little.x3d";
     if(argc>1)
 	{
 		ArgExtracter ae(argc, argv);
@@ -262,5 +262,5 @@ int main(int argc, char** argv)
 	cout.width(10);
 	cout << T_ray_aabb;
 	cout << endl;
-  system("PAUSE");
+
 }

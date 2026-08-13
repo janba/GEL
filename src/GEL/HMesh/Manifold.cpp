@@ -372,9 +372,10 @@ namespace HMesh
     VertexID Manifold::split_vertex(HalfEdgeID h_in, HalfEdgeID h_out)
     {
         GEL_ASSERT(kernel.in_use(h_in), "h1 must be valid");
-        GEL_ASSERT(kernel.in_use(h_in), "h2 must be valid");
+        GEL_ASSERT(kernel.in_use(h_out), "h2 must be valid");
         GEL_ASSERT_EQ(kernel.vert(kernel.opp(h_out)), kernel.vert(h_in),
                       "h_in must point to h_out's origin");
+        //GEL_ASSERT_NEQ(kernel.face(h_in), kernel.face(h_out), "Splitting the same triangle!!");
         const auto v = kernel.vert(h_in);
 
         // If the halfedges are on the border, then we don't have to perform a slit, we can just directly add a face.
@@ -384,6 +385,7 @@ namespace HMesh
             pos(vn) = pos(v);
             const auto hn = kernel.opp(kernel.last(f));
             add_boundary_face(hn, h_out);
+            //std::cout << "split_vertex_1" << std::endl;
 
             return vn;
         } else if (kernel.face(h_out) == InvalidFaceID) {
@@ -401,6 +403,8 @@ namespace HMesh
             split_face_by_edge(f, v, vn);
 
             GEL_ASSERT(remove_face(f_dummy));
+            //std::cout << "split_vertex_2" << std::endl;
+
 
             return vn;
         } else if (kernel.face(h_in) == InvalidFaceID) {
@@ -418,6 +422,8 @@ namespace HMesh
             split_face_by_edge(f, v, vn);
 
             GEL_ASSERT(remove_face(f_dummy));
+            //std::cout << "split_vertex_3" << std::endl;
+
 
             return vn;
         } else if ((kernel.face(kernel.opp(h_in)) == InvalidFaceID) != (kernel.face(kernel.opp(h_out)) == InvalidFaceID)) {
@@ -439,6 +445,8 @@ namespace HMesh
                 const auto h_b = kernel.opp(kernel.last(f));
                 add_boundary_face(h_b, h_out_opp_next);
             }
+            //std::cout << "split_vertex_4" << std::endl;
+
             return v_new;
         } else {
             const auto vn = slit_vertex_impl(h_in, h_out);
@@ -450,6 +458,9 @@ namespace HMesh
             const auto f = close_hole(kernel.out(vn));
 
             split_face_by_edge(f, v, vn);
+            /*std::cout << "split_vertex_5" << std::endl;
+            std::cout << "v: "<<v << std::endl;
+            std::cout << "vn: "<<vn << std::endl;*/
 
             return vn;
         }

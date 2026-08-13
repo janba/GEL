@@ -16,7 +16,7 @@ __all__ = [
     'cc_subdivide', 'loop_subdivide', 'volume_preserving_cc_smooth', 'regularize_quads', 'loop_smooth',
     'taubin_smooth', 'laplacian_smooth', 'anisotropic_smooth', 'volumetric_isocontour', 'triangulate',
     'extrude_faces', 'kill_face_loop', 'kill_degenerate_face_loops', 'graph_to_feq', 'skeleton_to_feq',
-    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_recon', 'connected_components',
+    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_recon', 'hrsr_recon', 'connected_components',
     'count_boundary_curves', 'analyze_topology', 'sphere_delaunay'
 ]
 
@@ -984,35 +984,69 @@ def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wt: float = 0.5, lap_w
         v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
 
 
-def rsr_recon(verts: ArrayLike, 
+def rsr_recon(vertices: ArrayLike, 
               normals: ArrayLike=None, 
-              use_Euclidean_distance: bool=False, 
+              use_Euclid_dist: bool=False, 
               genus: int=-1,
-              k: int=70,
-              r: float=20,
-              theta: float=60,
-              n: int=50) -> Manifold:
-    """ RsR Reconstruction. The first argument, verts, is the point cloud. The next argument,
+              num_neighbors: int=70,
+              max_neighbor_dist: float=20,
+              max_normal_ang: float=60,
+              max_handle_dist: int=50) -> Manifold:
+    """ RsR Reconstruction. The first argument, vertices, is the point cloud. The next argument,
         normals, are the normals associated with the vertices or empty list (default) if normals 
-        need to be estimated during reconstruction. use_Euclidean_distance should be true if we 
+        need to be estimated during reconstruction. use_Euclid_dist should be true if we 
         can use the Euclidean rather than projected distance. Set to true only for noise free 
-        point clouds. genus is used to constrain the genus of the reconstructed object. genus 
-        defaults to -1, meaning unknown genus. k is the number of nearest neighbors for each point,
-        r is the maximum distance to farthest neighbor measured in multiples of average distance, 
-        theta is the threshold on angles between normals: two points are only connected if the angle
-        between their normals is less than theta. Finally, n is the threshold on the distance between 
-        vertices that are connected by handle edges (check paper). For large n, it is harder for 
+        point clouds. genus controls handle insertion: -1 lets the algorithm detect genus,
+        0 disables handle insertion, and values > 0 request that many handles. num_neighbors is the number
+        of nearest neighbors for each point,
+        max_neighbor_dist is the maximum distance to farthest neighbor measured in multiples of average distance, 
+        max_normal_ang is the threshold on angles between normals: two points are only connected if the angle
+        between their normals is less than max_normal_ang. Finally, max_handle_dist is the threshold on the distance between 
+        vertices that are connected by handle edges (check paper). For large max_handle_dist, it is harder for 
         the algorithm to add handles. """
     m = Manifold()
-    verts_data = np.asarray(verts, dtype=ct.c_double, order='F')
-    n_verts = len(verts)
+    vertices_data = np.asarray(vertices, dtype=ct.c_double, order='F')
+    n_vertices = len(vertices)
     n_normal = 0 if normals is None else len(normals)
     if(n_normal==0):
         normals = [[]]
     normal_data = np.asarray(normals, dtype=ct.c_double, order='F')
 
-    lib_py_gel.rsr_recon(m.obj, verts_data, normal_data, n_verts, n_normal, 
-                         use_Euclidean_distance, genus, k, r, theta, n)
+    lib_py_gel.rsr_recon(m.obj, vertices_data, normal_data, n_vertices, n_normal, 
+                         use_Euclid_dist, genus, num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist)
+    return m
+
+def hrsr_recon(vertices: ArrayLike,
+               normals: ArrayLike=None,
+               collapse_iters: int=1,
+               use_Euclid_dist: bool=False,
+               genus: int=-1,
+               num_neighbors: int=70,
+               max_neighbor_dist: float=20,
+               max_normal_ang: float=60,
+               max_handle_dist: int=50,
+               skip_reexpansion: bool=False) -> Manifold:
+    """ Hierarchical RsR reconstruction.
+        The arguments match rsr_recon, with two additions: collapse_iters controls
+        how many collapse iterations to run, and skip_reexpansion disables the
+        final reexpansion stage when set to True.
+
+        Genus semantics are intentionally the same as rsr_recon:
+        - genus = -1: auto-detect
+        - genus = 0: do not add handles
+        - genus > 0: request genus handle insertions
+    """
+    m = Manifold()
+    vertices_data = np.asarray(vertices, dtype=ct.c_double, order='F')
+    n_vertices = len(vertices)
+    n_normal = 0 if normals is None else len(normals)
+    if(n_normal==0):
+        normals = [[]]
+    normal_data = np.asarray(normals, dtype=ct.c_double, order='F')
+
+    lib_py_gel.hrsr_recon(m.obj, vertices_data, normal_data, n_vertices, n_normal,
+                          collapse_iters, use_Euclid_dist, genus,
+                          num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist, skip_reexpansion)
     return m
 
 def connected_components(m: Manifold) -> List[Manifold]:

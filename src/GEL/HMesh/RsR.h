@@ -31,7 +31,7 @@ namespace HMesh
         double cal_radians_3d(const Vector& branch, const Vector& normal);
 
         double cal_radians_3d(const Vector& branch_vec, const Vector& normal,
-                            const Vector& ref_vec);
+            const Vector& ref_vec);
 
         /*Graph definition. The RsR graph here is integrated with rotation system based on AMGraph*/
 
@@ -53,9 +53,6 @@ namespace HMesh
                 Neighbor(const Vertex& u, const Vertex& v, uint id)
                 {
                     this->v = id;
-                    //std::cout << v.coords << std::endl;
-                    //std::cout << u.coords << std::endl;
-                    //std::cout << cal_radians_3d(v.coords - u.coords, u.normal) << std::endl;
                     this->angle = cal_radians_3d(v.coords - u.coords, u.normal);
                 }
 
@@ -89,9 +86,7 @@ namespace HMesh
 
             EdgeID connect_nodes(NodeID source, NodeID target, float weight = 0.)
             {
-                // std::cout << __FILE__ << " " << __LINE__ << " " << source << " " << target << std::endl;
                 EdgeID id = AMGraph::connect_nodes(source, target);
-                // std::cout << __FILE__ << " " << __LINE__ << " " << id << std::endl;
                 m_edges[id].weight = weight;
                 return id;
             }
@@ -104,7 +99,7 @@ namespace HMesh
 
             /** Disconnect nodes. This operation removes the edge from the edge maps of the two formerly connected
                  vertices, but the number of edges reported by the super class AMGraph is not decremented, so the edge is only
-                invalidated. Call cleanup to finalize removal. */
+                 invalidated. Call cleanup to finalize removal. */
             void disconnect_nodes(NodeID n0, NodeID n1)
             {
                 if (valid_node_id(n0) && valid_node_id(n1)) {
@@ -188,7 +183,6 @@ namespace HMesh
                 const auto& u = m_vertices[root];
                 const auto& v = m_vertices[neighbor];
                 m_vertices[root].ordered_neighbors.insert(Neighbor(u, v, neighbor));
-                //std::cout << Neighbor(u, v, neighbor).angle << std::endl;
                 return;
             }
 
@@ -203,14 +197,6 @@ namespace HMesh
                     this->total_edge_length += weight;
                     insert_neighbor(source, target);
                     insert_neighbor(target, source);
-                } else {
-                    /*std::cout << "weird" << std::endl;
-                    std::cout << valid_node_id(source) << std::endl;
-                    std::cout << valid_node_id(target) << std::endl;
-                    std::cout << source << std::endl;
-                    std::cout << target << std::endl;
-                    std::cout << (find_edge(target, source) == InvalidEdgeID)
-                        << std::endl;*/
                 }
 
                 return id;
@@ -272,52 +258,53 @@ namespace HMesh
         typedef Geometry::KDTreeRecord<Point, NodeID> Record;
 
         void kNN_search(const Point&, const Tree&, int,
-                        std::vector<NodeID>&, std::vector<double>&,
-                        double last_dist = INFINITY, bool isContain = true);
+            std::vector<NodeID>&, std::vector<double>&,
+            double last_dist = INFINITY, bool isContain = true);
 
         void NN_search(const Point&, const Tree&, double,
-                    std::vector<NodeID>&, std::vector<double>&, bool isContain = true);
+            std::vector<NodeID>&, std::vector<double>&, bool isContain = true);
 
         float find_components(std::vector<Point>&,
-                            std::vector<std::vector<Point>>&, std::vector<Point>&,
-                            std::vector<std::vector<Point>>&, std::vector<Vector>&,
-                            std::vector<std::vector<Vector>>&, const Tree&, float, float);
+            std::vector<std::vector<Point>>&, std::vector<Point>&,
+            std::vector<std::vector<Point>>&, std::vector<Vector>&,
+            std::vector<std::vector<Vector>>&, const Tree&, float, float);
 
         void init_graph(const std::vector<Point>& vertices, const std::vector<Point>& smoothed_v,
-                        const std::vector<Vector>& normals, const Tree& kdTree, SimpGraph& dist_graph,
-                        std::vector<float>& max_length, std::vector<float>& pre_max_length, float cross_conn_thresh);
+            const std::vector<Vector>& normals, const Tree& kdTree, SimpGraph& dist_graph,
+            std::vector<float>& max_length, std::vector<float>& pre_max_length, float cross_conn_thresh);
 
         int find_shortest_path(const RSGraph& mst, NodeID start, NodeID target,
-                            int threshold, std::vector<NodeID>& path);
+            int threshold, std::vector<NodeID>& path);
 
         void weighted_smooth(const std::vector<Point>& vertices,
-                            std::vector<Point>& smoothed_v, const std::vector<Vector>& normals,
-                            const Tree& kdTree, float diagonal_length);
+            std::vector<Point>& smoothed_v, const std::vector<Vector>& normals,
+            const Tree& kdTree, float diagonal_length);
+
+        bool examine_valid_normal(std::vector<Vector>& normals, int v_size);
 
         void estimate_normal(const std::vector<Point>& vertices,
-                            const Tree& kdTree, std::vector<Vector>& normals,
-                            std::vector<NodeID>& zero_normal_id, float& diagonal_length);
+            const Tree& kdTree, std::vector<Vector>& normals,
+            std::vector<NodeID>& zero_normal_id, float& diagonal_length);
 
         void minimum_spanning_tree(const SimpGraph& g, NodeID root,
-                                RSGraph& gn, std::vector<Vector>& normals, std::vector<Point>& vertices);
+            RSGraph& gn, std::vector<Vector>& normals, std::vector<Point>& vertices);
 
         void minimum_spanning_tree(const SimpGraph& g, NodeID root, SimpGraph& gn);
 
-        void new_correct_normal_orientation(std::vector<Point>& in_smoothed_v,
+        void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
             Tree& kdTree, std::vector<Vector>& normals);
 
-        void correct_normal_orientation(std::vector<Point>& in_smoothed_v,
-                                        Tree& kdTree, std::vector<Vector>& normals);
-
         bool register_face(RSGraph& mst, NodeID v1, NodeID v2, std::vector<std::vector<int>>& faces,
-                        Tree& KDTree, float edge_length);
+            Tree& KDTree, float edge_length);
 
         void add_face(RSGraph& G, std::vector<NodeID>& item,
-                    std::vector<std::vector<NodeID>>& faces);
+            std::vector<std::vector<NodeID>>& faces);
 
         void connect_handle(const std::vector<Point>& smoothed_v, Tree& KDTree,
-                            RSGraph& mst, std::vector<NodeID>& connected_handle_root,
-                            std::vector<int>& betti);
+            RSGraph& mst, std::vector<NodeID>& connected_handle_root,
+            std::vector<int>& betti);
+
+        double cal_radians_3d(const Vector& branch_vec, const Vector& normal);
 
         // Timer
 
@@ -394,71 +381,69 @@ namespace HMesh
         void init_face_loop_label(RSGraph& g);
 
         const Neighbor& successor(const RSGraph& g,
-                                const NodeID& root,
-                                const NodeID& branch);
+            const NodeID& root,
+            const NodeID& branch);
 
 
         const Neighbor& predecessor(const RSGraph& g,
-                                    const NodeID& root,
-                                    const NodeID& branch);
+            const NodeID& root,
+            const NodeID& branch);
 
         void maintain_face_loop(RSGraph& g,
-                                const NodeID source, const NodeID target);
+            const NodeID source, const NodeID target);
 
         const Neighbor& get_neighbor_info(const RSGraph& g,
-                                        const NodeID& root, const NodeID& branch);
-
-        // Utils
-        void showProgressBar(float progress);
+            const NodeID& root, const NodeID& branch);
 
         Vector projected_vector(Vector& input, Vector& normal);
 
         void find_common_neighbor(NodeID neighbor, NodeID root,
-                                std::vector<NodeID>& share_neighbor, RSGraph& g);
+            std::vector<NodeID>& share_neighbor, RSGraph& g);
 
         // Algorithm
 
         bool geometry_check(RSGraph& mst, m_Edge& candidate,
-                            Tree& kdTree);
+            Tree& kdTree);
 
         bool Vanilla_check(RSGraph& mst, m_Edge& candidate,
-                        Tree& kdTree);
+            Tree& kdTree);
 
         bool isIntersecting(RSGraph& mst, NodeID v1,
-                            NodeID v2, NodeID v3, NodeID v4);
+            NodeID v2, NodeID v3, NodeID v4);
 
         bool routine_check(RSGraph& mst, std::vector<NodeID>& triangle);
 
         void reset_static();
     }
 
-        /**
-         * @brief Reconstructs a single mesh manifold from input points and normals.
-         *
-         * This function performs surface reconstruction on a set of input points and normals,
-         * producing an output HMesh::Manifold. The reconstruction allows control over several algorithmic
-         * parameters such as neighborhood size, radius, angle threshold, and sample count. The difference
-         * between Euclidean and projected ditance is that the latter is more resilient to noise. For noise-free data,
-         * Euclidean distance is preferred.
-         *
-         * @param[out] output         The resulting reconstructed manifold.
-         * @param[in]  org_vertices   The original input vertices (points) to reconstruct from.
-         * @param[in]  org_normals    The corresponding normals for each input vertex.
-         * @param[in]  in_isEuclidean True means use Euclidean distance rather than projected (default: false).
-         * @param[in]  in_genus       Expected genus of the output surface (default: -1 means auto-detect).
-         * @param[in]  in_k           Neighborhood size parameter (default: 70).
-         * @param[in]  in_r           Radius parameter for local operations (default: 20).
-         * @param[in]  in_theta       Angle threshold parameter in degrees (default: 60).
-         * @param[in]  in_n           Number of samples or iterations (default: 50).
-         *
-         * @note
-         *   - The function modifies the output manifold in place.
-         *   - Input vectors org_vertices and org_normals must be of the same length.
-         *   - Algorithmic parameters may need tuning for different datasets.
-         */
-        void reconstruct_single(HMesh::Manifold& output, std::vector<CGLA::Vec3d>& org_vertices,
-                                std::vector<CGLA::Vec3d>& org_normals, bool in_isEuclidean = false, int in_genus = -1,
-                                int in_k = 70, int in_r = 20, int in_theta = 60, int in_n = 50);
-        extern int DUMMY;
-} // namespace HMesh
+
+    /**
+     * @brief Reconstructs a single mesh manifold from input points and normals.
+     *
+     * This function performs surface reconstruction on a set of input points and normals,
+     * producing an output HMesh::Manifold. The reconstruction allows control over several algorithmic
+     * parameters such as neighborhood size, radius, angle threshold, and sample count. The difference
+     * between Euclidean and projected ditance is that the latter is more resilient to noise. For noise-free data,
+     * Euclidean distance is preferred.
+     *
+     * @param[out] output         The resulting reconstructed manifold.
+     * @param[in]  org_vertices   The original input vertices (points) to reconstruct from.
+     * @param[in]  org_normals    The corresponding normals for each input vertex.
+    * @param[in]  use_Euclid_dist True means use Euclidean distance rather than projected (default: false).
+    * @param[in]  genus          Expected genus of the output surface (default: -1 means auto-detect).
+    * @param[in]  num_neighbors  Neighborhood size parameter (default: 70).
+    * @param[in]  max_neighbor_dist Radius parameter for local operations (default: 20).
+    * @param[in]  max_normal_ang Angle threshold parameter in degrees (default: 60).
+    * @param[in]  max_handle_dist Number of samples or iterations (default: 50).
+     *
+     * @note
+     *   - The function modifies the output manifold in place.
+     *   - Input vectors org_vertices and org_normals must be of the same length.
+     *   - Algorithmic parameters may need tuning for different datasets.
+     */
+    void reconstruct_single(HMesh::Manifold& output, std::vector<CGLA::Vec3d>& org_vertices,
+        std::vector<CGLA::Vec3d>& org_normals, bool use_Euclid_dist = false, int genus = -1,
+        int num_neighbors = 70, int max_neighbor_dist = 20, int max_normal_ang = 60, int max_handle_dist = 50);
+}
+
 #endif

@@ -114,9 +114,15 @@ extern "C" {
 
     DLLEXPORT void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
 
-    DLLEXPORT void rsr_recon(Manifold_ptr m_ptr, double* verts,
-        double* normals, int v_num, int n_num, bool isEuclidean = false, int genus = 0,
-        int k = 70, int r = 20, int theta = 60, int n = 50);
+    DLLEXPORT void rsr_recon(Manifold_ptr m_ptr, double* vertices,
+        double* normals, int vertex_count, int normal_count, bool use_Euclid_dist = false, int genus = -1,
+        int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50);
+
+    DLLEXPORT void hrsr_recon(Manifold_ptr m_ptr, double* vertices,
+        double* normals, size_t vertex_count, size_t normal_count,
+        int collapse_iters = 1, bool use_Euclid_dist = false,
+        int genus = -1, int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50,
+        bool skip_reexpansion = false);
 
     DLLEXPORT void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr);
 
