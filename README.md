@@ -54,9 +54,30 @@ Note that to make PyGEL work, we have to include compiled versions of the C++ li
 If you need or wish to build GEL/PyGEL from source, please download or clone it from [https://github.com/janba/GEL](https://github.com/janba/GEL). Below you will find instructions for how to build and create a package for PyGEL that can be installed via pip. If you look around you will find some other build options for Windows, Mac and Linux. Since GEL is primarily developed on Mac OS, the Xcode projects are actively maintained and cover everything. **The two last build options are not actively maintained**. However, they may prove of some use and hence not removed.
 
 ### Building with CMake
-If you are using a unix-like command line, build with
+If you are using a unix-like command line, build and install with
 ```
-mkdir build; cd build; cmake ..; make -j 8 ; sudo make install; cd ..
+cmake -S . -B build
+cmake --build build -j 8
+cmake --install build
+```
+This installs the GEL library, headers, and a CMake package config into
+`~/.local` (`~/.local/include/GEL`, `~/.local/lib`) so other projects can
+locate GEL with `find_package(GEL)`. No sudo is required. Override the
+location with `-DCMAKE_INSTALL_PREFIX=<prefix>` if needed.
+
+### Using GEL from CMake
+After installing GEL, a consumer project only needs:
+
+```cmake
+find_package(GEL REQUIRED HINTS "$ENV{HOME}/.local")
+target_link_libraries(my_app PRIVATE GEL::GEL)
+```
+
+If GEL is not in `~/.local` or another default search path, point CMake at
+the install (or build) tree:
+
+```
+cmake -S . -B build -DCMAKE_PREFIX_PATH=<gel-install-prefix>
 ```
 ### Creating a PyGEL3D package and installing it
 You can next issue the command
@@ -75,7 +96,16 @@ If you run this script the C++ code is compiled and then the PyGEL3D wheel is cr
 
 ## Compilation of Demos and Tests
 
-GEL comes with some test scripts and also demos. You can find these in `GEL/src/test` and `GEL/src/demo`. There are individual CMake files for these tests and demos, and they are not compiled as a part of compiling the main library.
+GEL comes with some test scripts and also demos. You can find these in `GEL/src/test` and `GEL/src/demo`. Tests are optional and built with the main project when `BUILD_TESTING` is on.
+
+The C++ demos are standalone CMake projects. They call `find_package(GEL)` and therefore expect an installed GEL package rather than a library sitting in the source tree. After a standard install to `~/.local`:
+
+```
+cmake -S src/demo/MeshDistance -B src/demo/MeshDistance/build
+cmake --build src/demo/MeshDistance/build
+```
+
+All C++ demos can also be configured together from `src/demo`. These files are intentionally written as small examples of how to consume the installed library.
 
 ## Practical Issues
 Compiling both GEL and PyGEL requires that you have OpenGL installed unless you choose not to compile graphics support which you can do by setting `Use_GLGraphics` to `OFF` in the CMake file. GLFW is also needed, but CMake fetches GLFW from github and compiles it along with the GEL code. If you compile in some of the other ways (e.g. using XCode, Visual Studio) there is no simple way to avoid the dependency on graphics libraries. Thus, if you need to avoid the OpenGL requirements, CMake is the way to go.

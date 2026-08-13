@@ -59,13 +59,13 @@ cd GEL
 ### Build with CMake
 
 ```bash
-mkdir build
-cd build
-cmake ..
-make -j 8
-sudo make install
-cd ..
+cmake -S . -B build
+cmake --build build -j 8
+cmake --install build
 ```
+
+This installs the C++ library and headers into `~/.local`. Use
+`-DCMAKE_INSTALL_PREFIX=<prefix>` to choose a different location.
 
 ### Create and Install the Python Package
 

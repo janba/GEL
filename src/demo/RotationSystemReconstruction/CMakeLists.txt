@@ -1,18 +1,10 @@
-cmake_minimum_required(VERSION 3.30)
-project(RotationSystemReconstructionGEL)
-set(CMAKE_FIND_FRAMEWORK NEVER)
-set(CMAKE_CXX_STANDARD 20)
+cmake_minimum_required(VERSION 3.25)
+project(RotationSystemReconstruction LANGUAGES CXX)
 
-include_directories(../..)
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(GEL REQUIRED HINTS "$ENV{HOME}/.local")
 
 add_executable(rsr rsr.cpp)
-
-if(TARGET GEL)
-	target_link_libraries(rsr PRIVATE GEL)
-else()
-	set(GEL_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../build/libGEL.a")
-	if(NOT EXISTS "${GEL_LIB_PATH}")
-		message(FATAL_ERROR "Could not find GEL static library at ${GEL_LIB_PATH}. Build GEL first with cmake --build build.")
-	endif()
-	target_link_libraries(rsr PRIVATE "${GEL_LIB_PATH}")
-endif()
+target_link_libraries(rsr PRIVATE GEL::GEL)

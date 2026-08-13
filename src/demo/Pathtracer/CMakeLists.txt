@@ -1,42 +1,39 @@
-cmake_minimum_required(VERSION 3.30)
-project(MeshEditGlutGEL)
+cmake_minimum_required(VERSION 3.25)
+project(Pathtracer LANGUAGES CXX)
+
 if(APPLE)
 	set(CMAKE_FIND_FRAMEWORK FIRST)
 else()
 	set(CMAKE_FIND_FRAMEWORK NEVER)
 endif()
+
 set(CMAKE_CXX_STANDARD 20)
-include_directories(../..)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(GEL REQUIRED HINTS "$ENV{HOME}/.local")
+find_package(OpenGL REQUIRED)
 
 if(APPLE)
 	find_library(APPLE_GLUT_FRAMEWORK GLUT REQUIRED)
 	find_library(APPLE_COREFOUNDATION_FRAMEWORK CoreFoundation REQUIRED)
+else()
+	find_package(GLUT REQUIRED)
 endif()
 
-find_package (OpenGL REQUIRED)
-find_package (Threads REQUIRED)
-if(NOT APPLE)
-	find_package (GLUT REQUIRED)
-endif()
-
-# Add all .cpp files in the directory to the executable
 file(GLOB SOURCES "*.cpp")
 add_executable(pathtracer ${SOURCES})
 
-if(TARGET GEL)
-	if(APPLE)
-		target_link_libraries(pathtracer PRIVATE GEL OpenGL::GL OpenGL::GLU ${APPLE_GLUT_FRAMEWORK} ${APPLE_COREFOUNDATION_FRAMEWORK} Threads::Threads)
-	else()
-		target_link_libraries(pathtracer PRIVATE GEL OpenGL::GL OpenGL::GLU GLUT::GLUT Threads::Threads)
-	endif()
+if(APPLE)
+	target_link_libraries(pathtracer PRIVATE
+		GEL::GEL
+		OpenGL::GL
+		OpenGL::GLU
+		${APPLE_GLUT_FRAMEWORK}
+		${APPLE_COREFOUNDATION_FRAMEWORK})
 else()
-	set(GEL_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../build/libGEL.a")
-	if(NOT EXISTS "${GEL_LIB_PATH}")
-		message(FATAL_ERROR "Could not find GEL static library at ${GEL_LIB_PATH}. Build GEL first with cmake --build build.")
-	endif()
-	if(APPLE)
-		target_link_libraries(pathtracer PRIVATE "${GEL_LIB_PATH}" OpenGL::GL OpenGL::GLU ${APPLE_GLUT_FRAMEWORK} ${APPLE_COREFOUNDATION_FRAMEWORK} Threads::Threads)
-	else()
-		target_link_libraries(pathtracer PRIVATE "${GEL_LIB_PATH}" OpenGL::GL OpenGL::GLU GLUT::GLUT Threads::Threads)
-	endif()
+	target_link_libraries(pathtracer PRIVATE
+		GEL::GEL
+		OpenGL::GL
+		OpenGL::GLU
+		GLUT::GLUT)
 endif()

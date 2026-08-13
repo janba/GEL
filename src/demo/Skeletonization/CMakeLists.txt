@@ -1,17 +1,10 @@
-cmake_minimum_required(VERSION 3.30)
-project(SkeletonizePointCloudGEL)
-set(CMAKE_FIND_FRAMEWORK NEVER)
+cmake_minimum_required(VERSION 3.25)
+project(Skeletonization LANGUAGES CXX)
+
 set(CMAKE_CXX_STANDARD 20)
-include_directories(../..)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+
+find_package(GEL REQUIRED HINTS "$ENV{HOME}/.local")
 
 add_executable(skeletonize main.cpp)
-
-if(TARGET GEL)
-	target_link_libraries(skeletonize PRIVATE GEL)
-else()
-	set(GEL_LIB_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../../../build/libGEL.a")
-	if(NOT EXISTS "${GEL_LIB_PATH}")
-		message(FATAL_ERROR "Could not find GEL static library at ${GEL_LIB_PATH}. Build GEL first with cmake --build build.")
-	endif()
-	target_link_libraries(skeletonize PRIVATE "${GEL_LIB_PATH}")
-endif()
+target_link_libraries(skeletonize PRIVATE GEL::GEL)

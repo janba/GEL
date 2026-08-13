@@ -5,7 +5,8 @@ For each immediate subdirectory:
 
 * If it contains CMakeLists.txt, create a ``build`` directory, configure
   and compile with CMake, then execute the resulting binary (or binaries).
-* If it contains Python scripts, run each of them.
+* If it contains Python scripts, run each of them with the ``python3``
+  (or ``python``) found on PATH, using the pip-installed ``pygel3d``.
 
 Interactive OpenGL / GLUT demos are stopped after a timeout so the harness
 can continue.  A timeout is reported separately from a crash.
@@ -22,6 +23,7 @@ from __future__ import annotations
 import argparse
 import os
 import re
+import shutil
 import signal
 import subprocess
 import sys
@@ -32,10 +34,10 @@ from pathlib import Path
 DEMO_ROOT = Path(__file__).resolve().parent
 REPO_ROOT = DEMO_ROOT.parents[1]
 GEL_BUILD_DIR = REPO_ROOT / "build"
-PYGEL_DIR = REPO_ROOT / "src" / "PyGEL"
+GEL_INSTALL_DIR = Path.home() / ".local"
+IN_TREE_PYGEL = REPO_ROOT / "src" / "PyGEL"
 
 ADD_EXECUTABLE_RE = re.compile(r"add_executable\s*\(\s*([A-Za-z0-9_.-]+)")
-GEL_LIB_NAMES = ("libGEL.a", "GEL.lib", "libGEL.lib")
 
 SKIP_PYTHON_NAMES = {"run_demos.py"}
 SKIP_DIR_NAMES = {"build", "__pycache__", ".ipynb_checkpoints"}
@@ -230,41 +232,83 @@ def find_built_binary(build_dir: Path, name: str) -> Path | None:
 # Environment
 # ---------------------------------------------------------------------------
 
-def gel_library_path() -> Path | None:
-    for name in GEL_LIB_NAMES:
-        candidate = GEL_BUILD_DIR / name
+def gel_package_config() -> Path | None:
+    """Return GELConfig.cmake from the local install prefix, if present."""
+    for libdir in ("lib", "lib64"):
+        candidate = GEL_INSTALL_DIR / libdir / "cmake" / "GEL" / "GELConfig.cmake"
         if candidate.is_file():
             return candidate
     return None
 
 
-def demo_env() -> dict[str, str]:
-    """Environment for running demos: local PyGEL first, then the rest."""
-    env = os.environ.copy()
-    pythonpath = [str(PYGEL_DIR)]
-    existing = env.get("PYTHONPATH")
-    if existing:
-        pythonpath.append(existing)
-    env["PYTHONPATH"] = os.pathsep.join(pythonpath)
+def path_python() -> str | None:
+    """Return the first ``python3`` or ``python`` on PATH."""
+    for name in ("python3", "python"):
+        found = shutil.which(name)
+        if found:
+            return found
+    return None
 
-    # Help the dynamic loader find libPyGEL next to the package.
-    lib_dir = str(PYGEL_DIR / "pygel3d")
-    for key in ("DYLD_LIBRARY_PATH", "LD_LIBRARY_PATH"):
-        parts = [lib_dir]
-        if env.get(key):
-            parts.append(env[key])
-        env[key] = os.pathsep.join(parts)
+
+def demo_env() -> dict[str, str]:
+    """Environment for running demos.
+
+    Uses the process environment, but drops an in-tree ``src/PyGEL`` entry
+    from ``PYTHONPATH`` so the pip-installed ``pygel3d`` is used.
+    """
+    env = os.environ.copy()
+    existing = env.get("PYTHONPATH")
+    if not existing:
+        return env
+
+    in_tree = IN_TREE_PYGEL.resolve()
+    kept = []
+    for part in existing.split(os.pathsep):
+        if not part:
+            continue
+        try:
+            if Path(part).resolve() == in_tree:
+                continue
+        except OSError:
+            pass
+        kept.append(part)
+
+    if kept:
+        env["PYTHONPATH"] = os.pathsep.join(kept)
+    else:
+        env.pop("PYTHONPATH", None)
     return env
 
 
-def ensure_gel_library(jobs: int) -> bool:
-    if gel_library_path() is not None:
+def ensure_pygel(python: str) -> str | None:
+    """Return the imported ``pygel3d`` path if PATH's Python has it installed."""
+    code, out = run_cmd(
+        [python, "-c", "import pygel3d; print(pygel3d.__file__)"],
+        cwd=DEMO_ROOT,
+        env=demo_env(),
+    )
+    if code != 0:
+        return None
+    location = out.strip().splitlines()[-1] if out.strip() else ""
+    return location or python
+
+
+def ensure_gel_package(jobs: int) -> bool:
+    """Build GEL and install it as a CMake package under ~/.local."""
+    if gel_package_config() is not None:
         return True
 
-    print("GEL library not found; building the main project first …")
+    print("Installed GEL package not found; building and installing locally …")
     GEL_BUILD_DIR.mkdir(parents=True, exist_ok=True)
     code, out = run_cmd(
-        ["cmake", "-S", str(REPO_ROOT), "-B", str(GEL_BUILD_DIR)],
+        [
+            "cmake",
+            "-S",
+            str(REPO_ROOT),
+            "-B",
+            str(GEL_BUILD_DIR),
+            f"-DCMAKE_INSTALL_PREFIX={GEL_INSTALL_DIR}",
+        ],
         cwd=REPO_ROOT,
         stream=True,
     )
@@ -284,7 +328,18 @@ def ensure_gel_library(jobs: int) -> bool:
         if out:
             indent_output(out)
         return False
-    return gel_library_path() is not None
+
+    code, out = run_cmd(
+        ["cmake", "--install", str(GEL_BUILD_DIR)],
+        cwd=REPO_ROOT,
+        stream=True,
+    )
+    if code != 0:
+        print("Failed to install the GEL CMake package.")
+        if out:
+            indent_output(out)
+        return False
+    return gel_package_config() is not None
 
 
 # ---------------------------------------------------------------------------
@@ -295,8 +350,20 @@ def build_cmake_demo(demo_dir: Path, jobs: int) -> tuple[bool, str]:
     build_dir = demo_dir / "build"
     build_dir.mkdir(parents=True, exist_ok=True)
 
+    cmake_prefix = str(GEL_INSTALL_DIR)
+    existing_prefix = os.environ.get("CMAKE_PREFIX_PATH")
+    if existing_prefix:
+        cmake_prefix = os.pathsep.join((cmake_prefix, existing_prefix))
+
     code, out = run_cmd(
-        ["cmake", "-S", str(demo_dir), "-B", str(build_dir)],
+        [
+            "cmake",
+            "-S",
+            str(demo_dir),
+            "-B",
+            str(build_dir),
+            f"-DCMAKE_PREFIX_PATH={cmake_prefix}",
+        ],
         cwd=demo_dir,
         stream=True,
     )
@@ -331,10 +398,10 @@ def run_binary(binary: Path, demo_dir: Path, timeout: float | None) -> StepResul
     return StepResult(demo_dir.name, "binary", binary.name, "ok", seconds=elapsed)
 
 
-def run_python(script: Path, demo_dir: Path, timeout: float | None) -> StepResult:
+def run_python(script: Path, demo_dir: Path, python: str, timeout: float | None) -> StepResult:
     started = time.perf_counter()
     code, out = run_cmd(
-        [sys.executable, str(script)],
+        [python, str(script)],
         cwd=demo_dir,
         env=demo_env(),
         timeout=timeout,
@@ -366,6 +433,7 @@ def process_demo(
     timeout: float | None,
     skip_cmake: bool,
     skip_python: bool,
+    python: str,
 ) -> None:
     cmake_lists = demo_dir / "CMakeLists.txt"
     scripts = [] if skip_python else python_scripts(demo_dir)
@@ -403,7 +471,7 @@ def process_demo(
 
     for script in scripts:
         print(f"  running {script.name} …")
-        harness.add(run_python(script, demo_dir, timeout))
+        harness.add(run_python(script, demo_dir, python, timeout))
 
 
 def list_demos(only: list[str] | None) -> None:
@@ -483,18 +551,39 @@ def main(argv: list[str] | None = None) -> int:
                   + ", ".join(missing), file=sys.stderr)
             return 2
 
+    python = path_python()
+    if python is None:
+        print("No python3 or python interpreter found on PATH.", file=sys.stderr)
+        return 2
+
     print(f"GEL demo harness")
     print(f"  repo:    {REPO_ROOT}")
     print(f"  demos:   {DEMO_ROOT}")
+    print(f"  python:  {python}")
     print(f"  timeout: {'none' if timeout is None else f'{timeout:g}s'}")
     print(f"  jobs:    {args.jobs}")
 
     if not args.skip_cmake:
-        if not ensure_gel_library(args.jobs):
-            print("Cannot build demos without libGEL. "
-                  "Build the main project first: cmake -S . -B build && cmake --build build",
+        if not ensure_gel_package(args.jobs):
+            print("Cannot build demos without an installed GEL package. "
+                  "Build and install the main project first, for example:\n"
+                  "  cmake -S . -B build\n"
+                  "  cmake --build build && cmake --install build\n"
+                  "GEL installs to ~/.local by default.",
                   file=sys.stderr)
             return 2
+
+    pygel_loc = None
+    if not args.skip_python:
+        pygel_loc = ensure_pygel(python)
+        if pygel_loc is None:
+            print("PATH Python cannot import the pip-installed pygel3d package.\n"
+                  "Install it first, for example:\n"
+                  "  sh build_pygel.sh\n"
+                  "  pip install PyGEL3D",
+                  file=sys.stderr)
+            return 2
+        print(f"  pygel3d: {pygel_loc}")
 
     harness = Harness()
     for demo_dir in demo_dirs(args.only):
@@ -505,6 +594,7 @@ def main(argv: list[str] | None = None) -> int:
             timeout=timeout,
             skip_cmake=args.skip_cmake,
             skip_python=args.skip_python,
+            python=python,
         )
     return harness.summary()
 
