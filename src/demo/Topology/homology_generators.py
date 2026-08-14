@@ -190,7 +190,12 @@ def cut_mesh(m: hmesh.Manifold, loops):
 
 
 if __name__ == "__main__":
-    m = hmesh.load(argv[1])
+    filename = None
+    if len(argv) < 2:
+        filename = "../../../data/as.obj"
+    else:
+        filename = argv[1]
+    m = hmesh.load(filename)
     if m is None:
         print("Failed to load mesh.")
         exit(1)
@@ -250,6 +255,6 @@ if __name__ == "__main__":
         viewer.display(m, loop_to_graph(m, loop), mode="x", bg_col=(1,1,1), smooth=False)
 
     m_cut = cut_mesh(m, loops)
-    hmesh.save(f"{argv[1].split('.')[0]}_cut.obj", m_cut)
+    hmesh.save(f"{filename.split('.')[0]}_cut.obj", m_cut)
     hmesh.laplacian_smooth(m_cut, 0.5, 1)
     viewer.display(m_cut, smooth=True, mode='x', bg_col=(1,1,1))

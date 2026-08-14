@@ -143,6 +143,21 @@ namespace CGLA
      generator which is optimized for speed. This means
      that GEL_RAND_MAX==UINT_MAX. */
     unsigned int gel_rand();
+
+    /** Map gel_rand() to [0,1] in double precision. UINT_MAX is not
+     exactly representable as float, so never divide by GEL_RAND_MAX
+     in single precision. */
+    inline double gel_rand01()
+    {
+        return static_cast<double>(gel_rand()) /
+               static_cast<double>(GEL_RAND_MAX);
+    }
+
+    inline double gel_rand01(unsigned int k)
+    {
+        return static_cast<double>(gel_rand(k)) /
+               static_cast<double>(GEL_RAND_MAX);
+    }
     
     /** raw_assign takes a CGLA vector, matrix or whatever has a get() function
      as its first argument and a raw pointer to a (presumed scalar) entity

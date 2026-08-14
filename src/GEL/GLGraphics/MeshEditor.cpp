@@ -1160,8 +1160,7 @@ namespace GLGraphics {
             for(VertexIDIterator vi = me->active_mesh().vertices_begin(); vi != me->active_mesh().vertices_end(); ++vi){
                 Vec3d v;
                 do{
-                    v = Vec3d(gel_rand(),gel_rand(),gel_rand());
-                    v /= (float)(GEL_RAND_MAX);
+                    v = Vec3d(gel_rand01(), gel_rand01(), gel_rand01());
                     v -= Vec3d(0.5);
                     v *= 2.0;
                 }
@@ -1200,7 +1199,7 @@ namespace GLGraphics {
             gel_srand(0);
             for(VertexIDIterator vi = me->active_mesh().vertices_begin(); vi != me->active_mesh().vertices_end(); ++vi)
             {
-                float rval = 0.5-gel_rand() / float(GEL_RAND_MAX);
+                float rval = static_cast<float>(0.5 - gel_rand01());
                 me->active_mesh().pos(*vi) += normals[*vi]*rval*noise_amplitude*avg_length*2.0;
             }
             return;

@@ -9,7 +9,7 @@ using namespace std;
 using namespace CGLA;
 
 
-float frand() { return static_cast<float>(gel_rand())/GEL_RAND_MAX - 0.5f;}
+float frand() { return static_cast<float>(gel_rand01()) - 0.5f;}
 
 /* This is a non-exhaustive test program for CGLA */
 int main()

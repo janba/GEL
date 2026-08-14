@@ -38,7 +38,7 @@ namespace GLGraphics
             vector<unsigned char> texels(width*height*depth);
             for (int i = 0; i < width*height*depth; ++i)
             {
-                int intensity = 255.0 * (float(gel_rand()) / GEL_RAND_MAX);
+                int intensity = static_cast<int>(255.0 * gel_rand01());
                 texels[i] = (unsigned char) intensity;
             }
             

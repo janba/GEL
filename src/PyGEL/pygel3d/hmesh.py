@@ -755,7 +755,7 @@ class MeshDistance:
         
         d = np.ndarray(n, dtype=ct.c_float)
         lib_py_gel.MeshDistance_signed_distance(self.obj, n, p, d, upper)
-        return d
+        return d[0] if n==1 else d
     def ray_inside_test(self, pts: ArrayLike, no_rays: int = 3) -> np.ndarray:
         """Check whether each point in pts is inside or outside the stored mesh by
         casting rays. pts should be convertible to a length N>=1 array of 3D points.
@@ -773,7 +773,7 @@ class MeshDistance:
             raise Exception("you must pass signed_distance pts as a 1D array or a 2D array of dim nx3")
         s = np.ndarray(n, dtype=ct.c_int)
         lib_py_gel.MeshDistance_ray_inside_test(self.obj,n,p,s,no_rays)
-        return s
+        return s[0] if n==1 else s
     def intersect(self, p0: ArrayLike, dir: ArrayLike, _t: float = 0) -> tuple[float, np.ndarray, np.ndarray] | None:
         """ Intersect the ray starting in p0 with direction, dir, with the stored mesh. Returns
         the point of intersection if there is one, otherwise None. """

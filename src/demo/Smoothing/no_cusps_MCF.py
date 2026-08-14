@@ -7,6 +7,11 @@ from scipy.sparse.linalg import cg
 from pygel3d import hmesh, gl_display as gl
 #from cvxopt import matrix, spmatrix, cholmod
 
+print("This example should get the mass and stiffness matrices from the C++ GEL library")
+print("However, the current version does not support transfer. I just need to replace the ")
+print("current Python bindings from ctypes to nanobind to facilitate this. This work in progress.")
+exit(1)
+
 def normalize(v):
     return v / norm(v)
 
@@ -24,8 +29,11 @@ def rescale(m, vol_target, c_target):
 
 
 # Load the mesh and make safe copy of vertex positions
-# m = hmesh.load("arma.obj")
-m = hmesh.load(argv[1])
+m = None
+if len(argv) < 2:
+    m = hmesh.load("../../../data/as.obj")
+else:
+    m = hmesh.load(argv[1])
 pos = m.positions()
 N = m.no_allocated_vertices()
 v = gl.Viewer()

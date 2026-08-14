@@ -10,7 +10,11 @@ from numpy import zeros
 from pygel3d import hmesh
 
 # Load the mesh file
-m = hmesh.load(argv[1])
+m = None
+if len(argv) < 2:
+    m = hmesh.load("../../../data/ReferenceMeshes/rings.obj")
+else:
+    m = hmesh.load(argv[1])
 if m is None:
     print("Failed to load mesh.")
     exit(1)

@@ -58,9 +58,7 @@ bool MeshDistance::ray_inside_test(const CGLA::Vec3f &p, int no_rays)
 {
     auto rand_vec = []()
     {
-        return Vec3f(gel_rand() / double(GEL_RAND_MAX),
-                     gel_rand() / double(GEL_RAND_MAX),
-                     gel_rand() / double(GEL_RAND_MAX));
+        return Vec3f(gel_rand01(), gel_rand01(), gel_rand01());
     };
 
     int even = 0;

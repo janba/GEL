@@ -88,7 +88,7 @@ namespace
     // gel_rand() returns a random number ranging from 0 to GEL_RAND_MAX.
     inline double my_random()
     {
-        return gel_rand()/static_cast<double>(GEL_RAND_MAX);
+        return gel_rand01();
     }
     
     AABBTree bb_tree;

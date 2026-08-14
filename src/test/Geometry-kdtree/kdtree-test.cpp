@@ -16,9 +16,9 @@ using namespace CGLA;
 
 void make_ran_point(Vec3f& p0)
 {
-	p0=Vec3f(10.0f*gel_rand()/GEL_RAND_MAX,
-					 10.0f*gel_rand()/GEL_RAND_MAX,
-					 10.0f*gel_rand()/GEL_RAND_MAX);
+	p0=Vec3f(10.0*gel_rand01(),
+					 10.0*gel_rand01(),
+					 10.0*gel_rand01());
 }
 
 int main()

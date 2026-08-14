@@ -283,7 +283,7 @@ namespace Geometry {
             was_here = true;
             ctable[0] = Vec3f(0);
             for(int j=1;j<100000;++j)
-                ctable[j] = Vec3f(0.3)+0.7*normalize(Vec3f(gel_rand(),gel_rand(),gel_rand()));
+                ctable[j] = Vec3f(0.3)+0.7*normalize(Vec3f(gel_rand01(),gel_rand01(),gel_rand01()));
             ctable[3] = Vec3f(1,0,0);
             ctable[4] = Vec3f(0,1,0);
             ctable[5] = Vec3f(0,0,1);

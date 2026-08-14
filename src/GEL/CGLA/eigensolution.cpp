@@ -36,7 +36,7 @@ namespace CGLA
             // Seed the eigenvector estimate
             VT q;
             for (unsigned int j=0; j<MT::get_v_dim(); ++j)
-                q[j] = gel_rand()/static_cast<double>(GEL_RAND_MAX);
+                q[j] = gel_rand01();
             
             q.normalize();
             double l=123,l_old;

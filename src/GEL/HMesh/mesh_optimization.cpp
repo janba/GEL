@@ -132,7 +132,7 @@ namespace HMesh
 	public:
 		double delta_energy(const Manifold& m, HalfEdgeID he) const
 		{
-			return static_cast<double>(gel_rand()/static_cast<float>(GEL_RAND_MAX));
+			return gel_rand01();
 		}
 	};
 	
@@ -639,7 +639,7 @@ namespace HMesh
 						else{
 							delta = max(1e-8, delta);
 							double prob = min(0.9999, exp(-delta/T));
-							if(gel_rand()/double(GEL_RAND_MAX) < prob){
+							if(gel_rand01() < prob){
 								if(precond_flip_edge(m, h)){
 									m.flip_edge(h);
 									++swaps;
