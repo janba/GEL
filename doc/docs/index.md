@@ -46,7 +46,7 @@ v.display(m) # Hit ESC to exit
 
 ## Getting Started
 
-Ready to dive in? Check out the [Installation Guide](getting-started/installation.md) and [Quick Start Tutorial](getting-started/quickstart.md).
+Ready to dive in? Check out the [Installation Guide](getting-started/installation.md), the [Quick Start](getting-started/quickstart.md), and the [Introduction to PyGEL](tutorials/intro-to-pygel.md) tutorial.
 
 ## Links
 

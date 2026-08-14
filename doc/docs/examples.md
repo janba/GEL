@@ -125,36 +125,35 @@ analyze_mesh(argv[1])
 ### Skeleton Extraction and Visualization
 
 ```python
+from sys import argv
 import pygel3d.hmesh as hmesh
 import pygel3d.graph as graph
 import pygel3d.gl_display as gl
 
 # Load mesh
-m = hmesh.load("model.obj")
+m = hmesh.load(argv[1])
 
-# Extract skeleton
+# Extract graph
 g = graph.from_mesh(m)
+s = graph.MSLS_skeleton(g)
 
-print(f"Skeleton: {g.no_nodes()} nodes, {g.no_edges()} edges")
 
 # Process skeleton
-graph.smooth(g, iter=10, alpha=0.5)
-graph.prune(g)
-graph.edge_contract(g, threshold=0.01)
-
-print(f"After processing: {g.no_nodes()} nodes, {g.no_edges()} edges")
+graph.prune(s)
+l = s.average_edge_length()
+graph.edge_contract(s, dist_thresh = l * 0.05)
+graph.smooth(s, num_iter=10, alpha=0.1) 
 
 # Convert to mesh for visualization
-skeleton_mesh = hmesh.Manifold()
-graph.graph_to_mesh_cyl(g, skeleton_mesh, fudge=0.5)
+skeleton_mesh = hmesh.skeleton_to_feq(s, node_radii = 0.25 * l)
 
 # Save
-graph.save("skeleton.graph", g)
+graph.save("skeleton.graph", s)
 hmesh.save("skeleton.obj", skeleton_mesh)
 
 # Visualize
 viewer = gl.Viewer()
-viewer.display(skeleton_mesh, mode='w')
+viewer.display(skeleton_mesh, s, mode='x')
 ```
 
 ## Spatial Queries
@@ -162,15 +161,15 @@ viewer.display(skeleton_mesh, mode='w')
 ### Distance Field Computation
 
 ```python
-import pygel3d.hmesh as hmesh
-from pygel3d import MeshDistance
+from sys import argv
+from pygel3d import hmesh
 import numpy as np
 
 # Load mesh
-m = hmesh.load("bunny.obj")
+m = hmesh.load(argv[1])
 
 # Create distance object
-dist = MeshDistance(m)
+dist = hmesh.MeshDistance(m)
 
 # Create sampling grid
 grid_res = 50
@@ -205,12 +204,12 @@ np.save("distance_field.npy", distances)
 ### Nearest Neighbor Search
 
 ```python
-from pygel3d import I3DTree
+from pygel3d.spatial import I3DTree
 import numpy as np
 import time
 
 # Generate random point cloud
-n_points = 100000
+n_points = 1000000
 points = np.random.rand(n_points, 3) * 100
 
 # Build kD-tree
@@ -223,16 +222,16 @@ build_time = time.time() - start
 print(f"Built tree with {n_points} points in {build_time:.2f}s")
 
 # Query nearest neighbors
-n_queries = 1000
+n_queries = 100000
 query_points = np.random.rand(n_queries, 3) * 100
 
 start = time.time()
 for q in query_points:
-    nearest_idx = tree.closest_point(q)
+    nearest_idx = tree.closest_point(q,1e20)
 query_time = time.time() - start
 
 print(f"Performed {n_queries} queries in {query_time:.2f}s")
-print(f"Average query time: {query_time/n_queries*1000:.2f}ms")
+print(f"Average query time: {query_time/n_queries*1000000:.2f}us")
 ```
 
 ## Advanced Workflows
@@ -247,35 +246,9 @@ import numpy as np
 # points: Nx3 numpy array
 # normals: Nx3 numpy array
 
-def reconstruct_mesh(points, normals):
-    # Flatten arrays
-    pts_flat = points.flatten().tolist()
-    nrm_flat = normals.flatten().tolist()
-    
-    # Create mesh
-    m = hmesh.Manifold()
-    
-    # Reconstruct using RSR
-    # Parameters need to be tuned for specific data
-    hmesh.rsr_recon(
-        m,
-        pts_flat,
-        nrm_flat,
-        len(points),
-        len(normals),
-        isEuclidean=True,
-        genus=0,
-        k=4,
-        r=2,
-        theta=30,
-        n=10
-    )
-    
-    return m
-
 # Example usage (with synthetic data)
-theta = np.linspace(0, 2*np.pi, 100)
-phi = np.linspace(0, np.pi, 50)
+theta = np.linspace(0, 2*np.pi, 100)[:-1]
+phi = np.linspace(0.1, np.pi-0.1, 50)
 theta, phi = np.meshgrid(theta, phi)
 
 x = np.sin(phi) * np.cos(theta)
@@ -285,77 +258,34 @@ z = np.cos(phi)
 points = np.stack([x.flatten(), y.flatten(), z.flatten()], axis=1)
 normals = points / np.linalg.norm(points, axis=1, keepdims=True)
 
-m = reconstruct_mesh(points, normals)
+m = hmesh.rsr_recon(points, normals, max_normal_ang=10)
+hmesh.close_holes(m, max_size=1000)
+hmesh.triangulate(m)
+for _ in range(5):
+    hmesh.maximize_min_angle(m)
 hmesh.save("reconstructed.obj", m)
-```
-
-### Batch Processing
-
-```python
-import pygel3d.hmesh as hmesh
-import os
-from pathlib import Path
-
-def process_mesh_directory(input_dir, output_dir, keep_fraction=0.5):
-    """Process all meshes in a directory."""
-    
-    input_path = Path(input_dir)
-    output_path = Path(output_dir)
-    output_path.mkdir(exist_ok=True)
-    
-    # Find all mesh files
-    mesh_files = list(input_path.glob("*.obj"))
-    
-    print(f"Found {len(mesh_files)} meshes to process")
-    
-    for i, mesh_file in enumerate(mesh_files):
-        print(f"Processing {i+1}/{len(mesh_files)}: {mesh_file.name}")
-        
-        try:
-            # Load
-            m = hmesh.load(str(mesh_file))
-            
-            # Process
-            hmesh.stitch_mesh(m, 1e-6)
-            hmesh.close_holes(m, 100)
-            hmesh.cc_smooth(m)
-            hmesh.shortest_edge_triangulate(m)
-            hmesh.quadric_simplify(m, keep_fraction)
-            
-            # Save
-            output_file = output_path / mesh_file.name
-            hmesh.save(str(output_file), m)
-            
-            print(f"  Saved to {output_file}")
-            
-        except Exception as e:
-            print(f"  Error processing {mesh_file.name}: {e}")
-
-# Process directory
-process_mesh_directory("input_meshes", "output_meshes", keep_fraction=0.5)
 ```
 
 ## Jupyter Notebook Example
 
 ```python
 # Cell 1: Setup
-import pygel3d.hmesh as hmesh
-import pygel3d.jupyter_display as jd
+from pygel3d import hmesh, jupyter_display as jd
 
 # Cell 2: Load and display original
-m = hmesh.load("model.obj")
+m = hmesh.load("/path/to/model") # replace with your model path
 print("Original mesh:")
-jd.display(m, color='lightblue')
+jd.display(m)
 
 # Cell 3: Smooth and display
-hmesh.cc_smooth(m)
+hmesh.taubin_smooth(m)
 print("After smoothing:")
-jd.display(m, color='lightgreen')
+jd.display(m)
 
 # Cell 4: Simplify and display
 hmesh.quadric_simplify(m, keep_fraction=0.5)
 print("After simplification:")
-jd.display(m, color='coral')
+jd.display(m)
 
 # Cell 5: Save result
 hmesh.save("result.obj", m)

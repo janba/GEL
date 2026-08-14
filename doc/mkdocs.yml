@@ -86,6 +86,7 @@ nav:
     - GL Display: api/gl_display.md
     - Jupyter Display: api/jupyter_display.md
   - Tutorials:
+    - Introduction to PyGEL: tutorials/intro-to-pygel.md
     - Mesh Operations: tutorials/mesh-operations.md
     - Graph Processing: tutorials/graph-processing.md
     - Visualization: tutorials/visualization.md

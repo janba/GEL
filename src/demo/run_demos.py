@@ -579,7 +579,7 @@ def main(argv: list[str] | None = None) -> int:
         if pygel_loc is None:
             print("PATH Python cannot import the pip-installed pygel3d package.\n"
                   "Install it first, for example:\n"
-                  "  sh build_pygel.sh\n"
+                  "  sh build_install.sh\n"
                   "  pip install PyGEL3D",
                   file=sys.stderr)
             return 2

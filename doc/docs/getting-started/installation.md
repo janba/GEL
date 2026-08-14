@@ -77,10 +77,10 @@ pip install dist/PyGEL3D-*.whl
 Alternatively, use the provided build script:
 
 ```bash
-sh build_pygel.sh
+sh build_install.sh
 ```
 
-This script automates the entire build and installation process.
+This script builds and installs both GEL and PyGEL.
 
 ## Verify Installation
 

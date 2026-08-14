@@ -251,5 +251,5 @@ print(f"Nearest point index: {nearest_idx}")
 ## Next Steps
 
 - Explore the [API Reference](../api/overview.md) for detailed function documentation
-- Check out the [Tutorials](../tutorials/mesh-operations.md) for in-depth guides
+- Check out the [Introduction to PyGEL](../tutorials/intro-to-pygel.md) tutorial
 - See [Examples](../examples.md) for complete working examples
