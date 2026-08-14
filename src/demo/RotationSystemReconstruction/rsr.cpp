@@ -1,6 +1,7 @@
 #include <sstream>
-#include <GEL/HMesh/RsR.h>
+#include <GEL/HMesh/RSRExperimental.h>
 #include <GEL/HMesh/obj_save.h>
+#include <GEL/HMesh/Manifold.h>
 
 using Point = CGLA::Vec3d;
 using Vector = CGLA::Vec3d;
@@ -9,6 +10,33 @@ struct PointCloud {
     std::vector<Point> vertices;
     std::vector<Vector> normals;
 };
+
+void read_pts(std::string file_path, PointCloud& pc) {
+    std::ifstream file(file_path);
+    std::string line;
+    if (!file.is_open()) {
+        throw std::runtime_error("Error: Unable to open file " + file_path);
+    }
+    while (std::getline(file, line))
+    {
+        std::vector<std::string> info;
+        int pos = 0;
+        while ((pos = line.find(" ")) != std::string::npos) {
+            info.push_back(line.substr(0, pos));
+            line.erase(0, pos + 1);
+        }
+        info.push_back(line);
+        if (info.size() == 0) {
+            continue;
+        }
+
+        Point vertex(std::stof(info.at(0)),
+            std::stof(info.at(1)), std::stof(info.at(2)));
+        pc.vertices.push_back(vertex);
+    }
+    file.close();
+    return;
+}
 
 void read_obj(std::string file_path, PointCloud& pc) {
     std::ifstream file(file_path);
@@ -130,43 +158,14 @@ void read_ply(std::string file_path, PointCloud& pc) {
 }
 
 int main() {
-    //{    
-    //    PointCloud input;
-    //    // Test on genus-0 shape
-    //    read_obj("../../../data/PointClouds/owl-little.obj", input);
-    //    HMesh::Manifold output;
-    //    reconstruct_single(output, input.vertices,
-    //    input.normals, false);
-    //    HMesh::obj_save("owl-little-out.obj", output);
-    //}
+    PointCloud input;
+    read_obj("../../../data/asn.obj", input);
 
-    //{
-    //    PointCloud input;
-    //    // Test on high-genus shape
-    //    read_obj("../../../data/PointClouds/capital_A.obj", input);
-    //    HMesh::Manifold output;
-    //    reconstruct_single(output, input.vertices,
-    //        input.normals, 
-    //        true,   // Use Euclidean distance
-    //        -1,     // Genus auto-detect
-    //        30,     // Neighborhood size
-    //        20,     // Radius for local operations
-    //        60,     // Angle threshold in degrees
-    //        40);    // Sample count
+    HMesh::RSR::RSROpts opts;
+    HMesh::Manifold output;
+    HMesh::RSR::point_cloud_to_mesh(input.vertices, input.normals, opts, output);
 
-    //    HMesh::obj_save("capital_A-out.obj", output);
-    //}
+    HMesh::obj_save("armadillo-out.obj", output);
 
-    // For new normal computation
-    {
-        PointCloud input;
-        // Test on genus-0 shape
-        //read_obj("../../../data/PointClouds/asn.obj", input);
-        read_obj("../../../../data/as.obj", input);
-        HMesh::Manifold output;
-        reconstruct_single(output, input.vertices,
-        input.normals, true, -1, 20, 20, 60, 40);
-        HMesh::obj_save("as-neighbor15-out.obj", output);
-    }
 	return 0;
 }
