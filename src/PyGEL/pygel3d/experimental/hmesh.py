@@ -1,7 +1,7 @@
 import numpy as np
 import ctypes as ct
 from numpy.typing import ArrayLike
-from pygel3d.hmesh import Manifold
+from pygel3d.hmesh import Manifold, _as_vec3_f
 from pygel3d import lib_py_gel
 
 def rsr_recon(verts: ArrayLike,
@@ -24,12 +24,8 @@ def rsr_recon(verts: ArrayLike,
         vertices that are connected by handle edges (check paper). For large n, it is harder for
         the algorithm to add handles. """
     m = Manifold()
-    verts_data = np.asarray(verts, dtype=ct.c_double, order='F')
-    n_verts = len(verts)
-    n_normal = 0 if normals is None else len(normals)
-    if(n_normal==0):
-        normals = [[]]
-    normal_data = np.asarray(normals, dtype=ct.c_double, order='F')
+    verts_data, n_verts = _as_vec3_f(verts)
+    normal_data, n_normal = _as_vec3_f(normals)
 
     lib_py_gel.rsr_recon_experimental(m.obj, verts_data, normal_data, n_verts, n_normal,
                          use_Euclidean_distance, genus, k, r, theta, n)

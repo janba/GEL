@@ -11,7 +11,7 @@ distance to a triangle mesh.
 graph contains the Graph class which is used for graphs: i.e. collections of
 vertices (in 3D) connected by edges. Unlike a Manifold, a Graph does not have to
 represent a surface. There are also some associated functions which may be useful:
-in particular, there is the LS_skeletonize function which computes a curve skeleton
+in particular, there is the LS_skeleton function which computes a curve skeleton
 from a Graph and returns the result as a new Graph.
 
 gl_display provides the Viewer class which makes it simple to visualize meshes and
@@ -30,6 +30,8 @@ generic class, so this is perhaps not the most important part of PyGEL.
 PyGEL is based on the C++ GEL library and provides a Python interface for most but not
 all of the functionality of GEL. 
 """
+__version__ = "0.7.0"
+
 __all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial", "experimental"]
 
 import os

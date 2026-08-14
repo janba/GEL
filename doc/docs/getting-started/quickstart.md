@@ -78,10 +78,10 @@ m = hmesh.load("model.obj")
 hmesh.cc_smooth(m)
 
 # Laplacian smoothing
-hmesh.laplacian_smooth(m, weight=0.5, iter=10)
+hmesh.laplacian_smooth(m, w=0.5, no_iters=10)
 
 # Taubin smoothing (better volume preservation)
-hmesh.taubin_smooth(m, iter=10)
+hmesh.taubin_smooth(m, no_iters=10)
 ```
 
 ### Subdivision
@@ -177,8 +177,7 @@ m = hmesh.load("model.obj")
 g = graph.from_mesh(m)
 
 # Access graph properties
-print(f"Nodes: {g.no_nodes()}")
-print(f"Edges: {g.no_edges()}")
+print(f"Nodes: {len(g.nodes())}")
 
 # Get node positions
 positions = g.positions()
@@ -198,8 +197,7 @@ import pygel3d.hmesh as hmesh
 g = graph.load("skeleton.graph")
 
 # Convert to a cylindrical mesh
-m = hmesh.Manifold()
-graph.graph_to_mesh_cyl(g, m, fudge=0.5)
+m = hmesh.graph_to_cylinders(g, fudge=0.5)
 
 # Save the result
 hmesh.save("output.obj", m)
@@ -211,7 +209,7 @@ hmesh.save("output.obj", m)
 
 ```python
 import pygel3d.hmesh as hmesh
-from pygel3d import MeshDistance
+from pygel3d.hmesh import MeshDistance
 import numpy as np
 
 # Load a mesh
@@ -230,7 +228,7 @@ print(f"Distance from origin: {distance}")
 ### kD-Tree Queries
 
 ```python
-from pygel3d import I3DTree
+from pygel3d.spatial import I3DTree
 import numpy as np
 
 # Create some 3D points
@@ -240,10 +238,11 @@ points = np.random.rand(1000, 3)
 tree = I3DTree()
 for i, p in enumerate(points):
     tree.insert(p, i)
+tree.build()
 
 # Query nearest point
 query_point = [0.5, 0.5, 0.5]
-nearest_idx = tree.closest_point(query_point)
+_, nearest_idx = tree.closest_point(query_point, 1e20)
 
 print(f"Nearest point index: {nearest_idx}")
 ```

@@ -22,7 +22,7 @@ g.connect_nodes(n0, n1)
 g.connect_nodes(n1, n2)
 g.connect_nodes(n2, n0)
 
-print(f"Created graph with {g.no_nodes()} nodes and {g.no_edges()} edges")
+print(f"Created graph with {len(g.nodes())} nodes")
 ```
 
 ### From Mesh
@@ -60,9 +60,8 @@ if g.node_in_use(node_id):
 ### Graph Statistics
 
 ```python
-print(f"Nodes: {g.no_nodes()}")
-print(f"Edges: {g.no_edges()}")
-print(f"Avg edge length: {graph.average_edge_length(g)}")
+print(f"Nodes: {len(g.nodes())}")
+print(f"Avg edge length: {g.average_edge_length()}")
 ```
 
 ## Graph Processing
@@ -71,7 +70,7 @@ print(f"Avg edge length: {graph.average_edge_length(g)}")
 
 ```python
 # Smooth graph positions
-graph.smooth(g, iter=10, alpha=0.5)
+graph.smooth(g, num_iter=10, alpha=0.5)
 ```
 
 ### Pruning
@@ -101,8 +100,7 @@ import pygel3d.graph as graph
 g = graph.load("skeleton.graph")
 
 # Convert to cylindrical mesh
-m = hmesh.Manifold()
-graph.graph_to_mesh_cyl(g, m, fudge=0.5)
+m = hmesh.graph_to_cylinders(g, fudge=0.5)
 
 # Save result
 hmesh.save("skeleton_mesh.obj", m)
@@ -120,20 +118,19 @@ m = hmesh.load("model.obj")
 
 # 2. Extract skeleton
 g = graph.from_mesh(m)
-print(f"Initial: {g.no_nodes()} nodes")
+print(f"Initial: {len(g.nodes())} nodes")
 
 # 3. Process graph
-graph.smooth(g, iter=10, alpha=0.5)
+graph.smooth(g, num_iter=10, alpha=0.5)
 graph.prune(g)
-contracted = graph.edge_contract(g, threshold=0.01)
-print(f"After processing: {g.no_nodes()} nodes")
+contracted = graph.edge_contract(g, dist_thresh=0.01)
+print(f"After processing: {len(g.nodes())} nodes")
 
 # 4. Save graph
 graph.save("skeleton.graph", g)
 
 # 5. Convert to mesh for visualization
-skeleton_mesh = hmesh.Manifold()
-graph.graph_to_mesh_cyl(g, skeleton_mesh, fudge=0.5)
+skeleton_mesh = hmesh.graph_to_cylinders(g, fudge=0.5)
 
 # 6. Visualize
 viewer = gl.Viewer()

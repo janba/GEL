@@ -94,14 +94,14 @@ hmesh.cc_smooth(m)
 
 ```python
 # Smooth with weight 0.5 for 10 iterations
-hmesh.laplacian_smooth(m, weight=0.5, iter=10)
+hmesh.laplacian_smooth(m, w=0.5, no_iters=10)
 ```
 
 ### Taubin Smoothing
 
 ```python
 # Better volume preservation
-hmesh.taubin_smooth(m, iter=10)
+hmesh.taubin_smooth(m, no_iters=10)
 ```
 
 ## Mesh Subdivision

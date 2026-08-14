@@ -104,10 +104,20 @@ def save(fn: str, g: Graph) -> bool:
     return lib_py_gel.graph_save(g.obj, s)
 
 def to_mesh_cyl(g: Graph, fudge: float = 0.0) -> Manifold:
-    print ("removed due to circular import. The function is now in hmesh.py")
+    """ Convert a graph to a cylindrical mesh.
+
+    This is a compatibility wrapper. Prefer ``hmesh.graph_to_cylinders``.
+    """
+    from pygel3d.hmesh import graph_to_cylinders
+    return graph_to_cylinders(g, fudge)
 
 def to_mesh_iso(g: Graph, fudge: float = 0.0, res: int = 256) -> Manifold:
-    print ("removed due to circular import. The function is now in hmesh.py")
+    """ Convert a graph to an isosurface mesh.
+
+    This is a compatibility wrapper. Prefer ``hmesh.graph_to_isosurface``.
+    """
+    from pygel3d.hmesh import graph_to_isosurface
+    return graph_to_isosurface(g, fudge, res)
 
 
 def smooth(g: Graph, num_iter: int = 1, alpha: float = 1.0):
@@ -167,21 +177,21 @@ def LS_skeleton_and_map(g: Graph, sampling: bool = True) -> tuple[Graph, IntVect
     return skel, mapping
 
 def MSLS_skeleton(g: Graph, grow_thresh: int = 64) -> Graph:
-    """ Skeletonize a graph using the multi-scale local separators approach. The first argument,
-        g, is the graph, and, sampling indicates whether we try to use all vertices
-        (False) as starting points for finding separators or just a sampling (True).
-        The function returns a new graph which is the skeleton of the input graph. """
+    """ Skeletonize a graph using the multi-scale local separators approach. The first
+        argument, g, is the graph. grow_thresh controls how far a separator is allowed
+        to grow (larger is coarser and faster). The function returns a new graph which
+        is the skeleton of the input graph. """
     skel = Graph()
     mapping = IntVector()
     lib_py_gel.graph_MSLS_skeleton(g.obj, skel.obj, mapping.obj, grow_thresh)
     return skel
 
 def MSLS_skeleton_and_map(g: Graph, grow_thresh: int = 64) -> tuple[Graph, IntVector]:
-    """ Skeletonize a graph using the multi-scale local separators approach. The first argument,
-        g, is the graph, and, sampling indicates whether we try to use all vertices
-        (False) as starting points for finding separators or just a sampling (True).
-        The function returns a tuple containing a new graph which is the skeleton of
-        the input graph and a map from the graph nodes to the skeletal nodes. """
+    """ Skeletonize a graph using the multi-scale local separators approach. The first
+        argument, g, is the graph. grow_thresh controls how far a separator is allowed
+        to grow (larger is coarser and faster). The function returns a tuple containing
+        a new graph which is the skeleton of the input graph and a map from the graph
+        nodes to the skeletal nodes. """
     skel = Graph()
     mapping = IntVector()
     lib_py_gel.graph_MSLS_skeleton(g.obj, skel.obj, mapping.obj, grow_thresh)
@@ -201,8 +211,6 @@ def front_skeleton_and_map(g: Graph, colors: ArrayLike, intervals: int = 100) ->
     mapping = IntVector()
     colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
-    print("N_col:", N_col)
-    pos = g.positions()
     lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel, mapping
 
@@ -213,13 +221,12 @@ def front_skeleton(g: Graph, colors: ArrayLike, intervals: int = 100) -> Graph:
         for the front separator computation. We can think of this as a coloring
         of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
         of the nodes or some other function that indicates something about the structure of the
-        graph. The function returns a tuple containing a new graph which is the
-        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
+        graph. The function returns a new graph which is the skeleton of the input
+        graph. """
     skel = Graph()
     mapping = IntVector()
     colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
-    print("N_col:", N_col)
     lib_py_gel.graph_front_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel
 
@@ -236,7 +243,6 @@ def combined_skeleton_and_map(g: Graph, colors: ArrayLike, intervals: int = 100)
     mapping = IntVector()
     colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
-    print("N_col:", N_col)
     lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel, mapping
 
@@ -247,13 +253,12 @@ def combined_skeleton(g: Graph, colors: ArrayLike, intervals: int = 100) -> Grap
         for the front separator computation. We can think of this as a coloring
         of the nodes, hence the name. In practice, a coloring might just be the x-coordinate
         of the nodes or some other function that indicates something about the structure of the
-        graph. The function returns a new graph which is the
-        skeleton of the input graph and a map from the graph nodes to the skeletal nodes. """
+        graph. The function returns a new graph which is the skeleton of the input
+        graph. """
     skel = Graph()
     mapping = IntVector()
     colors_flat = np.asarray(colors, dtype=ct.c_double, order='C')
     N_col = 1 if len(colors_flat.shape)==1 else colors_flat.shape[1]
-    print("N_col:", N_col)
     lib_py_gel.graph_combined_skeleton(g.obj, skel.obj, mapping.obj, N_col, colors_flat.ctypes.data_as(ct.POINTER(ct.c_double)), intervals)
     return skel
 

@@ -31,6 +31,26 @@ from scipy.sparse import csc_matrix, vstack
 from scipy.sparse.linalg import lsqr
 from scipy.spatial import KDTree
 
+def _n_vec3(arr: ndarray) -> int:
+    """Number of 3D points in a (N,3) or flat 3N array."""
+    if arr.ndim >= 2:
+        return int(arr.shape[0])
+    return int(arr.size // 3)
+
+def _as_vec3_f(arr: ArrayLike | None) -> tuple[ndarray, int]:
+    """Fortran (N,3) array of points, or an empty 2D array if arr is missing.
+
+    ctypes requires ndim==2 even when there are no normals, so None and []
+    both become a (0, 3) placeholder.
+    """
+    if arr is None:
+        return np.zeros((0, 3), dtype=ct.c_double, order='F'), 0
+    a = np.asarray(arr, dtype=ct.c_double)
+    if a.size == 0:
+        return np.zeros((0, 3), dtype=ct.c_double, order='F'), 0
+    n = _n_vec3(a)
+    return np.asfortranarray(np.reshape(a, (n, 3)), dtype=ct.c_double), n
+
 class Manifold:
     """ The Manifold class represents a halfedge based mesh. It is maybe a bit grand to call
     a mesh class Manifold, but meshes based on the halfedge representation are manifold (if we
@@ -65,7 +85,7 @@ class Manifold:
         m = cls()
         vertices = np.asarray(vertices,dtype=np.float64, order='C')
         faces = np.asarray(faces,dtype=ct.c_int, order='C')
-        m.obj = lib_py_gel.Manifold_from_triangles(len(vertices),len(faces),vertices,faces)
+        m.obj = lib_py_gel.Manifold_from_triangles(_n_vec3(vertices), _n_vec3(faces), vertices, faces)
         return m
     @classmethod
     def from_points(cls, pts: ArrayLike, xaxis: ArrayLike = np.array([1,0,0]), yaxis: ArrayLike = np.array([0,1,0])) -> Self:
@@ -84,7 +104,7 @@ class Manifold:
         yaxis = np.asarray(yaxis,dtype=np.float64, order='C')
         if yaxis.size != 3:
             raise ValueError("from_points: yaxis must be a 3D vector")
-        m.obj = lib_py_gel.Manifold_from_points(len(pts), pts, xaxis, yaxis)
+        m.obj = lib_py_gel.Manifold_from_points(_n_vec3(pts), pts, xaxis, yaxis)
         return m
     def __del__(self):
         lib_py_gel.Manifold_delete(self.obj)
@@ -102,7 +122,7 @@ class Manifold:
         pts = np.asarray(pts,dtype=np.float64, order='C')
         if pts.size % 3 != 0:
             raise ValueError("add_face: pts must be a flat array with length a multiple of 3")
-        return lib_py_gel.Manifold_add_face(self.obj, len(pts), pts)
+        return lib_py_gel.Manifold_add_face(self.obj, _n_vec3(pts), pts)
     def positions(self) -> ndarray:
         """ Retrieve an array containing the vertex positions of the Manifold.
         It is not a copy: any changes are made to the actual vertex positions. """
@@ -493,12 +513,18 @@ def load(fn: str) -> Manifold | None:
 def save(fn: str, m: Manifold):
     """ Save a Manifold, m, to an X3D/OBJ/OFF file. """
     _, extension = splitext(fn)
-    if extension.lower() == ".x3d":
+    ext = extension.lower()
+    if ext == ".x3d":
         x3d_save(fn, m)
-    elif extension.lower() == ".obj":
+    elif ext == ".obj":
         obj_save(fn, m)
-    elif extension.lower() == ".off":
+    elif ext == ".off":
         off_save(fn, m)
+    else:
+        raise ValueError(
+            f"hmesh.save: unsupported format '{extension}'. "
+            "Use .obj, .off, or .x3d"
+        )
 
 
 def remove_caps(m: Manifold, thresh: float = 2.9):
@@ -1005,12 +1031,8 @@ def rsr_recon(vertices: ArrayLike,
         vertices that are connected by handle edges (check paper). For large max_handle_dist, it is harder for 
         the algorithm to add handles. """
     m = Manifold()
-    vertices_data = np.asarray(vertices, dtype=ct.c_double, order='F')
-    n_vertices = len(vertices)
-    n_normal = 0 if normals is None else len(normals)
-    if(n_normal==0):
-        normals = [[]]
-    normal_data = np.asarray(normals, dtype=ct.c_double, order='F')
+    vertices_data, n_vertices = _as_vec3_f(vertices)
+    normal_data, n_normal = _as_vec3_f(normals)
 
     lib_py_gel.rsr_recon(m.obj, vertices_data, normal_data, n_vertices, n_normal, 
                          use_Euclid_dist, genus, num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist)
@@ -1037,12 +1059,8 @@ def hrsr_recon(vertices: ArrayLike,
         - genus > 0: request genus handle insertions
     """
     m = Manifold()
-    vertices_data = np.asarray(vertices, dtype=ct.c_double, order='F')
-    n_vertices = len(vertices)
-    n_normal = 0 if normals is None else len(normals)
-    if(n_normal==0):
-        normals = [[]]
-    normal_data = np.asarray(normals, dtype=ct.c_double, order='F')
+    vertices_data, n_vertices = _as_vec3_f(vertices)
+    normal_data, n_normal = _as_vec3_f(normals)
 
     lib_py_gel.hrsr_recon(m.obj, vertices_data, normal_data, n_vertices, n_normal,
                           collapse_iters, use_Euclid_dist, genus,

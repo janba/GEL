@@ -96,18 +96,17 @@ m = hmesh.load("model.obj")
 g = graph.from_mesh(m)
 
 # 3. Process graph
-graph.smooth(g, iter=10)
+graph.smooth(g, num_iter=10)
 graph.prune(g)
 
 # 4. Convert back to mesh
-result = hmesh.Manifold()
-graph.graph_to_mesh_cyl(g, result)
+result = hmesh.graph_to_cylinders(g)
 ```
 
 ### Distance Field Computation
 ```python
 import pygel3d.hmesh as hmesh
-from pygel3d import MeshDistance
+from pygel3d.hmesh import MeshDistance
 import numpy as np
 
 # Load mesh

@@ -43,9 +43,9 @@ If you need to build PyGEL3D from source (for development or if pre-built binari
 
 ### Prerequisites
 
-- CMake (version 3.15 or higher)
-- A C++ compiler with C++17 support
-- Python 3.7 or higher
+- CMake (version 3.25 or higher)
+- A C++ compiler with C++20 support
+- Python 3.11 or higher
 - OpenGL development libraries
 - GLFW (automatically fetched by CMake)
 
@@ -123,6 +123,6 @@ If you encounter OpenGL-related errors:
 
 If building from source fails:
 1. Ensure all prerequisites are installed
-2. Check that you have a C++17-compatible compiler
+2. Check that you have a C++20-compatible compiler
 3. Try updating CMake to the latest version
 4. Check the GitHub issues page for known problems

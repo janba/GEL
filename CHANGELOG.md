@@ -9,4 +9,16 @@ Version 0.6.0
 - updated C++ interface for HMesh. It was a bit random which functions were members of Manifold and which not. Now, all functions that operate on mesh elements are members. However, for backward compatibility the old functions are retained.
 
 Version 0.7.0
-- Much improved documentation
+- Much improved documentation: examples, an Introduction to PyGEL tutorial,
+  and a CMake package so other projects can `find_package(GEL)`
+- `build_install.sh` builds GEL, installs the C++ library, and produces the
+  PyGEL3D wheel
+- `pygel3d.__version__` is now defined (0.7.0); Python 3.11+ is required
+- MeshDistance returns a scalar for a single query point
+- `hmesh.save` raises on unsupported formats (including PLY)
+- Graph-to-mesh helpers live in `hmesh` (`graph_to_cylinders`,
+  `graph_to_isosurface`); the old `graph.to_mesh_*` names still work
+- Random numbers used as floats go through `gel_rand01()` so UINT_MAX is
+  converted exactly
+- PLY int32/uint32 range checks use 32-bit limits
+- Plotly dependency is `>=5.24.1,<6`; the wheel is platform-tagged

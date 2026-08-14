@@ -34,9 +34,8 @@ g = graph.from_mesh(m)
 ## Graph Information
 
 ### Basic Queries
-- `g.no_nodes()` - Number of nodes
-- `g.no_edges()` - Number of edges
-- `g.nodes()` - Get list of all node IDs
+- `g.nodes()` - Get all node IDs
+- `len(g.nodes())` - Number of nodes
 - `g.neighbors(node_id, mode)` - Get neighbors of a node
 
 ### Geometry
@@ -71,7 +70,8 @@ g = graph.from_mesh(m)
 
 ### Mesh Conversion
 - `from_mesh(mesh)` - Extract graph from mesh
-- `graph_to_mesh_cyl(g, mesh, fudge)` - Convert graph to cylindrical mesh
+- `hmesh.graph_to_cylinders(g, fudge)` - Convert graph to cylindrical mesh
+- `hmesh.graph_to_isosurface(g, fudge)` - Convert graph to an isosurface mesh
 
 ## Example Usage
 
@@ -88,16 +88,15 @@ m = hmesh.load("model.obj")
 g = graph.from_mesh(m)
 
 # Process graph
-graph.smooth(g, iter=10, alpha=0.5)
+graph.smooth(g, num_iter=10, alpha=0.5)
 graph.prune(g)
-graph.edge_contract(g, threshold=0.1)
+graph.edge_contract(g, dist_thresh=0.1)
 
 # Save graph
 graph.save("skeleton.graph", g)
 
 # Convert to mesh for visualization
-result = hmesh.Manifold()
-graph.graph_to_mesh_cyl(g, result, fudge=0.5)
+result = hmesh.graph_to_cylinders(g, fudge=0.5)
 hmesh.save("skeleton_mesh.obj", result)
 ```
 
@@ -122,7 +121,6 @@ g.connect_nodes(n2, n3)
 g.connect_nodes(n3, n0)
 
 # Query
-print(f"Nodes: {g.no_nodes()}")
-print(f"Edges: {g.no_edges()}")
-print(f"Neighbors of node 0: {g.neighbors(n0)}")
+print(f"Nodes: {len(g.nodes())}")
+print(f"Neighbors of node 0: {list(g.neighbors(n0))}")
 ```
