@@ -1,0 +1,45 @@
+name: Test PyPI installation
+
+on:
+  workflow_dispatch:
+
+jobs:
+  install-test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - ubuntu-latest
+          - windows-latest
+          - macos-latest
+        python-version:
+          - "3.10"
+          - "3.11"
+          - "3.12"
+          - "3.13"
+          - "3.14"
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Upgrade pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install PyGEL3D from PyPI
+        run: pip install pygel3d
+
+      - name: Import test
+        run: |
+          python -c "import pygel3d; print('Imported successfully')"
+
+      - name: Basic smoke test
+        run: |
+          python - <<'PY'
+          import pygel3d
+          print("PyGEL3D version:", getattr(pygel3d, "__version__", "unknown"))
+          PY
