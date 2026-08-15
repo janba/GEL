@@ -38,13 +38,17 @@ PyGEL is on PyPI and can be installed with pip. For most potential users, there 
 ```
 pip install PyGEL3D
 ```
-The PyPI package is called PyGEL3D and not PyGEL. The library relies on OpenGL. Probably this is already installed, but you may have to do it. On Ubuntu Linux 
+The PyPI package is called PyGEL3D and not PyGEL. The compiled library links against OpenGL (`libGL`) and the OpenGL Utility library (`libGLU`). A normal desktop already has these. A minimal Linux system (container, CI, server, Colab) usually does not, and `import pygel3d` will then fail even though pip succeeded.
+
+On Ubuntu/Debian install the OpenGL and GLU runtimes:
 ```
-sudo apt-get install libglu1 libgl1
+sudo apt-get install libgl1 libglu1
 ```
-should suffice. On Google Colab, I recommend having this as the first cell:
+`libgl1` and `libglu1` are virtual packages. Apt will pull in whatever implementation the distribution ships — on Ubuntu that is typically the Mesa packages (`libglu1-mesa` is equivalent to `libglu1`). That is the standard Linux GLU library, not a request to use software rendering; your GPU driver still provides the actual OpenGL implementation.
+
+On Google Colab, use this as the first cell:
 ```
-!apt-get install libglu1 libgl1
+!apt-get install libgl1 libglu1
 !pip install PyGEL3D
 ```
 Note that to make PyGEL work, we have to include compiled versions of the C++ library. If you use Windows, MacOS or something compatible with Ubuntu, chances are you are covered by the binaries. In other cases, you may need to compile as discussed below in order to make PyGEL work.

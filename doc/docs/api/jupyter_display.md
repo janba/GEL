@@ -186,7 +186,7 @@ jd.display(m2, width=400)
 
 ```python
 # First cell: Install dependencies
-!apt-get install libglu1 libgl1
+!apt-get install libgl1 libglu1
 !pip install PyGEL3D plotly
 
 # Import modules

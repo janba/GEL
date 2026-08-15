@@ -10,30 +10,46 @@ pip install PyGEL3D
 
 This will install the pre-built binary package for Windows, macOS, or Linux.
 
-### Installing OpenGL Dependencies
+### OpenGL runtime (required)
 
-PyGEL3D relies on OpenGL for visualization. On most systems, OpenGL is already installed, but you may need to install additional libraries.
+PyGEL3D's compiled library links against OpenGL (`libGL`) and the OpenGL Utility
+library (`libGLU`). Pip does not install these system libraries. A typical
+desktop already has them; a minimal Linux install (container, CI, server, Colab)
+usually does not, and `import pygel3d` will fail until they are present.
 
 #### Ubuntu/Debian Linux
 
 ```bash
-sudo apt-get install libglu1 libgl1
+sudo apt-get install libgl1 libglu1
+```
+
+`libgl1` and `libglu1` are virtual packages for the OpenGL and GLU runtimes.
+Apt will install whatever implementation the distribution provides. On Ubuntu
+that is typically the Mesa packages (`libglu1-mesa` is the same as `libglu1`).
+That name refers to the package source, not to software rendering: the GPU
+driver still supplies the OpenGL implementation.
+
+To *build* GEL from source you also need the development headers:
+
+```bash
+sudo apt-get install libgl-dev libglu1-mesa-dev
 ```
 
 #### macOS
 
-OpenGL is typically pre-installed on macOS. No additional steps are usually needed.
+OpenGL is provided by the system. No extra packages are needed.
 
 #### Windows
 
-OpenGL drivers are usually installed with your graphics card drivers. If you encounter issues, update your graphics drivers.
+OpenGL comes with the graphics-card driver. Update the driver if the viewer
+fails to start.
 
 ## Google Colab
 
 To use PyGEL3D in Google Colab, add this to your first notebook cell:
 
 ```python
-!apt-get install libglu1 libgl1
+!apt-get install libgl1 libglu1
 !pip install PyGEL3D
 ```
 
@@ -46,7 +62,7 @@ If you need to build PyGEL3D from source (for development or if pre-built binari
 - CMake (version 3.25 or higher)
 - A C++ compiler with C++20 support
 - Python 3.11 or higher
-- OpenGL development libraries
+- OpenGL and GLU development libraries (`libgl-dev` and `libglu1-mesa-dev` on Ubuntu)
 - GLFW (automatically fetched by CMake)
 
 ### Clone the Repository
@@ -114,10 +130,9 @@ If you get import errors, ensure that:
 
 ### OpenGL Errors
 
-If you encounter OpenGL-related errors:
-1. Update your graphics drivers
-2. Check that OpenGL is properly installed
-3. On Linux, ensure X11 is configured correctly
+If `import pygel3d` fails with a missing `libGL` or `libGLU` on Linux, install
+the runtimes (`sudo apt-get install libgl1 libglu1` on Ubuntu/Debian). If the
+viewer fails to open on a desktop machine, update the graphics driver.
 
 ### Building Issues
 
