@@ -30,7 +30,7 @@ generic class, so this is perhaps not the most important part of PyGEL.
 PyGEL is based on the C++ GEL library and provides a Python interface for most but not
 all of the functionality of GEL. 
 """
-__version__ = "0.7.2"
+__version__ = "0.7.3"
 
 __all__ = ["hmesh", "graph", "gl_display", "jupyter_display", "spatial", "experimental"]
 

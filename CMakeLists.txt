@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.25)
-project(GEL VERSION 0.7.2 LANGUAGES C CXX)
+if(APPLE)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "11.0" CACHE STRING
+        "Minimum macOS version" FORCE)
+endif()
+project(GEL VERSION 0.7.3 LANGUAGES C CXX)
 
 include(GNUInstallDirs)
 include(CMakePackageConfigHelpers)

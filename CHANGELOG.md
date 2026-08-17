@@ -1,3 +1,8 @@
+Version 0.7.3
+- macOS library now targets macOS 11.0 (Big Sur) instead of the build
+  machine's OS, so Intel and Apple Silicon Macs older than macOS 26 can
+  load it.
+
 Version 0.7.2
 - Declare support for Python 3.14. The wheel remains `py3-none-any` with
   the macOS, Linux, and Windows libraries inside.
