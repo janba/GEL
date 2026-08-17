@@ -1,3 +1,13 @@
+Version 0.7.2
+- Declare support for Python 3.14. The wheel remains `py3-none-any` with
+  the macOS, Linux, and Windows libraries inside.
+
+Version 0.7.1
+- Restore a single `py3-none-any` wheel (as in 0.6.1) that ships
+  `libPyGEL.dylib`, `libPyGEL.so`, and `PyGEL.dll`. The 0.7.0 upload was
+  tagged `cp313-macosx_26_0_arm64`, so pip skipped it on almost every
+  machine and installed 0.6.1 instead.
+
 Version 0.6.1
 - Only small changes to the README
 
@@ -13,7 +23,7 @@ Version 0.7.0
   and a CMake package so other projects can `find_package(GEL)`
 - `build_install.sh` builds GEL, installs the C++ library, and produces the
   PyGEL3D wheel
-- `pygel3d.__version__` is now defined (0.7.0); Python 3.11+ is required
+- `pygel3d.__version__` is now defined; Python 3.11+ is required
 - MeshDistance returns a scalar for a single query point
 - `hmesh.save` raises on unsupported formats (including PLY)
 - Graph-to-mesh helpers live in `hmesh` (`graph_to_cylinders`,
@@ -21,4 +31,4 @@ Version 0.7.0
 - Random numbers used as floats go through `gel_rand01()` so UINT_MAX is
   converted exactly
 - PLY int32/uint32 range checks use 32-bit limits
-- Plotly dependency is `>=5.24.1,<6`; the wheel is platform-tagged
+- Plotly dependency is `>=5.24.1,<6`
