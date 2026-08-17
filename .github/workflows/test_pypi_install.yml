@@ -35,22 +35,43 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y libglu1-mesa
 
-      - name: Install PyGEL3D from PyPI
-        run: pip install pygel3d
+      - name: Resolve latest PyPI version
+        id: latest
+        shell: bash
+        run: |
+          VERSION=$(python - <<'PY'
+          import json, urllib.request
+          url = "https://pypi.org/pypi/PyGEL3D/json"
+          with urllib.request.urlopen(url) as response:
+              data = json.load(response)
+          print(data["info"]["version"])
+          PY
+          )
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Latest PyPI version: $VERSION"
+
+      - name: Install that exact version from PyPI
+        run: pip install "PyGEL3D==${{ steps.latest.outputs.version }}"
 
       - name: Smoke test
         shell: bash
+        env:
+          EXPECTED_VERSION: ${{ steps.latest.outputs.version }}
         run: |
           python - <<'PY'
+          import os
           import pygel3d
-          print(
-              "PyGEL3D version:",
-              getattr(pygel3d, "__version__", "unknown")
-          )
+
+          expected = os.environ["EXPECTED_VERSION"]
+          got = getattr(pygel3d, "__version__", None)
+          print("expected:", expected)
+          print("installed:", got)
+          if got != expected:
+              raise SystemExit(
+                  f"installed {got!r}, expected latest PyPI version {expected!r}"
+              )
 
           from pygel3d import hmesh
-
           m = hmesh.Manifold()
-
           print("Successfully created Manifold")
           PY
