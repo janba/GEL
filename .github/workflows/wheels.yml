@@ -64,11 +64,38 @@ jobs:
     permissions:
       id-token: write
     steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
       - uses: actions/download-artifact@v4
         with:
           pattern: cibw-*
           merge-multiple: true
           path: dist
+
+      - name: Verify release version
+        shell: bash
+        run: |
+          expected="${GITHUB_REF_NAME#v}"
+          version="$(tr -d '[:space:]' < VERSION)"
+
+          if [ "$version" != "$expected" ]; then
+            echo "::error title=Version mismatch::Tag ${GITHUB_REF_NAME} does not match VERSION ${version}"
+            exit 1
+          fi
+
+          for file in dist/*; do
+            base="$(basename "$file")"
+            case "$base" in
+              *.whl|*.tar.gz)
+                if [[ "$base" != pygel3d-${expected}* ]]; then
+                  echo "::error title=Artifact version mismatch::Unexpected artifact ${base} for tag ${GITHUB_REF_NAME}"
+                  exit 1
+                fi
+                ;;
+            esac
+          done
 
       - name: Check artifacts
         run: ls -la dist

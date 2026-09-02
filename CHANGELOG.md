@@ -1,3 +1,8 @@
+Version 0.8.1
+- Fix the Jupyter display integration so it also works in Marimo notebooks.
+- Guard PyPI releases against mismatches between the pushed `v*` tag and the
+  package version metadata.
+
 Version 0.8.0
 - PyPI now ships per-platform wheels instead of one `py3-none-any` archive:
   manylinux_2_28 (x86_64 and aarch64), macOS 11+ universal2, and Windows
