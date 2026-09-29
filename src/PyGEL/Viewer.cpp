@@ -43,7 +43,7 @@ class GLManifoldViewer {
     std::shared_ptr<GLGraphics::GLViewController> glv = nullptr;
     GLGraphics::ManifoldRenderer* renderer = 0;
     GLuint graph_display_list = 0;
-    bool escaping = false;
+    bool exiting = false;
     float xscale, yscale;
 
 public:
@@ -81,14 +81,14 @@ public:
         do_pick = true;
     }
     
-    void set_escaping_true() {
-        escaping = true;
+    void set_exiting_true() {
+        exiting = true;
         
     }
     
-    bool get_escaping() {
-        if(escaping) {
-            escaping = false;
+    bool get_exiting() {
+        if(exiting) {
+            exiting = false;
             return true;
         }
         return false;
@@ -215,7 +215,7 @@ void key_callback(GLFWwindow* window, int key, int scancode, int action, int mod
     if(wv_map[window]->was_initialized() == false) return;
 
     if (key == GLFW_KEY_ESCAPE && action == GLFW_RELEASE)
-        wv_map[window]->set_escaping_true();
+        wv_map[window]->set_exiting_true();
     if (key == GLFW_KEY_SPACE && action == GLFW_RELEASE)
         wv_map[window]->clear_annotation();
 
@@ -262,6 +262,11 @@ void resize_callback(GLFWwindow* window, int width, int height)
     wv_map[window]->display_init();
 }
 
+void close_callback(GLFWwindow* window)
+{
+    wv_map[window]->set_exiting_true();
+}
+
 void GLManifoldViewer::display_init() {
     glfwMakeContextCurrent(window);
     glEnable(GL_DEPTH_TEST);
@@ -306,6 +311,7 @@ void GLManifoldViewer::display_init() {
     glfwSetCursorPosCallback(window, cursor_position_callback);
     glfwSetKeyCallback(window, key_callback);
     glfwSetWindowSizeCallback(window, resize_callback);
+    glfwSetWindowCloseCallback(window, close_callback);
     glfwPostEmptyEvent();
 }
 
@@ -413,7 +419,7 @@ void GLManifoldViewer_event_loop(bool once) {
             auto viewer = WV.second;
             if(viewer->was_initialized())
                 viewer->display();
-            if(viewer->get_escaping())
+            if(viewer->get_exiting())
                 return;
         }
     }
