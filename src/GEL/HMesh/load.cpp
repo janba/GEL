@@ -14,6 +14,7 @@
 #include <GEL/HMesh/x3d_load.h>
 #include <GEL/HMesh/obj_load.h>
 #include <GEL/HMesh/off_load.h>
+#include <GEL/HMesh/stl_load.h>
 #include <GEL/HMesh/cleanup.h>
 
 #include <GEL/Util/Serialization.h>
@@ -50,6 +51,9 @@ namespace HMesh
             Serialization ser(file_name, std::ios_base::in);
             mani.deserialize(ser);
             return true;
+        }
+        else if(ext==".stl") {
+            return stl_load(file_name, mani);
         }
         return false;
     }
