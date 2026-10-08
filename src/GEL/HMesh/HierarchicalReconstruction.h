@@ -6,6 +6,7 @@
 #define GEL_HMESH_COLLAPSE_H
 
 #include <GEL/HMesh/Manifold.h>
+#include <GEL/Geometry/Graph.h>
 
 #include <vector>
 #include <numbers>
@@ -138,6 +139,24 @@ struct PointCloud {
     std::vector<CGLA::Vec3d> normals;
 };
 
+/// Dense undirected graph. Node ids are 0 .. positions.size()-1 and index both
+/// attribute arrays. `normals` are unit vectors.
+struct ReconstructionGraph {
+    Geometry::AMGraph graph;
+    std::vector<CGLA::Vec3d> positions;
+    std::vector<CGLA::Vec3d> normals;
+};
+
+/// Live vertices of a contraction, in two forms.
+/// `cloud.normals` are the weighted averages stored during edge contraction,
+/// with their length left unchanged.
+/// `graph` has the same positions, those averages normalized, and the edges
+/// that remain after contraction.
+struct SimplifiedCloud {
+    PointCloud cloud;
+    ReconstructionGraph graph;
+};
+
 
 /// Contains data needed for a reexpansion
 struct Collapse {
@@ -153,7 +172,7 @@ public:
         const std::vector<CGLA::Vec3d>& vertices,
         const std::vector<CGLA::Vec3d>& normals,
         const CollapseOpts& opts
-    ) -> std::pair<Collapse, PointCloud>;
+    ) -> std::pair<Collapse, SimplifiedCloud>;
 
     friend void reexpand_points(
         Manifold& manifold,
@@ -166,12 +185,12 @@ public:
 /// @param vertices Vertices of the point cloud to collapse
 /// @param normals Normals of the point cloud to collapse, must be the same length as the vertices
 /// @param opts Collapse options
-/// @return A pair consisting of the collapse information and the new point cloud after the collapse
+/// @return Collapse history, the collapsed point cloud, and the simplified graph
 auto collapse_points(
     const std::vector<CGLA::Vec3d>& vertices,
     const std::vector<CGLA::Vec3d>& normals,
     const CollapseOpts& opts = CollapseOpts()
-) -> std::pair<Collapse, PointCloud>;
+) -> std::pair<Collapse, SimplifiedCloud>;
 
 /// Perform the reexpansion phase of the hierarchical reconstruction, using a manifold acquired
 /// from the point set based reconstruction of the collapsed point cloud and the collapse

@@ -1,6 +1,7 @@
 from sys import argv
-from pygel3d.hmesh import rsr_recon, hrsr_recon, save, flip_orientation
+from pygel3d.hmesh import rsr_recon, hrsr_recon, hrsr_recon_graph, save, flip_orientation
 from pygel3d import gl_display as gl
+
 
 def obj_load(file_path):
     vertices = []  # List to store vertex coordinates (x, y, z)
@@ -37,7 +38,7 @@ if len(argv) > 1:
 
     m = None
     if hierarchical:
-        m = hrsr_recon(vertices, normals)
+        m = hrsr_recon_graph(vertices, normals)
     else:
         m = rsr_recon(vertices, normals)
 
@@ -48,7 +49,7 @@ if len(argv) > 1:
 else:
     # larger point cloud.
     vertices, normals = obj_load('../../../data/PointClouds/owl-little.obj')
-    m = hrsr_recon(vertices, normals, use_Euclid_dist=True, genus=0)
+    m = hrsr_recon_graph(vertices, normals, use_Euclid_dist=True, genus=0)
     flip_orientation(m)
     viewer.display(m, smooth=False, mode='g')
     save("owl.obj", m)

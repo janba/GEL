@@ -331,6 +331,39 @@ void hrsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, size_t ve
     *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
 }
 
+void hrsr_recon_graph(Manifold_ptr m_ptr, double* vertices, double* normals, size_t vertex_count, size_t normal_count,
+    int collapse_iters, bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist, bool skip_reexpansion)
+{
+    vector<Vec3d> point_cloud_vertices;
+    vector<Vec3d> norm;
+    point_cloud_vertices.reserve(vertex_count);
+    norm.reserve(normal_count);
+    for (int i = 0; i < vertex_count; i++) {
+        point_cloud_vertices.emplace_back(vertices[i], vertices[i + vertex_count], vertices[i + 2 * vertex_count]);
+    }
+
+    for (int i = 0; i < normal_count; i++) {
+        norm.emplace_back(normals[i], normals[i + normal_count], normals[i + 2 * normal_count]);
+    }
+
+    RSR::CollapseOpts collapse_opts;
+    collapse_opts.max_iterations = collapse_iters;
+    collapse_opts.distance = (use_Euclid_dist) ? RSR::Distance::Euclidean : RSR::Distance::Tangent;
+    RSR::RSROpts rsr_opts;
+    rsr_opts.dist = collapse_opts.distance;
+    rsr_opts.genus = genus;
+    rsr_opts.num_neighbors = num_neighbors;
+    rsr_opts.max_neighbor_dist = max_neighbor_dist;
+    rsr_opts.max_normal_ang = max_normal_ang;
+    rsr_opts.max_handle_dist = max_handle_dist;
+    RSR::ReexpandOpts reexpand_opts;
+    reexpand_opts.enabled = !skip_reexpansion;
+
+    Manifold result;
+    RSR::point_cloud_collapse_reexpand_graph(point_cloud_vertices, norm, collapse_opts, rsr_opts, reexpand_opts, result);
+    *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
+}
+
 using IntVector = vector<size_t>;
 
 void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr) {

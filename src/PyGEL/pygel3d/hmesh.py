@@ -16,7 +16,7 @@ __all__ = [
     'cc_subdivide', 'loop_subdivide', 'volume_preserving_cc_smooth', 'regularize_quads', 'loop_smooth',
     'taubin_smooth', 'laplacian_smooth', 'anisotropic_smooth', 'volumetric_isocontour', 'triangulate',
     'extrude_faces', 'kill_face_loop', 'kill_degenerate_face_loops', 'graph_to_feq', 'skeleton_to_feq',
-    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_recon', 'hrsr_recon', 'connected_components',
+    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_recon', 'hrsr_recon', 'hrsr_recon_graph', 'connected_components',
     'count_boundary_curves', 'analyze_topology', 'sphere_delaunay'
 ]
 
@@ -1065,6 +1065,34 @@ def hrsr_recon(vertices: ArrayLike,
     lib_py_gel.hrsr_recon(m.obj, vertices_data, normal_data, n_vertices, n_normal,
                           collapse_iters, use_Euclid_dist, genus,
                           num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist, skip_reexpansion)
+    return m
+
+def hrsr_recon_graph(vertices: ArrayLike,
+                     normals: ArrayLike=None,
+                     collapse_iters: int=1,
+                     use_Euclid_dist: bool=False,
+                     genus: int=-1,
+                     num_neighbors: int=70,
+                     max_neighbor_dist: float=20,
+                     max_normal_ang: float=60,
+                     max_handle_dist: int=50,
+                     skip_reexpansion: bool=False) -> Manifold:
+    """ Hierarchical RsR reconstruction from the simplified contraction graph.
+
+        Collapse averages positions and normals while contracting edges. This
+        function passes the surviving vertices, those averaged normals, and the
+        remaining edges to RsR. hrsr_recon is the previous method: it discards
+        the edges and builds a new nearest-neighbor graph from the collapsed
+        points. The arguments match hrsr_recon, so the two can be compared by
+        changing the function name.
+    """
+    m = Manifold()
+    vertices_data, n_vertices = _as_vec3_f(vertices)
+    normal_data, n_normal = _as_vec3_f(normals)
+
+    lib_py_gel.hrsr_recon_graph(m.obj, vertices_data, normal_data, n_vertices, n_normal,
+                                collapse_iters, use_Euclid_dist, genus,
+                                num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist, skip_reexpansion)
     return m
 
 def connected_components(m: Manifold) -> List[Manifold]:

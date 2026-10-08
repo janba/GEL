@@ -61,9 +61,22 @@ void point_cloud_to_mesh(const std::vector<CGLA::Vec3d>& vertices_in,
                          const RSROpts& opts,
                          HMesh::Manifold& result);
 
+/// Reconstruct a manifold from one undirected graph.
+/// The graph is split into connected components. Each component is turned into
+/// a spanning tree and then triangulated. `positions` are written to the mesh
+/// and are also the positions used by the rotation system. `normals` are unit
+/// normals, one per node.
+/// @param graph dense graph, positions, and normals with matching node ids
+/// @param opts reconstruction options
+/// @param result reconstructed manifold mesh
+void graph_to_mesh(const ReconstructionGraph& graph,
+                   const RSROpts& opts,
+                   HMesh::Manifold& result);
+
 /// Convert a point cloud into a Manifold using the hierarchical collapse
 /// and reexpansion method. Rotation system reconstruction is used to perform
-/// the intermediate reconstruction.
+/// the intermediate reconstruction. The collapsed points are passed to RsR,
+/// which builds a new nearest-neighbor graph.
 /// @param vertices vertices of the point cloud
 /// @param normals normals of the point cloud or empty vector
 /// @param collapse_options collapse options
@@ -71,6 +84,17 @@ void point_cloud_to_mesh(const std::vector<CGLA::Vec3d>& vertices_in,
 /// @param reexpand_options reexpansion options
 /// @return reconstructed manifold mesh
 void point_cloud_collapse_reexpand(
+    const std::vector<CGLA::Vec3d>& vertices,
+    const std::vector<CGLA::Vec3d>& normals,
+    const CollapseOpts& collapse_options,
+    const RSROpts& reconstruction_options,
+    const ReexpandOpts& reexpand_options,
+    Manifold& manifold);
+
+/// Hierarchical collapse and reexpansion. The simplified contraction graph,
+/// including the normals averaged during edge contractions, is the RsR graph.
+/// No nearest-neighbor graph is built from the collapsed points.
+void point_cloud_collapse_reexpand_graph(
     const std::vector<CGLA::Vec3d>& vertices,
     const std::vector<CGLA::Vec3d>& normals,
     const CollapseOpts& collapse_options,

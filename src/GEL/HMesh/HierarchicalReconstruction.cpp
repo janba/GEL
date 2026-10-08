@@ -181,18 +181,37 @@ public:
         return RawCollapse{};
     }
 
-    /// Return the remaining points
-    auto to_point_cloud() -> PointCloud
+    /// Live vertices, in node-id order, plus the edges that still connect them.
+    /// Erased nodes stay in `m_vertices` with NaN coordinates and are skipped.
+    /// Their ids are remapped so the exported graph is dense.
+    auto export_simplified() const -> SimplifiedCloud
     {
-        std::vector<Point> points;
-        std::vector<Vec3> normals;
+        SimplifiedCloud out;
+        std::vector<NodeID> remap(m_vertices.size(), InvalidNodeID);
         for (auto i = 0UL; i < m_vertices.size(); ++i) {
-            if (!m_vertices[i].position.any([](const double e) { return std::isnan(e); })) {
-                points.emplace_back(m_vertices[i].position);
-                normals.emplace_back(m_vertices[i].normal);
+            if (m_vertices[i].position.any([](const double e) { return std::isnan(e); }))
+                continue;
+            const NodeID compacted = out.graph.graph.add_node();
+            remap[i] = compacted;
+            out.graph.positions.push_back(m_vertices[i].position);
+            out.graph.normals.push_back(m_vertices[i].normal);
+            out.cloud.points.push_back(m_vertices[i].position);
+            out.cloud.normals.push_back(m_vertices[i].normal);
+        }
+        // The rotation system treats normals as unit directions. The point cloud
+        // keeps the unnormalized contraction average so the existing hierarchical
+        // path is unchanged.
+        for (auto& normal : out.graph.normals)
+            normal = CGLA::normalize(normal);
+        for (auto i = 0UL; i < m_vertices.size(); ++i) {
+            if (remap[i] == InvalidNodeID)
+                continue;
+            for (const auto neighbor : AMGraph::neighbors_lazy(i)) {
+                if (i < neighbor && remap[neighbor] != InvalidNodeID)
+                    out.graph.graph.connect_nodes(remap[i], remap[neighbor]);
             }
         }
-        return PointCloud{std::move(points), std::move(normals)};
+        return out;
     }
 
 private:
@@ -808,10 +827,19 @@ void export_graph(const CollapseGraph& g, const std::string& out_path)
 
 
 auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>& normals,
-                     const CollapseOpts& opts) -> std::pair<Collapse, PointCloud>
+                     const CollapseOpts& opts) -> std::pair<Collapse, SimplifiedCloud>
 {
     if (opts.max_iterations == 0) {
-        return std::make_pair(Collapse(), PointCloud(vertices, normals));
+        SimplifiedCloud simplified;
+        simplified.cloud.points = vertices;
+        simplified.cloud.normals = normals;
+        simplified.graph.positions = vertices;
+        simplified.graph.normals = normals;
+        for (auto& normal : simplified.graph.normals)
+            normal = CGLA::normalize(normal);
+        for (size_t i = 0; i < vertices.size(); ++i)
+            simplified.graph.graph.add_node();
+        return std::make_pair(Collapse(), std::move(simplified));
     }
     std::cout << "Collapsing..." << std::endl;
     GEL_ASSERT_EQ(vertices.size(), normals.size());
@@ -876,7 +904,7 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
     }
     std::cout << "Collapsed " << total_collapses << " edges" << std::endl;
     Collapse collapse(std::move(collapses));
-    return std::make_pair(std::move(collapse), graph.to_point_cloud());
+    return std::make_pair(std::move(collapse), graph.export_simplified());
 }
 
 struct PointHash {

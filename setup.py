@@ -134,10 +134,17 @@ def ensure_native_lib() -> Path:
         return path
 
     skip = os.environ.get("PYGEL_SKIP_CMAKE", "") == "1"
-    for root in (NATIVE_BUILD_DIR, ROOT / "build"):
-        existing = _find_built_lib(root)
-        if existing is not None and skip:
-            return existing
+    if skip:
+        # build_install.sh compiles into build/ and then packages with
+        # PYGEL_SKIP_CMAKE=1. That library is the one to ship. build/native
+        # is a separate tree used only when setuptools runs CMake itself,
+        # and a later pip build can make it newer than build/libPyGEL.dylib.
+        built = _find_built_lib(ROOT / "build")
+        if built is not None:
+            return built
+        built = _find_built_lib(NATIVE_BUILD_DIR)
+        if built is not None:
+            return built
     if skip:
         raise RuntimeError(
             "PYGEL_SKIP_CMAKE=1 but "
