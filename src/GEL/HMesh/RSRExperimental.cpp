@@ -2023,9 +2023,49 @@ void reconstruct_from_graph(
     std::cout << "\n";
 }
 
-void graph_to_mesh(const ReconstructionGraph& graph, const RSROpts& opts, Manifold& result)
+/// Connection lengths for edges that already exist, matching `init_graph`.
+/// `pre_max_length` is the Euclidean distance of the neighbor at rank k * 2/3.
+/// `max_length` is the longest neighbor that passes the normal-angle test.
+/// No edges are added: the collapse graph is the reconstruction graph.
+void set_connection_lengths(
+    const std::vector<Point>& positions,
+    const std::vector<Vec3>& normals,
+    const Tree& kd_tree,
+    const RSROpts& opts,
+    std::vector<ConnectionLength>& connection_lengths)
 {
     const bool is_euclidean = opts.dist == Distance::Euclidean;
+    const int neighbor_count = std::max(opts.num_neighbors, 1);
+    const int query_count = std::min(neighbor_count, static_cast<int>(positions.size()));
+    connection_lengths.assign(positions.size(), {});
+
+    for (NodeID id = 0; id < positions.size(); ++id) {
+        NeighborArray neighbors;
+        knn_search(positions[id], kd_tree, query_count, neighbors);
+        if (neighbors.empty())
+            continue;
+
+        const size_t rank = std::min(
+            neighbors.size() - 1,
+            static_cast<size_t>(static_cast<double>(neighbor_count) * (2.0 / 3.0)));
+        connection_lengths[id].pre_max_length = neighbors[rank].distance;
+
+        filter_out_cross_connection(neighbors, normals, id, opts.max_normal_ang, is_euclidean);
+        for (const auto& neighbor : neighbors | std::views::drop(1)) {
+            const Vec3 edge = positions[neighbor.id] - positions[id];
+            const double len = is_euclidean
+                ? edge.length()
+                : cal_proj_dist(edge, normals[id], normals[neighbor.id]);
+            if (len > connection_lengths[id].max_length)
+                connection_lengths[id].max_length = len;
+            if (len > connection_lengths[neighbor.id].max_length)
+                connection_lengths[neighbor.id].max_length = len;
+        }
+    }
+}
+
+void graph_to_mesh(const ReconstructionGraph& graph, const RSROpts& opts, Manifold& result)
+{
     const size_t node_count = graph.positions.size();
     GEL_ASSERT_EQ(graph.normals.size(), node_count);
     GEL_ASSERT_EQ(graph.graph.no_nodes(), node_count);
@@ -2064,41 +2104,17 @@ void graph_to_mesh(const ReconstructionGraph& graph, const RSROpts& opts, Manifo
         Tree kd_tree;
         build_kd_tree_of_indices(positions, std::views::iota(0UL, positions.size()), kd_tree);
 
-        // Edges of the contraction graph are all eligible. New edges added while
-        // triangulating the spanning tree use the same local radius as a
-        // nearest-neighbor graph: the contraction graph itself is only a little
-        // denser than its spanning tree, so its own edge lengths reject those faces.
-        std::vector<ConnectionLength> connection_lengths(positions.size());
-        const int neighbor_count = std::max(opts.num_neighbors, 1);
-        for (const auto id : sub.node_ids()) {
-            double graph_max = 0.0;
-            for (const auto neighbor : sub.neighbors_lazy(id)) {
-                const Vec3 edge = positions[neighbor] - positions[id];
-                const double len = is_euclidean
-                    ? edge.length()
-                    : cal_proj_dist(edge, normals[id], normals[neighbor]);
-                if (len > graph_max)
-                    graph_max = len;
-            }
-            double radius = graph_max;
-            NeighborArray knn;
-            knn_search(positions[id], kd_tree, neighbor_count, knn);
-            for (const auto& neighbor : knn | std::views::drop(1)) {
-                const Vec3 edge = positions[neighbor.id] - positions[id];
-                const double len = is_euclidean
-                    ? neighbor.distance
-                    : cal_proj_dist(edge, normals[id], normals[neighbor.id]);
-                if (len > radius)
-                    radius = len;
-            }
-            connection_lengths[id].pre_max_length = graph_max;
-            connection_lengths[id].max_length = radius;
-        }
+        // Length limits match a nearest-neighbor reconstruction. Edges already
+        // in the contracted graph that are longer than that rank are not turned
+        // into faces. The spanning tree is filled only for handle insertion.
+        std::vector<ConnectionLength> connection_lengths;
+        set_connection_lengths(positions, normals, kd_tree, opts, connection_lengths);
+        std::cout << "reconstruction graph edges: " << sub.no_edges() << "\n";
 
         Util::RSRTimer inner_timer;
         Manifold component_mesh;
         reconstruct_from_graph(sub, positions, normals, positions, connection_lengths, kd_tree, opts,
-                               inner_timer, component_mesh, true);
+                               inner_timer, component_mesh, false);
         result.merge(component_mesh);
     }
 }
@@ -2425,7 +2441,10 @@ void point_cloud_collapse_reexpand_graph(
                                            rsr_opts.num_neighbors, timer, pool);
 
     timer.start("Collapse");
-    auto [collapse, simplified] = collapse_points(oriented.vertices, oriented.normals, collapse_options);
+    auto graph_collapse_options = collapse_options;
+    graph_collapse_options.reconstruction_neighbors = static_cast<size_t>(std::max(rsr_opts.num_neighbors, 1));
+    graph_collapse_options.max_normal_ang = rsr_opts.max_normal_ang;
+    auto [collapse, simplified] = collapse_points(oriented.vertices, oriented.normals, graph_collapse_options);
     timer.end("Collapse");
 
     timer.start("Algorithm");

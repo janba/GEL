@@ -124,8 +124,8 @@ extern "C" {
         int genus = -1, int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50,
         bool skip_reexpansion = false);
 
-    /// Same arguments as hrsr_recon. Triangulates the simplified contraction graph
-    /// instead of building a new nearest-neighbor graph from the collapsed points.
+    /// Same arguments as hrsr_recon. Collapses the RsR neighborhood, but only
+    /// contracts edges inside the one-ring. The remaining edges are triangulated.
     DLLEXPORT void hrsr_recon_graph(Manifold_ptr m_ptr, double* vertices,
         double* normals, size_t vertex_count, size_t normal_count,
         int collapse_iters = 1, bool use_Euclid_dist = false,

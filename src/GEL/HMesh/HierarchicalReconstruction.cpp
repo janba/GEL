@@ -10,6 +10,7 @@
 #include <GEL/Geometry/Graph.h>
 #include <GEL/HMesh/obj_save.h>
 #include <numbers>
+#include <optional>
 #include <unordered_map>
 
 namespace HMesh::RSR
@@ -50,6 +51,9 @@ private:
         /// into it. This penalizes continuously collapsing into the same vertex
         /// and presumably creates a more balanced graph.
         double weight = 1;
+        /// Euclidean distance to the one-ring neighbor at the start of this
+        /// collapse iteration. Used only while ring limiting is on.
+        double contract_scale = 0;
     };
 
     /// Stores edge information
@@ -65,7 +69,11 @@ private:
 
         bool operator<(const Edge& other) const
         {
-            return dist < other.dist;
+            if (dist != other.dist)
+                return dist < other.dist;
+            if (from != other.from)
+                return from < other.from;
+            return to < other.to;
         }
     };
 
@@ -80,6 +88,11 @@ private:
     /// in terms of edge length in m_collapse_queue, extracting them in logarithmic
     /// time requires us to store the edge length in two separate places.
     Util::AttribVec<EdgeID, double> m_edges;
+    /// True when the edge is currently stored in `m_collapse_queue`.
+    /// Edges of the reconstruction neighborhood that are longer than the one-ring
+    /// stay in the graph with this flag clear.
+    Util::AttribVec<EdgeID, char> m_in_queue{0};
+    bool m_limit_to_ring = false;
 
 public:
     /// Insert a vertex
@@ -90,24 +103,83 @@ public:
         return n;
     }
 
-    /// Insert an edge into the graph and the priority queue
-    auto connect_nodes(const NodeID n0, const NodeID n1) -> EdgeID
+    /// Keep long reconstruction edges in the graph, but do not collapse them.
+    /// `refresh_contract_scales` defines the one-ring those edges are compared to.
+    void limit_collapses_to_ring()
     {
-        if (n1 > n0) {
-            const EdgeID e = AMGraph::connect_nodes(n0, n1);
-            auto [_, dist] = distance_function(n0, n1);
-            m_collapse_queue.emplace(n0, n1, dist);
-            m_edges[e] = dist;
-            return e;
-        }
-        return InvalidEdgeID;
+        m_limit_to_ring = true;
     }
 
-    /// Perform a single collapse. The edge with the lowest "weight" is removed from
-    /// the graph and the ends of the edge are combined into a single vertex. All of
-    /// the edges that used to belong to the two vertices are removed from the priority
-    /// queue and are reinserted with the new coordinates and vertex weights.
-    auto collapse_one() -> RawCollapse
+    /// Euclidean distance from each live point to its `ring_size`-th nearest live
+    /// point, counting the point itself. Call this at the start of an iteration.
+    void refresh_contract_scales(const size_t ring_size)
+    {
+        std::vector<Point> live_positions;
+        std::vector<NodeID> live_ids;
+        live_positions.reserve(m_vertices.size());
+        live_ids.reserve(m_vertices.size());
+        for (NodeID id = 0; id < m_vertices.size(); ++id) {
+            if (!live_vertex(id))
+                continue;
+            live_ids.push_back(id);
+            live_positions.push_back(m_vertices[id].position);
+        }
+        if (live_ids.empty())
+            return;
+
+        Geometry::Tree tree;
+        Geometry::build_kd_tree_of_indices(live_positions, std::views::iota(0UL, live_positions.size()), tree);
+        const int query = static_cast<int>(std::max<size_t>(1, std::min(ring_size, live_ids.size())));
+        for (size_t i = 0; i < live_ids.size(); ++i) {
+            Geometry::NeighborArray neighbors;
+            Geometry::knn_search(live_positions[i], tree, query, neighbors);
+            m_vertices[live_ids[i]].contract_scale = neighbors.empty() ? 0.0 : neighbors.back().distance;
+        }
+    }
+
+    /// Recompute queue keys from current positions and put back only the edges
+    /// that are still inside the one-ring.
+    void rebuild_collapse_queue()
+    {
+        m_collapse_queue.clear();
+        const size_t queued = m_in_queue.size();
+        for (size_t i = 0; i < queued; ++i)
+            m_in_queue[static_cast<EdgeID>(i)] = 0;
+        for (NodeID n0 = 0; n0 < m_vertices.size(); ++n0) {
+            if (!live_vertex(n0))
+                continue;
+            for (const NodeID n1 : AMGraph::neighbors_lazy(n0)) {
+                if (n0 < n1 && live_vertex(n1))
+                    requeue_edge(n0, n1);
+            }
+        }
+    }
+
+    /// Insert an edge into the graph. It enters the priority queue only when it
+    /// is short enough to collapse.
+    auto connect_nodes(const NodeID n0, const NodeID n1) -> EdgeID
+    {
+        if (!(n1 > n0) || !live_vertex(n0) || !live_vertex(n1))
+            return InvalidEdgeID;
+        const EdgeID e = AMGraph::connect_nodes(n0, n1);
+        if (m_in_queue[e]) {
+            (void)m_collapse_queue.extract(Edge{n0, n1, m_edges[e]});
+            m_in_queue[e] = 0;
+        }
+        const double dist = distance_function(n0, n1).second;
+        m_edges[e] = dist;
+        if (edge_is_contractable(n0, n1)) {
+            m_collapse_queue.emplace(n0, n1, dist);
+            m_in_queue[e] = 1;
+        }
+        return e;
+    }
+
+    /// Perform a single collapse. The shortest contractable edge is removed from
+    /// the queue and its endpoints are combined. Edges that are only present for
+    /// reconstruction stay in the graph. Returns nothing when no contractable
+    /// edge remains.
+    auto collapse_one() -> std::optional<RawCollapse>
     {
         while (!m_collapse_queue.empty()) {
             auto edge_ = m_collapse_queue.begin();
@@ -116,69 +188,58 @@ public:
             const auto active = edge.from;
             const auto latent = edge.to;
 
-            if (AMGraph::find_edge(active, latent) != AMGraph::InvalidEdgeID) {
-                const auto active_coords = m_vertices[active].position;
-                const auto latent_coords = m_vertices[latent].position;
-                GEL_ASSERT_FALSE(active_coords.any([](auto d){ return std::isnan(d); }));
-                GEL_ASSERT_FALSE(latent_coords.any([](auto d){ return std::isnan(d); }));
+            const auto collapsed_id = AMGraph::find_edge(active, latent);
+            if (collapsed_id == AMGraph::InvalidEdgeID)
+                continue;
+            m_in_queue[collapsed_id] = 0;
+            if (!edge_is_contractable(active, latent))
+                continue;
 
-                // recalculate current edges
-                for (auto v : AMGraph::neighbors_lazy(active)) {
-                    auto v0 = std::min(v, active);
-                    auto v1 = std::max(v, active);
-                    auto edge_id = find_edge(v0, v1);
-                    auto dist = m_edges[edge_id];
-                    m_collapse_queue.extract(Edge{v0, v1, dist});
-                }
+            const auto active_coords = m_vertices[active].position;
+            const auto latent_coords = m_vertices[latent].position;
+            GEL_ASSERT_FALSE(active_coords.any([](auto d){ return std::isnan(d); }));
+            GEL_ASSERT_FALSE(latent_coords.any([](auto d){ return std::isnan(d); }));
 
-                for (auto v : AMGraph::neighbors_lazy(latent)) {
-                    auto v0 = std::min(v, latent);
-                    auto v1 = std::max(v, latent);
-                    auto edge_id = find_edge(v0, v1);
-                    auto dist = m_edges[edge_id];
-                    m_collapse_queue.extract(Edge{v0, v1, dist});
-                }
+            // recalculate current edges
+            unqueue_incident(active);
+            unqueue_incident(latent);
 
-                // combine the two vertices
-                double total_weight = m_vertices[latent].weight + m_vertices[active].weight;
-                const auto new_normal =
-                    lerp(m_vertices[latent].normal, m_vertices[active].normal,
-                         m_vertices[active].weight / total_weight);
-                const auto v_bar =
-                    lerp(m_vertices[latent].position, m_vertices[active].position,
-                         m_vertices[active].weight / total_weight);
-                m_vertices[active].position = v_bar;
-                m_vertices[active].normal = new_normal;
-                m_vertices[active].weight += m_vertices[latent].weight;
-                // we set the latent positions to NaN to defend against reusing them.
-                m_vertices[latent].position = Point(std::numeric_limits<double>::signaling_NaN());
-                m_vertices[latent].normal = Vec3(std::numeric_limits<double>::signaling_NaN());
+            // combine the two vertices
+            double total_weight = m_vertices[latent].weight + m_vertices[active].weight;
+            const auto new_normal =
+                lerp(m_vertices[latent].normal, m_vertices[active].normal,
+                     m_vertices[active].weight / total_weight);
+            const auto v_bar =
+                lerp(m_vertices[latent].position, m_vertices[active].position,
+                     m_vertices[active].weight / total_weight);
+            m_vertices[active].position = v_bar;
+            m_vertices[active].normal = new_normal;
+            m_vertices[active].weight += m_vertices[latent].weight;
+            // we set the latent positions to NaN to defend against reusing them.
+            m_vertices[latent].position = Point(std::numeric_limits<double>::signaling_NaN());
+            m_vertices[latent].normal = Vec3(std::numeric_limits<double>::signaling_NaN());
 
-                // recalculate current edges
-                for (auto v : AMGraph::neighbors_lazy(active)) {
-                    auto [v0, v1] = std::minmax(v, active);
-                    connect_nodes(v0, v1);
-                }
-
-                for (auto v : AMGraph::neighbors_lazy(latent)) {
-                    auto [v0, v1] = std::minmax(v, active);
-                    connect_nodes(v0, v1);
-                }
-                AMGraph::erase_node(latent);
-
-                return RawCollapse{
-                    .active = active,
-                    .latent = latent,
-                    .active_point_coords = active_coords,
-                    .latent_point_coords = latent_coords,
-                    .v_bar = v_bar
-                };
+            // recalculate current edges
+            for (auto v : AMGraph::neighbors_lazy(active)) {
+                auto [v0, v1] = std::minmax(v, active);
+                connect_nodes(v0, v1);
             }
+
+            for (auto v : AMGraph::neighbors_lazy(latent)) {
+                auto [v0, v1] = std::minmax(v, active);
+                connect_nodes(v0, v1);
+            }
+            AMGraph::erase_node(latent);
+
+            return RawCollapse{
+                .active = active,
+                .latent = latent,
+                .active_point_coords = active_coords,
+                .latent_point_coords = latent_coords,
+                .v_bar = v_bar
+            };
         }
-        // Immediately fail if we run out of edges to collapse. This might happen if the graph is initialized
-        // with an insufficient number of initial nearest neighbors. Not a hugely important case to handle right now.
-        GEL_ASSERT(false, "Ran out of edges to collapse");
-        return RawCollapse{};
+        return std::nullopt;
     }
 
     /// Live vertices, in node-id order, plus the edges that still connect them.
@@ -215,6 +276,51 @@ public:
     }
 
 private:
+    [[nodiscard]]
+    bool live_vertex(const NodeID id) const
+    {
+        return id < m_vertices.size() &&
+            !m_vertices[id].position.any([](const double e) { return std::isnan(e); });
+    }
+
+    /// True when this edge may be collapsed. With ring limiting off, every edge
+    /// qualifies. Otherwise the Euclidean length has to fall inside the larger
+    /// of the two one-ring scales.
+    [[nodiscard]]
+    bool edge_is_contractable(const NodeID n0, const NodeID n1) const
+    {
+        if (!m_limit_to_ring)
+            return true;
+        const double length = (m_vertices[n0].position - m_vertices[n1].position).length();
+        const double limit = std::max(m_vertices[n0].contract_scale, m_vertices[n1].contract_scale);
+        return length <= limit * (1.0 + 1e-8) + 1e-12;
+    }
+
+    void unqueue_incident(const NodeID node)
+    {
+        for (const auto neighbor : AMGraph::neighbors_lazy(node)) {
+            const auto v0 = std::min(neighbor, node);
+            const auto v1 = std::max(neighbor, node);
+            const auto edge_id = find_edge(v0, v1);
+            if (edge_id == AMGraph::InvalidEdgeID || !m_in_queue[edge_id])
+                continue;
+            (void)m_collapse_queue.extract(Edge{v0, v1, m_edges[edge_id]});
+            m_in_queue[edge_id] = 0;
+        }
+    }
+
+    void requeue_edge(const NodeID n0, const NodeID n1)
+    {
+        const EdgeID e = AMGraph::find_edge(n0, n1);
+        if (e == AMGraph::InvalidEdgeID)
+            return;
+        m_edges[e] = distance_function(n0, n1).second;
+        if (!edge_is_contractable(n0, n1))
+            return;
+        m_collapse_queue.emplace(n0, n1, m_edges[e]);
+        m_in_queue[e] = 1;
+    }
+
     /// Returns the optimal point and the collapse distance for two vertices
     [[nodiscard]]
     std::pair<CGLA::Vec3d, double> distance_function(const NodeID n0, const NodeID n1) const
@@ -858,16 +964,40 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
 
     Geometry::Tree kd_tree;
     Geometry::build_kd_tree_of_indices(vertices, indices, kd_tree);
-    const auto neighbor_map = Geometry::calculate_neighbors(pool, vertices, kd_tree, opts.initial_neighbors);
+    // The reconstruction neighborhood is the graph RsR would build. Only the
+    // one-ring edges of that graph are allowed into the collapse queue.
+    // The original path seeds the one-ring alone and may collapse every edge.
+    const bool reconstruction_graph = opts.reconstruction_neighbors > 0;
+    const size_t seed_neighbors = reconstruction_graph
+        ? opts.reconstruction_neighbors
+        : opts.initial_neighbors;
+    if (reconstruction_graph) {
+        graph.limit_collapses_to_ring();
+        graph.refresh_contract_scales(std::max<size_t>(opts.initial_neighbors, 1));
+    }
+    const auto neighbor_map = Geometry::calculate_neighbors(pool, vertices, kd_tree,
+                                                            static_cast<int>(seed_neighbors));
+
+    const bool is_euclidean = opts.distance == Distance::Euclidean;
+    const double cos_thresh = is_euclidean
+        ? 0.0
+        : std::cos(opts.max_normal_ang / 180.0 * std::numbers::pi);
 
     // This also initializes distances
     for (const auto& neighbors : neighbor_map) {
         const NodeID this_id = neighbors[0].id;
         for (const auto& neighbor : neighbors | std::views::drop(1)) {
-            if (CGLA::dot(normals[neighbor.id], normals[this_id]) < 0.)
+            const double cos_theta = CGLA::dot(normals[neighbor.id], normals[this_id]);
+            if (reconstruction_graph) {
+                if (cos_theta < cos_thresh)
+                    continue;
+                const auto [lo, hi] = std::minmax(this_id, neighbor.id);
+                graph.connect_nodes(lo, hi);
+            } else if (cos_theta < 0.) {
                 continue;
-            // kNN connection
-            graph.connect_nodes(this_id, neighbor.id);
+            } else {
+                graph.connect_nodes(this_id, neighbor.id);
+            }
         }
     }
 
@@ -883,24 +1013,26 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
             //return vertices.size() * std::pow(opts.reduction_per_iteration, iter + 1);
             }();
 
+        if (reconstruction_graph && iter > 0) {
+            graph.refresh_contract_scales(std::max<size_t>(opts.initial_neighbors, 1));
+            graph.rebuild_collapse_queue();
+        }
+
         std::vector<SingleCollapse> activity;
 
         size_t count = 0;
         while (count < max_collapses) {
+            const auto collapsed = graph.collapse_one();
+            if (!collapsed)
+                break;
             total_collapses++;
             count++;
-            auto [active, latent, active_point_coords, latent_point_coords, v_bar] = graph.collapse_one();
-
-            activity.emplace_back(active_point_coords, latent_point_coords, v_bar);
-            /*if (total_collapses == max_collapses) {
-                break;
-            }*/
+            activity.emplace_back(collapsed->active_point_coords, collapsed->latent_point_coords, collapsed->v_bar);
         }
         collapses.emplace_back(std::move(activity));
         std::cout << "Collapsed " << count << " of " << max_collapses << std::endl;
-        /*if (total_collapses == max_collapses) {
+        if (count == 0)
             break;
-        }*/
     }
     std::cout << "Collapsed " << total_collapses << " edges" << std::endl;
     Collapse collapse(std::move(collapses));

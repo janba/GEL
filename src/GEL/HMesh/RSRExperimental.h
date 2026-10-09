@@ -62,10 +62,10 @@ void point_cloud_to_mesh(const std::vector<CGLA::Vec3d>& vertices_in,
                          HMesh::Manifold& result);
 
 /// Reconstruct a manifold from one undirected graph.
-/// The graph is split into connected components. Each component is turned into
-/// a spanning tree and then triangulated. `positions` are written to the mesh
-/// and are also the positions used by the rotation system. `normals` are unit
-/// normals, one per node.
+/// The graph is split into connected components. Faces come from the
+/// rotation-system checks on the edges the graph already has. `positions` are
+/// written to the mesh and are also the positions used by the rotation system.
+/// `normals` are unit normals, one per node.
 /// @param graph dense graph, positions, and normals with matching node ids
 /// @param opts reconstruction options
 /// @param result reconstructed manifold mesh
@@ -91,9 +91,10 @@ void point_cloud_collapse_reexpand(
     const ReexpandOpts& reexpand_options,
     Manifold& manifold);
 
-/// Hierarchical collapse and reexpansion. The simplified contraction graph,
-/// including the normals averaged during edge contractions, is the RsR graph.
-/// No nearest-neighbor graph is built from the collapsed points.
+/// Hierarchical collapse and reexpansion. The collapse graph is the RsR
+/// neighborhood. Only edges inside the one-ring (`CollapseOpts::initial_neighbors`)
+/// are contracted. The longer edges remain and are the edges RsR triangulates.
+/// Normals are the averages stored during contraction, normalized to unit length.
 void point_cloud_collapse_reexpand_graph(
     const std::vector<CGLA::Vec3d>& vertices,
     const std::vector<CGLA::Vec3d>& normals,

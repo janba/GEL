@@ -42,7 +42,20 @@ struct CollapseOpts {
     /// circumstances should be the nearest 4-6 vertices. Using values larger than
     /// 6 will typically not provide any quality improvement and will substantially
     /// slow down the collapse phase.
+    ///
+    /// This is also the contractable radius when `reconstruction_neighbors` is set:
+    /// an edge longer than this one-ring, measured in Euclidean distance, stays in
+    /// the graph and is not collapsed.
     size_t initial_neighbors = 5;
+    /// When non-zero, the collapse graph is the RsR neighborhood of this size
+    /// instead of `initial_neighbors`. Long edges are kept for reconstruction and
+    /// are not collapsed. Zero keeps the original one-ring seed, and every edge of
+    /// that seed may be collapsed.
+    size_t reconstruction_neighbors = 0;
+    /// Normal-angle test for `reconstruction_neighbors`, in degrees. Ignored when
+    /// that field is zero. Euclidean distance drops neighbors with opposing
+    /// normals. Tangent distance uses this angle, matching RsR.
+    double max_normal_ang = 60;
     /// Maximum number of collapses to perform. If set to a value other than 0, this
     /// will stop the collapse phase after that number of collapses are performed.
     /// For debug purposes.

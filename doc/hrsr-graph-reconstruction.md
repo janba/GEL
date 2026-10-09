@@ -2,13 +2,22 @@
 
 Two reconstructions are available and can be compared from PyGEL.
 
-- `hrsr_recon` is the previous method. Collapse still builds a nearest-neighbor graph, contracts it, and keeps the surviving points and their averaged normals. The edges are discarded. RsR then builds a new nearest-neighbor graph and triangulates that.
-- `hrsr_recon_graph` keeps the contracted graph and gives it to RsR. The normals on that graph are the contraction averages, normalized to unit length. In C++ the entry points are `point_cloud_collapse_reexpand` and `point_cloud_collapse_reexpand_graph`. The shared reconstruction is `graph_to_mesh`.
+- `hrsr_recon` collapses a 5-neighbor graph, discards the edges, and builds a new nearest-neighbor graph from the collapsed points.
+- `hrsr_recon_graph` builds the collapse graph the way RsR would, then gives the surviving graph to RsR. In C++ the entry points are `point_cloud_collapse_reexpand` and `point_cloud_collapse_reexpand_graph`. The shared reconstruction is `graph_to_mesh`.
 
-RsR still builds a spanning tree of the supplied graph, adds the remaining graph edges that pass the rotation-system checks, and then fills triangles from the tree. On the graph path that fill runs even when `genus` is 0, so no handles are requested. A new edge created by the fill may be as long as the nearest-neighbor radius (`num_neighbors`). The edges that already exist are only those of the contraction graph.
+The 5-neighbor graph exists so that collapse only merges close points. Contraction rewires those edges and does not search for new ones, so after one collapse on `owl-little` it had 6981 edges against a spanning tree of 4819. That is enough to stay connected and not enough for RsR, which can only turn an edge it is given into a face.
 
-## Where this leaves the new reconstruction
+`hrsr_recon_graph` therefore seeds the full neighborhood (`num_neighbors`, with the same normal-angle test as RsR). An edge of that graph may be contracted only when its Euclidean length is within the one-ring of an endpoint. The one-ring is the distance to the `initial_neighbors`-th nearest live point, 5 by default, and it is recomputed at each collapse iteration. The queue is still ordered by tangent distance times vertex weight. Tangent distance is not the length cap: an edge that jumps along the normals can look short in that measure and must stay out of the queue. Edges that fail the cap remain in the graph.
 
-The contraction graph is connected, but it does not contain enough edges to describe the surface. It is seeded with about five neighbors per point. After contraction it is only a little denser than its spanning tree. On `owl-little` (10k points, one collapse iteration) the tree has 4819 edges and the graph has 6981.
+On export, RsR receives the survivors, the averaged normals normalized to unit length, and every edge that was not contracted. Face edges still have to be shorter than the neighbor at rank `num_neighbors * 2/3`, the same limit as a point-cloud reconstruction. The spanning tree is not filled when `genus` is 0.
 
-`hrsr_recon` covers the surface because the rebuilt graph has 30–70 neighbors per point (about 44k edges on the same cloud). `hrsr_recon_graph` cannot do that from the edges it receives. Filling the tree removes the severe fragmentation, and on that cloud the coarse mesh is one piece of about 4800 vertices plus a handful of tiny components. Reexpansion failures drop sharply, but the mesh is still poorer than the nearest-neighbor reconstruction. The limit is the missing connections in the simplified graph, not the spanning tree or the reexpansion.
+`hrsr_recon` is unchanged. It still collapses the 5-neighbor seed.
+
+## Owl-little, one collapse, Euclidean, genus 0, reexpansion skipped
+
+The coarse meshes are the same size. Collapse on the graph path is slower because each merge rewrites a much larger star: about 1.7 s against 0.15 s for this cloud of 10k points.
+
+| | vertices | faces | boundaries | graph edges | face candidates |
+| --- | --- | --- | --- | --- | --- |
+| `hrsr_recon` | 5001 plus one triangle | 9754 | 11 | rebuilt nearest-neighbor graph | 101032 |
+| `hrsr_recon_graph` | 5004 | 9754 | 10 | 105312 | 93840 |

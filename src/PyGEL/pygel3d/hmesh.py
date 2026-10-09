@@ -1079,12 +1079,12 @@ def hrsr_recon_graph(vertices: ArrayLike,
                      skip_reexpansion: bool=False) -> Manifold:
     """ Hierarchical RsR reconstruction from the simplified contraction graph.
 
-        Collapse averages positions and normals while contracting edges. This
-        function passes the surviving vertices, those averaged normals, and the
-        remaining edges to RsR. hrsr_recon is the previous method: it discards
-        the edges and builds a new nearest-neighbor graph from the collapsed
-        points. The arguments match hrsr_recon, so the two can be compared by
-        changing the function name.
+        The collapse graph is the same neighborhood RsR would build. Only edges
+        inside the local one-ring are contracted, so the longer edges are still
+        there for RsR. hrsr_recon instead collapses a 5-neighbor graph and then
+        builds a new nearest-neighbor graph from the collapsed points. The
+        arguments match hrsr_recon, so the two can be compared by changing the
+        function name.
     """
     m = Manifold()
     vertices_data, n_vertices = _as_vec3_f(vertices)
