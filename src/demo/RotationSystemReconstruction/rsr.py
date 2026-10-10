@@ -29,7 +29,7 @@ if len(argv) > 1:
     # Check if we should use the hierarchical method
     hierarchical = False
     if len(argv) > 2 and ( argv[1].lower() == '-h' or argv[2].lower() == '-h' ):
-        hierarchical = True
+        hierarchical = True 
 
     filename = argv[1] if not hierarchical else argv[2]
     # Load from command line argument
@@ -38,9 +38,9 @@ if len(argv) > 1:
 
     m = None
     if hierarchical:
-        m = hrsr_recon_graph(vertices, normals)
+        m = hrsr_recon_graph(vertices, normals, num_neighbors=40, max_neighbor_dist = 5, use_Euclid_dist=True) 
     else:
-        m = rsr_recon(vertices, normals)
+        m = rsr_recon(vertices, normals, use_Euclid_dist=True)
 
     print("Reconstruction completed.")
     viewer.display(m, smooth=False, mode='g')
@@ -54,8 +54,8 @@ else:
     # viewer.display(m, smooth=False, mode='g')
     save("owl.obj", m)
 
-    # # Object with non-zero genus
-    # vertices, normals = obj_load('../../../data/PointClouds/Capital_A.obj')
-    # m = rsr_recon(vertices, normals, use_Euclid_dist=True, genus=1, max_handle_dist=10)
-    # viewer.display(m, smooth=False, mode='g', reset_view=True)
-    # save("A.obj", m)
+    # Object with non-zero genus
+    vertices, normals = obj_load('../../../data/PointClouds/Capital_A.obj')
+    m = hrsr_recon_graph(vertices, normals, use_Euclid_dist=True, genus=1, max_handle_dist=10)
+    viewer.display(m, smooth=False, mode='g', reset_view=True)
+    save("A.obj", m)

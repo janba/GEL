@@ -7,11 +7,11 @@ Two reconstructions are available and can be compared from PyGEL.
 
 The 5-neighbor graph exists so that collapse only merges close points. Contraction rewires those edges and does not search for new ones, so after one collapse on `owl-little` it had 6981 edges against a spanning tree of 4819. That is enough to stay connected and not enough for RsR, which can only turn an edge it is given into a face.
 
-`hrsr_recon_graph` therefore seeds the full neighborhood (`num_neighbors`, with the same normal-angle test as RsR). An edge of that graph may be contracted only when its Euclidean length is within the one-ring of an endpoint. The one-ring is the distance to the `initial_neighbors`-th nearest live point, 5 by default, and it is recomputed at each collapse iteration. The queue is still ordered by tangent distance times vertex weight. Tangent distance is not the length cap: an edge that jumps along the normals can look short in that measure and must stay out of the queue. Edges that fail the cap remain in the graph.
+`hrsr_recon_graph` therefore seeds the full neighborhood (`num_neighbors`, with the same normal-angle test as RsR). An edge of that graph may be contracted only when its Euclidean length is within the one-ring of an endpoint. The one-ring is the distance to the `initial_neighbors`-th nearest live point, 5 by default, and it is recomputed at each collapse iteration. Edges outside that ring stay in the graph.
 
-On export, RsR receives the survivors, the averaged normals normalized to unit length, and every edge that was not contracted. Face edges still have to be shorter than the neighbor at rank `num_neighbors * 2/3`, the same limit as a point-cloud reconstruction. The spanning tree is not filled when `genus` is 0.
+The collapse queue is ordered by tangent distance times the sum of the vertex weights. Tangent distance is not a length cap: an edge that jumps along the normals can look short in that measure, so the one-ring test is what keeps it out of the queue. `hrsr_recon` uses the same queue key and still collapses the 5-neighbor seed.
 
-`hrsr_recon` is unchanged. It still collapses the 5-neighbor seed.
+On export, RsR receives the survivors, the averaged normals normalized to unit length, and every edge that was not contracted. Face edges still have to be shorter than the neighbor at rank `num_neighbors * 2/3`, the same limit as a point-cloud reconstruction. The spanning tree and the face order use that length. The spanning tree is not filled when `genus` is 0.
 
 ## Owl-little, one collapse, Euclidean, genus 0, reexpansion skipped
 
