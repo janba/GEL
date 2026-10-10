@@ -142,6 +142,160 @@ namespace Geometry
 
     }
 
+    /// MST edge cost for normal orientation. The first term is `1 - |n0·n1|`.
+    /// The second is large when the edge leaves the tangent plane. `scale` is
+    /// the inserting vertex's farthest-neighbor distance. Below 1e-12 the
+    /// second term is omitted.
+    inline double orientation_edge_weight(const CGLA::Vec3d& n0, const CGLA::Vec3d& n1, const CGLA::Vec3d& edge, double scale)
+    {
+        const double n0_length = n0.length();
+        const double n1_length = n1.length();
+        double angle_cost = 1.0;
+        if (n0_length > 1e-12 && n1_length > 1e-12) {
+            const double cosine = std::abs(CGLA::dot(n0, n1) / (n0_length * n1_length));
+            angle_cost = 1.0 - std::clamp(cosine, 0.0, 1.0);
+        }
+        if (!(scale > 1e-12))
+            return angle_cost;
+        const double tunnel_cost = (std::abs(CGLA::dot(edge, n0)) + std::abs(CGLA::dot(edge, n1))) / scale;
+        return angle_cost + tunnel_cost;
+    }
+
+    /// Largest neighborhood scored by estimateNormalAdaptive.
+    inline constexpr int ADAPTIVE_NORMAL_K_MAX = 192;
+    /// Prefixes of a distance-sorted neighborhood. Count includes the query point.
+    inline constexpr std::array<int, 9> ADAPTIVE_NORMAL_SCHEDULE = {8, 12, 18, 27, 40, 60, 90, 128, 192};
+    /// λ2 / λ1 below this is a line. Eigenentropy would prefer it over a plane.
+    inline constexpr double ADAPTIVE_NORMAL_MIN_PLANAR_RATIO = 0.15;
+    /// Scores within this band of the minimum keep the smaller neighborhood.
+    inline constexpr double ADAPTIVE_NORMAL_ENTROPY_TIE = 1e-3;
+
+    struct AdaptiveNormal {
+        CGLA::Vec3d normal;
+        int k = 0;
+    };
+
+    /// Normal from the planar prefix with lowest covariance eigenentropy.
+    /// `neighbors` is sorted nearest-first. Below the first schedule size, the
+    /// whole range is used. The sign is arbitrary.
+    template <std::ranges::random_access_range Range>
+        requires std::ranges::sized_range<Range>
+    AdaptiveNormal estimateNormalAdaptive(Range&& neighbors)
+    {
+        const int n = static_cast<int>(std::ranges::size(neighbors));
+        if (n <= 0)
+            return {CGLA::Vec3d(0, 0, 1), 0};
+
+        int sizes[ADAPTIVE_NORMAL_SCHEDULE.size()];
+        int size_count = 0;
+        if (n < ADAPTIVE_NORMAL_SCHEDULE.front()) {
+            sizes[size_count++] = n;
+        } else {
+            for (const int k : ADAPTIVE_NORMAL_SCHEDULE) {
+                if (k > n)
+                    break;
+                sizes[size_count++] = k;
+            }
+        }
+
+        auto eigenentropy = [](double l1, double l2, double l3) {
+            l1 = std::max(l1, 0.0);
+            l2 = std::max(l2, 0.0);
+            l3 = std::max(l3, 0.0);
+            const double sum = l1 + l2 + l3;
+            if (!(sum > 0.0))
+                return 10.0;
+            auto term = [sum](double lambda) {
+                if (!(lambda > 0.0))
+                    return 0.0;
+                const double e = lambda / sum;
+                return -e * std::log(e);
+            };
+            return term(l1) + term(l2) + term(l3);
+        };
+
+        CGLA::Vec3d mean(0);
+        CGLA::Mat3x3d scatter(0.0);
+        int seen = 0;
+        int next_size = 0;
+
+        bool have_planar = false;
+        double best_entropy = 0.0;
+        int best_k = sizes[0];
+        CGLA::Vec3d best_normal(0, 0, 1);
+
+        double best_planarity = -1.0;
+        int fallback_k = sizes[0];
+        CGLA::Vec3d fallback_normal(0, 0, 1);
+
+        auto consider = [&](int k) {
+            CGLA::Mat3x3d eigenvectors(0);
+            std::array<double, 3> eigenvalues{};
+            eigen3x3(scatter, eigenvectors, eigenvalues);
+
+            int i0 = 0;
+            int i1 = 1;
+            int i2 = 2;
+            if (eigenvalues[i0] < eigenvalues[i1])
+                std::swap(i0, i1);
+            if (eigenvalues[i1] < eigenvalues[i2])
+                std::swap(i1, i2);
+            if (eigenvalues[i0] < eigenvalues[i1])
+                std::swap(i0, i1);
+
+            const double l1 = eigenvalues[i0];
+            const double l2 = eigenvalues[i1];
+            const double l3 = eigenvalues[i2];
+            CGLA::Vec3d normal = eigenvectors[i2];
+            if (!(normal.length() > 1e-8) || !std::isfinite(normal[0]) || !std::isfinite(normal[1]) ||
+                !std::isfinite(normal[2]))
+                normal = CGLA::Vec3d(0, 0, 1);
+            else
+                normal = normalize(normal);
+
+            const double planarity = (l1 > 1e-18) ? (l2 - l3) / l1 : 0.0;
+            if (planarity > best_planarity + 1e-9) {
+                best_planarity = planarity;
+                fallback_k = k;
+                fallback_normal = normal;
+            }
+
+            // A line has lower eigenentropy than a plane, and its least
+            // eigenvector is undefined. Score entropy only on planar scales.
+            // The in-plane eigenvalues are averaged first: a longer, thinner
+            // neighborhood is not a better plane.
+            const bool planar = l1 > 1e-18 && l2 >= ADAPTIVE_NORMAL_MIN_PLANAR_RATIO * l1;
+            if (!planar)
+                return;
+            const double in_plane = 0.5 * (l1 + l2);
+            const double entropy = eigenentropy(in_plane, in_plane, l3);
+            if (!have_planar || entropy < best_entropy - ADAPTIVE_NORMAL_ENTROPY_TIE) {
+                have_planar = true;
+                best_entropy = entropy;
+                best_k = k;
+                best_normal = normal;
+            }
+        };
+
+        const int last = sizes[size_count - 1];
+        for (int i = 0; i < last; ++i) {
+            const CGLA::Vec3d point = neighbors[i];
+            const double new_count = static_cast<double>(seen + 1);
+            const CGLA::Vec3d delta = point - mean;
+            mean += delta / new_count;
+            scatter += CGLA::outer_product(delta, delta) * (static_cast<double>(seen) / new_count);
+            ++seen;
+            if (seen == sizes[next_size]) {
+                consider(seen);
+                ++next_size;
+            }
+        }
+
+        if (have_planar)
+            return {best_normal, best_k};
+        return {fallback_normal, fallback_k};
+    }
+
     inline bool solve6x6(double A[6][6], double B[6], double X[6]) {
         // Augmented matrix
         float M[6][7];

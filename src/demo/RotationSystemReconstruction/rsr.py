@@ -48,14 +48,14 @@ if len(argv) > 1:
 
 else:
     # larger point cloud.
-    vertices, normals = obj_load('../../../data/PointClouds/owl-little.obj')
-    m = hrsr_recon_graph(vertices, normals, use_Euclid_dist=True, genus=0)
+    vertices, normals = obj_load('../../../data/PointClouds/owl-lines.obj')
+    m = hrsr_recon_graph(vertices, normals, use_Euclid_dist=True, genus=0, collapse_iters=3, num_neighbors=40)
     flip_orientation(m)
     # viewer.display(m, smooth=False, mode='g')
     save("owl.obj", m)
 
-    # Object with non-zero genus
-    vertices, normals = obj_load('../../../data/PointClouds/Capital_A.obj')
-    m = hrsr_recon_graph(vertices, normals, use_Euclid_dist=True, genus=1, max_handle_dist=10)
-    viewer.display(m, smooth=False, mode='g', reset_view=True)
-    save("A.obj", m)
+    # # Object with non-zero genus
+    # vertices, normals = obj_load('../../../data/PointClouds/Capital_A.obj')
+    # m = hrsr_recon_graph(vertices, normals, use_Euclid_dist=True, genus=1, max_handle_dist=10)
+    # viewer.display(m, smooth=False, mode='g', reset_view=True)
+    # save("A.obj", m)

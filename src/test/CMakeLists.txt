@@ -36,6 +36,8 @@ add_subdirectory(CGLA-mat)
 add_subdirectory(CGLA-simple)
 add_subdirectory(CGLA-vec)
 add_subdirectory(Geometry-kdtree)
+add_subdirectory(Geometry-normal)
+add_subdirectory(Hierarchical-collapse)
 add_subdirectory(Util-Assert)
 add_subdirectory(Manifold)
 

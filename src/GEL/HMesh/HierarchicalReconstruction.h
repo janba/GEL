@@ -11,6 +11,10 @@
 #include <vector>
 #include <numbers>
 
+namespace Geometry {
+struct CloudNeighborhood;
+}
+
 namespace HMesh::RSR
 {
 
@@ -127,9 +131,9 @@ struct ReexpandOpts {
     /// is created during the vertex splitting phase, that expansion is penalized with
     /// min_angle_threshold_penalty.
     double min_angle_threshold = std::numbers::pi / 180.0 * 3.0;
-    /// How much to penalize vertex splits that create triangles with minimum
-    /// angles below min_angle_threshold. The value is absolute so pretty much
-    /// any nonzero value will rule out those triangles.
+    /// Added to the equilateral-deviation score when a split creates a corner
+    /// below min_angle_threshold. The deviation itself grows as that corner
+    /// gets sharper.
     double min_angle_threshold_penalty = 0.1;
     /// Debug options
     ReexpandDebug debug_opts = ReexpandDebug();
@@ -184,7 +188,8 @@ public:
     friend auto collapse_points(
         const std::vector<CGLA::Vec3d>& vertices,
         const std::vector<CGLA::Vec3d>& normals,
-        const CollapseOpts& opts
+        const CollapseOpts& opts,
+        Geometry::CloudNeighborhood& neighborhood
     ) -> std::pair<Collapse, SimplifiedCloud>;
 
     friend void reexpand_points(
@@ -203,6 +208,18 @@ auto collapse_points(
     const std::vector<CGLA::Vec3d>& vertices,
     const std::vector<CGLA::Vec3d>& normals,
     const CollapseOpts& opts = CollapseOpts()
+) -> std::pair<Collapse, SimplifiedCloud>;
+
+/// Same contraction. `neighborhood` supplies the seed edges when it is the
+/// exact seed search of `vertices` (`reconstruction_neighbors`, or
+/// `initial_neighbors` when that is zero). The one-ring radius is recorded
+/// on that same search. Any other neighborhood is left unused and the seed
+/// search is done here.
+auto collapse_points(
+    const std::vector<CGLA::Vec3d>& vertices,
+    const std::vector<CGLA::Vec3d>& normals,
+    const CollapseOpts& opts,
+    Geometry::CloudNeighborhood& neighborhood
 ) -> std::pair<Collapse, SimplifiedCloud>;
 
 /// Perform the reexpansion phase of the hierarchical reconstruction, using a manifold acquired

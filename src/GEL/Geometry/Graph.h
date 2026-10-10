@@ -9,7 +9,9 @@
 #ifndef GEOMETRY_GRAPH_H
 #define GEOMETRY_GRAPH_H
 
+#include <algorithm>
 #include <queue>
+#include <utility>
 #include <vector>
 #include <limits>
 #include <GEL/CGLA/Vec.h>
@@ -20,9 +22,9 @@
 namespace Geometry {
     
 /** AMGraph means adjacency map graph. It is a simple graph class that is similar to an adjacency list.
- the difference is that the adjacency is given by a map from node id to edge id instead of a list. The
- reason for this is that we can still iterate over all adjacent nodes (the keys) but we can also find
- ids for the concrete edges. This class is not abstract but also not intended for direct usage. There are no
+ Each node stores its neighbors in a vector of (neighbor id, edge id) pairs, sorted by neighbor id.
+ Iteration still yields the adjacent nodes, and each entry still carries the id of that edge.
+ Lookup is a binary search. This class is not abstract but also not intended for direct usage. There are no
  attributes for nodes or edges and it is not possible to remove nodes or edges from instances of this
  class. Look to the derived AMGraph3D.
  */
@@ -38,9 +40,75 @@ namespace Geometry {
 
         /// ID type for edges
         using EdgeID = size_t;
-        
-        /// The adjacency map class
-        using AdjMap = Util::HashMap<NodeID, EdgeID>;
+
+        /// Neighbors of one node, sorted by node id. Each entry is the neighbor and the edge that reaches it.
+        class AdjMap {
+            std::vector<std::pair<NodeID, EdgeID>> entries;
+        public:
+            using value_type = std::pair<NodeID, EdgeID>;
+            using iterator = std::vector<value_type>::iterator;
+            using const_iterator = std::vector<value_type>::const_iterator;
+
+            [[nodiscard]] iterator begin() { return entries.begin(); }
+            [[nodiscard]] iterator end() { return entries.end(); }
+            [[nodiscard]] const_iterator begin() const { return entries.begin(); }
+            [[nodiscard]] const_iterator end() const { return entries.end(); }
+
+            [[nodiscard]] size_t size() const { return entries.size(); }
+            [[nodiscard]] bool empty() const { return entries.empty(); }
+            void clear() { entries.clear(); }
+
+            [[nodiscard]] iterator find(const NodeID key)
+            {
+                const auto it = lower(key);
+                return found(it, key) ? it : entries.end();
+            }
+
+            [[nodiscard]] const_iterator find(const NodeID key) const
+            {
+                const auto it = lower(key);
+                return found(it, key) ? it : entries.end();
+            }
+
+            [[nodiscard]] bool contains(const NodeID key) const
+            {
+                return find(key) != entries.end();
+            }
+
+            /// Inserts edge id 0 when the neighbor is absent.
+            EdgeID& operator[](const NodeID key)
+            {
+                const auto it = lower(key);
+                if (found(it, key))
+                    return it->second;
+                return entries.insert(it, value_type{key, EdgeID{}})->second;
+            }
+
+            size_t erase(const NodeID key)
+            {
+                const auto it = lower(key);
+                if (!found(it, key))
+                    return 0;
+                entries.erase(it);
+                return 1;
+            }
+
+        private:
+            [[nodiscard]] iterator lower(const NodeID key)
+            {
+                return std::ranges::lower_bound(entries, key, {}, &value_type::first);
+            }
+
+            [[nodiscard]] const_iterator lower(const NodeID key) const
+            {
+                return std::ranges::lower_bound(entries, key, {}, &value_type::first);
+            }
+
+            [[nodiscard]] bool found(const const_iterator it, const NodeID key) const
+            {
+                return it != entries.end() && it->first == key;
+            }
+        };
 
         /// Special ID value for invalid node
 		static constexpr NodeID InvalidNodeID = std::numeric_limits<size_t>::max();

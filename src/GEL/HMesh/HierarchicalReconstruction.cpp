@@ -9,6 +9,7 @@
 #include <GEL/Geometry/NeighborUtil.h>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/HMesh/obj_save.h>
+#include <algorithm>
 #include <numbers>
 #include <optional>
 #include <unordered_map>
@@ -90,9 +91,16 @@ private:
     Util::AttribVec<EdgeID, double> m_edges;
     /// True when the edge is currently stored in `m_collapse_queue`.
     /// Edges of the reconstruction neighborhood that are longer than the one-ring
-    /// stay in the graph with this flag clear.
+    /// stay out of `AMGraph` and live in `m_long`.
     Util::AttribVec<EdgeID, char> m_in_queue{0};
     bool m_limit_to_ring = false;
+    /// Non-contractable reconstruction edges, stored at both ends. The collapse
+    /// queue and `AMGraph` hold only the one-ring.
+    std::vector<std::vector<NodeID>> m_long;
+    /// Scratch marks so a merge retargets an edge once. `m_touch[id] == m_touch_stamp`
+    /// means the active star already updated that neighbor.
+    std::vector<size_t> m_touch;
+    size_t m_touch_stamp = 0;
 
 public:
     /// Insert a vertex
@@ -100,6 +108,10 @@ public:
     {
         const NodeID n = AMGraph::add_node();
         m_vertices[n] = Vertex{.position = position, .normal = normal};
+        if (m_long.size() <= n)
+            m_long.resize(n + 1);
+        if (m_touch.size() <= n)
+            m_touch.resize(n + 1);
         return n;
     }
 
@@ -137,6 +149,14 @@ public:
         }
     }
 
+    /// Write `contract_scale` from `one_ring_radius`. Used on iteration 0 when
+    /// the seed search already reaches the one-ring and every node is live.
+    void assign_contract_scales(const Geometry::CloudNeighborhood& neighborhood)
+    {
+        for (NodeID id = 0; id < m_vertices.size(); ++id)
+            m_vertices[id].contract_scale = neighborhood.points[id].one_ring_radius;
+    }
+
     /// Recompute queue keys from current positions and put back only the edges
     /// that are still inside the one-ring.
     void rebuild_collapse_queue()
@@ -145,22 +165,37 @@ public:
         const size_t queued = m_in_queue.size();
         for (size_t i = 0; i < queued; ++i)
             m_in_queue[static_cast<EdgeID>(i)] = 0;
+
+        std::vector<std::pair<NodeID, NodeID>> edges;
         for (NodeID n0 = 0; n0 < m_vertices.size(); ++n0) {
             if (!live_vertex(n0))
                 continue;
             for (const NodeID n1 : AMGraph::neighbors_lazy(n0)) {
                 if (n0 < n1 && live_vertex(n1))
-                    requeue_edge(n0, n1);
+                    edges.emplace_back(n0, n1);
+            }
+            if (n0 < m_long.size()) {
+                for (const NodeID n1 : m_long[n0]) {
+                    if (n0 < n1 && live_vertex(n1))
+                        edges.emplace_back(n0, n1);
+                }
             }
         }
+        for (const auto& edge : edges)
+            connect_nodes(edge.first, edge.second);
     }
 
     /// Insert an edge into the graph. It enters the priority queue only when it
-    /// is short enough to collapse.
+    /// is short enough to collapse. Longer reconstruction edges stay in `m_long`.
     auto connect_nodes(const NodeID n0, const NodeID n1) -> EdgeID
     {
         if (!(n1 > n0) || !live_vertex(n0) || !live_vertex(n1))
             return InvalidEdgeID;
+        if (m_limit_to_ring && !edge_is_contractable(n0, n1)) {
+            demote_to_long(n0, n1);
+            return InvalidEdgeID;
+        }
+        remove_long_edge(n0, n1);
         const EdgeID e = AMGraph::connect_nodes(n0, n1);
         if (m_in_queue[e]) {
             (void)m_collapse_queue.extract(Edge{n0, n1, m_edges[e]});
@@ -168,10 +203,8 @@ public:
         }
         const double dist = distance_function(n0, n1).second;
         m_edges[e] = dist;
-        if (edge_is_contractable(n0, n1)) {
-            m_collapse_queue.emplace(n0, n1, dist);
-            m_in_queue[e] = 1;
-        }
+        m_collapse_queue.emplace(n0, n1, dist);
+        m_in_queue[e] = 1;
         return e;
     }
 
@@ -192,13 +225,20 @@ public:
             if (collapsed_id == AMGraph::InvalidEdgeID)
                 continue;
             m_in_queue[collapsed_id] = 0;
-            if (!edge_is_contractable(active, latent))
+            if (!edge_is_contractable(active, latent)) {
+                demote_to_long(active, latent);
                 continue;
+            }
 
             const auto active_coords = m_vertices[active].position;
             const auto latent_coords = m_vertices[latent].position;
             GEL_ASSERT_FALSE(active_coords.any([](auto d){ return std::isnan(d); }));
             GEL_ASSERT_FALSE(latent_coords.any([](auto d){ return std::isnan(d); }));
+
+            const auto active_short = incident_ids(active);
+            const auto latent_short = incident_ids(latent);
+            const auto active_long = long_ids(active);
+            const auto latent_long = long_ids(latent);
 
             // recalculate current edges
             unqueue_incident(active);
@@ -219,16 +259,32 @@ public:
             m_vertices[latent].position = Point(std::numeric_limits<double>::signaling_NaN());
             m_vertices[latent].normal = Vec3(std::numeric_limits<double>::signaling_NaN());
 
-            // recalculate current edges
-            for (auto v : AMGraph::neighbors_lazy(active)) {
-                auto [v0, v1] = std::minmax(v, active);
-                connect_nodes(v0, v1);
+            if (++m_touch_stamp == 0) {
+                std::fill(m_touch.begin(), m_touch.end(), 0);
+                m_touch_stamp = 1;
             }
+            for (const NodeID v : active_short)
+                touch(v);
+            for (const NodeID v : active_long)
+                touch(v);
 
-            for (auto v : AMGraph::neighbors_lazy(latent)) {
-                auto [v0, v1] = std::minmax(v, active);
-                connect_nodes(v0, v1);
+            for (const NodeID v : active_short)
+                relink(active, latent, v);
+            for (const NodeID v : active_long)
+                relink(active, latent, v);
+            for (const NodeID v : latent_short) {
+                if (touched(v))
+                    continue;
+                relink(active, latent, v);
             }
+            for (const NodeID v : latent_long) {
+                remove_long_edge(latent, v);
+                if (touched(v))
+                    continue;
+                relink(active, latent, v);
+            }
+            if (latent < m_long.size())
+                m_long[latent].clear();
             AMGraph::erase_node(latent);
 
             return RawCollapse{
@@ -268,7 +324,13 @@ public:
             if (remap[i] == InvalidNodeID)
                 continue;
             for (const auto neighbor : AMGraph::neighbors_lazy(i)) {
-                if (i < neighbor && remap[neighbor] != InvalidNodeID)
+                if (i < neighbor && neighbor < remap.size() && remap[neighbor] != InvalidNodeID)
+                    out.graph.graph.connect_nodes(remap[i], remap[neighbor]);
+            }
+            if (i >= m_long.size())
+                continue;
+            for (const NodeID neighbor : m_long[i]) {
+                if (i < neighbor && neighbor < remap.size() && remap[neighbor] != InvalidNodeID)
                     out.graph.graph.connect_nodes(remap[i], remap[neighbor]);
             }
         }
@@ -309,16 +371,90 @@ private:
         }
     }
 
-    void requeue_edge(const NodeID n0, const NodeID n1)
+    [[nodiscard]]
+    std::vector<NodeID> incident_ids(const NodeID node) const
+    {
+        std::vector<NodeID> ids;
+        for (const NodeID neighbor : AMGraph::neighbors_lazy(node))
+            ids.push_back(neighbor);
+        return ids;
+    }
+
+    [[nodiscard]]
+    std::vector<NodeID> long_ids(const NodeID node) const
+    {
+        if (node >= m_long.size())
+            return {};
+        return m_long[node];
+    }
+
+    void touch(const NodeID id)
+    {
+        if (id < m_touch.size())
+            m_touch[id] = m_touch_stamp;
+    }
+
+    [[nodiscard]]
+    bool touched(const NodeID id) const
+    {
+        return id < m_touch.size() && m_touch[id] == m_touch_stamp;
+    }
+
+    /// Point `active` just absorbed `latent`. Reclassify the edge from `active` to `v`.
+    void relink(const NodeID active, const NodeID latent, const NodeID v)
+    {
+        if (v == latent || v == active || !live_vertex(v))
+            return;
+        const auto [v0, v1] = std::minmax(v, active);
+        connect_nodes(v0, v1);
+    }
+
+    void add_long_edge(const NodeID n0, const NodeID n1)
+    {
+        auto push_unique = [this](const NodeID from, const NodeID to) {
+            if (from >= m_long.size())
+                m_long.resize(from + 1);
+            auto& list = m_long[from];
+            for (const NodeID existing : list) {
+                if (existing == to)
+                    return;
+            }
+            list.push_back(to);
+        };
+        push_unique(n0, n1);
+        push_unique(n1, n0);
+    }
+
+    void remove_long_edge(const NodeID n0, const NodeID n1)
+    {
+        auto erase_one = [this](const NodeID from, const NodeID to) {
+            if (from >= m_long.size())
+                return;
+            auto& list = m_long[from];
+            for (size_t i = 0; i < list.size(); ++i) {
+                if (list[i] != to)
+                    continue;
+                list[i] = list.back();
+                list.pop_back();
+                return;
+            }
+        };
+        erase_one(n0, n1);
+        erase_one(n1, n0);
+    }
+
+    /// Take a non-contractable edge out of the queue and the short graph.
+    void demote_to_long(const NodeID n0, const NodeID n1)
     {
         const EdgeID e = AMGraph::find_edge(n0, n1);
-        if (e == AMGraph::InvalidEdgeID)
-            return;
-        m_edges[e] = distance_function(n0, n1).second;
-        if (!edge_is_contractable(n0, n1))
-            return;
-        m_collapse_queue.emplace(n0, n1, m_edges[e]);
-        m_in_queue[e] = 1;
+        if (e != AMGraph::InvalidEdgeID) {
+            if (m_in_queue[e]) {
+                (void)m_collapse_queue.extract(Edge{n0, n1, m_edges[e]});
+                m_in_queue[e] = 0;
+            }
+            AMGraph::erase_edge(n0, n1);
+        }
+        add_long_edge(n0, n1);
     }
 
     /// Returns the optimal point and the collapse distance for two vertices
@@ -393,20 +529,15 @@ double optimize_min_angle(
             opposing_distance = lengths[i];
         }
     }
-    // Calculating acos directly is actually rather slow
-    auto min_angle_acos = std::acos(min_angle_);
-    //1 - min_angle_; // ol reliable
-    // Attempt to avoid recalculating this. Probably better to get rid of this function altogether
-    // than to eliminate this.
-    if (min_angle_ > angle_threshold_cos) {
-        return angle_threshold_penalty;
-    } else {
-        auto score = std::abs(
-            std::numbers::pi / 3.0
-            //0.5
-            - min_angle_acos);
-        return score * shortest * angle_factor;
-    }
+    // Largest positive cosine is the smallest corner. Score is its deviation
+    // from 60 degrees, times the shortest edge. A corner below the threshold
+    // pays angle_threshold_penalty on top of that deviation.
+    const auto min_angle_acos = std::acos(min_angle_);
+    const auto deviation = std::abs(std::numbers::pi / 3.0 - min_angle_acos);
+    double score = deviation * shortest * angle_factor;
+    if (min_angle_ > angle_threshold_cos)
+        score += angle_threshold_penalty;
+    return score;
 }
 
 /// Information about a split
@@ -935,6 +1066,14 @@ void export_graph(const CollapseGraph& g, const std::string& out_path)
 auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>& normals,
                      const CollapseOpts& opts) -> std::pair<Collapse, SimplifiedCloud>
 {
+    Geometry::CloudNeighborhood unused;
+    return collapse_points(vertices, normals, opts, unused);
+}
+
+auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>& normals,
+                     const CollapseOpts& opts, Geometry::CloudNeighborhood& supplied)
+    -> std::pair<Collapse, SimplifiedCloud>
+{
     if (opts.max_iterations == 0) {
         SimplifiedCloud simplified;
         simplified.cloud.points = vertices;
@@ -956,14 +1095,7 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
     for (auto i = 0UL; i < vertices.size(); ++i) {
         graph.add_node(vertices[i], normals[i]);
     }
-    auto indices = [&vertices] {
-        std::vector<NodeID> temp(vertices.size());
-        std::iota(temp.begin(), temp.end(), 0);
-        return temp;
-    }();
 
-    Geometry::Tree kd_tree;
-    Geometry::build_kd_tree_of_indices(vertices, indices, kd_tree);
     // The reconstruction neighborhood is the graph RsR would build. Only the
     // one-ring edges of that graph are allowed into the collapse queue.
     // The original path seeds the one-ring alone and may collapse every edge.
@@ -971,12 +1103,29 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
     const size_t seed_neighbors = reconstruction_graph
         ? opts.reconstruction_neighbors
         : opts.initial_neighbors;
+    const int seed_count = static_cast<int>(seed_neighbors);
+
+    // One seed search supplies the edges. When it already reaches the one-ring,
+    // `one_ring_radius` is the contractable scale. Later iterations search again
+    // because the points have moved.
+    Geometry::CloudNeighborhood searched;
+    Geometry::CloudNeighborhood* seed = &supplied;
+    if (!supplied.has_exact_search(vertices.size(), seed_count)) {
+        std::vector<NodeID> indices(vertices.size());
+        std::iota(indices.begin(), indices.end(), 0);
+        Geometry::Tree kd_tree;
+        Geometry::build_kd_tree_of_indices(vertices, indices, kd_tree);
+        searched = Geometry::search_neighborhoods(pool, vertices, kd_tree, seed_count);
+        seed = &searched;
+    }
     if (reconstruction_graph) {
         graph.limit_collapses_to_ring();
-        graph.refresh_contract_scales(std::max<size_t>(opts.initial_neighbors, 1));
+        const size_t ring_size = std::max<size_t>(opts.initial_neighbors, 1);
+        if (seed->note_one_ring(static_cast<int>(ring_size)))
+            graph.assign_contract_scales(*seed);
+        else
+            graph.refresh_contract_scales(ring_size);
     }
-    const auto neighbor_map = Geometry::calculate_neighbors(pool, vertices, kd_tree,
-                                                            static_cast<int>(seed_neighbors));
 
     const bool is_euclidean = opts.distance == Distance::Euclidean;
     const double cos_thresh = is_euclidean
@@ -984,9 +1133,10 @@ auto collapse_points(const std::vector<Point>& vertices, const std::vector<Vec3>
         : std::cos(opts.max_normal_ang / 180.0 * std::numbers::pi);
 
     // This also initializes distances
-    for (const auto& neighbors : neighbor_map) {
-        const NodeID this_id = neighbors[0].id;
-        for (const auto& neighbor : neighbors | std::views::drop(1)) {
+    for (const Geometry::PointNeighborhood& sample : seed->points) {
+        const Geometry::NeighborArray& nearest = sample.nearest;
+        const NodeID this_id = nearest[0].id;
+        for (const auto& neighbor : nearest | std::views::drop(1)) {
             const double cos_theta = CGLA::dot(normals[neighbor.id], normals[this_id]);
             if (reconstruction_graph) {
                 if (cos_theta < cos_thresh)
@@ -1612,38 +1762,35 @@ void reexpand_points(Manifold& manifold, const Collapse& collapse, const Reexpan
                     // Check if both face align with original normal, if not, delete the new face and new edge
                     // First triangle
                     if (manifold.walker(split_edge).face() != InvalidFaceID) {
-                        Vec3 v_split_edge = manifold.positions[manifold.walker(split_edge).vertex()] -
-                            manifold.positions[manifold.walker(split_edge).opp().vertex()];
-                        Vec3 v_next_edge = manifold.positions[manifold.walker(split_edge).next().vertex()] -
-                            manifold.positions[manifold.walker(split_edge).vertex()];
-                        if (CGLA::dot(CGLA::cross(v_next_edge, -v_split_edge), org_norm) < 0.) {
-                            HalfEdgeID to_remove = manifold.walker(split_edge).next().halfedge();
-                            HalfEdgeID to_remove_2 = manifold.walker(to_remove).next().halfedge();
-                            if (manifold.walker(to_remove).opp().face() == InvalidFaceID)
-                                manifold.remove_edge(to_remove);
-                            else if (manifold.walker(to_remove_2).opp().face() == InvalidFaceID)
-                                manifold.remove_edge(to_remove_2);
+                            Vec3 v_split_edge = manifold.positions[manifold.walker(split_edge).vertex()] -
+                                manifold.positions[manifold.walker(split_edge).opp().vertex()];
+                            Vec3 v_next_edge = manifold.positions[manifold.walker(split_edge).next().vertex()] -
+                                manifold.positions[manifold.walker(split_edge).vertex()];
+                            if (CGLA::dot(CGLA::cross(v_next_edge, -v_split_edge), org_norm) < 0.) {
+                                HalfEdgeID to_remove = manifold.walker(split_edge).next().halfedge();
+                                HalfEdgeID to_remove_2 = manifold.walker(to_remove).next().halfedge();
+                                if (manifold.walker(to_remove).opp().face() == InvalidFaceID)
+                                    manifold.remove_edge(to_remove);
+                                else if (manifold.walker(to_remove_2).opp().face() == InvalidFaceID)
+                                    manifold.remove_edge(to_remove_2);
+                            }
                         }
-                        //std::cout << "Triangle " << manifold.walker(split_edge).next().vertex() << " removed" << std::endl;
-                    }
-                    // Second triangle
-                    HalfEdgeID split_edge_opp = manifold.walker(split_edge).opp().halfedge();
-                    if (manifold.walker(split_edge_opp).face() != InvalidFaceID) {
-                        Vec3 v_split_edge = manifold.positions[manifold.walker(split_edge_opp).vertex()] -
-                            manifold.positions[manifold.walker(split_edge_opp).opp().vertex()];
-                        Vec3 v_next_edge = manifold.positions[manifold.walker(split_edge_opp).next().vertex()] -
-                            manifold.positions[manifold.walker(split_edge_opp).vertex()];
-                        if (CGLA::dot(CGLA::cross(v_next_edge, -v_split_edge), org_norm) < 0.) {
-                            HalfEdgeID to_remove = manifold.walker(split_edge_opp).next().halfedge();
-                            HalfEdgeID to_remove_2 = manifold.walker(to_remove).next().halfedge();
-                            if (manifold.walker(to_remove).opp().face() == InvalidFaceID)
-                                manifold.remove_edge(to_remove);
-                            else if (manifold.walker(to_remove_2).opp().face() == InvalidFaceID)
-                                manifold.remove_edge(to_remove_2);
+                        // Second triangle
+                        HalfEdgeID split_edge_opp = manifold.walker(split_edge).opp().halfedge();
+                        if (manifold.walker(split_edge_opp).face() != InvalidFaceID) {
+                            Vec3 v_split_edge = manifold.positions[manifold.walker(split_edge_opp).vertex()] -
+                                manifold.positions[manifold.walker(split_edge_opp).opp().vertex()];
+                            Vec3 v_next_edge = manifold.positions[manifold.walker(split_edge_opp).next().vertex()] -
+                                manifold.positions[manifold.walker(split_edge_opp).vertex()];
+                            if (CGLA::dot(CGLA::cross(v_next_edge, -v_split_edge), org_norm) < 0.) {
+                                HalfEdgeID to_remove = manifold.walker(split_edge_opp).next().halfedge();
+                                HalfEdgeID to_remove_2 = manifold.walker(to_remove).next().halfedge();
+                                if (manifold.walker(to_remove).opp().face() == InvalidFaceID)
+                                    manifold.remove_edge(to_remove);
+                                else if (manifold.walker(to_remove_2).opp().face() == InvalidFaceID)
+                                    manifold.remove_edge(to_remove_2);
+                            }
                         }
-                        //std::cout << "Triangle " << manifold.walker(split_edge).next().vertex() << " removed" << std::endl;
-
-                    }
                 }
 
                 // Repair flipped triangles

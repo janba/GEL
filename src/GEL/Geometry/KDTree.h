@@ -158,10 +158,14 @@ public:
                             const ScalarType& dist,
                             std::vector<std::pair<KeyT, ValT>>& records) const;
         
+        /// `make` builds the queue record from a squared distance and a tree node.
+        /// The id-only search passes a function that leaves the position key in the tree.
+        template<class Record, class Make>
         void m_closest_priv(unsigned n,
                             const KeyType& p,
                             ScalarType& max_dist,
-                            detail::NQueue<KDTreeRecord<KeyT, ValT>>& nq) const;
+                            detail::NQueue<Record>& nq,
+                            Make& make) const;
         
         /** Finds the optimal discriminator. There are more ways, but this
          function traverses the vector and finds out what dimension has
@@ -287,7 +291,37 @@ public:
             {
                 ScalarType max_sq_dist = CGLA::sqr(dist);
                 detail::NQueue<KDTreeRecord<KeyT, ValT>> nq(m);
-                m_closest_priv(1, p, max_sq_dist, nq);
+                auto make = [](ScalarType d, const KDNode& node) {
+                    return KDTreeRecord<KeyT, ValT>(d, node.key, node.val);
+                };
+                m_closest_priv(1, p, max_sq_dist, nq, make);
+                nq.to_vector(nv);
+            }
+            return nv;
+        }
+
+        /// One nearest-neighbor hit without the position key. `d` is squared distance.
+        struct IdRecord {
+            ScalarType d = 0;
+            ValT v = {};
+            IdRecord() = default;
+            IdRecord(ScalarType dist, ValT val) : d(dist), v(val) {}
+            bool operator<(const IdRecord& other) const { return d < other.d; }
+        };
+
+        /// The `m` closest values within `dist`, ordered as a heap by squared distance.
+        /// The position keys stay in the tree.
+        std::vector<IdRecord> m_closest_ids(unsigned m, const KeyType& p, ScalarType dist) const {
+            assert(is_built);
+            std::vector<IdRecord> nv;
+            if(nodes.size()>1)
+            {
+                ScalarType max_sq_dist = CGLA::sqr(dist);
+                detail::NQueue<IdRecord> nq(m);
+                auto make = [](ScalarType d, const KDNode& node) {
+                    return IdRecord(d, node.val);
+                };
+                m_closest_priv(1, p, max_sq_dist, nq, make);
                 nq.to_vector(nv);
             }
             return nv;
@@ -439,15 +473,17 @@ public:
     }
     
     template<class KeyT, class ValT>
+    template<class Record, class Make>
     void KDTree<KeyT,ValT>::m_closest_priv(unsigned n,
                                            const KeyType& p,
                                            ScalarType& max_dist,
-                                           detail::NQueue<KDTreeRecord<KeyT, ValT>>& nq) const
+                                           detail::NQueue<Record>& nq,
+                                           Make& make) const
     {
         ScalarType dist = nodes[n].dist(p);
         assert(n<nodes.size());
         if(dist<max_dist) {
-            nq.push(KDTreeRecord<KeyT, ValT>(dist,nodes[n].key,nodes[n].val));
+            nq.push(make(dist, nodes[n]));
             if(nq.at_capacity())
                 max_dist = std::min(max_dist, nq.top().d);
         }
@@ -459,12 +495,12 @@ public:
             
             unsigned child_node = 2 * n + first_branch;
             if (child_node < nodes.size())
-                m_closest_priv(child_node, p, max_dist, nq);
+                m_closest_priv(child_node, p, max_dist, nq, make);
 
             if (dsc_dist < max_dist) {
                 child_node = 2 * n + 1 - first_branch;
                 if (child_node < nodes.size())
-                    m_closest_priv(child_node, p, max_dist, nq);
+                    m_closest_priv(child_node, p, max_dist, nq, make);
             }
         }
     }
