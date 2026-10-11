@@ -189,7 +189,9 @@ Walker functions provide low-level halfedge traversal:
 - `stable_marriage_registration(mesh, reference_mesh)` - Stable marriage registration
 
 ### Reconstruction
-- `rsr_recon(mesh, vertices, normals, v_num, n_num, isEuclidean, genus, k, r, theta, n)` - Rotation system reconstruction
+- `rsr_recon(vertices, normals=None, use_Euclid_dist=False, genus=-1, num_neighbors=70, max_neighbor_dist=20, max_normal_ang=60, max_handle_dist=50)` — Rotation system reconstruction. Empty `normals` are estimated. `genus` of `-1` detects handles, `0` adds none, and a positive value requests that many.
+- `hrsr_recon(..., collapse_iters=1, skip_reexpansion=False)` — Hierarchical RsR. Collapses a 5-neighbor graph, reconstructs the survivors from a new neighborhood, then reinserts the contracted points. `skip_reexpansion=True` keeps the coarse mesh.
+- `hrsr_recon_graph(...)` — Same arguments. The collapse graph is the RsR neighborhood. Only edges inside the local one-ring (5 neighbors by default) are contracted, and the surviving graph is given to RsR. See `doc/hrsr-graph-reconstruction.md`.
 
 ### Face Operations
 - `extrude_faces(mesh, face_list, output_face_list)` - Extrude faces

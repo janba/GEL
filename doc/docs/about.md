@@ -32,6 +32,7 @@ A mature and efficient implementation that enables:
 - **Local Separator Skeletonization**: Graph-based curve skeleton extraction
 - **Inverse Skeletonization**: Face Extrusion Quad (FEQ) mesh generation from graphs
 - **Rotation System Reconstruction**: Combinatorial point cloud reconstruction
+- **Hierarchical RsR**: Contracts the cloud before reconstruction (`hrsr_recon`, `hrsr_recon_graph`). `skip_reexpansion` keeps the coarse mesh
 - **Garland-Heckbert Simplification**: Quality mesh decimation
 - **Various Smoothing Methods**: Laplacian, Taubin, anisotropic, and more
 

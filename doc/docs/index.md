@@ -10,7 +10,7 @@ PyGEL3D is a collection of classes and functions for geometry processing tasks, 
 
 GEL contains several data structures for spatial data, and our mature halfedge data structure for polygonal meshes and a graph data structure are also exposed in PyGEL.
 
-Several algorithms developed as part of our research are exposed in GEL and PyGEL. For instance, the Rotations System Reconstruction (RSR) algorithm for reconstruction of triangle meshes from point clouds and the Local Separator Skeletonization method for extracting curve skeletons from anything represented as a spatially embedded graph are both implemented in this library.
+Several algorithms developed as part of our research are exposed in GEL and PyGEL. For instance, the Rotation System Reconstruction (RSR) algorithm for reconstruction of triangle meshes from point clouds, including the hierarchical variants `hrsr_recon` and `hrsr_recon_graph`, and the Local Separator Skeletonization method for extracting curve skeletons from anything represented as a spatially embedded graph are both implemented in this library.
 
 A number of standard techniques have also been implemented. For instance, Garland-Heckbert simplification, several schemes for subdivision, curvature computation methods, signed distance field computation, and a number of methods for smoothing (including feature preserving smoothing) are also provided by the library.
 

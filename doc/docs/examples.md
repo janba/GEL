@@ -259,6 +259,13 @@ points = np.stack([x.flatten(), y.flatten(), z.flatten()], axis=1)
 normals = points / np.linalg.norm(points, axis=1, keepdims=True)
 
 m = hmesh.rsr_recon(points, normals, max_normal_ang=10)
+
+# Hierarchical reconstruction from the contraction graph.
+# skip_reexpansion keeps the coarse mesh of the collapsed cloud.
+coarse = hmesh.hrsr_recon_graph(
+    points, normals, use_Euclid_dist=True, genus=0, skip_reexpansion=True)
+hmesh.save("reconstructed_coarse.obj", coarse)
+
 hmesh.close_holes(m, max_size=1000)
 hmesh.triangulate(m)
 for _ in range(5):
