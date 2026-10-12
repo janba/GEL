@@ -110,16 +110,9 @@ struct ReexpandOpts {
     /// this if you want to get a decimated reexpansion or want to debug the
     /// collapse phase.
     bool enabled = true;
-    /// Number of iterations of the optimization algorithm to run after a vertex
-    /// split. Setting this to 0 will substantial reduce the reconstruction
-    /// quality. Setting this to more than 1 will typically not improve the
-    /// quality much but substantially increase the runtime.
+    /// Unused by the link-flip repair. Kept so existing callers still compile.
     unsigned refinement_iterations = 1;
-    /// During the refinement phase, if an edge flip candidate has a corner
-    /// angle in radians that is _lower_ than this value, that edge will flipped
-    /// (if such a flip will not degenerate the mesh). Values around 22.5 degrees
-    /// seem to provide the best results. This option will most likely be removed
-    /// in the future.
+    /// Unused by the link-flip repair. Kept so existing callers still compile.
     double refinement_angle_threshold = std::numbers::pi / 180.0 * 22.5;
     /// How much weight should be given to the minimum angles during the vertex
     /// splitting phase. Giving some weights to minimum angles seem to avoid a

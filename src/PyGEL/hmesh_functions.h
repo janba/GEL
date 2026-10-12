@@ -114,15 +114,21 @@ extern "C" {
 
     DLLEXPORT void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr);
 
+    /// Oriented normals for a point array, using the same estimate as rsr_recon
+    /// when no normals are supplied. `normals` is a Fortran (N,3) buffer.
+    DLLEXPORT void rsr_normals(double* vertices, int vertex_count, double* normals,
+        bool use_Euclid_dist = false, int num_neighbors = 70);
+
     DLLEXPORT void rsr_recon(Manifold_ptr m_ptr, double* vertices,
         double* normals, int vertex_count, int normal_count, bool use_Euclid_dist = false, int genus = -1,
-        int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50);
+        int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50,
+        int max_hole_edges = 100);
 
     DLLEXPORT void hrsr_recon(Manifold_ptr m_ptr, double* vertices,
         double* normals, size_t vertex_count, size_t normal_count,
         int collapse_iters = 1, bool use_Euclid_dist = false,
         int genus = -1, int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50,
-        bool skip_reexpansion = false);
+        bool skip_reexpansion = false, int max_hole_edges = 100);
 
     /// Same arguments as hrsr_recon. Collapses the RsR neighborhood, but only
     /// contracts edges inside the one-ring. The remaining edges are triangulated.
@@ -130,7 +136,7 @@ extern "C" {
         double* normals, size_t vertex_count, size_t normal_count,
         int collapse_iters = 1, bool use_Euclid_dist = false,
         int genus = -1, int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50,
-        bool skip_reexpansion = false);
+        bool skip_reexpansion = false, int max_hole_edges = 100);
 
     DLLEXPORT void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr);
 

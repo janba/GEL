@@ -10,10 +10,13 @@
 
 #include <GEL/HMesh/RSRExperimental.h>
 
+#include <GEL/HMesh/cleanup.h>
 #include <GEL/HMesh/obj_save.h>
+#include <GEL/HMesh/triangulate.h>
 
 #include <ranges> // std::views
 #include <algorithm>
+#include <queue>
 //#include <GEL/Util/RangeTools.h>
 
 
@@ -866,10 +869,12 @@ SimpGraph minimum_spanning_tree(const SimpGraph& g, NodeID root)
     return gn;
 }
 
-/// @brief Determine the normal orientation
+/// @brief Orient normals by average-linkage clustering on the kNN graph.
+/// A tangent cut wants the two sides to agree. A tunnel cut wants them to
+/// face apart. The larger cluster keeps its sign; equal sizes keep the smaller id.
 /// @param neighborhood exact `k` search of `in_smoothed_v`
 /// @param in_smoothed_v positions the search was made on
-/// @param normals: [OUT] normal of the point cloud with orientation corrected
+/// @param normals [OUT] normals flipped for a consistent orientation
 /// @param k requested neighbor count of `neighborhood`
 void correct_normal_orientation(
     const CloudNeighborhood& neighborhood,
@@ -877,74 +882,131 @@ void correct_normal_orientation(
     std::vector<Vec3>& normals,
     const int k)
 {
-    /// The graph has the angles as weights
     GEL_ASSERT(neighborhood.has_exact_search(in_smoothed_v.size(), k));
+    const size_t point_count = in_smoothed_v.size();
 
-    SimpGraph g_angle;
-    AMGraph::NodeSet sets;
+    struct Cut {
+        double score_sum = 0;
+        double signed_sum = 0;
+        int count = 0;
+        int epoch = 0;
+    };
 
-    for (int i = 0; i < in_smoothed_v.size(); i++) {
-        sets.insert(g_angle.add_node());
+    struct Cluster {
+        Util::HashMap<NodeID, Cut> adjacent;
+        std::vector<NodeID> members;
+    };
+
+    /// Higher average wins. Equal averages prefer the smaller id, then the other id.
+    struct HeapEntry {
+        double average = 0;
+        NodeID lo = 0;
+        NodeID hi = 0;
+        int epoch = 0;
+
+        bool operator<(const HeapEntry& other) const
+        {
+            if (average != other.average)
+                return average < other.average;
+            if (lo != other.lo)
+                return lo > other.lo;
+            return hi > other.hi;
+        }
+    };
+
+    std::vector<NodeID> parent(point_count);
+    std::vector<Cluster> clusters(point_count);
+    for (size_t i = 0; i < point_count; ++i) {
+        parent[i] = i;
+        clusters[i].members.push_back(i);
     }
 
+    std::priority_queue<HeapEntry> heap;
+    const auto link = [&](NodeID a, NodeID b, const Cut& cut) {
+        GEL_ASSERT(cut.count > 0);
+        clusters[a].adjacent[b] = cut;
+        clusters[b].adjacent[a] = cut;
+        heap.push(HeapEntry{
+            cut.score_sum / static_cast<double>(cut.count),
+            std::min(a, b),
+            std::max(a, b),
+            cut.epoch});
+    };
 
-    // Init angle based graph
-    for (int i = 0; i < in_smoothed_v.size(); i++) {
-        const PointNeighborhood& sample = neighborhood.points[static_cast<size_t>(i)];
-        const NeighborArray& nearest = sample.nearest;
-        const auto& this_normal = normals[i];
-        const double scale = sample.farthest_distance;
-
-        for (const auto neighbor : nearest
-            | std::views::drop(1)
-            | std::views::filter([&i, &g_angle](auto&& nb) {
-                return g_angle.find_edge(i, nb.id) == AMGraph::InvalidEdgeID;
-                })
-            ) {
-            const auto& neighbor_normal = normals[neighbor.id];
-            const Vec3 edge = in_smoothed_v[neighbor.id] - in_smoothed_v[i];
-            const double edge_weight = orientation_edge_weight(this_normal, neighbor_normal, edge, scale);
-
-            g_angle.connect_nodes(i, neighbor.id, edge_weight);
+    for (size_t i = 0; i < point_count; ++i) {
+        for (const NeighborInfo& neighbor : neighborhood.points[i].nearest) {
+            if (neighbor.id == i)
+                continue;
+            const NodeID lo = std::min<NodeID>(i, neighbor.id);
+            const NodeID hi = std::max<NodeID>(i, neighbor.id);
+            if (clusters[lo].adjacent.contains(hi))
+                continue;
+            const Vec3 edge = in_smoothed_v[hi] - in_smoothed_v[lo];
+            const OrientationClusterEvidence evidence =
+                orientation_cluster_evidence(normals[lo], normals[hi], edge);
+            link(lo, hi, Cut{evidence.score, evidence.signed_evidence, 1, 1});
         }
     }
-    std::cout << "Graph construction done" << std::endl;
 
-    const auto components_vec = connected_components(g_angle.inner(), sets);
+    while (!heap.empty()) {
+        const HeapEntry entry = heap.top();
+        heap.pop();
+        if (parent[entry.lo] != entry.lo || parent[entry.hi] != entry.hi)
+            continue;
+        const auto found = clusters[entry.lo].adjacent.find(entry.hi);
+        if (found == clusters[entry.lo].adjacent.end() || found->second.epoch != entry.epoch)
+            continue;
 
-    std::cout << "Connected components processing done" << std::endl;
-    // The number of components and their relative sizes is inconsistent, don't parallelize this
-    for (const auto& i : components_vec) {
-        NodeID root = *i.begin();
-        SimpGraph mst_angle = minimum_spanning_tree(g_angle, root);
+        const Cut cut = found->second;
+        const bool hi_larger =
+            clusters[entry.hi].members.size() > clusters[entry.lo].members.size();
+        const NodeID survivor = hi_larger ? entry.hi : entry.lo;
+        const NodeID absorbed = hi_larger ? entry.lo : entry.hi;
 
-        /// A trivial wrapper over bool to avoid the std::vector<bool> specialization
-        struct Boolean {
-            bool inner;
-        };
-        auto visited_vertex = std::vector(g_angle.no_nodes(), Boolean{false});
+        if (cut.signed_sum < 0.0) {
+            for (const NodeID member : clusters[absorbed].members)
+                normals[member] = -normals[member];
+            for (auto& adjacent : clusters[absorbed].adjacent)
+                adjacent.second.signed_sum = -adjacent.second.signed_sum;
+        }
 
-        // This uses the MST to visit every node
-        // Start from the root
-        std::queue<NodeID> to_visit;
-        to_visit.push(root);
-        while (!to_visit.empty()) {
-            const NodeID node_id = to_visit.front();
-            to_visit.pop();
+        std::vector<NodeID> neighbors;
+        neighbors.reserve(clusters[absorbed].adjacent.size());
+        for (const auto& adjacent : clusters[absorbed].adjacent)
+            neighbors.push_back(adjacent.first);
+        std::sort(neighbors.begin(), neighbors.end());
 
-            visited_vertex[node_id].inner = true;
-            const Vec3 this_normal = normals[node_id];
-            for (auto vd : mst_angle.neighbors_lazy(node_id)) {
-                if (!visited_vertex[vd].inner) {
-                    to_visit.push(vd);
-                    const Vec3 neighbor_normal = normals[vd];
-                    if (dot(this_normal, neighbor_normal) < 0) {
-                        normals[vd] = -normals[vd];
-                    }
-                }
+        for (const NodeID other : neighbors) {
+            if (other == survivor)
+                continue;
+            GEL_ASSERT(parent[other] == other);
+            const Cut absorbed_cut = clusters[absorbed].adjacent[other];
+            const auto existing = clusters[survivor].adjacent.find(other);
+            Cut merged;
+            if (existing == clusters[survivor].adjacent.end()) {
+                merged = absorbed_cut;
+                merged.epoch = 1;
+            } else {
+                merged.score_sum = existing->second.score_sum + absorbed_cut.score_sum;
+                merged.signed_sum = existing->second.signed_sum + absorbed_cut.signed_sum;
+                merged.count = existing->second.count + absorbed_cut.count;
+                merged.epoch = existing->second.epoch + 1;
             }
+            clusters[other].adjacent.erase(absorbed);
+            link(survivor, other, merged);
         }
+
+        clusters[survivor].adjacent.erase(absorbed);
+        clusters[survivor].members.insert(
+            clusters[survivor].members.end(),
+            clusters[absorbed].members.begin(),
+            clusters[absorbed].members.end());
+        parent[absorbed] = survivor;
+        clusters[absorbed].members.clear();
+        clusters[absorbed].adjacent.clear();
     }
+
+    std::cout << "Orientation clustering done" << std::endl;
 }
 
 void init_face_loop_label(RSGraph& g)
@@ -1985,13 +2047,16 @@ void reconstruct_from_graph(
     const RSROpts& opts,
     Util::RSRTimer& inner_timer,
     Manifold& res,
-    const bool triangulate_tree)
+    const bool /*triangulate_tree*/)
 {
     std::cout << "Init mst" << std::endl;
     RSGraph mst;
     mst.reserve(vertices.size(), opts.num_neighbors);
 
     std::vector<PEdgeLength> edge_length;
+    // Graph edges past the conservative cap. Tried after handles, while still
+    // within each endpoint's longest angle-accepted neighbor.
+    std::vector<PEdgeLength> deferred_edges;
     inner_timer.start("build_mst");
 
     inner_timer.start("edge_length");
@@ -2003,9 +2068,15 @@ void reconstruct_from_graph(
                     ? edge.length()
                     : cal_proj_dist(edge, normals[node], normals[node_neighbor]);
 
-                if (len > connection_lengths[node].pre_max_length ||
-                    len > connection_lengths[node_neighbor].pre_max_length)
+                const bool past_conservative_cap =
+                    len > connection_lengths[node].pre_max_length ||
+                    len > connection_lengths[node_neighbor].pre_max_length;
+                if (past_conservative_cap) {
+                    if (len <= connection_lengths[node].max_length &&
+                        len <= connection_lengths[node_neighbor].max_length)
+                        deferred_edges.emplace_back(TEdge(node, node_neighbor), len);
                     continue;
+                }
                 edge_length.emplace_back(TEdge(node, node_neighbor), len);
             }
         }
@@ -2014,6 +2085,7 @@ void reconstruct_from_graph(
 
     inner_timer.start("sort");
     std::ranges::sort(edge_length, edge_comparator);
+    std::ranges::sort(deferred_edges, edge_comparator);
     inner_timer.end("sort");
 
     build_mst(graph, 0, mst, normals, smoothed_v, opts.dist == Distance::Euclidean);
@@ -2027,42 +2099,66 @@ void reconstruct_from_graph(
     flattened_face.reserve(vertices.size() * 2 * 3); // A fairly reasonable heuristic
 
     std::vector<std::pair<Point, NodeID>> neighbors;
-    inner_timer.start("edge_connection");
-    for (auto& [this_edge, edge_len] : edge_length) {
-        if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
-            vanilla_check(mst, this_edge, kd_tree, neighbors)) {
-            auto result = register_face(mst, this_edge.from, this_edge.to);
-            if (result.has_value()) {
-                mst.add_edge(this_edge.from, this_edge.to);
-                mst.maintain_face_loop(this_edge.from, this_edge.to);
-                for (const auto& face : result->faces) {
-                    add_face(mst, face, flattened_face);
+    const auto connect_edges = [&](const std::vector<PEdgeLength>& candidates) {
+        for (const PEdgeLength& candidate : candidates) {
+            const TEdge& this_edge = candidate.edge;
+            if (mst.find_edge(this_edge.from, this_edge.to) == RSGraph::InvalidEdgeID &&
+                vanilla_check(mst, this_edge, kd_tree, neighbors)) {
+                auto result = register_face(mst, this_edge.from, this_edge.to);
+                if (result.has_value()) {
+                    mst.add_edge(this_edge.from, this_edge.to);
+                    mst.maintain_face_loop(this_edge.from, this_edge.to);
+                    for (const auto& face : result->faces) {
+                        add_face(mst, face, flattened_face);
+                    }
                 }
             }
         }
-    }
+    };
+
+    inner_timer.start("edge_connection");
+    connect_edges(edge_length);
     inner_timer.end("edge_connection");
     std::cout << "edge length length: " << edge_length.size() << "\n";
+    std::cout << "deferred edge length: " << deferred_edges.size() << "\n";
 
-    // Handle insertion is requested by a non-zero genus. Triangulating the
-    // spanning tree is separate: a dense nearest-neighbor graph already supplies
-    // those faces during edge connection, but the contraction graph does not.
-    inner_timer.start("triangulation");
+    // Handle insertion is requested by a non-zero genus. The edges withheld by
+    // the conservative cap are tried once that insertion is finished, including
+    // when genus is 0 and no handles were requested. Chord filling runs for
+    // every genus after that pass: it can add a chord between successive
+    // rotation-system neighbors that was never an edge of the graph. A dense
+    // nearest-neighbor graph already supplies many of those faces during edge
+    // connection; the contraction graph does not.
     std::vector<NodeID> connected_handle_root;
     if (opts.genus != 0) {
+        inner_timer.start("connect_handle");
         connect_handle(smoothed_v, kd_tree, mst, connected_handle_root, opts.num_neighbors, opts.max_handle_dist,
                        opts.dist == Distance::Euclidean, opts.genus);
+        inner_timer.end("connect_handle");
     }
-    if (opts.genus != 0 || triangulate_tree) {
-        SimpGraph g;
-        triangulate(flattened_face, mst, g, opts.dist == Distance::Euclidean, connection_lengths, connected_handle_root);
-    }
+
+    inner_timer.start("edge_connection_after_handles");
+    connect_edges(deferred_edges);
+    inner_timer.end("edge_connection_after_handles");
+
+    inner_timer.start("triangulation");
+    SimpGraph g;
+    triangulate(flattened_face, mst, g, opts.dist == Distance::Euclidean, connection_lengths, connected_handle_root);
     inner_timer.end("triangulation");
 
     inner_timer.start("build_manifold");
 
     build_manifold(res, vertices, flattened_face, 3);
     inner_timer.end("build_manifold");
+
+    // Caps left after chord filling. Loops longer than max_hole_edges stay open,
+    // which keeps a long outer boundary from being sealed.
+    if (opts.max_hole_edges > 0) {
+        inner_timer.start("close_holes");
+        HMesh::close_holes(res, opts.max_hole_edges);
+        HMesh::triangulate(res, HMesh::CLIP_EAR);
+        inner_timer.end("close_holes");
+    }
 
     std::cout << "\n";
     inner_timer.show();
@@ -2151,9 +2247,11 @@ void graph_to_mesh(const ReconstructionGraph& graph, const RSROpts& opts, Manifo
         Tree kd_tree;
         build_kd_tree_of_indices(positions, std::views::iota(0UL, positions.size()), kd_tree);
 
-        // Length limits match a nearest-neighbor reconstruction. Edges already
-        // in the contracted graph that are longer than that rank are not turned
-        // into faces. The spanning tree is filled only for handle insertion.
+        // The first face pass uses the same conservative rank as a nearest-neighbor
+        // reconstruction. After handles, remaining graph edges within each
+        // endpoint's longest accepted neighbor are tried. Longer edges stay out
+        // of the mesh. Chord filling runs for every genus. Boundary loops no
+        // longer than max_hole_edges are then closed and ear-clipped.
         std::vector<ConnectionLength> connection_lengths;
         set_connection_lengths(positions, normals, kd_tree, opts, connection_lengths);
         std::cout << "reconstruction graph edges: " << sub.no_edges() << "\n";
@@ -2367,6 +2465,22 @@ OrientedCloud prepare_oriented_cloud(
             neighborhood = {};
     }
     return {std::move(vertices_copy), std::move(normals_copy), std::move(neighborhood)};
+}
+
+void point_cloud_normals(
+    const std::vector<Point>& vertices,
+    const RSROpts& opts,
+    std::vector<Vec3>& normals)
+{
+    normals.clear();
+    if (vertices.empty())
+        return;
+
+    Util::RSRTimer timer;
+    ThreadPool pool;
+    OrientedCloud oriented = prepare_oriented_cloud(
+        vertices, {}, opts.dist, opts.num_neighbors, timer, pool);
+    normals = std::move(oriented.normals);
 }
 
 void point_cloud_to_mesh(

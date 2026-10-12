@@ -161,10 +161,43 @@ namespace Geometry
         return angle_cost + tunnel_cost;
     }
 
+    /// Evidence that one kNN edge should join two orientation clusters.
+    /// `score` is high when the normals are parallel or anti-parallel and the
+    /// edge is either tangent to both or a tunnel along both. Flipping a
+    /// normal does not change it. `signed_evidence` is positive when the
+    /// current signs already match that edge: a tangent edge wants the normals
+    /// to agree, and a tunnel edge wants them to face apart.
+    struct OrientationClusterEvidence {
+        double score = 0;
+        double signed_evidence = 0;
+    };
+
+    inline OrientationClusterEvidence orientation_cluster_evidence(
+        const CGLA::Vec3d& n0, const CGLA::Vec3d& n1, const CGLA::Vec3d& edge)
+    {
+        const double edge_length = edge.length();
+        const double n0_length = n0.length();
+        const double n1_length = n1.length();
+        if (!(edge_length > 1e-12) || !(n0_length > 1e-12) || !(n1_length > 1e-12))
+            return {};
+
+        const CGLA::Vec3d direction = edge / edge_length;
+        const CGLA::Vec3d u0 = n0 / n0_length;
+        const CGLA::Vec3d u1 = n1 / n1_length;
+        const double along0 = std::clamp(std::abs(CGLA::dot(u0, direction)), 0.0, 1.0);
+        const double along1 = std::clamp(std::abs(CGLA::dot(u1, direction)), 0.0, 1.0);
+        const double tangent = (1.0 - along0) * (1.0 - along1);
+        const double tunnel = along0 * along1;
+        const double geometry = std::max(tangent, tunnel);
+        const double agreement = std::clamp(CGLA::dot(u0, u1), -1.0, 1.0);
+        const double preferred = (tangent >= tunnel) ? agreement : -agreement;
+        return {std::abs(agreement) * geometry, preferred * geometry};
+    }
+
     /// Largest neighborhood scored by estimateNormalAdaptive.
     inline constexpr int ADAPTIVE_NORMAL_K_MAX = 192;
     /// Prefixes of a distance-sorted neighborhood. Count includes the query point.
-    inline constexpr std::array<int, 9> ADAPTIVE_NORMAL_SCHEDULE = {8, 12, 18, 27, 40, 60, 90, 128, 192};
+    inline constexpr std::array<int, 13> ADAPTIVE_NORMAL_SCHEDULE = {8, 10, 12, 14, 16, 20, 25, 30, 40, 50, 64, 128, 192};
     /// λ2 / λ1 below this is a line. Eigenentropy would prefer it over a plane.
     inline constexpr double ADAPTIVE_NORMAL_MIN_PLANAR_RATIO = 0.15;
     /// Scores within this band of the minimum keep the smaller neighborhood.

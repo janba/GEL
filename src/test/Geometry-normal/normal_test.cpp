@@ -3,6 +3,7 @@
 #include <doctest.h>
 
 #include <GEL/Geometry/normal.h>
+#include <GEL/HMesh/RSRExperimental.h>
 
 #include <cmath>
 #include <numbers>
@@ -105,7 +106,7 @@ TEST_CASE("a line is rejected and the crease keeps the sheet normal")
         crease.emplace_back((i - 6) * 0.15, (i % 2 == 0) ? 1.0 : -1.0, 0.0);
 
     const Geometry::AdaptiveNormal estimated = Geometry::estimateNormalAdaptive(crease);
-    CHECK(estimated.k == 40);
+    CHECK(estimated.k == 30);
     CHECK(angle_degrees(estimated.normal, z_axis) < 5.0);
 }
 
@@ -125,6 +126,72 @@ TEST_CASE("orientation weight penalizes an edge along the normal")
     CHECK(std::abs(tunnel - 2.0) < 1e-8);
     CHECK(tunnel > corner);
     CHECK(std::abs(unscaled - 1.0) < 1e-8);
+}
+
+TEST_CASE("orientation cluster score favors tangent and tunnel evidence")
+{
+    const Vec3d up(0, 0, 1);
+    const Vec3d down(0, 0, -1);
+    const Vec3d tangent_edge(2, 0, 0);
+    const Vec3d tunnel_edge(0, 0, 3);
+
+    const auto tangent_parallel = Geometry::orientation_cluster_evidence(up, up, tangent_edge);
+    const auto tangent_anti = Geometry::orientation_cluster_evidence(up, down, tangent_edge);
+    const auto tunnel_parallel = Geometry::orientation_cluster_evidence(up, up, tunnel_edge);
+    const auto tunnel_anti = Geometry::orientation_cluster_evidence(up, down, tunnel_edge);
+    const auto angled = Geometry::orientation_cluster_evidence(up, up, Vec3d(1, 0, 1));
+    const auto degenerate = Geometry::orientation_cluster_evidence(up, up, Vec3d(0, 0, 0));
+    const auto zero_normal = Geometry::orientation_cluster_evidence(Vec3d(0, 0, 0), up, tangent_edge);
+
+    CHECK(std::abs(tangent_parallel.score - 1.0) < 1e-8);
+    CHECK(std::abs(tangent_anti.score - 1.0) < 1e-8);
+    CHECK(std::abs(tunnel_parallel.score - 1.0) < 1e-8);
+    CHECK(std::abs(tunnel_anti.score - 1.0) < 1e-8);
+    CHECK(std::abs(angled.score - 0.5) < 1e-8);
+    CHECK(degenerate.score == 0.0);
+    CHECK(degenerate.signed_evidence == 0.0);
+    CHECK(zero_normal.score == 0.0);
+    CHECK(zero_normal.signed_evidence == 0.0);
+
+    CHECK(std::abs(tangent_parallel.signed_evidence - 1.0) < 1e-8);
+    CHECK(std::abs(tangent_anti.signed_evidence - (-1.0)) < 1e-8);
+    CHECK(std::abs(tunnel_parallel.signed_evidence - (-1.0)) < 1e-8);
+    CHECK(std::abs(tunnel_anti.signed_evidence - 1.0) < 1e-8);
+}
+
+TEST_CASE("two close sheets keep opposite orientations")
+{
+    std::vector<Vec3d> points;
+    points.reserve(72);
+    for (int sheet = 0; sheet < 2; ++sheet) {
+        const double z = sheet * 0.15;
+        for (int y = 0; y < 6; ++y)
+            for (int x = 0; x < 6; ++x)
+                points.emplace_back(x * 0.5, y * 0.5, z);
+    }
+
+    HMesh::RSR::RSROpts opts;
+    opts.dist = HMesh::RSR::Distance::Euclidean;
+    opts.num_neighbors = 20;
+
+    std::vector<Vec3d> normals;
+    HMesh::RSR::point_cloud_normals(points, opts, normals);
+    REQUIRE(normals.size() == points.size());
+
+    const auto mean_of = [&](int begin, int end) {
+        Vec3d sum(0);
+        for (int i = begin; i < end; ++i)
+            sum += normals[static_cast<size_t>(i)];
+        return CGLA::normalize(sum);
+    };
+    const Vec3d mean0 = mean_of(0, 36);
+    const Vec3d mean1 = mean_of(36, 72);
+
+    for (int i = 0; i < 36; ++i)
+        CHECK(CGLA::dot(CGLA::normalize(normals[static_cast<size_t>(i)]), mean0) > 0.9);
+    for (int i = 36; i < 72; ++i)
+        CHECK(CGLA::dot(CGLA::normalize(normals[static_cast<size_t>(i)]), mean1) > 0.9);
+    CHECK(CGLA::dot(mean0, mean1) < -0.5);
 }
 
 TEST_CASE("fewer than eight points uses the whole cloud")

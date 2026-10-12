@@ -46,6 +46,10 @@ struct RSROpts {
     /// distance which tends to work much better with noisy meshes but
     /// with substantial quality loss in smooth meshes.
     Distance dist = Distance::Euclidean;
+    /// Largest boundary loop, measured in edges, that is replaced by a
+    /// face after reconstruction and then ear-clipped into triangles.
+    /// A non-positive value leaves every boundary loop open.
+    int32_t max_hole_edges = 100;
 };
 
 // Algorithm
@@ -60,6 +64,13 @@ void point_cloud_to_mesh(const std::vector<CGLA::Vec3d>& vertices_in,
                          const std::vector<CGLA::Vec3d>& normals_in,
                          const RSROpts& opts,
                          HMesh::Manifold& result);
+
+/// One oriented normal per input point, computed the way reconstruction does
+/// when the caller supplies no normals. `opts.dist` selects the Euclidean or
+/// tangent estimate. `opts.num_neighbors` is the orientation graph.
+void point_cloud_normals(const std::vector<CGLA::Vec3d>& vertices,
+                         const RSROpts& opts,
+                         std::vector<CGLA::Vec3d>& normals);
 
 /// Reconstruct a manifold from one undirected graph.
 /// The graph is split into connected components. Faces come from the

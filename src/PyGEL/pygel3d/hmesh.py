@@ -16,7 +16,7 @@ __all__ = [
     'cc_subdivide', 'loop_subdivide', 'volume_preserving_cc_smooth', 'regularize_quads', 'loop_smooth',
     'taubin_smooth', 'laplacian_smooth', 'anisotropic_smooth', 'volumetric_isocontour', 'triangulate',
     'extrude_faces', 'kill_face_loop', 'kill_degenerate_face_loops', 'graph_to_feq', 'skeleton_to_feq',
-    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_recon', 'hrsr_recon', 'hrsr_recon_graph', 'connected_components',
+    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_normals', 'rsr_recon', 'hrsr_recon', 'hrsr_recon_graph', 'connected_components',
     'count_boundary_curves', 'analyze_topology', 'sphere_delaunay'
 ]
 
@@ -1010,6 +1010,24 @@ def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wt: float = 0.5, lap_w
         v_pos[:,:] = np.stack([opt_x, opt_y, opt_z], axis=1)
 
 
+def rsr_normals(vertices: ArrayLike,
+               use_Euclid_dist: bool=False,
+               num_neighbors: int=70) -> ndarray:
+    """ Oriented normals for a point cloud.
+
+        This is the estimate used by rsr_recon, hrsr_recon, and hrsr_recon_graph
+        when normals are omitted: an adaptive covariance normal at each point,
+        then orientation along a minimum spanning tree of num_neighbors.
+        use_Euclid_dist selects the Euclidean or tangent-distance estimate.
+        The result has one unit normal per input point, in the same order.
+    """
+    vertices_data, n_vertices = _as_vec3_f(vertices)
+    normals = np.zeros((n_vertices, 3), dtype=ct.c_double, order='F')
+    if n_vertices == 0:
+        return normals
+    lib_py_gel.rsr_normals(vertices_data, n_vertices, normals, use_Euclid_dist, num_neighbors)
+    return np.array(normals, order='C', copy=True)
+
 def rsr_recon(vertices: ArrayLike, 
               normals: ArrayLike=None, 
               use_Euclid_dist: bool=False, 
@@ -1017,7 +1035,8 @@ def rsr_recon(vertices: ArrayLike,
               num_neighbors: int=70,
               max_neighbor_dist: float=20,
               max_normal_ang: float=60,
-              max_handle_dist: int=50) -> Manifold:
+              max_handle_dist: int=50,
+              max_hole_edges: int=10) -> Manifold:
     """ RsR Reconstruction. The first argument, vertices, is the point cloud. The next argument,
         normals, are the normals associated with the vertices or empty list (default) if normals 
         need to be estimated during reconstruction. use_Euclid_dist should be true if we 
@@ -1027,15 +1046,17 @@ def rsr_recon(vertices: ArrayLike,
         of nearest neighbors for each point,
         max_neighbor_dist is the maximum distance to farthest neighbor measured in multiples of average distance, 
         max_normal_ang is the threshold on angles between normals: two points are only connected if the angle
-        between their normals is less than max_normal_ang. Finally, max_handle_dist is the threshold on the distance between 
+        between their normals is less than max_normal_ang. max_handle_dist is the threshold on the distance between 
         vertices that are connected by handle edges (check paper). For large max_handle_dist, it is harder for 
-        the algorithm to add handles. """
+        the algorithm to add handles. max_hole_edges is the largest boundary loop, in edges, that is replaced
+        by a face and then ear-clipped. A non-positive value leaves every boundary loop open. """
     m = Manifold()
     vertices_data, n_vertices = _as_vec3_f(vertices)
     normal_data, n_normal = _as_vec3_f(normals)
 
     lib_py_gel.rsr_recon(m.obj, vertices_data, normal_data, n_vertices, n_normal, 
-                         use_Euclid_dist, genus, num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist)
+                         use_Euclid_dist, genus, num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist,
+                         max_hole_edges)
     return m
 
 def hrsr_recon(vertices: ArrayLike,
@@ -1047,11 +1068,13 @@ def hrsr_recon(vertices: ArrayLike,
                max_neighbor_dist: float=20,
                max_normal_ang: float=60,
                max_handle_dist: int=50,
-               skip_reexpansion: bool=False) -> Manifold:
+               skip_reexpansion: bool=False,
+               max_hole_edges: int=100) -> Manifold:
     """ Hierarchical RsR reconstruction.
         The arguments match rsr_recon, with two additions: collapse_iters controls
         how many collapse iterations to run, and skip_reexpansion disables the
-        final reexpansion stage when set to True.
+        final reexpansion stage when set to True. max_hole_edges is the same
+        boundary-loop limit as in rsr_recon.
 
         Genus semantics are intentionally the same as rsr_recon:
         - genus = -1: auto-detect
@@ -1064,7 +1087,8 @@ def hrsr_recon(vertices: ArrayLike,
 
     lib_py_gel.hrsr_recon(m.obj, vertices_data, normal_data, n_vertices, n_normal,
                           collapse_iters, use_Euclid_dist, genus,
-                          num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist, skip_reexpansion)
+                          num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist, skip_reexpansion,
+                          max_hole_edges)
     return m
 
 def hrsr_recon_graph(vertices: ArrayLike,
@@ -1076,7 +1100,8 @@ def hrsr_recon_graph(vertices: ArrayLike,
                      max_neighbor_dist: float=20,
                      max_normal_ang: float=60,
                      max_handle_dist: int=50,
-                     skip_reexpansion: bool=False) -> Manifold:
+                     skip_reexpansion: bool=False,
+                     max_hole_edges: int=100) -> Manifold:
     """ Hierarchical RsR reconstruction from the simplified contraction graph.
 
         The collapse graph is the same neighborhood RsR would build. Only edges
@@ -1092,7 +1117,8 @@ def hrsr_recon_graph(vertices: ArrayLike,
 
     lib_py_gel.hrsr_recon_graph(m.obj, vertices_data, normal_data, n_vertices, n_normal,
                                 collapse_iters, use_Euclid_dist, genus,
-                                num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist, skip_reexpansion)
+                                num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist, skip_reexpansion,
+                                max_hole_edges)
     return m
 
 def connected_components(m: Manifold) -> List[Manifold]:

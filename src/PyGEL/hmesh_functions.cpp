@@ -242,8 +242,31 @@ void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
     non_rigid_registration(*m_ptr, *m_ref_ptr);
 }
 
+void rsr_normals(double* vertices, int vertex_count, double* normals_out,
+                 bool use_Euclid_dist, int num_neighbors)
+{
+    vector<Vec3d> points;
+    points.reserve(vertex_count);
+    for (int i = 0; i < vertex_count; i++)
+        points.emplace_back(vertices[i], vertices[i + vertex_count], vertices[i + 2 * vertex_count]);
+
+    RSR::RSROpts opts;
+    opts.dist = use_Euclid_dist ? RSR::Distance::Euclidean : RSR::Distance::Tangent;
+    opts.num_neighbors = num_neighbors;
+
+    vector<Vec3d> normals;
+    RSR::point_cloud_normals(points, opts, normals);
+
+    for (int i = 0; i < vertex_count; i++) {
+        normals_out[i] = normals[i][0];
+        normals_out[i + vertex_count] = normals[i][1];
+        normals_out[i + 2 * vertex_count] = normals[i][2];
+    }
+}
+
 void rsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, int vertex_count, int normal_count,
-    bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist) {
+    bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist,
+    int max_hole_edges) {
 
     vector<Vec3d> point_cloud_vertices;
     vector<Vec3d> norm;
@@ -264,6 +287,7 @@ void rsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, int vertex
     opts.max_neighbor_dist = max_neighbor_dist;
     opts.max_normal_ang = max_normal_ang;
     opts.max_handle_dist = max_handle_dist;
+    opts.max_hole_edges = max_hole_edges;
 
     Manifold result;
     RSR::point_cloud_to_mesh(point_cloud_vertices, norm, opts, result);
@@ -299,7 +323,8 @@ void rsr_recon_experimental(Manifold_ptr m_ptr, double* vertices,
 }
 
 void hrsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, size_t vertex_count, size_t normal_count,
-    int collapse_iters, bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist, bool skip_reexpansion)
+    int collapse_iters, bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist, bool skip_reexpansion,
+    int max_hole_edges)
 {
     vector<Vec3d> point_cloud_vertices;
     vector<Vec3d> norm;
@@ -323,6 +348,7 @@ void hrsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, size_t ve
     rsr_opts.max_neighbor_dist = max_neighbor_dist;
     rsr_opts.max_normal_ang = max_normal_ang;
     rsr_opts.max_handle_dist = max_handle_dist;
+    rsr_opts.max_hole_edges = max_hole_edges;
     RSR::ReexpandOpts reexpand_opts;
     reexpand_opts.enabled = !skip_reexpansion;
 
@@ -332,7 +358,8 @@ void hrsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, size_t ve
 }
 
 void hrsr_recon_graph(Manifold_ptr m_ptr, double* vertices, double* normals, size_t vertex_count, size_t normal_count,
-    int collapse_iters, bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist, bool skip_reexpansion)
+    int collapse_iters, bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist, bool skip_reexpansion,
+    int max_hole_edges)
 {
     vector<Vec3d> point_cloud_vertices;
     vector<Vec3d> norm;
@@ -356,6 +383,7 @@ void hrsr_recon_graph(Manifold_ptr m_ptr, double* vertices, double* normals, siz
     rsr_opts.max_neighbor_dist = max_neighbor_dist;
     rsr_opts.max_normal_ang = max_normal_ang;
     rsr_opts.max_handle_dist = max_handle_dist;
+    rsr_opts.max_hole_edges = max_hole_edges;
     RSR::ReexpandOpts reexpand_opts;
     reexpand_opts.enabled = !skip_reexpansion;
 

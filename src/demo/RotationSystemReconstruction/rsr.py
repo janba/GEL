@@ -38,7 +38,7 @@ if len(argv) > 1:
 
     m = None
     if hierarchical:
-        m = hrsr_recon_graph(vertices, normals, num_neighbors=40, max_neighbor_dist = 5, use_Euclid_dist=True) 
+        m = hrsr_recon_graph(vertices, normals, num_neighbors=50, max_neighbor_dist = 5, use_Euclid_dist=True) 
     else:
         m = rsr_recon(vertices, normals, use_Euclid_dist=True)
 
@@ -49,7 +49,8 @@ if len(argv) > 1:
 else:
     # larger point cloud.
     vertices, normals = obj_load('../../../data/PointClouds/owl-lines.obj')
-    m = hrsr_recon_graph(vertices, normals, use_Euclid_dist=True, genus=0, collapse_iters=3, num_neighbors=40)
+    m = rsr_recon(vertices, normals, use_Euclid_dist=True)
+    # m = hrsr_recon_graph(vertices, normals, use_Euclid_dist=True, genus=0, collapse_iters=3, num_neighbors=40)
     flip_orientation(m)
     # viewer.display(m, smooth=False, mode='g')
     save("owl.obj", m)
