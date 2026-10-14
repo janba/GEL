@@ -26,7 +26,7 @@ jobs:
         env:
           MACOSX_DEPLOYMENT_TARGET: "11.0"
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: cibw-wheels-${{ matrix.os }}
           path: ./wheelhouse/*.whl
@@ -46,7 +46,7 @@ jobs:
           python -m pip install --upgrade pip build
           python -m build --sdist
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: cibw-sdist
           path: dist/*.tar.gz
