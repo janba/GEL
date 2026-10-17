@@ -368,15 +368,15 @@ TEST_CASE("link repair flips to a farther vertex when the minimum angle rises")
     const HMesh::VertexID kept = vertex_for(mesh, origin, 0);
     const HMesh::VertexID left = vertex_for(mesh, origin, 1);
     const HMesh::VertexID right = vertex_for(mesh, origin, 2);
-    const HMesh::VertexID far = vertex_for(mesh, origin, 3);
+    const HMesh::VertexID far_vertex = vertex_for(mesh, origin, 3);
     const HMesh::VertexID inserted = vertex_for(mesh, origin, 4);
     REQUIRE(mesh.no_faces() == 3);
     REQUIRE(vertices_connected(mesh, left, right));
-    REQUIRE_FALSE(vertices_connected(mesh, kept, far));
+    REQUIRE_FALSE(vertices_connected(mesh, kept, far_vertex));
 
     const size_t flips = HMesh::RSR::relax_reinserted_link(mesh, kept, inserted, points[0], Vec3d(0, 0, 1));
 
-    CHECK(vertices_connected(mesh, kept, far));
+    CHECK(vertices_connected(mesh, kept, far_vertex));
     CHECK_FALSE(vertices_connected(mesh, left, right));
     CHECK(mesh.no_faces() == 3);
     CHECK(mesh.no_vertices() == 5);
