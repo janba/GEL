@@ -44,6 +44,8 @@ DLLEXPORT void graph_combined_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntV
 
 DLLEXPORT void graph_minimum_spanning_tree(Graph_ptr g_ptr, Graph_ptr mst_ptr, int root);
 DLLEXPORT void graph_close_chordless_cycles(Graph_ptr g_ptr, int root, int hops, double rad);
+DLLEXPORT void graph_delaunay_edges(Graph_ptr g_ptr, const double* points, int count, double radius);
+DLLEXPORT void graph_gabriel_edges(Graph_ptr g_ptr, const double* points, int count, double radius);
 
 
 

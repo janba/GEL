@@ -288,3 +288,39 @@ def close_chordless_cycles(g: Graph, node: int = None, hops: int = 5, rad: float
             lib_py_gel.graph_close_chordless_cycles(g.obj, n, hops, rad)
     else:
         lib_py_gel.graph_close_chordless_cycles(g.obj, node, hops, rad)
+
+def _fortran_points(points: ArrayLike):
+    """Fortran (N, 3) array of sites, and the site count."""
+    a = np.asarray(points, dtype=ct.c_double)
+    if a.size == 0:
+        return np.zeros((0, 3), dtype=ct.c_double, order='F'), 0
+    n = int(a.shape[0]) if a.ndim >= 2 else int(a.size // 3)
+    return np.asfortranarray(np.reshape(a, (n, 3)), dtype=ct.c_double), n
+
+def delaunay_edges(points: ArrayLike, radius: float) -> Graph:
+    """Delaunay edges of length at most `radius`.
+
+    `points` has shape (N, 3). The graph has one node per point, in the
+    same order. A pair is connected when it is at most `radius` apart and
+    the Voronoi face between them meets the ball of radius `radius / 2`
+    around a site. The cube used to start each Voronoi cell is not part
+    of the graph. A short Delaunay edge whose face lies only farther away
+    than that, as with some slivers, is left out.
+    """
+    pts, n = _fortran_points(points)
+    g = Graph()
+    lib_py_gel.graph_delaunay_edges(g.obj, pts, n, float(radius))
+    return g
+
+def gabriel_edges(points: ArrayLike, radius: float) -> Graph:
+    """Gabriel edges of length at most `radius`.
+
+    `points` has shape (N, 3). The graph has one node per point, in the
+    same order. Two points are connected when they are at most `radius`
+    apart and the closed ball with that segment as diameter contains no
+    other input point.
+    """
+    pts, n = _fortran_points(points)
+    g = Graph()
+    lib_py_gel.graph_gabriel_edges(g.obj, pts, n, float(radius))
+    return g

@@ -350,6 +350,10 @@ lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_
 lib_py_gel.graph_combined_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,flags='C'), ct.c_int)
 lib_py_gel.graph_minimum_spanning_tree.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_int)
 lib_py_gel.graph_close_chordless_cycles.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_double)
+lib_py_gel.graph_delaunay_edges.restype = None
+lib_py_gel.graph_delaunay_edges.argtypes = (ct.c_void_p, ndpointer(ndim=2, dtype=ct.c_double, flags='F'), ct.c_int, ct.c_double)
+lib_py_gel.graph_gabriel_edges.restype = None
+lib_py_gel.graph_gabriel_edges.argtypes = (ct.c_void_p, ndpointer(ndim=2, dtype=ct.c_double, flags='F'), ct.c_int, ct.c_double)
 
 class IntVector:
     """ Vector of integer values.

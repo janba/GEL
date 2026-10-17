@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <string>
+#include <GEL/Geometry/Delaunay3D.h>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/graph_io.h>
 #include <GEL/Geometry/graph_skeletonize.h>
@@ -177,4 +178,24 @@ DLLEXPORT void graph_close_chordless_cycles(Graph_ptr _g_ptr, int _root, int hop
     AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
     auto root = AMGraph3D::NodeID(_root);
     close_chordless_cycles(*g_ptr, root, hops, rad);
+}
+
+static std::vector<CGLA::Vec3d> sites_from_columns(const double* points, int count) {
+    std::vector<CGLA::Vec3d> sites;
+    if (count > 0 && points != nullptr) {
+        sites.reserve(count);
+        for (int i = 0; i < count; ++i)
+            sites.emplace_back(points[i], points[i + count], points[i + 2 * count]);
+    }
+    return sites;
+}
+
+DLLEXPORT void graph_delaunay_edges(Graph_ptr _g_ptr, const double* points, int count, double radius) {
+    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
+    *g_ptr = delaunay_edges(sites_from_columns(points, count), radius);
+}
+
+DLLEXPORT void graph_gabriel_edges(Graph_ptr _g_ptr, const double* points, int count, double radius) {
+    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
+    *g_ptr = gabriel_edges(sites_from_columns(points, count), radius);
 }
