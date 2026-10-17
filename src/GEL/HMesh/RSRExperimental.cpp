@@ -16,6 +16,7 @@
 
 #include <ranges> // std::views
 #include <algorithm>
+#include <cstdint>
 #include <queue>
 //#include <GEL/Util/RangeTools.h>
 
@@ -869,9 +870,347 @@ SimpGraph minimum_spanning_tree(const SimpGraph& g, NodeID root)
     return gn;
 }
 
-/// @brief Orient normals by average-linkage clustering on the kNN graph.
-/// A tangent cut wants the two sides to agree. A tunnel cut wants them to
-/// face apart. The larger cluster keeps its sign; equal sizes keep the smaller id.
+/// Shortest-path tree on the same non-negative edge weights as the MST.
+/// The queue key is the path sum from `root`. The first time a node is
+/// removed, that path is shortest, and the edge that reached it enters the tree.
+SimpGraph shortest_path_tree(const SimpGraph& g, NodeID root)
+{
+    GEL_ASSERT_NEQ(root, AMGraph::InvalidNodeID);
+    SimpGraph tree;
+    for (const auto node : g.node_ids()) {
+        (void)node;
+        tree.add_node();
+    }
+
+    std::vector<char> settled(g.no_nodes(), 0);
+    settled[root] = 1;
+
+    struct QElem {
+        double distance;
+        NodeID from;
+        NodeID to;
+
+        bool operator>(const QElem& rhs) const
+        {
+            return distance > rhs.distance;
+        }
+    };
+    std::priority_queue<QElem, std::vector<QElem>, std::greater<>> queue;
+    for (const auto neighbor : g.neighbors_lazy(root))
+        queue.emplace(g.get_weight(root, neighbor), root, neighbor);
+
+    while (!queue.empty()) {
+        const auto [distance, from, to] = queue.top();
+        queue.pop();
+        if (settled[to])
+            continue;
+        settled[to] = 1;
+        tree.connect_nodes(from, to);
+
+        for (const auto neighbor : g.neighbors_lazy(to)) {
+            if (settled[neighbor])
+                continue;
+            queue.emplace(distance + g.get_weight(to, neighbor), to, neighbor);
+        }
+    }
+    return tree;
+}
+
+/// Undirected kNN graph. Each edge is stored once. Its cost is
+/// `orientation_edge_weight`, so an edge along the normals loses to a tangent edge.
+SimpGraph build_orientation_knn_graph(
+    const CloudNeighborhood& neighborhood,
+    const std::vector<Point>& points,
+    const std::vector<Vec3>& normals,
+    AMGraph::NodeSet& nodes)
+{
+    SimpGraph graph;
+    for (size_t i = 0; i < points.size(); ++i)
+        nodes.insert(graph.add_node());
+
+    for (size_t i = 0; i < points.size(); ++i) {
+        const PointNeighborhood& sample = neighborhood.points[i];
+        const NeighborArray& nearest = sample.nearest;
+        const Vec3& this_normal = normals[i];
+        const double scale = sample.farthest_distance;
+        const NodeID node = static_cast<NodeID>(i);
+
+        for (const auto& neighbor : nearest
+            | std::views::drop(1)
+            | std::views::filter([&](const NeighborInfo& candidate) {
+                return graph.find_edge(node, candidate.id) == AMGraph::InvalidEdgeID;
+            })) {
+            const Vec3 edge = points[neighbor.id] - points[i];
+            const double edge_weight = orientation_edge_weight(
+                this_normal, normals[neighbor.id], edge, scale);
+            graph.connect_nodes(node, neighbor.id, edge_weight);
+        }
+    }
+    return graph;
+}
+
+/// Walk `tree` from `root` and give each new vertex a sign from its parent.
+/// The child agrees, unless `cone_check` is set and the edge is a crossing.
+void propagate_orientation(
+    const SimpGraph& tree,
+    const NodeID root,
+    const CloudNeighborhood& neighborhood,
+    const std::vector<Point>& points,
+    std::vector<Vec3>& normals,
+    const bool cone_check,
+    std::vector<OrientationTreeEdge>* orientation_tree)
+{
+    struct Boolean {
+        bool inner = false;
+    };
+    std::vector<Boolean> visited(points.size());
+
+    std::queue<NodeID> to_visit;
+    to_visit.push(root);
+    while (!to_visit.empty()) {
+        const NodeID node_id = to_visit.front();
+        to_visit.pop();
+        visited[node_id].inner = true;
+        const Vec3 this_normal = normals[node_id];
+        for (const auto neighbor : tree.neighbors_lazy(node_id)) {
+            if (visited[neighbor].inner)
+                continue;
+            to_visit.push(neighbor);
+            const Vec3 toward_parent = points[node_id] - points[neighbor];
+            const double edge_length = toward_parent.length();
+            const bool cone_invoked = cone_check && orientation_edge_is_tough(
+                this_normal, normals[neighbor], toward_parent);
+            if (orientation_tree) {
+                orientation_tree->push_back(OrientationTreeEdge{
+                    static_cast<int>(node_id), static_cast<int>(neighbor), cone_invoked});
+            }
+            bool crossing = false;
+            if (cone_invoked) {
+                const Vec3 axis = orientation_cone_axis(normals[neighbor], toward_parent / edge_length);
+                int sheet_points = 0;
+                for (const auto& info : neighborhood.points[neighbor].nearest) {
+                    if (info.id == neighbor || info.id == node_id)
+                        continue;
+                    const Vec3 offset = points[info.id] - points[neighbor];
+                    if (orientation_cone_contains(offset, axis, edge_length))
+                        ++sheet_points;
+                }
+                crossing = sheet_points > 0;
+            }
+            // A crossing takes the opposite sign from the parent. A continuation agrees.
+            const bool disagree = dot(this_normal, normals[neighbor]) < 0.0;
+            if (disagree != crossing)
+                normals[neighbor] = -normals[neighbor];
+        }
+    }
+}
+
+/// Orient one component at a time. Both trees share the graph, the cost, the
+/// lowest-index root, and the flip. `shortest_path` selects Dijkstra.
+void orient_by_propagation_tree(
+    const CloudNeighborhood& neighborhood,
+    const std::vector<Point>& points,
+    std::vector<Vec3>& normals,
+    const int k,
+    const bool cone_check,
+    std::vector<OrientationTreeEdge>* orientation_tree,
+    const bool shortest_path)
+{
+    GEL_ASSERT(neighborhood.has_exact_search(points.size(), k));
+
+    AMGraph::NodeSet nodes;
+    const SimpGraph graph = build_orientation_knn_graph(neighborhood, points, normals, nodes);
+    std::cout << "Graph construction done" << std::endl;
+
+    const auto components = connected_components(graph.inner(), nodes);
+    std::cout << "Connected components processing done" << std::endl;
+
+    for (const auto& component : components) {
+        const NodeID root = *component.begin();
+        const SimpGraph tree = shortest_path
+            ? shortest_path_tree(graph, root)
+            : minimum_spanning_tree(graph, root);
+        propagate_orientation(
+            tree, root, neighborhood, points, normals, cone_check, orientation_tree);
+    }
+    std::cout << (shortest_path ? "Orientation SPT done" : "Orientation MST done") << std::endl;
+}
+
+/// Orient normals along a minimum spanning tree of the kNN graph.
+/// A child normally agrees with its parent. When `cone_check` is set, a tough
+/// edge whose cone toward the parent contains another sheet gives the child
+/// the opposite sign. Components do not exchange a sign.
+void correct_normal_orientation_mst(
+    const CloudNeighborhood& neighborhood,
+    const std::vector<Point>& in_smoothed_v,
+    std::vector<Vec3>& normals,
+    const int k,
+    const bool cone_check,
+    std::vector<OrientationTreeEdge>* orientation_tree)
+{
+    orient_by_propagation_tree(
+        neighborhood, in_smoothed_v, normals, k, cone_check, orientation_tree, false);
+}
+
+/// Same graph, cost, root, and flip as the MST. The tree is a shortest path
+/// tree: the queue key is the path sum from the root, not the single edge.
+void correct_normal_orientation_spt(
+    const CloudNeighborhood& neighborhood,
+    const std::vector<Point>& in_smoothed_v,
+    std::vector<Vec3>& normals,
+    const int k,
+    const bool cone_check,
+    std::vector<OrientationTreeEdge>* orientation_tree)
+{
+    orient_by_propagation_tree(
+        neighborhood, in_smoothed_v, normals, k, cone_check, orientation_tree, true);
+}
+
+/// Orient by joining confident tangent edges before any gap edge.
+/// Every join flips the smaller side so the two normals agree. A stack of
+/// edges that run along the normals cannot reverse a region the tangent
+/// edges have already connected, and it cannot outvote a shorter bridge.
+void correct_normal_orientation_clusters(
+    const CloudNeighborhood& neighborhood,
+    const std::vector<Point>& in_smoothed_v,
+    std::vector<Vec3>& normals,
+    const int k)
+{
+    GEL_ASSERT(neighborhood.has_exact_search(in_smoothed_v.size(), k));
+    const size_t point_count = in_smoothed_v.size();
+    GEL_ASSERT(point_count <= static_cast<size_t>(UINT32_MAX));
+
+    struct Link {
+        NodeID lo = 0;
+        NodeID hi = 0;
+        double tangent_score = 0;
+        double weight = 0;
+        bool tangent = false;
+    };
+
+    std::vector<Link> links;
+    {
+        std::vector<uint64_t> keys;
+        keys.reserve(point_count * static_cast<size_t>(std::max(k, 1)));
+        for (size_t i = 0; i < point_count; ++i) {
+            for (const NeighborInfo& neighbor : neighborhood.points[i].nearest) {
+                if (neighbor.id == i)
+                    continue;
+                const NodeID lo = std::min<NodeID>(i, neighbor.id);
+                const NodeID hi = std::max<NodeID>(i, neighbor.id);
+                keys.push_back((static_cast<uint64_t>(lo) << 32) | static_cast<uint32_t>(hi));
+            }
+        }
+        std::sort(keys.begin(), keys.end());
+        keys.erase(std::unique(keys.begin(), keys.end()), keys.end());
+
+        links.reserve(keys.size());
+        for (const uint64_t key : keys) {
+            const NodeID lo = static_cast<NodeID>(key >> 32);
+            const NodeID hi = static_cast<NodeID>(key & 0xffffffffu);
+            const Vec3 edge = in_smoothed_v[hi] - in_smoothed_v[lo];
+            const OrientationClusterEvidence evidence =
+                orientation_cluster_evidence(normals[lo], normals[hi], edge);
+            const double scale = std::max(
+                neighborhood.points[lo].farthest_distance,
+                neighborhood.points[hi].farthest_distance);
+            Link link;
+            link.lo = lo;
+            link.hi = hi;
+            // score = |n·m| * max(tangent, tunnel), so the ratio is |n·m|.
+            const double geometry = std::max(evidence.tangent, evidence.tunnel);
+            const double parallel = geometry > 1e-12 ? evidence.score / geometry : 0.0;
+            link.tangent_score = evidence.tangent * parallel;
+            link.tangent = evidence.tangent >= evidence.tunnel && link.tangent_score > 1e-4;
+            link.weight = orientation_edge_weight(normals[lo], normals[hi], edge, scale);
+            links.push_back(link);
+        }
+    }
+
+    struct SignFind {
+        std::vector<NodeID> parent;
+        std::vector<int> flip;
+        std::vector<int> size;
+
+        explicit SignFind(size_t count) : parent(count), flip(count, 0), size(count, 1)
+        {
+            for (size_t i = 0; i < count; ++i)
+                parent[i] = i;
+        }
+
+        std::pair<NodeID, int> find(NodeID x)
+        {
+            if (parent[x] == x)
+                return {x, 0};
+            const NodeID old_parent = parent[x];
+            const int old_flip = flip[x];
+            const auto [root, parent_parity] = find(old_parent);
+            parent[x] = root;
+            flip[x] = old_flip ^ parent_parity;
+            return {root, flip[x]};
+        }
+
+        void unite_agreement(NodeID a, NodeID b, double raw_dot)
+        {
+            auto [ra, pa] = find(a);
+            auto [rb, pb] = find(b);
+            if (ra == rb)
+                return;
+            const double effective = (pa ^ pb) ? -raw_dot : raw_dot;
+            // need_flip is an extra flip on top of the parities a and b already
+            // have. The absorbed root stores only that extra bit.
+            const bool need_flip = effective < 0.0;
+            NodeID survivor = ra;
+            NodeID absorbed = rb;
+            if (size[rb] > size[ra] || (size[rb] == size[ra] && rb < ra)) {
+                survivor = rb;
+                absorbed = ra;
+            }
+            parent[absorbed] = survivor;
+            flip[absorbed] = need_flip ? 1 : 0;
+            size[survivor] += size[absorbed];
+        }
+    };
+
+    SignFind signs(point_count);
+    std::vector<size_t> order(links.size());
+    for (size_t i = 0; i < order.size(); ++i)
+        order[i] = i;
+    std::sort(order.begin(), order.end(), [&](size_t i, size_t j) {
+        const Link& a = links[i];
+        const Link& b = links[j];
+        if (a.tangent != b.tangent)
+            return a.tangent && !b.tangent;
+        if (a.tangent) {
+            if (a.tangent_score != b.tangent_score)
+                return a.tangent_score > b.tangent_score;
+        } else if (a.weight != b.weight) {
+            return a.weight < b.weight;
+        }
+        if (a.lo != b.lo)
+            return a.lo < b.lo;
+        return a.hi < b.hi;
+    });
+
+    for (const size_t index : order) {
+        const Link& link = links[index];
+        const double raw_dot = dot(normals[link.lo], normals[link.hi]);
+        signs.unite_agreement(link.lo, link.hi, raw_dot);
+    }
+
+    for (size_t i = 0; i < point_count; ++i) {
+        const auto [root, parity] = signs.find(static_cast<NodeID>(i));
+        (void)root;
+        if (parity)
+            normals[i] = -normals[i];
+    }
+    std::cout << "Orientation clustering done" << std::endl;
+}
+
+/// @brief Orient normals on the kNN graph.
+/// Clustering joins tangent edges before gap edges and keeps normals in
+/// agreement. The minimum spanning tree is what reconstruction uses. The
+/// shortest-path tree is the same propagation on Dijkstra's tree.
 /// @param neighborhood exact `k` search of `in_smoothed_v`
 /// @param in_smoothed_v positions the search was made on
 /// @param normals [OUT] normals flipped for a consistent orientation
@@ -880,133 +1219,22 @@ void correct_normal_orientation(
     const CloudNeighborhood& neighborhood,
     const std::vector<Point>& in_smoothed_v,
     std::vector<Vec3>& normals,
-    const int k)
+    const int k,
+    NormalOrientation orientation,
+    const bool cone_check,
+    std::vector<OrientationTreeEdge>* orientation_tree)
 {
-    GEL_ASSERT(neighborhood.has_exact_search(in_smoothed_v.size(), k));
-    const size_t point_count = in_smoothed_v.size();
-
-    struct Cut {
-        double score_sum = 0;
-        double signed_sum = 0;
-        int count = 0;
-        int epoch = 0;
-    };
-
-    struct Cluster {
-        Util::HashMap<NodeID, Cut> adjacent;
-        std::vector<NodeID> members;
-    };
-
-    /// Higher average wins. Equal averages prefer the smaller id, then the other id.
-    struct HeapEntry {
-        double average = 0;
-        NodeID lo = 0;
-        NodeID hi = 0;
-        int epoch = 0;
-
-        bool operator<(const HeapEntry& other) const
-        {
-            if (average != other.average)
-                return average < other.average;
-            if (lo != other.lo)
-                return lo > other.lo;
-            return hi > other.hi;
-        }
-    };
-
-    std::vector<NodeID> parent(point_count);
-    std::vector<Cluster> clusters(point_count);
-    for (size_t i = 0; i < point_count; ++i) {
-        parent[i] = i;
-        clusters[i].members.push_back(i);
+    if (orientation == NormalOrientation::MinimumSpanningTree) {
+        correct_normal_orientation_mst(
+            neighborhood, in_smoothed_v, normals, k, cone_check, orientation_tree);
+        return;
     }
-
-    std::priority_queue<HeapEntry> heap;
-    const auto link = [&](NodeID a, NodeID b, const Cut& cut) {
-        GEL_ASSERT(cut.count > 0);
-        clusters[a].adjacent[b] = cut;
-        clusters[b].adjacent[a] = cut;
-        heap.push(HeapEntry{
-            cut.score_sum / static_cast<double>(cut.count),
-            std::min(a, b),
-            std::max(a, b),
-            cut.epoch});
-    };
-
-    for (size_t i = 0; i < point_count; ++i) {
-        for (const NeighborInfo& neighbor : neighborhood.points[i].nearest) {
-            if (neighbor.id == i)
-                continue;
-            const NodeID lo = std::min<NodeID>(i, neighbor.id);
-            const NodeID hi = std::max<NodeID>(i, neighbor.id);
-            if (clusters[lo].adjacent.contains(hi))
-                continue;
-            const Vec3 edge = in_smoothed_v[hi] - in_smoothed_v[lo];
-            const OrientationClusterEvidence evidence =
-                orientation_cluster_evidence(normals[lo], normals[hi], edge);
-            link(lo, hi, Cut{evidence.score, evidence.signed_evidence, 1, 1});
-        }
+    if (orientation == NormalOrientation::ShortestPathTree) {
+        correct_normal_orientation_spt(
+            neighborhood, in_smoothed_v, normals, k, cone_check, orientation_tree);
+        return;
     }
-
-    while (!heap.empty()) {
-        const HeapEntry entry = heap.top();
-        heap.pop();
-        if (parent[entry.lo] != entry.lo || parent[entry.hi] != entry.hi)
-            continue;
-        const auto found = clusters[entry.lo].adjacent.find(entry.hi);
-        if (found == clusters[entry.lo].adjacent.end() || found->second.epoch != entry.epoch)
-            continue;
-
-        const Cut cut = found->second;
-        const bool hi_larger =
-            clusters[entry.hi].members.size() > clusters[entry.lo].members.size();
-        const NodeID survivor = hi_larger ? entry.hi : entry.lo;
-        const NodeID absorbed = hi_larger ? entry.lo : entry.hi;
-
-        if (cut.signed_sum < 0.0) {
-            for (const NodeID member : clusters[absorbed].members)
-                normals[member] = -normals[member];
-            for (auto& adjacent : clusters[absorbed].adjacent)
-                adjacent.second.signed_sum = -adjacent.second.signed_sum;
-        }
-
-        std::vector<NodeID> neighbors;
-        neighbors.reserve(clusters[absorbed].adjacent.size());
-        for (const auto& adjacent : clusters[absorbed].adjacent)
-            neighbors.push_back(adjacent.first);
-        std::sort(neighbors.begin(), neighbors.end());
-
-        for (const NodeID other : neighbors) {
-            if (other == survivor)
-                continue;
-            GEL_ASSERT(parent[other] == other);
-            const Cut absorbed_cut = clusters[absorbed].adjacent[other];
-            const auto existing = clusters[survivor].adjacent.find(other);
-            Cut merged;
-            if (existing == clusters[survivor].adjacent.end()) {
-                merged = absorbed_cut;
-                merged.epoch = 1;
-            } else {
-                merged.score_sum = existing->second.score_sum + absorbed_cut.score_sum;
-                merged.signed_sum = existing->second.signed_sum + absorbed_cut.signed_sum;
-                merged.count = existing->second.count + absorbed_cut.count;
-                merged.epoch = existing->second.epoch + 1;
-            }
-            clusters[other].adjacent.erase(absorbed);
-            link(survivor, other, merged);
-        }
-
-        clusters[survivor].adjacent.erase(absorbed);
-        clusters[survivor].members.insert(
-            clusters[survivor].members.end(),
-            clusters[absorbed].members.begin(),
-            clusters[absorbed].members.end());
-        parent[absorbed] = survivor;
-        clusters[absorbed].members.clear();
-        clusters[absorbed].adjacent.clear();
-    }
-
-    std::cout << "Orientation clustering done" << std::endl;
+    correct_normal_orientation_clusters(neighborhood, in_smoothed_v, normals, k);
 }
 
 void init_face_loop_label(RSGraph& g)
@@ -1818,8 +2046,6 @@ auto estimate_normals_no_normals(
         estimate_normals_from_neighborhood(pool, smoothed_v, final_neighbors, normals);
     }
 
-    // DEBUG
-    std::cout << "Smoothing done!" << std::endl;
     GEL_ASSERT_EQ(vertices.size(), normals.size());
     return;
 }
@@ -2420,7 +2646,10 @@ OrientedCloud prepare_oriented_cloud(
     Distance distance,
     int neighbor_count,
     Util::RSRTimer& timer,
-    ThreadPool& pool)
+    ThreadPool& pool,
+    NormalOrientation orientation = NormalOrientation::MinimumSpanningTree,
+    bool cone_check = false,
+    std::vector<OrientationTreeEdge>* orientation_tree = nullptr)
 {
     timer.start("Validation");
     if (!normals_in.empty()) {
@@ -2447,7 +2676,15 @@ OrientedCloud prepare_oriented_cloud(
 
     CloudNeighborhood neighborhood;
     if (normals_in.empty()) {
-        std::cout << "correct normal orientation\n";
+        const char* method_name = "cluster";
+        if (orientation == NormalOrientation::MinimumSpanningTree)
+            method_name = "mst";
+        else if (orientation == NormalOrientation::ShortestPathTree)
+            method_name = "spt";
+        const bool use_cone = cone_check && orientation != NormalOrientation::Clustering;
+        std::cout << "correct normal orientation (" << method_name
+                  << (use_cone ? ", cone" : "")
+                  << ")\n";
         timer.start("Correct normal orientation");
         // Euclidean orientation uses the returned vertices. Tangent orientation uses the
         // smoothed positions, which collapse does not keep.
@@ -2457,7 +2694,9 @@ OrientedCloud prepare_oriented_cloud(
         Tree kd_tree;
         build_kd_tree_of_indices(orientation_points, indices, kd_tree);
         neighborhood = search_neighborhoods(pool, orientation_points, kd_tree, neighbor_count);
-        correct_normal_orientation(neighborhood, orientation_points, normals_copy, neighbor_count);
+        correct_normal_orientation(
+            neighborhood, orientation_points, normals_copy, neighbor_count, orientation, cone_check,
+            orientation_tree);
         timer.end("Correct normal orientation");
         if (euclidean)
             GEL_ASSERT(neighborhood.note_reconstruction_cap(neighbor_count));
@@ -2470,16 +2709,23 @@ OrientedCloud prepare_oriented_cloud(
 void point_cloud_normals(
     const std::vector<Point>& vertices,
     const RSROpts& opts,
-    std::vector<Vec3>& normals)
+    std::vector<Vec3>& normals,
+    NormalOrientation orientation,
+    std::vector<OrientationTreeEdge>* orientation_tree)
 {
     normals.clear();
+    if (orientation_tree)
+        orientation_tree->clear();
     if (vertices.empty())
         return;
 
     Util::RSRTimer timer;
     ThreadPool pool;
+    const bool record_tree = orientation == NormalOrientation::MinimumSpanningTree
+        || orientation == NormalOrientation::ShortestPathTree;
     OrientedCloud oriented = prepare_oriented_cloud(
-        vertices, {}, opts.dist, opts.num_neighbors, timer, pool);
+        vertices, {}, opts.dist, opts.num_neighbors, timer, pool, orientation, opts.cone_check,
+        record_tree ? orientation_tree : nullptr);
     normals = std::move(oriented.normals);
 }
 
@@ -2493,7 +2739,8 @@ void point_cloud_to_mesh(
     ThreadPool pool;
     timer.start("Whole process");
     OrientedCloud oriented = prepare_oriented_cloud(
-        vertices_in, normals_in, opts.dist, opts.num_neighbors, timer, pool);
+        vertices_in, normals_in, opts.dist, opts.num_neighbors, timer, pool,
+        NormalOrientation::MinimumSpanningTree, opts.cone_check);
     point_cloud_to_mesh_impl(
         std::move(oriented.vertices),
         std::move(oriented.normals),
@@ -2543,7 +2790,8 @@ void point_cloud_collapse_reexpand(
     ThreadPool pool;
     timer.start("Whole process");
     auto oriented = prepare_oriented_cloud(vertices_in, normals_in, collapse_options.distance,
-                                           rsr_opts.num_neighbors, timer, pool);
+                                           rsr_opts.num_neighbors, timer, pool,
+                                           NormalOrientation::MinimumSpanningTree, rsr_opts.cone_check);
 
     timer.start("Collapse");
     auto [collapse, simplified] = collapse_points(
@@ -2579,7 +2827,8 @@ void point_cloud_collapse_reexpand_graph(
     ThreadPool pool;
     timer.start("Whole process");
     auto oriented = prepare_oriented_cloud(vertices_in, normals_in, collapse_options.distance,
-                                           rsr_opts.num_neighbors, timer, pool);
+                                           rsr_opts.num_neighbors, timer, pool,
+                                           NormalOrientation::MinimumSpanningTree, rsr_opts.cone_check);
 
     timer.start("Collapse");
     auto graph_collapse_options = collapse_options;

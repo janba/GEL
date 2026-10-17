@@ -50,6 +50,11 @@ struct RSROpts {
     /// face after reconstruction and then ear-clipped into triangles.
     /// A non-positive value leaves every boundary loop open.
     int32_t max_hole_edges = 100;
+    /// Tree orientation only. On a tough edge, a cone from the new vertex
+    /// toward its parent that contains another sheet gives the new normal
+    /// the opposite sign from the parent. False keeps the agree-flip on every edge.
+    /// Clustering ignores this flag. Reconstruction uses the MST.
+    bool cone_check = false;
 };
 
 // Algorithm
@@ -65,12 +70,38 @@ void point_cloud_to_mesh(const std::vector<CGLA::Vec3d>& vertices_in,
                          const RSROpts& opts,
                          HMesh::Manifold& result);
 
+/// How estimated normals are given a consistent sign.
+/// MinimumSpanningTree is what reconstruction uses. ShortestPathTree uses the
+/// same kNN graph and edge cost, but the tree is a shortest path from the
+/// same root. Clustering joins tangent edges before gap edges.
+enum class NormalOrientation {
+    Clustering = 0,
+    MinimumSpanningTree = 1,
+    ShortestPathTree = 2,
+};
+
+/// One edge of an orientation tree. `cone_invoked` is true when this edge
+/// was tough enough to run the sheet cone.
+struct OrientationTreeEdge {
+    int parent = 0;
+    int child = 0;
+    bool cone_invoked = false;
+};
+
 /// One oriented normal per input point, computed the way reconstruction does
 /// when the caller supplies no normals. `opts.dist` selects the Euclidean or
 /// tangent estimate. `opts.num_neighbors` is the orientation graph.
+/// `orientation` selects the minimum spanning tree, the shortest-path tree,
+/// or clustering. Reconstruction calls this with the minimum spanning tree.
+/// `opts.cone_check` selects the sheet cone on tough tree edges. Clustering
+/// ignores it.
+/// When `orientation_tree` is set and `orientation` is a tree, it receives
+/// one edge per tree link. Clustering leaves it empty.
 void point_cloud_normals(const std::vector<CGLA::Vec3d>& vertices,
                          const RSROpts& opts,
-                         std::vector<CGLA::Vec3d>& normals);
+                         std::vector<CGLA::Vec3d>& normals,
+                         NormalOrientation orientation = NormalOrientation::MinimumSpanningTree,
+                         std::vector<OrientationTreeEdge>* orientation_tree = nullptr);
 
 /// Reconstruct a manifold from one undirected graph.
 /// The graph is split into connected components. Faces come from the

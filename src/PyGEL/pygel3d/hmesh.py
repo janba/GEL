@@ -16,7 +16,7 @@ __all__ = [
     'cc_subdivide', 'loop_subdivide', 'volume_preserving_cc_smooth', 'regularize_quads', 'loop_smooth',
     'taubin_smooth', 'laplacian_smooth', 'anisotropic_smooth', 'volumetric_isocontour', 'triangulate',
     'extrude_faces', 'kill_face_loop', 'kill_degenerate_face_loops', 'graph_to_feq', 'skeleton_to_feq',
-    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_normals', 'rsr_recon', 'hrsr_recon', 'hrsr_recon_graph', 'connected_components',
+    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_normals', 'rsr_orientation_tree', 'rsr_orientation_mst', 'rsr_recon', 'hrsr_recon', 'hrsr_recon_graph', 'connected_components',
     'count_boundary_curves', 'analyze_topology', 'sphere_delaunay'
 ]
 
@@ -1012,21 +1012,73 @@ def fit_mesh_to_ref(m: Manifold, ref_mesh: Manifold, dist_wt: float = 0.5, lap_w
 
 def rsr_normals(vertices: ArrayLike,
                use_Euclid_dist: bool=False,
-               num_neighbors: int=70) -> ndarray:
+               num_neighbors: int=70,
+               orientation: str="mst",
+               cone_check: bool=False) -> ndarray:
     """ Oriented normals for a point cloud.
 
         This is the estimate used by rsr_recon, hrsr_recon, and hrsr_recon_graph
         when normals are omitted: an adaptive covariance normal at each point,
-        then orientation along a minimum spanning tree of num_neighbors.
+        then a consistent orientation of num_neighbors.
+        orientation is "mst", "spt", or "cluster". "mst" propagates the sign
+        along a minimum spanning tree and is what reconstruction uses. "spt"
+        propagates along a shortest-path tree of the same graph. "cluster"
+        joins tangent edges before gap edges. All three keep a new normal in
+        agreement with the one it is joined to, except the tree methods when
+        cone_check is set. On a tough tree edge, another sheet in the cone
+        toward the parent then gives the new normal the opposite sign.
         use_Euclid_dist selects the Euclidean or tangent-distance estimate.
         The result has one unit normal per input point, in the same order.
     """
+    method = {"cluster": 0, "mst": 1, "spt": 2}.get(orientation)
+    if method is None:
+        raise ValueError("orientation must be 'cluster', 'mst', or 'spt'")
     vertices_data, n_vertices = _as_vec3_f(vertices)
     normals = np.zeros((n_vertices, 3), dtype=ct.c_double, order='F')
     if n_vertices == 0:
         return normals
-    lib_py_gel.rsr_normals(vertices_data, n_vertices, normals, use_Euclid_dist, num_neighbors)
+    lib_py_gel.rsr_normals(vertices_data, n_vertices, normals, use_Euclid_dist, num_neighbors, method, cone_check)
     return np.array(normals, order='C', copy=True)
+
+def rsr_orientation_tree(vertices: ArrayLike,
+                         use_Euclid_dist: bool=False,
+                         num_neighbors: int=70,
+                         cone_check: bool=False,
+                         orientation: str="mst") -> tuple[ndarray, ndarray, ndarray]:
+    """ Oriented normals and the tree that oriented them.
+
+        orientation is "mst" or "spt". Returns normals with shape (N, 3),
+        edges with shape (E, 2) as endpoint indices, and a bool per edge.
+        An edge's bool is true when that tree edge ran the sheet cone check.
+        The normals match rsr_normals with the same orientation.
+    """
+    method = {"mst": 1, "spt": 2}.get(orientation)
+    if method is None:
+        raise ValueError("orientation must be 'mst' or 'spt'")
+    vertices_data, n_vertices = _as_vec3_f(vertices)
+    normals = np.zeros((n_vertices, 3), dtype=ct.c_double, order='F')
+    edges = np.zeros((n_vertices, 2), dtype=np.int32, order='C')
+    cone = np.zeros(n_vertices, dtype=np.uint8)
+    count = ct.c_int(0)
+    if n_vertices == 0:
+        return np.array(normals, order='C', copy=True), edges[:0], cone[:0].astype(bool)
+    lib_py_gel.rsr_orientation_mst(
+        vertices_data, n_vertices, normals, edges, cone, ct.byref(count),
+        use_Euclid_dist, num_neighbors, cone_check, method)
+    n_edges = count.value
+    return (np.array(normals, order='C', copy=True),
+            edges[:n_edges].copy(),
+            cone[:n_edges].astype(bool))
+
+def rsr_orientation_mst(vertices: ArrayLike,
+                        use_Euclid_dist: bool=False,
+                        num_neighbors: int=70,
+                        cone_check: bool=False) -> tuple[ndarray, ndarray, ndarray]:
+    """ Oriented normals and the minimum spanning tree that oriented them.
+
+        Returns the same triple as rsr_orientation_tree(..., orientation="mst").
+    """
+    return rsr_orientation_tree(vertices, use_Euclid_dist, num_neighbors, cone_check, "mst")
 
 def rsr_recon(vertices: ArrayLike, 
               normals: ArrayLike=None, 
@@ -1036,7 +1088,8 @@ def rsr_recon(vertices: ArrayLike,
               max_neighbor_dist: float=20,
               max_normal_ang: float=60,
               max_handle_dist: int=50,
-              max_hole_edges: int=10) -> Manifold:
+              max_hole_edges: int=10,
+              cone_check: bool=False) -> Manifold:
     """ RsR Reconstruction. The first argument, vertices, is the point cloud. The next argument,
         normals, are the normals associated with the vertices or empty list (default) if normals 
         need to be estimated during reconstruction. use_Euclid_dist should be true if we 
@@ -1049,14 +1102,17 @@ def rsr_recon(vertices: ArrayLike,
         between their normals is less than max_normal_ang. max_handle_dist is the threshold on the distance between 
         vertices that are connected by handle edges (check paper). For large max_handle_dist, it is harder for 
         the algorithm to add handles. max_hole_edges is the largest boundary loop, in edges, that is replaced
-        by a face and then ear-clipped. A non-positive value leaves every boundary loop open. """
+        by a face and then ear-clipped. A non-positive value leaves every boundary loop open.
+        cone_check gives an estimated normal the opposite sign from its parent
+        when another sheet sits in the cone on a tough edge. It has no effect
+        when normals are supplied. """
     m = Manifold()
     vertices_data, n_vertices = _as_vec3_f(vertices)
     normal_data, n_normal = _as_vec3_f(normals)
 
     lib_py_gel.rsr_recon(m.obj, vertices_data, normal_data, n_vertices, n_normal, 
                          use_Euclid_dist, genus, num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist,
-                         max_hole_edges)
+                         max_hole_edges, cone_check)
     return m
 
 def hrsr_recon(vertices: ArrayLike,
@@ -1069,7 +1125,8 @@ def hrsr_recon(vertices: ArrayLike,
                max_normal_ang: float=60,
                max_handle_dist: int=50,
                skip_reexpansion: bool=False,
-               max_hole_edges: int=100) -> Manifold:
+               max_hole_edges: int=100,
+               cone_check: bool=False) -> Manifold:
     """ Hierarchical RsR reconstruction.
         The arguments match rsr_recon, with two additions: collapse_iters controls
         how many collapse iterations to run, and skip_reexpansion disables the
@@ -1080,6 +1137,8 @@ def hrsr_recon(vertices: ArrayLike,
         - genus = -1: auto-detect
         - genus = 0: do not add handles
         - genus > 0: request genus handle insertions
+
+        cone_check is the same MST sheet test as in rsr_recon.
     """
     m = Manifold()
     vertices_data, n_vertices = _as_vec3_f(vertices)
@@ -1088,7 +1147,7 @@ def hrsr_recon(vertices: ArrayLike,
     lib_py_gel.hrsr_recon(m.obj, vertices_data, normal_data, n_vertices, n_normal,
                           collapse_iters, use_Euclid_dist, genus,
                           num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist, skip_reexpansion,
-                          max_hole_edges)
+                          max_hole_edges, cone_check)
     return m
 
 def hrsr_recon_graph(vertices: ArrayLike,
@@ -1101,7 +1160,8 @@ def hrsr_recon_graph(vertices: ArrayLike,
                      max_normal_ang: float=60,
                      max_handle_dist: int=50,
                      skip_reexpansion: bool=False,
-                     max_hole_edges: int=100) -> Manifold:
+                     max_hole_edges: int=100,
+                     cone_check: bool=False) -> Manifold:
     """ Hierarchical RsR reconstruction from the simplified contraction graph.
 
         The collapse graph is the same neighborhood RsR would build. Only edges
@@ -1109,7 +1169,7 @@ def hrsr_recon_graph(vertices: ArrayLike,
         there for RsR. hrsr_recon instead collapses a 5-neighbor graph and then
         builds a new nearest-neighbor graph from the collapsed points. The
         arguments match hrsr_recon, so the two can be compared by changing the
-        function name.
+        function name. cone_check is the same MST sheet test as in rsr_recon.
     """
     m = Manifold()
     vertices_data, n_vertices = _as_vec3_f(vertices)
@@ -1118,7 +1178,7 @@ def hrsr_recon_graph(vertices: ArrayLike,
     lib_py_gel.hrsr_recon_graph(m.obj, vertices_data, normal_data, n_vertices, n_normal,
                                 collapse_iters, use_Euclid_dist, genus,
                                 num_neighbors, max_neighbor_dist, max_normal_ang, max_handle_dist, skip_reexpansion,
-                                max_hole_edges)
+                                max_hole_edges, cone_check)
     return m
 
 def connected_components(m: Manifold) -> List[Manifold]:

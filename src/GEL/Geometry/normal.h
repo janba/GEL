@@ -143,9 +143,9 @@ namespace Geometry
     }
 
     /// MST edge cost for normal orientation. The first term is `1 - |n0·n1|`.
-    /// The second is large when the edge leaves the tangent plane. `scale` is
-    /// the inserting vertex's farthest-neighbor distance. Below 1e-12 the
-    /// second term is omitted.
+    /// The second is large when the edge leaves the tangent plane, so a tunnel
+    /// loses to a tangent edge. `scale` is the inserting vertex's farthest-neighbor
+    /// distance. Below 1e-12 the second term is omitted.
     inline double orientation_edge_weight(const CGLA::Vec3d& n0, const CGLA::Vec3d& n1, const CGLA::Vec3d& edge, double scale)
     {
         const double n0_length = n0.length();
@@ -161,6 +161,53 @@ namespace Geometry
         return angle_cost + tunnel_cost;
     }
 
+    /// Both normals must be at least this far from the tangent plane, as `|n·ê|`,
+    /// before the cone test may change the flip.
+    inline constexpr double ORIENTATION_CONE_MIN_ALIGNMENT = 0.5;
+    /// Half-angle of the sheet cone. `cos(45°)`.
+    inline constexpr double ORIENTATION_CONE_COS = 0.7071067811865476;
+    /// Cone length, in multiples of the parent edge.
+    inline constexpr double ORIENTATION_CONE_LENGTH_FACTOR = 2.0;
+
+    /// True when both normals see `edge` as leaving the tangent plane.
+    inline bool orientation_edge_is_tough(const CGLA::Vec3d& n0, const CGLA::Vec3d& n1, const CGLA::Vec3d& edge)
+    {
+        const double edge_length = edge.length();
+        const double n0_length = n0.length();
+        const double n1_length = n1.length();
+        if (!(edge_length > 1e-12) || !(n0_length > 1e-12) || !(n1_length > 1e-12))
+            return false;
+        const CGLA::Vec3d direction = edge / edge_length;
+        const double along0 = std::abs(CGLA::dot(n0, direction)) / n0_length;
+        const double along1 = std::abs(CGLA::dot(n1, direction)) / n1_length;
+        return along0 >= ORIENTATION_CONE_MIN_ALIGNMENT && along1 >= ORIENTATION_CONE_MIN_ALIGNMENT;
+    }
+
+    /// Unit `child_normal` aimed toward the parent. Zero when the normal vanishes.
+    inline CGLA::Vec3d orientation_cone_axis(const CGLA::Vec3d& child_normal, const CGLA::Vec3d& toward_parent)
+    {
+        const double length = child_normal.length();
+        if (!(length > 1e-12))
+            return CGLA::Vec3d(0);
+        CGLA::Vec3d axis = child_normal / length;
+        if (CGLA::dot(axis, toward_parent) < 0.0)
+            axis = -axis;
+        return axis;
+    }
+
+    /// `offset` is a neighbor minus the child. The cone opens along `axis` and
+    /// stops at `ORIENTATION_CONE_LENGTH_FACTOR` times the parent-edge length.
+    /// The parent lies in this cone on a tunnel edge; the caller skips that point.
+    inline bool orientation_cone_contains(const CGLA::Vec3d& offset, const CGLA::Vec3d& axis, double edge_length)
+    {
+        const double distance = offset.length();
+        if (!(distance > 1e-12) || !(edge_length > 1e-12))
+            return false;
+        if (distance > ORIENTATION_CONE_LENGTH_FACTOR * edge_length)
+            return false;
+        return CGLA::dot(offset / distance, axis) >= ORIENTATION_CONE_COS;
+    }
+
     /// Evidence that one kNN edge should join two orientation clusters.
     /// `score` is high when the normals are parallel or anti-parallel and the
     /// edge is either tangent to both or a tunnel along both. Flipping a
@@ -170,6 +217,10 @@ namespace Geometry
     struct OrientationClusterEvidence {
         double score = 0;
         double signed_evidence = 0;
+        /// `(1-|n·e|)(1-|m·e|)`. High when the edge lies in both tangent planes.
+        double tangent = 0;
+        /// `|n·e| |m·e|`. High when the edge runs along both normals.
+        double tunnel = 0;
     };
 
     inline OrientationClusterEvidence orientation_cluster_evidence(
@@ -191,13 +242,13 @@ namespace Geometry
         const double geometry = std::max(tangent, tunnel);
         const double agreement = std::clamp(CGLA::dot(u0, u1), -1.0, 1.0);
         const double preferred = (tangent >= tunnel) ? agreement : -agreement;
-        return {std::abs(agreement) * geometry, preferred * geometry};
+        return {std::abs(agreement) * geometry, preferred * geometry, tangent, tunnel};
     }
 
     /// Largest neighborhood scored by estimateNormalAdaptive.
     inline constexpr int ADAPTIVE_NORMAL_K_MAX = 192;
     /// Prefixes of a distance-sorted neighborhood. Count includes the query point.
-    inline constexpr std::array<int, 13> ADAPTIVE_NORMAL_SCHEDULE = {8, 10, 12, 14, 16, 20, 25, 30, 40, 50, 64, 128, 192};
+    inline constexpr std::array<int, 11> ADAPTIVE_NORMAL_SCHEDULE = {8, 10, 12, 14, 16, 20, 30, 45, 64, 128, 192};
     /// λ2 / λ1 below this is a line. Eigenentropy would prefer it over a plane.
     inline constexpr double ADAPTIVE_NORMAL_MIN_PLANAR_RATIO = 0.15;
     /// Scores within this band of the minimum keep the smaller neighborhood.
@@ -208,9 +259,10 @@ namespace Geometry
         int k = 0;
     };
 
-    /// Normal from the planar prefix with lowest covariance eigenentropy.
-    /// `neighbors` is sorted nearest-first. Below the first schedule size, the
-    /// whole range is used. The sign is arbitrary.
+    /// Normal from the planar prefix with the lowest covariance score.
+    /// The score is the eigenentropy of the thickness plus the entropy missing
+    /// from an elongated in-plane pair. `neighbors` is sorted nearest-first.
+    /// Below the first schedule size, the whole range is used. The sign is arbitrary.
     template <std::ranges::random_access_range Range>
         requires std::ranges::sized_range<Range>
     AdaptiveNormal estimateNormalAdaptive(Range&& neighbors)
@@ -231,20 +283,23 @@ namespace Geometry
             }
         }
 
-        auto eigenentropy = [](double l1, double l2, double l3) {
-            l1 = std::max(l1, 0.0);
-            l2 = std::max(l2, 0.0);
-            l3 = std::max(l3, 0.0);
-            const double sum = l1 + l2 + l3;
+        // Shannon entropy of a spectrum, in nats. A zero eigenvalue contributes
+        // nothing. An empty spectrum returns a sentinel worse than any real score.
+        auto eigenentropy = [](const double* values, int count) {
+            double sum = 0.0;
+            for (int i = 0; i < count; ++i)
+                sum += std::max(values[i], 0.0);
             if (!(sum > 0.0))
                 return 10.0;
-            auto term = [sum](double lambda) {
+            double entropy = 0.0;
+            for (int i = 0; i < count; ++i) {
+                const double lambda = std::max(values[i], 0.0);
                 if (!(lambda > 0.0))
-                    return 0.0;
+                    continue;
                 const double e = lambda / sum;
-                return -e * std::log(e);
-            };
-            return term(l1) + term(l2) + term(l3);
+                entropy -= e * std::log(e);
+            }
+            return entropy;
         };
 
         CGLA::Vec3d mean(0);
@@ -293,15 +348,19 @@ namespace Geometry
                 fallback_normal = normal;
             }
 
-            // A line has lower eigenentropy than a plane, and its least
-            // eigenvector is undefined. Score entropy only on planar scales.
-            // The in-plane eigenvalues are averaged first: a longer, thinner
-            // neighborhood is not a better plane.
+            // A line has lower raw eigenentropy than a plane, and its least
+            // eigenvector is undefined, so it is rejected. Among planar prefixes
+            // the score is the entropy of the averaged in-plane pair plus the
+            // normal eigenvalue, plus the entropy missing from that pair. A flat
+            // strip therefore loses to a rounder patch of the same thickness.
             const bool planar = l1 > 1e-18 && l2 >= ADAPTIVE_NORMAL_MIN_PLANAR_RATIO * l1;
             if (!planar)
                 return;
             const double in_plane = 0.5 * (l1 + l2);
-            const double entropy = eigenentropy(in_plane, in_plane, l3);
+            const double thickness[3] = {in_plane, in_plane, l3};
+            const double tangent[2] = {l1, l2};
+            const double entropy = eigenentropy(thickness, 3)
+                + (std::log(2.0) - eigenentropy(tangent, 2));
             if (!have_planar || entropy < best_entropy - ADAPTIVE_NORMAL_ENTROPY_TIE) {
                 have_planar = true;
                 best_entropy = entropy;

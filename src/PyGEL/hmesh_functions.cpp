@@ -243,7 +243,7 @@ void non_rigid_registration(Manifold_ptr _m_ptr, Manifold_ptr _m_ref_ptr) {
 }
 
 void rsr_normals(double* vertices, int vertex_count, double* normals_out,
-                 bool use_Euclid_dist, int num_neighbors)
+                 bool use_Euclid_dist, int num_neighbors, int orientation, bool cone_check)
 {
     vector<Vec3d> points;
     points.reserve(vertex_count);
@@ -253,9 +253,15 @@ void rsr_normals(double* vertices, int vertex_count, double* normals_out,
     RSR::RSROpts opts;
     opts.dist = use_Euclid_dist ? RSR::Distance::Euclidean : RSR::Distance::Tangent;
     opts.num_neighbors = num_neighbors;
+    opts.cone_check = cone_check;
+    auto method = RSR::NormalOrientation::Clustering;
+    if (orientation == static_cast<int>(RSR::NormalOrientation::MinimumSpanningTree))
+        method = RSR::NormalOrientation::MinimumSpanningTree;
+    else if (orientation == static_cast<int>(RSR::NormalOrientation::ShortestPathTree))
+        method = RSR::NormalOrientation::ShortestPathTree;
 
     vector<Vec3d> normals;
-    RSR::point_cloud_normals(points, opts, normals);
+    RSR::point_cloud_normals(points, opts, normals, method);
 
     for (int i = 0; i < vertex_count; i++) {
         normals_out[i] = normals[i][0];
@@ -264,9 +270,43 @@ void rsr_normals(double* vertices, int vertex_count, double* normals_out,
     }
 }
 
+void rsr_orientation_mst(double* vertices, int vertex_count, double* normals_out,
+    int* edges, unsigned char* cone, int* edge_count,
+    bool use_Euclid_dist, int num_neighbors, bool cone_check, int orientation)
+{
+    vector<Vec3d> points;
+    points.reserve(vertex_count);
+    for (int i = 0; i < vertex_count; i++)
+        points.emplace_back(vertices[i], vertices[i + vertex_count], vertices[i + 2 * vertex_count]);
+
+    RSR::RSROpts opts;
+    opts.dist = use_Euclid_dist ? RSR::Distance::Euclidean : RSR::Distance::Tangent;
+    opts.num_neighbors = num_neighbors;
+    opts.cone_check = cone_check;
+    const auto method = orientation == static_cast<int>(RSR::NormalOrientation::ShortestPathTree)
+        ? RSR::NormalOrientation::ShortestPathTree
+        : RSR::NormalOrientation::MinimumSpanningTree;
+
+    vector<Vec3d> normals;
+    vector<RSR::OrientationTreeEdge> tree;
+    RSR::point_cloud_normals(points, opts, normals, method, &tree);
+
+    for (int i = 0; i < vertex_count; i++) {
+        normals_out[i] = normals[i][0];
+        normals_out[i + vertex_count] = normals[i][1];
+        normals_out[i + 2 * vertex_count] = normals[i][2];
+    }
+    *edge_count = static_cast<int>(tree.size());
+    for (int i = 0; i < *edge_count; i++) {
+        edges[2 * i] = tree[i].parent;
+        edges[2 * i + 1] = tree[i].child;
+        cone[i] = tree[i].cone_invoked ? 1 : 0;
+    }
+}
+
 void rsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, int vertex_count, int normal_count,
     bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist,
-    int max_hole_edges) {
+    int max_hole_edges, bool cone_check) {
 
     vector<Vec3d> point_cloud_vertices;
     vector<Vec3d> norm;
@@ -288,6 +328,7 @@ void rsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, int vertex
     opts.max_normal_ang = max_normal_ang;
     opts.max_handle_dist = max_handle_dist;
     opts.max_hole_edges = max_hole_edges;
+    opts.cone_check = cone_check;
 
     Manifold result;
     RSR::point_cloud_to_mesh(point_cloud_vertices, norm, opts, result);
@@ -324,7 +365,7 @@ void rsr_recon_experimental(Manifold_ptr m_ptr, double* vertices,
 
 void hrsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, size_t vertex_count, size_t normal_count,
     int collapse_iters, bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist, bool skip_reexpansion,
-    int max_hole_edges)
+    int max_hole_edges, bool cone_check)
 {
     vector<Vec3d> point_cloud_vertices;
     vector<Vec3d> norm;
@@ -349,6 +390,7 @@ void hrsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, size_t ve
     rsr_opts.max_normal_ang = max_normal_ang;
     rsr_opts.max_handle_dist = max_handle_dist;
     rsr_opts.max_hole_edges = max_hole_edges;
+    rsr_opts.cone_check = cone_check;
     RSR::ReexpandOpts reexpand_opts;
     reexpand_opts.enabled = !skip_reexpansion;
 
@@ -359,7 +401,7 @@ void hrsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, size_t ve
 
 void hrsr_recon_graph(Manifold_ptr m_ptr, double* vertices, double* normals, size_t vertex_count, size_t normal_count,
     int collapse_iters, bool use_Euclid_dist, int genus, int num_neighbors, double max_neighbor_dist, double max_normal_ang, int max_handle_dist, bool skip_reexpansion,
-    int max_hole_edges)
+    int max_hole_edges, bool cone_check)
 {
     vector<Vec3d> point_cloud_vertices;
     vector<Vec3d> norm;
@@ -384,6 +426,7 @@ void hrsr_recon_graph(Manifold_ptr m_ptr, double* vertices, double* normals, siz
     rsr_opts.max_normal_ang = max_normal_ang;
     rsr_opts.max_handle_dist = max_handle_dist;
     rsr_opts.max_hole_edges = max_hole_edges;
+    rsr_opts.cone_check = cone_check;
     RSR::ReexpandOpts reexpand_opts;
     reexpand_opts.enabled = !skip_reexpansion;
 

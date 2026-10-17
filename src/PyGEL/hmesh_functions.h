@@ -116,19 +116,34 @@ extern "C" {
 
     /// Oriented normals for a point array, using the same estimate as rsr_recon
     /// when no normals are supplied. `normals` is a Fortran (N,3) buffer.
+    /// `orientation` is 1 for the minimum spanning tree, which reconstruction
+    /// uses, 2 for the shortest-path tree, and 0 for clustering. `cone_check`
+    /// gives a new normal the opposite sign from its parent when a tough tree
+    /// edge sees another sheet. Clustering ignores it.
     DLLEXPORT void rsr_normals(double* vertices, int vertex_count, double* normals,
-        bool use_Euclid_dist = false, int num_neighbors = 70);
+        bool use_Euclid_dist = false, int num_neighbors = 70, int orientation = 1,
+        bool cone_check = false);
+
+    /// Same estimate as `rsr_normals` for a propagation tree.
+    /// `orientation` is 1 for the minimum spanning tree and 2 for the
+    /// shortest-path tree. Any other value is the minimum spanning tree.
+    /// `edges` holds `edge_count` pairs (parent, child). `cone[i]` is 1 when
+    /// that edge ran the sheet cone check. Buffers hold at least `vertex_count` slots.
+    DLLEXPORT void rsr_orientation_mst(double* vertices, int vertex_count, double* normals,
+        int* edges, unsigned char* cone, int* edge_count,
+        bool use_Euclid_dist = false, int num_neighbors = 70, bool cone_check = false,
+        int orientation = 1);
 
     DLLEXPORT void rsr_recon(Manifold_ptr m_ptr, double* vertices,
         double* normals, int vertex_count, int normal_count, bool use_Euclid_dist = false, int genus = -1,
         int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50,
-        int max_hole_edges = 100);
+        int max_hole_edges = 100, bool cone_check = false);
 
     DLLEXPORT void hrsr_recon(Manifold_ptr m_ptr, double* vertices,
         double* normals, size_t vertex_count, size_t normal_count,
         int collapse_iters = 1, bool use_Euclid_dist = false,
         int genus = -1, int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50,
-        bool skip_reexpansion = false, int max_hole_edges = 100);
+        bool skip_reexpansion = false, int max_hole_edges = 100, bool cone_check = false);
 
     /// Same arguments as hrsr_recon. Collapses the RsR neighborhood, but only
     /// contracts edges inside the one-ring. The remaining edges are triangulated.
@@ -136,7 +151,7 @@ extern "C" {
         double* normals, size_t vertex_count, size_t normal_count,
         int collapse_iters = 1, bool use_Euclid_dist = false,
         int genus = -1, int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50,
-        bool skip_reexpansion = false, int max_hole_edges = 100);
+        bool skip_reexpansion = false, int max_hole_edges = 100, bool cone_check = false);
 
     DLLEXPORT void extrude_faces(Manifold_ptr _m_ptr, int* faces, int no_faces, IntVector_ptr _fidx_ptr);
 
