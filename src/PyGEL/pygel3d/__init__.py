@@ -321,6 +321,8 @@ lib_py_gel.Graph_positions.argtypes = (ct.c_void_p,ct.POINTER(ct.POINTER(ct.c_do
 lib_py_gel.Graph_positions.restype = ct.c_size_t
 lib_py_gel.Graph_average_edge_length.argtypes = (ct.c_void_p,)
 lib_py_gel.Graph_average_edge_length.restype = ct.c_double
+lib_py_gel.Graph_no_edges.argtypes = (ct.c_void_p,)
+lib_py_gel.Graph_no_edges.restype = ct.c_size_t
 lib_py_gel.Graph_add_node.argtypes = (ct.c_void_p, ndpointer(ct.c_double))
 lib_py_gel.Graph_add_node.restype = ct.c_size_t
 lib_py_gel.Graph_remove_node.argtypes = (ct.c_void_p, ct.c_size_t)
@@ -350,6 +352,8 @@ lib_py_gel.graph_MSLS_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p
 lib_py_gel.graph_front_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,flags='C'), ct.c_int)
 lib_py_gel.graph_combined_skeleton.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_void_p, ct.c_int, ndpointer(dtype=np.float64,flags='C'), ct.c_int)
 lib_py_gel.graph_minimum_spanning_tree.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_int)
+lib_py_gel.graph_minimum_spanning_forest.argtypes = (ct.c_void_p, ct.c_void_p, ct.c_int, ct.POINTER(ct.c_double))
+lib_py_gel.graph_minimum_spanning_forest.restype = None
 lib_py_gel.graph_close_chordless_cycles.argtypes = (ct.c_void_p, ct.c_int, ct.c_int, ct.c_double)
 lib_py_gel.graph_delaunay_edges.restype = None
 lib_py_gel.graph_delaunay_edges.argtypes = (ct.c_void_p, ndpointer(ndim=2, dtype=ct.c_double, flags='F'), ct.c_int, ct.c_double)

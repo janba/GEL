@@ -6,6 +6,7 @@
 //  Copyright © 2017 Jakob Andreas Bærentzen. All rights reserved.
 //
 
+#include <cmath>
 #include <memory>
 #include <map>
 #include <GEL/GL/glew.h>
@@ -274,14 +275,23 @@ void GLManifoldViewer::display_init() {
     const Vec3f& c = *(display_parameters.bg_color);
     glClearColor(c[0],c[1],c[2],1.0);
     Vec3d ctr;
-    float rad;
-    if (display_parameters.m_ptr != 0)
-        bsphere(*(display_parameters.m_ptr), ctr, rad);
-    else {
-        double radd;
-        tie(ctr,radd) = approximate_bounding_sphere(*display_parameters.g_ptr);
-        rad = radd;
+    double radius = 0;
+    if (display_parameters.m_ptr != 0) {
+        float mesh_rad = 0;
+        bsphere(*(display_parameters.m_ptr), ctr, mesh_rad);
+        radius = mesh_rad;
     }
+    else
+        tie(ctr, radius) = approximate_bounding_sphere(*display_parameters.g_ptr);
+    // gluPerspective rejects a non-positive near plane. A flat graph used to
+    // produce a non-finite sphere, and a single point produces radius 0.
+    if (!std::isfinite(ctr[0]) || !std::isfinite(ctr[1]) || !std::isfinite(ctr[2]))
+        ctr = Vec3d(0);
+    if (!(std::isfinite(radius) && radius > 0))
+        radius = 1e-4 * std::max(1.0, length(ctr));
+    float rad = static_cast<float>(radius);
+    if (!(rad > 0.f))
+        rad = 1e-4f;
     int W,H,WF,HF;
     glfwGetWindowSize(window, &W, &H);
     glfwGetWindowContentScale(window, &xscale, &yscale);

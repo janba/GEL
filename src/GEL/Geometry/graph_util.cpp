@@ -6,6 +6,9 @@
 //  Copyright © 2018 J. Andreas Bærentzen. All rights reserved.
 //
 
+#include <algorithm>
+#include <chrono>
+#include <cmath>
 #include <future>
 #include <thread>
 #include <unordered_set>
@@ -15,6 +18,7 @@
 #include <vector>
 #include <iostream>
 #include <random>
+#include <GEL/HMesh/RSRExperimental.h>
 #include <GEL/Util/Grid2D.h>
 #include <GEL/Util/AttribVec.h>
 #include <GEL/Geometry/Graph.h>
@@ -721,6 +725,98 @@ std::vector<std::pair<int,int>>  symmetry_pairs(const AMGraph3D& g, NodeID n, do
         }
     }
     return npv;
+}
+
+namespace {
+
+double median_value(std::vector<double> values)
+{
+    if (values.empty())
+        return 0.0;
+    const size_t mid = values.size() / 2;
+    std::nth_element(values.begin(), values.begin() + static_cast<std::ptrdiff_t>(mid), values.end());
+    if (values.size() % 2 == 1)
+        return values[mid];
+    const double upper = values[mid];
+    const double lower = *std::max_element(values.begin(), values.begin() + static_cast<std::ptrdiff_t>(mid));
+    return 0.5 * (lower + upper);
+}
+
+}
+
+GraphEdgeWeights tunnel_weight_graph(const AMGraph3D& g, const std::vector<Vec3d>& normals)
+{
+    GraphEdgeWeights result;
+    result.length.assign(g.no_edges(), 0.0);
+    std::vector<double> alignments;
+    alignments.reserve(g.no_edges());
+
+    for (AMGraph::NodeID a: g.node_ids()) {
+        for (const auto& entry: g.edges(a)) {
+            const AMGraph::NodeID b = entry.first;
+            const AMGraph::EdgeID edge = entry.second;
+            if (a >= b || edge >= result.length.size())
+                continue;
+            const Vec3d segment = g.pos[b] - g.pos[a];
+            const double length = CGLA::length(segment);
+            double alignment = 0.0;
+            if (length > 1e-12) {
+                const Vec3d unit = segment / length;
+                const Vec3d n0 = a < normals.size() ? normals[a] : Vec3d(0);
+                const Vec3d n1 = b < normals.size() ? normals[b] : Vec3d(0);
+                alignment = std::abs(dot(unit, n0)) + std::abs(dot(unit, n1));
+            }
+            result.length[edge] = length * (1.0 + alignment);
+            alignments.push_back(alignment);
+        }
+    }
+
+    if (!alignments.empty()) {
+        result.weight_min = *std::min_element(alignments.begin(), alignments.end());
+        result.weight_max = *std::max_element(alignments.begin(), alignments.end());
+        result.weight_median = median_value(alignments);
+    }
+    return result;
+}
+
+SpanningForest spanning_forest(const AMGraph3D& g, bool tunnel)
+{
+    using clock = std::chrono::steady_clock;
+    const auto seconds_since = [](clock::time_point start) {
+        return std::chrono::duration<double>(clock::now() - start).count();
+    };
+
+    SpanningForest result;
+    if (tunnel && g.no_nodes() > 0) {
+        std::vector<Vec3d> points(g.no_nodes());
+        bool finite = true;
+        for (auto node: g.node_ids()) {
+            points[node] = g.pos[node];
+            finite = finite && std::isfinite(points[node][0]) && std::isfinite(points[node][1])
+                && std::isfinite(points[node][2]);
+        }
+        if (finite) {
+            const auto normal_start = clock::now();
+            RSR::RSROpts opts;
+            opts.dist = RSR::Distance::Euclidean;
+            std::vector<Vec3d> normals;
+            RSR::point_cloud_normals(points, opts, normals, RSR::NormalOrientation::None);
+            result.normal_seconds = seconds_since(normal_start);
+
+            const auto forest_start = clock::now();
+            const GraphEdgeWeights weights = tunnel_weight_graph(g, normals);
+            result.graph = minimum_spanning_forest(g, weights.length);
+            result.forest_seconds = seconds_since(forest_start);
+            result.weight_min = weights.weight_min;
+            result.weight_median = weights.weight_median;
+            result.weight_max = weights.weight_max;
+            return result;
+        }
+    }
+    const auto forest_start = clock::now();
+    result.graph = minimum_spanning_forest(g);
+    result.forest_seconds = seconds_since(forest_start);
+    return result;
 }
 
 //void all_symmetry_pairs(AMGraph3D& g, double threshold) {

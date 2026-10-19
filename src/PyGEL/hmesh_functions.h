@@ -117,7 +117,8 @@ extern "C" {
     /// Oriented normals for a point array, using the same estimate as rsr_recon
     /// when no normals are supplied. `normals` is a Fortran (N,3) buffer.
     /// `orientation` is 1 for the minimum spanning tree, which reconstruction
-    /// uses, 2 for the shortest-path tree, and 0 for clustering. `cone_check`
+    /// uses, 2 for the shortest-path tree, 0 for clustering, and 3 to keep the
+    /// covariance sign. `cone_check`
     /// gives a new normal the opposite sign from its parent when a tough tree
     /// edge sees another sheet. Clustering ignores it.
     DLLEXPORT void rsr_normals(double* vertices, int vertex_count, double* normals,

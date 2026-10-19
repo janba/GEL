@@ -35,6 +35,7 @@ DLLEXPORT size_t Graph_neighbors(Graph_ptr _self, size_t n, IntVector_ptr _nbors
 DLLEXPORT void Graph_cleanup(Graph_ptr self);
 DLLEXPORT size_t Graph_positions(Graph_ptr self, double** pos);
 DLLEXPORT double Graph_average_edge_length(Graph_ptr self);
+DLLEXPORT size_t Graph_no_edges(Graph_ptr self);
 
 DLLEXPORT size_t Graph_add_node(Graph_ptr self, double* pos);
 DLLEXPORT void Graph_remove_node(Graph_ptr self, size_t n);

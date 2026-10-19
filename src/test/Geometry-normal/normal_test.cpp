@@ -2,7 +2,11 @@
 
 #include <doctest.h>
 
+#include <GEL/Geometry/Delaunay3D.h>
+#include <GEL/Geometry/Graph.h>
+#include <GEL/Geometry/graph_util.h>
 #include <GEL/Geometry/normal.h>
+#include <GEL/HMesh/Manifold.h>
 #include <GEL/HMesh/RSRExperimental.h>
 
 #include <algorithm>
@@ -157,6 +161,116 @@ TEST_CASE("orientation weight penalizes an edge along the normal")
     CHECK(tunnel > corner);
     // No neighborhood radius: the tunnel term is left out and only the angle remains.
     CHECK(std::abs(unscaled - 1.0) < 1e-8);
+    CHECK(std::abs(Geometry::tunnel_weight(up, down, Vec3d(0, 0, scale), scale) - 2.0) < 1e-8);
+    CHECK(Geometry::tunnel_weight(up, up, Vec3d(scale, 0, 0), scale) < 1e-8);
+    CHECK(Geometry::tunnel_weight(up, down, Vec3d(0, 0, scale), 0.0) == 0.0);
+}
+
+int bridge_count(const Geometry::AMGraph3D& graph)
+{
+    int bridges = 0;
+    for (auto node: graph.node_ids()) {
+        for (auto neighbor: graph.neighbors(node)) {
+            if (node >= neighbor)
+                continue;
+            const Vec3d& a = graph.pos[node];
+            const Vec3d& b = graph.pos[neighbor];
+            if (std::abs(a[0] - b[0]) < 1e-9 && std::abs(a[1] - b[1]) < 1e-9
+                && std::abs(a[2] - b[2]) > 0.1)
+                ++bridges;
+        }
+    }
+    return bridges;
+}
+
+TEST_CASE("tunnel weight stretches an edge along the normals")
+{
+    Geometry::AMGraph3D graph;
+    graph.add_node(Vec3d(0, 0, 0));
+    graph.add_node(Vec3d(1, 0, 0));
+    graph.add_node(Vec3d(0, 0, 1));
+    graph.connect_nodes(0, 1);
+    graph.connect_nodes(0, 2);
+    const std::vector<Vec3d> normals = {Vec3d(0, 0, 1), Vec3d(0, 0, 1), Vec3d(0, 0, -1)};
+
+    const Geometry::GraphEdgeWeights weights = Geometry::tunnel_weight_graph(graph, normals);
+
+    CHECK(std::abs(weights.length[0] - 1.0) < 1e-12);
+    CHECK(std::abs(weights.length[1] - 3.0) < 1e-12);
+    CHECK(weights.weight_min < 1e-12);
+    CHECK(std::abs(weights.weight_median - 1.0) < 1e-12);
+    CHECK(std::abs(weights.weight_max - 2.0) < 1e-12);
+}
+
+TEST_CASE("minimum spanning forest keeps every component")
+{
+    Geometry::AMGraph3D graph;
+    graph.add_node(Vec3d(0, 0, 0));
+    graph.add_node(Vec3d(1, 0, 0));
+    graph.add_node(Vec3d(10, 0, 0));
+    graph.add_node(Vec3d(11, 0, 0));
+    graph.connect_nodes(0, 1);
+    graph.connect_nodes(2, 3);
+
+    const Geometry::AMGraph3D tree = Geometry::minimum_spanning_tree(graph, 0);
+    CHECK(tree.no_nodes() == 4);
+    CHECK(tree.no_edges() == 1);
+    CHECK(tree.find_edge(0, 1) != Geometry::AMGraph::InvalidEdgeID);
+    CHECK(tree.find_edge(2, 3) == Geometry::AMGraph::InvalidEdgeID);
+
+    const Geometry::AMGraph3D forest = Geometry::minimum_spanning_forest(graph);
+    CHECK(forest.no_nodes() == 4);
+    CHECK(forest.no_edges() == 2);
+    CHECK(forest.find_edge(0, 1) != Geometry::AMGraph::InvalidEdgeID);
+    CHECK(forest.find_edge(2, 3) != Geometry::AMGraph::InvalidEdgeID);
+}
+
+TEST_CASE("equal forest costs keep the earlier edge")
+{
+    Geometry::AMGraph3D graph;
+    graph.add_node(Vec3d(0, 0, 0));
+    graph.add_node(Vec3d(1, 0, 0));
+    graph.add_node(Vec3d(0, 1, 0));
+    graph.add_node(Vec3d(1, 1, 0));
+    graph.connect_nodes(0, 1);
+    graph.connect_nodes(0, 2);
+    graph.connect_nodes(1, 3);
+    graph.connect_nodes(2, 3);
+    const std::vector<double> cost(graph.no_edges(), 1.0);
+
+    const Geometry::AMGraph3D forest = Geometry::minimum_spanning_forest(graph, cost);
+
+    CHECK(forest.no_edges() == 3);
+    CHECK(forest.find_edge(0, 1) != Geometry::AMGraph::InvalidEdgeID);
+    CHECK(forest.find_edge(0, 2) != Geometry::AMGraph::InvalidEdgeID);
+    CHECK(forest.find_edge(1, 3) != Geometry::AMGraph::InvalidEdgeID);
+    CHECK(forest.find_edge(2, 3) == Geometry::AMGraph::InvalidEdgeID);
+}
+
+TEST_CASE("tunnel weighted gabriel forest keeps one bridge")
+{
+    std::vector<Vec3d> points;
+    for (int sheet = 0; sheet < 2; ++sheet)
+        for (int y = 0; y < 6; ++y)
+            for (int x = 0; x < 6; ++x)
+                points.emplace_back(x, y, sheet == 0 ? 0.0 : 0.35);
+
+    const Geometry::AMGraph3D gabriel = Geometry::gabriel_edges(points, 1.05);
+    CHECK(gabriel.no_edges() == 156);
+
+    const Geometry::SpanningForest euclidean = Geometry::spanning_forest(gabriel, false);
+    CHECK(euclidean.graph.no_edges() == 71);
+    CHECK(bridge_count(euclidean.graph) == 36);
+    CHECK(euclidean.normal_seconds < 0);
+    CHECK(euclidean.forest_seconds >= 0);
+
+    const Geometry::SpanningForest weighted = Geometry::spanning_forest(gabriel, true);
+    CHECK(weighted.graph.no_edges() == 71);
+    CHECK(bridge_count(weighted.graph) == 1);
+    CHECK(weighted.weight_min < 1e-6);
+    CHECK(weighted.weight_max > 1.5);
+    CHECK(weighted.normal_seconds >= 0);
+    CHECK(weighted.forest_seconds >= 0);
 }
 
 TEST_CASE("orientation cone contains the sheet in front of a tunnel")
@@ -403,10 +517,13 @@ TEST_CASE("spt orientation agrees across a plane")
 
 TEST_CASE("mst joins two sheets with one tunnel edge")
 {
+    // Gap 0.2 and spacing 0.5. The median neighbor is the gap, so the default
+    // max_neighbor_dist of 20 gives radius 4 and keeps the in-plane edges.
+    // A tunnel is three times the gap, 0.6, which is longer than an in-plane edge of 0.5.
     std::vector<Vec3d> points;
     points.reserve(72);
     for (int sheet = 0; sheet < 2; ++sheet) {
-        const double z = sheet * 0.15;
+        const double z = sheet * 0.2;
         for (int y = 0; y < 6; ++y)
             for (int x = 0; x < 6; ++x)
                 points.emplace_back(x * 0.5, y * 0.5, z);
@@ -430,8 +547,55 @@ TEST_CASE("mst joins two sheets with one tunnel edge")
         if (parent_top != child_top)
             ++crossings;
     }
-    // Tangent edges cost nothing. One tunnel joins the sheets. The rest stay out.
+    // One tunnel joins the sheets. The rest stay out.
     CHECK(crossings == 1);
+}
+
+TEST_CASE("delaunay rsr triangulates a grid")
+{
+    constexpr int n = 12;
+    std::vector<Vec3d> points;
+    points.reserve(n * n);
+    for (int y = 0; y < n; ++y)
+        for (int x = 0; x < n; ++x)
+            points.emplace_back(x, y, 0.0);
+
+    HMesh::RSR::RSROpts opts;
+    opts.dist = HMesh::RSR::Distance::Euclidean;
+    opts.genus = 0;
+    opts.max_hole_edges = 0;
+
+    HMesh::Manifold mesh;
+    HMesh::RSR::point_cloud_to_mesh(points, {}, opts, mesh);
+    CHECK(mesh.no_vertices() == points.size());
+    CHECK(mesh.no_faces() == 2 * (n - 1) * (n - 1));
+    CHECK(HMesh::count_boundary_curves(mesh) == 1);
+}
+
+TEST_CASE("delaunay rsr keeps separated sheets apart")
+{
+    constexpr int n = 12;
+    std::vector<Vec3d> points;
+    points.reserve(2 * n * n);
+    for (int sheet = 0; sheet < 2; ++sheet) {
+        const double z = sheet * 10.0;
+        for (int y = 0; y < n; ++y)
+            for (int x = 0; x < n; ++x)
+                points.emplace_back(x, y, z);
+    }
+
+    HMesh::RSR::RSROpts opts;
+    opts.dist = HMesh::RSR::Distance::Euclidean;
+    opts.genus = 0;
+    opts.max_hole_edges = 0;
+    // Spacing is 1 and the gap is 10, so this factor keeps the sheets apart.
+    opts.max_neighbor_dist = 4;
+
+    HMesh::Manifold mesh;
+    HMesh::RSR::point_cloud_to_mesh(points, {}, opts, mesh);
+    CHECK(mesh.no_vertices() == points.size());
+    CHECK(mesh.no_faces() == 4 * (n - 1) * (n - 1));
+    CHECK(HMesh::count_boundary_curves(mesh) == 2);
 }
 
 TEST_CASE("fewer than eight points uses the whole cloud")

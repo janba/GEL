@@ -43,6 +43,12 @@ DLLEXPORT void graph_front_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVect
 DLLEXPORT void graph_combined_skeleton(Graph_ptr g_ptr, Graph_ptr skel_ptr, IntVector_ptr map_ptr, int N_col, double* colors, int intervals);
 
 DLLEXPORT void graph_minimum_spanning_tree(Graph_ptr g_ptr, Graph_ptr mst_ptr, int root);
+/// Forest of every component. `tunnel` selects tunnel-weighted length.
+/// `stats`, when not null, receives five values: minimum, median, and maximum
+/// unit-edge alignment, then the seconds spent estimating normals and the
+/// seconds spent weighting edges and building the forest. The alignments are
+/// 0 when `tunnel` is 0. The normal time is negative when normals were not estimated.
+DLLEXPORT void graph_minimum_spanning_forest(Graph_ptr g_ptr, Graph_ptr forest_ptr, int tunnel, double* stats);
 DLLEXPORT void graph_close_chordless_cycles(Graph_ptr g_ptr, int root, int hops, double rad);
 DLLEXPORT void graph_delaunay_edges(Graph_ptr g_ptr, const double* points, int count, double radius);
 DLLEXPORT void graph_gabriel_edges(Graph_ptr g_ptr, const double* points, int count, double radius);

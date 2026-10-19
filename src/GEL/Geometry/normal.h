@@ -142,10 +142,20 @@ namespace Geometry
 
     }
 
+    /// How far `edge` runs along the two normals, relative to `scale`.
+    /// `scale` is the inserting vertex's farthest-neighbor distance. Below 1e-12
+    /// the weight is 0. Absolute values ignore either normal's sign. A tangent
+    /// edge scores 0. An edge of length `scale` along both unit normals scores 2.
+    inline double tunnel_weight(const CGLA::Vec3d& n0, const CGLA::Vec3d& n1, const CGLA::Vec3d& edge, double scale)
+    {
+        if (!(scale > 1e-12))
+            return 0.0;
+        return (std::abs(CGLA::dot(edge, n0)) + std::abs(CGLA::dot(edge, n1))) / scale;
+    }
+
     /// MST edge cost for normal orientation. The first term is `1 - |n0·n1|`.
-    /// The second is large when the edge leaves the tangent plane, so a tunnel
-    /// loses to a tangent edge. `scale` is the inserting vertex's farthest-neighbor
-    /// distance. Below 1e-12 the second term is omitted.
+    /// The second is `tunnel_weight`, so a tunnel loses to a tangent edge.
+    /// `scale` is the inserting vertex's farthest-neighbor distance.
     inline double orientation_edge_weight(const CGLA::Vec3d& n0, const CGLA::Vec3d& n1, const CGLA::Vec3d& edge, double scale)
     {
         const double n0_length = n0.length();
@@ -155,10 +165,7 @@ namespace Geometry
             const double cosine = std::abs(CGLA::dot(n0, n1) / (n0_length * n1_length));
             angle_cost = 1.0 - std::clamp(cosine, 0.0, 1.0);
         }
-        if (!(scale > 1e-12))
-            return angle_cost;
-        const double tunnel_cost = (std::abs(CGLA::dot(edge, n0)) + std::abs(CGLA::dot(edge, n1))) / scale;
-        return angle_cost + tunnel_cost;
+        return angle_cost + tunnel_weight(n0, n1, edge, scale);
     }
 
     /// Both normals must be at least this far from the tangent plane, as `|n·ê|`,

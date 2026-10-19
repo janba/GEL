@@ -114,3 +114,8 @@ double Graph_average_edge_length(Graph_ptr _self){
     double r = self->average_edge_length();
     return r;
 }
+
+size_t Graph_no_edges(Graph_ptr _self){
+    AMGraph3D* self = reinterpret_cast<AMGraph3D*>(_self);
+    return self->no_edges();
+}

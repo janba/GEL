@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include <string>
+#include <utility>
 #include <GEL/Geometry/Delaunay3D.h>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/graph_io.h>
@@ -172,6 +173,20 @@ DLLEXPORT void graph_minimum_spanning_tree(Graph_ptr _g_ptr, Graph_ptr _mst_ptr,
     AMGraph3D* mst_ptr = reinterpret_cast<AMGraph3D*>(_mst_ptr);
     auto root = AMGraph3D::NodeID(_root);
     *mst_ptr = minimum_spanning_tree(*g_ptr, root);
+}
+
+DLLEXPORT void graph_minimum_spanning_forest(Graph_ptr _g_ptr, Graph_ptr _forest_ptr, int tunnel, double* stats) {
+    AMGraph3D* g_ptr = reinterpret_cast<AMGraph3D*>(_g_ptr);
+    AMGraph3D* forest_ptr = reinterpret_cast<AMGraph3D*>(_forest_ptr);
+    SpanningForest forest = spanning_forest(*g_ptr, tunnel != 0);
+    *forest_ptr = std::move(forest.graph);
+    if (stats != nullptr) {
+        stats[0] = forest.weight_min;
+        stats[1] = forest.weight_median;
+        stats[2] = forest.weight_max;
+        stats[3] = forest.normal_seconds;
+        stats[4] = forest.forest_seconds;
+    }
 }
 
 DLLEXPORT void graph_close_chordless_cycles(Graph_ptr _g_ptr, int _root, int hops, double rad) {

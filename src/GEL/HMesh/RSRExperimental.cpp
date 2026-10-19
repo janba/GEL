@@ -3,7 +3,9 @@
 #include <GEL/Util/InplaceVector.h>
 #include <GEL/Util/AssociativeContainers.h>
 
+#include <GEL/Geometry/Delaunay3D.h>
 #include <GEL/Geometry/Graph.h>
+#include <GEL/Geometry/graph_util.h>
 #include <GEL/Geometry/normal.h>
 #include <GEL/Geometry/NeighborUtil.h>
 #include <GEL/Geometry/etf.h>
@@ -17,6 +19,7 @@
 #include <ranges> // std::views
 #include <algorithm>
 #include <cstdint>
+#include <limits>
 #include <queue>
 //#include <GEL/Util/RangeTools.h>
 
@@ -916,6 +919,64 @@ SimpGraph shortest_path_tree(const SimpGraph& g, NodeID root)
     return tree;
 }
 
+/// Euclidean `true` drops an edge whose normals face opposite ways.
+/// Projected distance uses `max_normal_ang` in degrees.
+bool normals_accept_edge(
+    const Vec3& n0, const Vec3& n1, double max_normal_ang, bool is_euclidean)
+{
+    const double cos_thresh = is_euclidean ? 0.0 : std::cos(max_normal_ang / 180.0 * M_PI);
+    return dot(n0, n1) >= cos_thresh;
+}
+
+/// Median distance from each point to the nearest other point.
+/// A vanished or missing neighbor is left out. Fewer than two points yield 1.
+double median_neighbor_spacing(const std::vector<Point>& points)
+{
+    if (points.size() < 2)
+        return 1.0;
+    Tree tree;
+    for (size_t i = 0; i < points.size(); ++i) {
+        const Point& point = points[i];
+        if (std::isfinite(point[0]) && std::isfinite(point[1]) && std::isfinite(point[2]))
+            tree.insert(point, i);
+    }
+    tree.build();
+
+    std::vector<double> nearest;
+    nearest.reserve(points.size());
+    std::vector<Tree::IdRecord> hits;
+    for (size_t i = 0; i < points.size(); ++i) {
+        hits.clear();
+        tree.m_closest_ids(2, points[i], std::numeric_limits<double>::infinity(), hits);
+        double best = 0.0;
+        for (const Tree::IdRecord& hit : hits) {
+            if (hit.v == i || !(hit.d > 1e-24) || !std::isfinite(hit.d))
+                continue;
+            const double distance = std::sqrt(hit.d);
+            if (best == 0.0 || distance < best)
+                best = distance;
+        }
+        if (best > 0.0)
+            nearest.push_back(best);
+    }
+    if (nearest.empty())
+        return 1.0;
+    const size_t mid = nearest.size() / 2;
+    std::nth_element(nearest.begin(), nearest.begin() + static_cast<std::ptrdiff_t>(mid), nearest.end());
+    if (nearest.size() % 2 == 1)
+        return nearest[mid];
+    const double upper = nearest[mid];
+    const double lower = *std::max_element(nearest.begin(), nearest.begin() + static_cast<std::ptrdiff_t>(mid));
+    return 0.5 * (lower + upper);
+}
+
+double delaunay_radius_of(const std::vector<Point>& points, double factor)
+{
+    if (!(factor > 0.0))
+        return 0.0;
+    return factor * median_neighbor_spacing(points);
+}
+
 /// Undirected kNN graph. Each edge is stored once. Its cost is
 /// `orientation_edge_weight`, so an edge along the normals loses to a tangent edge.
 SimpGraph build_orientation_knn_graph(
@@ -1036,20 +1097,60 @@ void orient_by_propagation_tree(
     std::cout << (shortest_path ? "Orientation SPT done" : "Orientation MST done") << std::endl;
 }
 
-/// Orient normals along a minimum spanning tree of the kNN graph.
+/// Orient along the tunnel-weighted spanning forest of the Delaunay graph.
+/// The length is `l * (1 + |ê·n| + |ê·m|)`. The cone still reads the kNN
+/// neighborhood. A child agrees with its parent unless that cone reports a crossing.
+void orient_by_delaunay_forest(
+    const CloudNeighborhood& neighborhood,
+    const std::vector<Point>& points,
+    std::vector<Vec3>& normals,
+    const double radius_factor,
+    const bool cone_check,
+    std::vector<OrientationTreeEdge>* orientation_tree)
+{
+    const AMGraph3D delaunay = delaunay_edges(points, delaunay_radius_of(points, radius_factor));
+    const GraphEdgeWeights weights = tunnel_weight_graph(delaunay, normals);
+    const AMGraph3D forest = minimum_spanning_forest(delaunay, weights.length);
+    std::cout << "Graph construction done" << std::endl;
+
+    SimpGraph tree;
+    for (size_t i = 0; i < points.size(); ++i)
+        (void)tree.add_node();
+    for (const NodeID node : forest.node_ids()) {
+        for (const NodeID neighbor : forest.neighbors(node)) {
+            if (node < neighbor)
+                tree.connect_nodes(node, neighbor);
+        }
+    }
+
+    AMGraph::NodeSet nodes;
+    for (const NodeID node : tree.node_ids())
+        nodes.insert(node);
+    const auto components = connected_components(tree.inner(), nodes);
+    std::cout << "Connected components processing done" << std::endl;
+    for (const auto& component : components) {
+        propagate_orientation(
+            tree, *component.begin(), neighborhood, points, normals, cone_check, orientation_tree);
+    }
+    std::cout << "Orientation MST done" << std::endl;
+}
+
+/// Orient normals along the tunnel-weighted Delaunay forest.
 /// A child normally agrees with its parent. When `cone_check` is set, a tough
 /// edge whose cone toward the parent contains another sheet gives the child
-/// the opposite sign. Components do not exchange a sign.
+/// the opposite sign. Components do not exchange a sign. `k` sizes that cone.
 void correct_normal_orientation_mst(
     const CloudNeighborhood& neighborhood,
     const std::vector<Point>& in_smoothed_v,
     std::vector<Vec3>& normals,
     const int k,
     const bool cone_check,
+    const double radius_factor,
     std::vector<OrientationTreeEdge>* orientation_tree)
 {
-    orient_by_propagation_tree(
-        neighborhood, in_smoothed_v, normals, k, cone_check, orientation_tree, false);
+    (void)k;
+    orient_by_delaunay_forest(
+        neighborhood, in_smoothed_v, normals, radius_factor, cone_check, orientation_tree);
 }
 
 /// Same graph, cost, root, and flip as the MST. The tree is a shortest path
@@ -1207,11 +1308,13 @@ void correct_normal_orientation_clusters(
     std::cout << "Orientation clustering done" << std::endl;
 }
 
-/// @brief Orient normals on the kNN graph.
-/// Clustering joins tangent edges before gap edges and keeps normals in
-/// agreement. The minimum spanning tree is what reconstruction uses. The
-/// shortest-path tree is the same propagation on Dijkstra's tree.
-/// @param neighborhood exact `k` search of `in_smoothed_v`
+/// @brief Give estimated normals a consistent sign.
+/// The minimum spanning tree is the tunnel-weighted forest of the Delaunay
+/// graph and is what reconstruction uses. Clustering and the shortest-path
+/// tree stay on the kNN graph. The shortest-path tree is Dijkstra from the
+/// lowest index of each component.
+/// @param neighborhood exact `k` search of `in_smoothed_v`, used by the cone,
+/// clustering, and the shortest-path tree
 /// @param in_smoothed_v positions the search was made on
 /// @param normals [OUT] normals flipped for a consistent orientation
 /// @param k requested neighbor count of `neighborhood`
@@ -1222,11 +1325,14 @@ void correct_normal_orientation(
     const int k,
     NormalOrientation orientation,
     const bool cone_check,
+    const double radius_factor,
     std::vector<OrientationTreeEdge>* orientation_tree)
 {
+    if (orientation == NormalOrientation::None)
+        return;
     if (orientation == NormalOrientation::MinimumSpanningTree) {
         correct_normal_orientation_mst(
-            neighborhood, in_smoothed_v, normals, k, cone_check, orientation_tree);
+            neighborhood, in_smoothed_v, normals, k, cone_check, radius_factor, orientation_tree);
         return;
     }
     if (orientation == NormalOrientation::ShortestPathTree) {
@@ -2144,13 +2250,12 @@ struct CloudComponent {
     std::vector<NodeID> source_ids;
 };
 
-/// @brief Find the number of connected components and separate them
-/// @param neighborhood exact `opts.num_neighbors` search of `smoothed_v`
-/// @param opts: theta: (cross-connection threshold) angle threshold to avoid connecting vertices on different surface
-///              r: (outlier_thresh) threshold distance(?) to remove an outlier
-/// @return Split components. The stored neighbor lists are copied before the angle test.
+/// @brief Find the number of connected components and separate them.
+/// Edges come from the Delaunay graph. The angle test drops a pair whose
+/// normals disagree, then edges longer than the average length times
+/// `max_neighbor_dist` are removed before the components are read.
 void split_components(
-    const CloudNeighborhood& neighborhood,
+    const AMGraph3D& graph,
     std::vector<Point>&& vertices,
     std::vector<Vec3>&& normals,
     std::vector<Point>&& smoothed_v,
@@ -2159,9 +2264,8 @@ void split_components(
 {
     GEL_ASSERT_EQ(vertices.size(), normals.size());
     GEL_ASSERT_EQ(vertices.size(), smoothed_v.size());
-    GEL_ASSERT(neighborhood.has_exact_search(smoothed_v.size(), opts.num_neighbors));
+    GEL_ASSERT_EQ(graph.no_nodes(), vertices.size());
 
-    // Identifies clusters of vertices which are reconstructed to disparate meshes
     const double outlier_thresh = opts.max_neighbor_dist;
     double total_edge_length = 0;
     AMGraph::NodeSet sets;
@@ -2170,23 +2274,22 @@ void split_components(
         sets.insert(components.add_node());
     }
 
-    // The higher id records the edge. The length is the stored Euclidean distance.
     const bool is_euclidean = opts.dist == Distance::Euclidean;
-    for (const auto& this_idx : components.node_ids()) {
-        NeighborArray accepted = neighborhood.points[this_idx].nearest;
-        filter_out_cross_connection(accepted, normals, this_idx, opts.max_normal_ang, is_euclidean);
-        for (const auto& neighbor : accepted | std::views::drop(1)) {
-            const NodeID idx = neighbor.id;
-            if (this_idx < idx) continue;
-            const double length = neighbor.distance;
-
-            total_edge_length += length;
-
-            components.connect_nodes(this_idx, idx);
+    for (const NodeID node : graph.node_ids()) {
+        for (const auto& entry : graph.edges(node)) {
+            const NodeID neighbor = entry.first;
+            if (node >= neighbor)
+                continue;
+            if (!normals_accept_edge(normals[node], normals[neighbor], opts.max_normal_ang, is_euclidean))
+                continue;
+            total_edge_length += (vertices[node] - vertices[neighbor]).length();
+            components.connect_nodes(node, neighbor);
         }
     }
 
-    const double thresh_r = (total_edge_length * outlier_thresh) / static_cast<double>(components.no_edges());
+    const double thresh_r = components.no_edges() == 0
+        ? 0.0
+        : (total_edge_length * outlier_thresh) / static_cast<double>(components.no_edges());
     // Remove Edges Longer than the threshold
     std::vector<std::pair<NodeID, NodeID>> edge_rm_v;
     for (NodeID vertex1 = 0; vertex1 < components.no_nodes(); ++vertex1) {
@@ -2490,23 +2593,78 @@ void graph_to_mesh(const ReconstructionGraph& graph, const RSROpts& opts, Manifo
     }
 }
 
+/// Delaunay edges induced by one component. Node ids are the component's local order.
+/// Each length cap is at least `radius`. The Delaunay test drops the diagonal of a
+/// square, and chord filling needs that diagonal. It is still inside the radius.
+/// Existing edges are not withheld for a k-nearest rank.
+SimpGraph induced_delaunay_graph(
+    const AMGraph3D& delaunay,
+    const CloudComponent& component,
+    const RSROpts& opts,
+    const double radius,
+    std::vector<ConnectionLength>& connection_lengths)
+{
+    const size_t local_count = component.source_ids.size();
+    std::vector<NodeID> to_local(delaunay.no_nodes(), AMGraph::InvalidNodeID);
+    for (size_t local = 0; local < local_count; ++local)
+        to_local[component.source_ids[local]] = local;
+
+    SimpGraph graph;
+    connection_lengths.assign(local_count, {});
+    for (size_t local = 0; local < local_count; ++local)
+        graph.add_node();
+
+    const bool is_euclidean = opts.dist == Distance::Euclidean;
+    for (const NodeID global_node : delaunay.node_ids()) {
+        if (global_node >= to_local.size())
+            continue;
+        const NodeID local_node = to_local[global_node];
+        if (local_node == AMGraph::InvalidNodeID)
+            continue;
+        for (const auto& entry : delaunay.edges(global_node)) {
+            const NodeID global_neighbor = entry.first;
+            if (global_node >= global_neighbor || global_neighbor >= to_local.size())
+                continue;
+            const NodeID local_neighbor = to_local[global_neighbor];
+            if (local_neighbor == AMGraph::InvalidNodeID)
+                continue;
+            if (!normals_accept_edge(component.normals[local_node], component.normals[local_neighbor],
+                    opts.max_normal_ang, is_euclidean))
+                continue;
+            const Vec3 edge = component.smoothed[local_neighbor] - component.smoothed[local_node];
+            const double weight = is_euclidean
+                ? edge.length()
+                : cal_proj_dist(edge, component.normals[local_node], component.normals[local_neighbor]);
+            if (weight > connection_lengths[local_node].max_length)
+                connection_lengths[local_node].max_length = weight;
+            if (weight > connection_lengths[local_neighbor].max_length)
+                connection_lengths[local_neighbor].max_length = weight;
+            graph.connect_nodes(local_node, local_neighbor, weight);
+        }
+    }
+    for (ConnectionLength& length : connection_lengths) {
+        length.max_length = std::max(length.max_length, radius);
+        length.pre_max_length = length.max_length;
+    }
+    return graph;
+}
+
 auto component_to_manifold(
     const RSROpts& opts,
-    const std::vector<Point>& vertices,
-    const std::vector<Vec3>& normals,
-    const std::vector<Point>& smoothed_v,
+    const CloudComponent& component,
+    const AMGraph3D& delaunay,
+    const double radius,
     const Tree& kd_tree,
-    const CloudNeighborhood& neighborhood,
     Manifold& res)
 {
     Util::RSRTimer inner_timer;
-    std::vector<ConnectionLength> connection_lengths(vertices.size(), ConnectionLength());
+    std::vector<ConnectionLength> connection_lengths;
     inner_timer.start("init_graph");
-    SimpGraph g = init_graph(smoothed_v, normals, neighborhood, connection_lengths, opts.num_neighbors,
-                             opts.max_normal_ang, opts.dist == Distance::Euclidean);
+    SimpGraph g = induced_delaunay_graph(delaunay, component, opts, radius, connection_lengths);
     inner_timer.end("init_graph");
-    reconstruct_from_graph(g.inner(), vertices, normals, smoothed_v, connection_lengths, kd_tree, opts, inner_timer, res,
-                           false);
+    std::cout << "reconstruction graph edges: " << g.no_edges() << "\n";
+    reconstruct_from_graph(g.inner(), component.vertices, component.normals, component.smoothed,
+                           connection_lengths, kd_tree, opts, inner_timer, res, false);
 }
 
 void point_cloud_to_mesh_impl(
@@ -2515,36 +2673,23 @@ void point_cloud_to_mesh_impl(
     Util::RSRTimer& timer,
     ThreadPool& pool,
     const RSROpts& opts,
-    Manifold& output,
-    CloudNeighborhood neighborhood)
+    Manifold& output)
 {
     std::vector<Point> smoothed;
-    CloudNeighborhood sample;
-    Tree geometry_tree;
-    bool geometry_tree_ready = false;
-
     if (opts.dist == Distance::Tangent) {
-        // Tangent smoothing moves the points, so a neighborhood of the incoming cloud stays unused.
+        // Tangent smoothing moves the points. The Delaunay graph uses those positions.
         estimate_normals_and_smooth(pool, vertices_copy, normals_copy, opts.dist, smoothed);
-        build_kd_tree_of_indices(smoothed, std::views::iota(0UL, smoothed.size()), geometry_tree);
-        geometry_tree_ready = true;
-        sample = reconstruction_neighborhood(pool, smoothed, geometry_tree, opts.num_neighbors);
-    } else if (neighborhood.has_reconstruction_cap(vertices_copy.size(), opts.num_neighbors)) {
-        smoothed = vertices_copy;
-        sample = std::move(neighborhood);
     } else {
         smoothed = vertices_copy;
-        build_kd_tree_of_indices(smoothed, std::views::iota(0UL, smoothed.size()), geometry_tree);
-        geometry_tree_ready = true;
-        sample = reconstruction_neighborhood(pool, smoothed, geometry_tree, opts.num_neighbors);
     }
 
-    const size_t cloud_size = smoothed.size();
+    const double radius = delaunay_radius_of(smoothed, opts.max_neighbor_dist);
+    const AMGraph3D delaunay = delaunay_edges(smoothed, radius);
+
     timer.start("Split components");
     std::cout << "Split components" << std::endl;
-    // The angle test copies `nearest`. init_graph reads the same unfiltered lists and the length cap.
     std::vector<CloudComponent> components;
-    split_components(sample, std::move(vertices_copy), std::move(normals_copy), std::move(smoothed), opts, components);
+    split_components(delaunay, std::move(vertices_copy), std::move(normals_copy), std::move(smoothed), opts, components);
     timer.end("Split components");
     // There is no guarantee that there is more than one component, and components can
     // be highly non-uniform in terms of how many primitives they have. That means we cannot
@@ -2557,29 +2702,12 @@ void point_cloud_to_mesh_impl(
         GEL_ASSERT(component.vertices.size() == component.normals.size());
         GEL_ASSERT(component.vertices.size() == component.smoothed.size());
 
-        // A component that dropped points has a different neighbor set, so it searches again.
-        // The whole cloud keeps `sample`. Its geometry tree is built here when the search
-        // arrived from an earlier step.
         Tree component_tree;
-        CloudNeighborhood component_neighbors;
-        const Tree* tree = &geometry_tree;
-        const CloudNeighborhood* neighbors = &sample;
-        if (!is_original_point_order(component.source_ids, cloud_size)) {
-            build_kd_tree_of_indices(component.smoothed,
-                                     std::views::iota(0UL, component.smoothed.size()), component_tree);
-            component_neighbors = reconstruction_neighborhood(
-                pool, component.smoothed, component_tree, opts.num_neighbors);
-            tree = &component_tree;
-            neighbors = &component_neighbors;
-        } else if (!geometry_tree_ready) {
-            build_kd_tree_of_indices(component.smoothed,
-                                     std::views::iota(0UL, component.smoothed.size()), component_tree);
-            tree = &component_tree;
-        }
+        build_kd_tree_of_indices(component.smoothed,
+                                 std::views::iota(0UL, component.smoothed.size()), component_tree);
 
         Manifold res;
-        component_to_manifold(opts, component.vertices, component.normals, component.smoothed,
-                              *tree, *neighbors, res);
+        component_to_manifold(opts, component, delaunay, radius, component_tree, res);
         output.merge(res);
     }
     timer.end("Algorithm");
@@ -2649,6 +2777,7 @@ OrientedCloud prepare_oriented_cloud(
     ThreadPool& pool,
     NormalOrientation orientation = NormalOrientation::MinimumSpanningTree,
     bool cone_check = false,
+    double radius_factor = 20,
     std::vector<OrientationTreeEdge>* orientation_tree = nullptr)
 {
     timer.start("Validation");
@@ -2675,7 +2804,7 @@ OrientedCloud prepare_oriented_cloud(
     timer.end("Estimate and smooth normals");
 
     CloudNeighborhood neighborhood;
-    if (normals_in.empty()) {
+    if (normals_in.empty() && orientation != NormalOrientation::None) {
         const char* method_name = "cluster";
         if (orientation == NormalOrientation::MinimumSpanningTree)
             method_name = "mst";
@@ -2696,7 +2825,7 @@ OrientedCloud prepare_oriented_cloud(
         neighborhood = search_neighborhoods(pool, orientation_points, kd_tree, neighbor_count);
         correct_normal_orientation(
             neighborhood, orientation_points, normals_copy, neighbor_count, orientation, cone_check,
-            orientation_tree);
+            radius_factor, orientation_tree);
         timer.end("Correct normal orientation");
         if (euclidean)
             GEL_ASSERT(neighborhood.note_reconstruction_cap(neighbor_count));
@@ -2725,7 +2854,7 @@ void point_cloud_normals(
         || orientation == NormalOrientation::ShortestPathTree;
     OrientedCloud oriented = prepare_oriented_cloud(
         vertices, {}, opts.dist, opts.num_neighbors, timer, pool, orientation, opts.cone_check,
-        record_tree ? orientation_tree : nullptr);
+        opts.max_neighbor_dist, record_tree ? orientation_tree : nullptr);
     normals = std::move(oriented.normals);
 }
 
@@ -2740,15 +2869,14 @@ void point_cloud_to_mesh(
     timer.start("Whole process");
     OrientedCloud oriented = prepare_oriented_cloud(
         vertices_in, normals_in, opts.dist, opts.num_neighbors, timer, pool,
-        NormalOrientation::MinimumSpanningTree, opts.cone_check);
+        NormalOrientation::MinimumSpanningTree, opts.cone_check, opts.max_neighbor_dist);
     point_cloud_to_mesh_impl(
         std::move(oriented.vertices),
         std::move(oriented.normals),
         timer,
         pool,
         opts,
-        result,
-        std::move(oriented.neighborhood));
+        result);
     timer.end("Whole process");
     const std::string line(40, '=');
     std::cout << line << "\n\n";
@@ -2791,7 +2919,8 @@ void point_cloud_collapse_reexpand(
     timer.start("Whole process");
     auto oriented = prepare_oriented_cloud(vertices_in, normals_in, collapse_options.distance,
                                            rsr_opts.num_neighbors, timer, pool,
-                                           NormalOrientation::MinimumSpanningTree, rsr_opts.cone_check);
+                                           NormalOrientation::MinimumSpanningTree, rsr_opts.cone_check,
+                                           rsr_opts.max_neighbor_dist);
 
     timer.start("Collapse");
     auto [collapse, simplified] = collapse_points(
@@ -2805,8 +2934,7 @@ void point_cloud_collapse_reexpand(
         timer,
         pool,
         rsr_opts,
-        manifold,
-        CloudNeighborhood{});
+        manifold);
 
     reexpand_and_report(timer, manifold, std::move(collapse), reexpand_opts);
 }
@@ -2828,7 +2956,8 @@ void point_cloud_collapse_reexpand_graph(
     timer.start("Whole process");
     auto oriented = prepare_oriented_cloud(vertices_in, normals_in, collapse_options.distance,
                                            rsr_opts.num_neighbors, timer, pool,
-                                           NormalOrientation::MinimumSpanningTree, rsr_opts.cone_check);
+                                           NormalOrientation::MinimumSpanningTree, rsr_opts.cone_check,
+                                           rsr_opts.max_neighbor_dist);
 
     timer.start("Collapse");
     auto graph_collapse_options = collapse_options;

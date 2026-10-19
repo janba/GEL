@@ -259,6 +259,8 @@ void rsr_normals(double* vertices, int vertex_count, double* normals_out,
         method = RSR::NormalOrientation::MinimumSpanningTree;
     else if (orientation == static_cast<int>(RSR::NormalOrientation::ShortestPathTree))
         method = RSR::NormalOrientation::ShortestPathTree;
+    else if (orientation == static_cast<int>(RSR::NormalOrientation::None))
+        method = RSR::NormalOrientation::None;
 
     vector<Vec3d> normals;
     RSR::point_cloud_normals(points, opts, normals, method);

@@ -1019,20 +1019,25 @@ def rsr_normals(vertices: ArrayLike,
 
         This is the estimate used by rsr_recon, hrsr_recon, and hrsr_recon_graph
         when normals are omitted: an adaptive covariance normal at each point,
-        then a consistent orientation of num_neighbors.
-        orientation is "mst", "spt", or "cluster". "mst" propagates the sign
-        along a minimum spanning tree and is what reconstruction uses. "spt"
-        propagates along a shortest-path tree of the same graph. "cluster"
-        joins tangent edges before gap edges. All three keep a new normal in
-        agreement with the one it is joined to, except the tree methods when
+        then a consistent orientation.
+        orientation is "mst", "spt", "cluster", or "none". "mst" propagates the
+        sign along the tunnel-weighted spanning forest of the radius-limited
+        Delaunay graph and is what reconstruction uses. The radius is
+        max_neighbor_dist times the median nearest-neighbor distance. This
+        function uses the default, 20. "spt" propagates along a
+        shortest-path tree of the num_neighbors graph. "cluster" joins tangent
+        edges before gap edges on that same graph. "none" keeps the sign from
+        the covariance estimate. The three orienting methods keep a new normal
+        in agreement with the one it is joined to, except the tree methods when
         cone_check is set. On a tough tree edge, another sheet in the cone
         toward the parent then gives the new normal the opposite sign.
+        num_neighbors sizes the shortest-path tree, clustering, and the sheet cone.
         use_Euclid_dist selects the Euclidean or tangent-distance estimate.
         The result has one unit normal per input point, in the same order.
     """
-    method = {"cluster": 0, "mst": 1, "spt": 2}.get(orientation)
+    method = {"cluster": 0, "mst": 1, "spt": 2, "none": 3}.get(orientation)
     if method is None:
-        raise ValueError("orientation must be 'cluster', 'mst', or 'spt'")
+        raise ValueError("orientation must be 'cluster', 'mst', 'spt', or 'none'")
     vertices_data, n_vertices = _as_vec3_f(vertices)
     normals = np.zeros((n_vertices, 3), dtype=ct.c_double, order='F')
     if n_vertices == 0:
@@ -1047,7 +1052,10 @@ def rsr_orientation_tree(vertices: ArrayLike,
                          orientation: str="mst") -> tuple[ndarray, ndarray, ndarray]:
     """ Oriented normals and the tree that oriented them.
 
-        orientation is "mst" or "spt". Returns normals with shape (N, 3),
+        orientation is "mst" or "spt". "mst" is the tunnel-weighted spanning
+        forest of the radius-limited Delaunay graph. Its radius factor is the
+        same default 20 as rsr_recon's max_neighbor_dist. "spt" is a shortest-path
+        tree of the num_neighbors graph. Returns normals with shape (N, 3),
         edges with shape (E, 2) as endpoint indices, and a bool per edge.
         An edge's bool is true when that tree edge ran the sheet cone check.
         The normals match rsr_normals with the same orientation.
@@ -1095,9 +1103,11 @@ def rsr_recon(vertices: ArrayLike,
         need to be estimated during reconstruction. use_Euclid_dist should be true if we 
         can use the Euclidean rather than projected distance. Set to true only for noise free 
         point clouds. genus controls handle insertion: -1 lets the algorithm detect genus,
-        0 disables handle insertion, and values > 0 request that many handles. num_neighbors is the number
-        of nearest neighbors for each point,
-        max_neighbor_dist is the maximum distance to farthest neighbor measured in multiples of average distance, 
+        0 disables handle insertion, and values > 0 request that many handles. The reconstruction
+        graph is the radius-limited Delaunay graph. max_neighbor_dist is that radius as a
+        multiple of the median nearest-neighbor distance. The same multiple drops a component
+        edge longer than the average edge length times this value. num_neighbors sizes the
+        sheet cone and the handle search. 
         max_normal_ang is the threshold on angles between normals: two points are only connected if the angle
         between their normals is less than max_normal_ang. max_handle_dist is the threshold on the distance between 
         vertices that are connected by handle edges (check paper). For large max_handle_dist, it is harder for 
@@ -1164,10 +1174,10 @@ def hrsr_recon_graph(vertices: ArrayLike,
                      cone_check: bool=False) -> Manifold:
     """ Hierarchical RsR reconstruction from the simplified contraction graph.
 
-        The collapse graph is the same neighborhood RsR would build. Only edges
+        The collapse graph is the num_neighbors neighborhood. Only edges
         inside the local one-ring are contracted, so the longer edges are still
         there for RsR. hrsr_recon instead collapses a 5-neighbor graph and then
-        builds a new nearest-neighbor graph from the collapsed points. The
+        builds a radius-limited Delaunay graph from the collapsed points. The
         arguments match hrsr_recon, so the two can be compared by changing the
         function name. cone_check is the same MST sheet test as in rsr_recon.
     """

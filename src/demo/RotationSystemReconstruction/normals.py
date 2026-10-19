@@ -2,9 +2,10 @@
 
     python normals.py [cloud.obj] [cluster|mst|spt|both|all]
 
-    mst propagates signs along a minimum spanning tree and is what
-    rsr_recon, hrsr_recon, and hrsr_recon_graph use. spt propagates along
-    a shortest-path tree of the same graph. cluster joins tangent edges
+    mst propagates signs along the tunnel-weighted spanning forest of the
+    radius-limited Delaunay graph. rsr_recon uses that same alignment.
+    spt propagates along a shortest-path tree of the k-nearest neighbor
+    graph. cluster joins tangent edges
     before gap edges. both registers mst and cluster. all registers all
     three. The mst and spt views draw their trees. Edges that run the
     sheet cone check are red. Other MST edges are blue-gray, and other

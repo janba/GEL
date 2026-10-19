@@ -414,10 +414,19 @@ namespace Geometry {
     /** Clean up graph, removing unused nodes and edges. */
     AMGraph3D clean_graph(const AMGraph3D& g);
     
-    /** Computes the minimum spanning tree of the argument using Prim's algorithm and returns
-     the resulting graph. */
+    /** Minimum spanning tree of the component that contains `root`, using Prim's
+     algorithm. The cost is the squared Euclidean length. Nodes outside that
+     component are copied and left isolated. */
     AMGraph3D minimum_spanning_tree(const AMGraph3D&,
                                     AMGraph::NodeID root = AMGraph::InvalidNodeID);
+
+    /** Minimum spanning forest of every component, using Kruskal's algorithm.
+     An empty `cost` makes each edge cost its Euclidean length. Otherwise
+     `cost[edge_id]` is the cost, and an edge with no entry uses its Euclidean
+     length. Equal costs keep the edge that comes first when edges are listed
+     with the lower node id first. Every node is copied. */
+    AMGraph3D minimum_spanning_forest(const AMGraph3D& g,
+                                      const std::vector<double>& cost = {});
 
     void close_chordless_cycles(AMGraph3D& g, AMGraph::NodeID root, int hops, double rad);
 

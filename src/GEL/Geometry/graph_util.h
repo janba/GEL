@@ -144,6 +144,42 @@ namespace Geometry {
     /** Computes the distance at samples points from graph g0 to g1 and vice versa. H is for Hausdorff. */
     std::pair<double,double> graph_H_dist(const AMGraph3D& g0, const AMGraph3D& g1, size_t samples = 10000);
 
+    /// One length per edge id, plus the unit-edge tunnel alignments of the undirected edges.
+    struct GraphEdgeWeights {
+        std::vector<double> length;
+        double weight_min = 0;
+        double weight_median = 0;
+        double weight_max = 0;
+    };
+
+    /** Tunnel-weighted length of every edge of `g`.
+     `length[e] = l(e) * (1 + |ê·n| + |ê·m|)`. The alignment is taken on the
+     unit edge, so a tangent edge keeps its length and an edge along both unit
+     normals is three times as long. RsR divides that sum by a neighborhood
+     radius when the term is added to an angle; the length is already outside
+     here, so the division is left out. An edge shorter than 1e-12 has
+     alignment 0. `normals` has one vector per node. A missing normal counts
+     as zero. `weight_min`, `weight_median`, and `weight_max` are the alignments. */
+    GraphEdgeWeights tunnel_weight_graph(const AMGraph3D& g, const std::vector<CGLA::Vec3d>& normals);
+
+    /// The forest graph and, when `tunnel` is set, the alignment statistics.
+    /// `normal_seconds` is negative when normals were not estimated.
+    /// `forest_seconds` is the weighted-length and forest construction time.
+    struct SpanningForest {
+        AMGraph3D graph;
+        double weight_min = 0;
+        double weight_median = 0;
+        double weight_max = 0;
+        double normal_seconds = -1;
+        double forest_seconds = 0;
+    };
+
+    /** Minimum spanning forest of `g`. With `tunnel`, each node gets the
+     adaptive covariance normal and the covariance sign is left in place.
+     Edge lengths then come from `tunnel_weight_graph`. Otherwise each edge
+     costs its Euclidean length. */
+    SpanningForest spanning_forest(const AMGraph3D& g, bool tunnel);
+
 //    std::pair<int,int> node_symmetry(const AMGraph3D& g,  AMGraph::NodeID n0);
     std::vector<std::pair<int,int>> symmetry_pairs(const AMGraph3D& g, AMGraph::NodeID n, double threshold, bool node_symmetry);
 //    void all_symmetry_pairs(AMGraph3D& g, double threshold);

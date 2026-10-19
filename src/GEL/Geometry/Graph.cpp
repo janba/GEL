@@ -6,9 +6,12 @@
 //  Copyright © 2015 J. Andreas Bærentzen. All rights reserved.
 //
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
 #include <map>
 #include <queue>
+#include <vector>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Util/AttribVec.h>
 
@@ -257,6 +260,89 @@ bool BreadthFirstSearch::Prim_step() {
         }
             
         return gn;
+    }
+
+    AMGraph3D minimum_spanning_forest(const AMGraph3D& g, const std::vector<double>& cost)
+    {
+        using NodeID = AMGraph::NodeID;
+        AMGraph3D forest;
+        for (auto node: g.node_ids())
+            forest.add_node(g.pos[node]);
+
+        struct Candidate {
+            double cost;
+            size_t order;
+            NodeID a;
+            NodeID b;
+        };
+        std::vector<Candidate> candidates;
+        candidates.reserve(g.no_edges());
+        size_t order = 0;
+        for (NodeID a: g.node_ids()) {
+            for (const auto& entry: g.edges(a)) {
+                const NodeID b = entry.first;
+                const AMGraph::EdgeID edge = entry.second;
+                if (a >= b)
+                    continue;
+                double edge_cost = std::sqrt(g.sqr_dist(a, b));
+                if (edge < cost.size())
+                    edge_cost = cost[edge];
+                candidates.push_back(Candidate{edge_cost, order++, a, b});
+            }
+        }
+
+        // Finite costs come first. A non-finite cost sorts by discovery order
+        // with the other non-finite costs, which keeps the ordering total.
+        std::sort(candidates.begin(), candidates.end(), [](const Candidate& lhs, const Candidate& rhs) {
+            const bool lhs_ok = std::isfinite(lhs.cost);
+            const bool rhs_ok = std::isfinite(rhs.cost);
+            if (lhs_ok && rhs_ok) {
+                if (lhs.cost < rhs.cost)
+                    return true;
+                if (rhs.cost < lhs.cost)
+                    return false;
+            } else if (lhs_ok != rhs_ok)
+                return lhs_ok;
+            return lhs.order < rhs.order;
+        });
+
+        const size_t node_count = g.no_nodes();
+        std::vector<NodeID> parent(node_count);
+        std::vector<unsigned> rank(node_count, 0);
+        for (NodeID node: g.node_ids())
+            parent[node] = node;
+        auto find = [&parent](NodeID node) {
+            NodeID root = node;
+            while (parent[root] != root)
+                root = parent[root];
+            while (parent[node] != root) {
+                const NodeID next = parent[node];
+                parent[node] = root;
+                node = next;
+            }
+            return root;
+        };
+
+        size_t chosen = 0;
+        const size_t stop = node_count == 0 ? 0 : node_count - 1;
+        for (const Candidate& candidate: candidates) {
+            const NodeID root_a = find(candidate.a);
+            const NodeID root_b = find(candidate.b);
+            if (root_a == root_b)
+                continue;
+            if (rank[root_a] < rank[root_b])
+                parent[root_a] = root_b;
+            else if (rank[root_a] > rank[root_b])
+                parent[root_b] = root_a;
+            else {
+                parent[root_b] = root_a;
+                ++rank[root_a];
+            }
+            forest.connect_nodes(candidate.a, candidate.b);
+            if (++chosen == stop)
+                break;
+        }
+        return forest;
     }
 
 void close_chordless_cycles(AMGraph3D& g, AMGraph::NodeID root, int hops, double rad)

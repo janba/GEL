@@ -53,6 +53,9 @@ class Graph:
         """ Returns the average edge length. """
         ael = lib_py_gel.Graph_average_edge_length(self.obj)
         return ael
+    def no_edges(self) -> int:
+        """ Number of edges created. Disconnecting two nodes does not decrement this count. """
+        return lib_py_gel.Graph_no_edges(self.obj)
     def add_node(self, p: ArrayLike) -> int:
         """ Adds node with position p to the graph and returns the
         index of the new node. """
@@ -269,6 +272,23 @@ def minimum_spanning_tree(g: Graph, root_node: int = 0) -> Graph:
     mst = Graph()
     lib_py_gel.graph_minimum_spanning_tree(g.obj, mst.obj, root_node)
     return mst
+
+def minimum_spanning_forest(g: Graph, tunnel: bool = True):
+    """ Minimum spanning forest of `g`.
+
+    Every connected component gets its own tree, and every node is kept.
+    With `tunnel`, each node gets an unoriented adaptive normal and each
+    edge length is multiplied by one plus the unit-edge tunnel alignment
+    `|ê·n| + |ê·m|`. Otherwise the length is Euclidean. Returns the forest,
+    the minimum, median, and maximum alignment, the seconds spent estimating
+    normals, and the seconds spent weighting edges and building the forest.
+    The alignments are 0 when `tunnel` is false. The normal time is negative
+    when normals were not estimated.
+    """
+    forest = Graph()
+    stats = (ct.c_double * 5)()
+    lib_py_gel.graph_minimum_spanning_forest(g.obj, forest.obj, bool(tunnel), stats)
+    return forest, (stats[0], stats[1], stats[2]), stats[3], stats[4]
 
 def close_chordless_cycles(g: Graph, node: int = None, hops: int = 5, rad: float = None):
     """ This function closes chordless cycles. A chordless cycle is a 
