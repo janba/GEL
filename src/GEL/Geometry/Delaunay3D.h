@@ -63,13 +63,17 @@ AMGraph3D delaunay_edges(const std::vector<CGLA::Vec3d>& points, double radius);
 AMGraph3D gabriel_edges(const std::vector<CGLA::Vec3d>& points, double radius);
 
 /**
- * One component of the combinatorial link of a site.
+ * Delaunay triangles incident on a site, as one path or one cycle.
  *
  * `neighbors` is a rotation of Delaunay neighbors around that site, taken
  * from the truncated Voronoi cell. Consecutive entries are the opposite
  * corners of one Delaunay triangle incident on the site. When `closed` is
  * set, the last entry forms such a triangle with the first. The order does
  * not use an estimated normal.
+ *
+ * A path or a cycle, where every link vertex has degree at most 2, is one
+ * link. A branched component is not one rotation. Each of its edges is its
+ * own two-neighbor link, and that pair is one incident triangle.
  */
 struct DelaunayLink {
     std::vector<int> neighbors;
@@ -80,7 +84,8 @@ struct DelaunayLink {
  * Radius-limited Delaunay neighborhood of one site.
  *
  * `neighbors` is the sorted set `delaunay_edges` keeps. `links` are the
- * connected components of the Delaunay triangles incident on the site.
+ * incident Delaunay triangles: one ordered path or cycle when the link is
+ * a single chain, and one two-neighbor link per triangle when it branches.
  */
 struct DelaunayStar {
     std::vector<int> neighbors;

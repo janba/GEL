@@ -137,7 +137,13 @@ extern "C" {
 
     /// Local rotation system reconstruction. `vertices` is a Fortran (N, 3)
     /// array. `radius_factor` multiplies the median nearest-neighbor distance
-    /// to set the Delaunay radius. The 3DDelaunay demo uses 4 for a point cloud.
+    /// to set the Delaunay radius. Each tunnel-weighted forest edge contributes
+    /// on each open side the Delaunay triangle of least perimeter times area
+    /// over the area projected along the edge normal. A candidate on an
+    /// occupied side of any of its edges is skipped. So is a third triangle
+    /// on any edge, and a triangle whose edge at a vertex falls between the
+    /// edges of a triangle already incident there in the plane of the vertex
+    /// normal.
     DLLEXPORT void lrsr_recon(Manifold_ptr m_ptr, double* vertices, int vertex_count,
         double radius_factor);
 

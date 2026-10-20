@@ -12,7 +12,6 @@
 #include <atomic>
 #include <cmath>
 #include <limits>
-#include <set>
 #include <thread>
 #include <unordered_map>
 #include <utility>
@@ -447,104 +446,6 @@ std::vector<int> neighbors_of_site(const std::vector<Vec3d>& points, int site, d
     return neighbors_from_cell(cell);
 }
 
-/// Cyclic order of real neighbors around plane `pi`, oriented so the face is
-/// counterclockwise against the plane's outward normal. Empty when the face
-/// walk does not close or does not meet every graph neighbor.
-std::vector<int> real_neighbor_rotation(const Cell& cell, int pi, const std::vector<int>& graph_nbrs)
-{
-    const int nplanes = static_cast<int>(cell.planes.size());
-    std::unordered_map<int, std::vector<std::pair<int, int>>> star;
-    for (const Edge& e : cell.edges) {
-        int other = -1;
-        if (e.p0 == pi)
-            other = e.p1;
-        else if (e.p1 == pi)
-            other = e.p0;
-        else
-            continue;
-        if (other < 0 || other >= nplanes)
-            continue;
-        const int src = cell.planes[other].src;
-        star[e.a].push_back({e.b, src});
-        star[e.b].push_back({e.a, src});
-    }
-    if (star.size() < 3)
-        return {};
-
-    int start = std::numeric_limits<int>::max();
-    for (const auto& entry : star)
-        start = std::min(start, entry.first);
-
-    std::vector<int> verts;
-    std::vector<int> srcs;
-    int prev = -1;
-    int cur = start;
-    bool returned = false;
-    const int guard_max = static_cast<int>(star.size()) + 2;
-    for (int step = 0; step < guard_max; ++step) {
-        const auto it = star.find(cur);
-        if (it == star.end())
-            break;
-        int next_v = -1;
-        int next_src = -1;
-        for (const auto& step_to : it->second) {
-            if (step_to.first == prev)
-                continue;
-            if (next_v < 0 || step_to.first < next_v) {
-                next_v = step_to.first;
-                next_src = step_to.second;
-            }
-        }
-        if (next_v < 0)
-            break;
-        verts.push_back(cur);
-        srcs.push_back(next_src);
-        prev = cur;
-        cur = next_v;
-        if (cur == start) {
-            returned = true;
-            break;
-        }
-    }
-    if (!returned || verts.size() < 3)
-        return {};
-
-    Vec3d area(0);
-    for (size_t i = 0; i < verts.size(); ++i) {
-        const Vec3d& p = cell.verts[verts[i]].p;
-        const Vec3d& q = cell.verts[verts[(i + 1) % verts.size()]].p;
-        area += cross(p, q);
-    }
-    const bool outward_ccw = dot(area, cell.planes[pi].n) >= 0;
-
-    std::vector<int> real;
-    real.reserve(srcs.size());
-    for (int src : srcs)
-        if (src >= 0)
-            real.push_back(src);
-    if (!outward_ccw)
-        std::reverse(real.begin(), real.end());
-
-    std::vector<int> compact;
-    compact.reserve(real.size());
-    for (int src : real) {
-        if (!std::binary_search(graph_nbrs.begin(), graph_nbrs.end(), src))
-            continue;
-        if (!compact.empty() && compact.back() == src)
-            continue;
-        compact.push_back(src);
-    }
-    if (compact.size() >= 2 && compact.front() == compact.back())
-        compact.pop_back();
-
-    std::vector<int> sorted_compact = compact;
-    std::sort(sorted_compact.begin(), sorted_compact.end());
-    sorted_compact.erase(std::unique(sorted_compact.begin(), sorted_compact.end()), sorted_compact.end());
-    if (sorted_compact != graph_nbrs)
-        return {};
-    return compact;
-}
-
 DelaunayLink walk_path_or_cycle(const std::vector<int>& comp,
                                 const std::unordered_map<int, std::vector<int>>& adj)
 {
@@ -587,91 +488,6 @@ DelaunayLink walk_path_or_cycle(const std::vector<int>& comp,
     return link;
 }
 
-std::vector<int> canonical_cycle(std::vector<int> face)
-{
-    if (face.empty())
-        return face;
-    const auto at = std::min_element(face.begin(), face.end());
-    std::rotate(face.begin(), at, face.end());
-    std::vector<int> reversed(face.size());
-    reversed[0] = face[0];
-    for (size_t i = 1; i < face.size(); ++i)
-        reversed[i] = face[face.size() - i];
-    if (reversed < face)
-        return reversed;
-    return face;
-}
-
-DelaunayLink outer_face(const std::vector<int>& comp,
-                        const std::unordered_map<int, std::vector<int>>& adj,
-                        const std::unordered_map<int, std::vector<int>>& rotation)
-{
-    auto next_after = [&](int at, int from) -> int {
-        const std::vector<int>* rot = nullptr;
-        const auto it = rotation.find(at);
-        if (it != rotation.end() && !it->second.empty())
-            rot = &it->second;
-        else
-            rot = &adj.at(at);
-        for (size_t i = 0; i < rot->size(); ++i) {
-            if ((*rot)[i] == from)
-                return (*rot)[(i + 1) % rot->size()];
-        }
-        for (int nb : adj.at(at))
-            if (nb != from)
-                return nb;
-        return -1;
-    };
-
-    std::set<std::pair<int, int>> unused;
-    for (int u : comp) {
-        for (int v : adj.at(u)) {
-            if (u < v) {
-                unused.emplace(u, v);
-                unused.emplace(v, u);
-            }
-        }
-    }
-
-    DelaunayLink best;
-    bool found = false;
-    while (!unused.empty()) {
-        const auto start_edge = *unused.begin();
-        int from = start_edge.first;
-        int to = start_edge.second;
-        std::vector<int> face;
-        bool closed_face = false;
-        const int limit = static_cast<int>(unused.size()) + 2;
-        for (int guard = 0; guard < limit; ++guard) {
-            const std::pair<int, int> key{from, to};
-            if (!unused.erase(key))
-                break;
-            face.push_back(from);
-            const int next = next_after(to, from);
-            if (next < 0 || next == to)
-                break;
-            from = to;
-            to = next;
-            if (from == start_edge.first && to == start_edge.second) {
-                closed_face = true;
-                break;
-            }
-        }
-        if (!closed_face || face.size() < 2)
-            continue;
-        std::set<int> unique(face.begin(), face.end());
-        if (unique.size() != face.size())
-            continue;
-        std::vector<int> canon = canonical_cycle(std::move(face));
-        if (!found || canon.size() > best.neighbors.size()
-            || (canon.size() == best.neighbors.size() && canon < best.neighbors)) {
-            found = true;
-            best.neighbors = std::move(canon);
-            best.closed = best.neighbors.size() >= 3;
-        }
-    }
-    return best;
-}
 
 std::vector<DelaunayLink> links_from_cell(const Cell& cell, const std::vector<int>& allowed)
 {
@@ -699,29 +515,6 @@ std::vector<DelaunayLink> links_from_cell(const Cell& cell, const std::vector<in
     }
     if (adj.empty())
         return {};
-
-    bool need_rotation = false;
-    for (const auto& entry : adj) {
-        if (entry.second.size() > 2)
-            need_rotation = true;
-    }
-    std::unordered_map<int, int> src_plane;
-    std::unordered_map<int, std::vector<int>> rotation;
-    if (need_rotation) {
-        for (int pi = 0; pi < nplanes; ++pi) {
-            const int src = cell.planes[pi].src;
-            if (src >= 0)
-                src_plane.emplace(src, pi);
-        }
-        for (const auto& entry : adj) {
-            const auto plane = src_plane.find(entry.first);
-            if (plane == src_plane.end())
-                continue;
-            std::vector<int> rot = real_neighbor_rotation(cell, plane->second, entry.second);
-            if (!rot.empty())
-                rotation.emplace(entry.first, std::move(rot));
-        }
-    }
 
     std::vector<int> sources;
     sources.reserve(adj.size());
@@ -761,11 +554,7 @@ std::vector<DelaunayLink> links_from_cell(const Cell& cell, const std::vector<in
             continue;
         }
 
-        DelaunayLink link = outer_face(comp, adj, rotation);
-        if (link.neighbors.size() >= 2) {
-            links.push_back(std::move(link));
-            continue;
-        }
+        // A branch is not one rotation. Each edge is one incident triangle.
         for (int node : comp) {
             for (int nb : adj[node]) {
                 if (node < nb)

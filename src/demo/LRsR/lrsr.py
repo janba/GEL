@@ -3,16 +3,19 @@
     python lrsr.py [--radius FACTOR] [points.obj] [out.obj]
 
 With no file, 400 points on the unit sphere are reconstructed and shown.
+The window draws the mesh and the tunnel-weighted spanning forest.
 The radius is FACTOR times the median nearest-neighbor distance. The default
 factor is 4. An .obj point cloud uses each line whose first word is v.
 The mesh is written to out.obj when no output path is given.
 """
 
 import sys
+from collections import defaultdict
 from os.path import splitext
 
 import numpy as np
 from pygel3d import gl_display as gl
+from pygel3d.graph import delaunay_edges, minimum_spanning_forest
 from pygel3d.hmesh import count_boundary_curves, lrsr_recon, save, valid
 
 
@@ -53,6 +56,143 @@ def parse_args(argv):
     return positional, radius_factor
 
 
+def median_neighbor_spacing(points):
+    from scipy.spatial import KDTree
+
+    distances, _ = KDTree(points).query(points, k=2)
+    nearest = np.asarray(distances[:, 1], dtype=np.float64)
+    nearest = nearest[np.isfinite(nearest) & (nearest > 0)]
+    if nearest.size == 0:
+        return 1.0
+    return float(np.median(nearest))
+
+
+def sanity(points, mesh, radius_factor):
+    """Forest edges absent from the mesh, non-Delaunay faces, and bad fans.
+
+    A fan is fine when the triangles at one input point are a single cycle
+    or a set of paths. A branch, or a cycle plus anything else, is not.
+    The mesh is built from this same tunnel-weighted forest. The returned
+    forest is that graph. An empty mesh has no positions array. Every forest
+    edge is then missing, and every input point is without a face.
+    """
+    if len(mesh.vertices()) == 0:
+        radius = radius_factor * median_neighbor_spacing(points)
+        graph = delaunay_edges(points, radius)
+        forest, *_ = minimum_spanning_forest(graph, True)
+        forest_edges = 0
+        for index in range(len(points)):
+            for neighbor in forest.neighbors(index):
+                if index < int(neighbor):
+                    forest_edges += 1
+        return {
+            "missing_forest": forest_edges,
+            "forest_edges": forest_edges,
+            "non_delaunay_faces": 0,
+            "bad_fans": 0,
+            "closed": 0,
+            "open_fans": 0,
+            "points_without_faces": len(points),
+            "forest": forest,
+        }
+    positions = np.array(mesh.positions())
+
+    def key_of(point):
+        return (round(float(point[0]), 8), round(float(point[1]), 8), round(float(point[2]), 8))
+
+    point_at = defaultdict(list)
+    for index, point in enumerate(points):
+        point_at[key_of(point)].append(index)
+    point_id = {}
+    for vertex in mesh.vertices():
+        hits = point_at.get(key_of(positions[int(vertex)]), [])
+        if len(hits) == 1:
+            point_id[int(vertex)] = hits[0]
+
+    radius = radius_factor * median_neighbor_spacing(points)
+    graph = delaunay_edges(points, radius)
+    delaunay = set()
+    for index in range(len(points)):
+        for neighbor in graph.neighbors(index):
+            delaunay.add(tuple(sorted((int(index), int(neighbor)))))
+    forest, *_ = minimum_spanning_forest(graph, True)
+    missing_forest = 0
+    forest_edges = 0
+    mesh_edges = set()
+    non_delaunay_faces = 0
+    incident = defaultdict(list)
+    for face in mesh.faces():
+        vertices = [int(vertex) for vertex in mesh.circulate_face(face, "v")]
+        if any(vertex not in point_id for vertex in vertices):
+            continue
+        ids = [point_id[vertex] for vertex in vertices]
+        bad = False
+        for start, end in ((0, 1), (1, 2), (2, 0)):
+            edge = tuple(sorted((ids[start], ids[end])))
+            mesh_edges.add(edge)
+            if edge not in delaunay:
+                bad = True
+        if bad:
+            non_delaunay_faces += 1
+        for corner in range(3):
+            incident[ids[corner]].append((ids[(corner + 1) % 3], ids[(corner + 2) % 3]))
+    for index in range(len(points)):
+        for neighbor in forest.neighbors(index):
+            if index < int(neighbor):
+                forest_edges += 1
+                if (index, int(neighbor)) not in mesh_edges:
+                    missing_forest += 1
+
+    bad_fans = 0
+    closed = 0
+    open_fans = 0
+    for triangles in incident.values():
+        adjacency = defaultdict(set)
+        for left, right in triangles:
+            adjacency[left].add(right)
+            adjacency[right].add(left)
+        seen = set()
+        components = 0
+        branched = False
+        cyclic = False
+        for start in list(adjacency):
+            if start in seen:
+                continue
+            components += 1
+            stack = [start]
+            seen.add(start)
+            nodes = []
+            edge_ends = 0
+            while stack:
+                node = stack.pop()
+                nodes.append(node)
+                if len(adjacency[node]) > 2:
+                    branched = True
+                for other in adjacency[node]:
+                    edge_ends += 1
+                    if other not in seen:
+                        seen.add(other)
+                        stack.append(other)
+            if edge_ends // 2 >= len(nodes) and len(nodes) >= 3:
+                cyclic = True
+        if branched or (cyclic and components > 1):
+            bad_fans += 1
+        elif cyclic and components == 1 and not branched:
+            closed += 1
+        else:
+            open_fans += 1
+    return {
+        "missing_forest": missing_forest,
+        "forest_edges": forest_edges,
+        "non_delaunay_faces": non_delaunay_faces,
+        "bad_fans": bad_fans,
+        "closed": closed,
+        "open_fans": open_fans,
+        "points_without_faces": len(points) - len(incident),
+        "forest": forest,
+    }
+
+
 def main():
     positional, radius_factor = parse_args(sys.argv[1:])
     if not positional:
@@ -71,14 +211,24 @@ def main():
     mesh = lrsr_recon(points, radius_factor)
     n_vertices = len(mesh.vertices())
     n_faces = len(mesh.faces())
+    check = sanity(points, mesh, radius_factor)
     print(
         f"{source}: {len(points)} points, radius factor {radius_factor}, "
         f"{n_vertices} vertices, {n_faces} faces, "
         f"{count_boundary_curves(mesh)} boundary curves, "
         f"valid={valid(mesh)}"
     )
+    print(
+        f"sanity: missing forest edges {check['missing_forest']}"
+        f"/{check['forest_edges']}, "
+        f"non-Delaunay faces {check['non_delaunay_faces']}, "
+        f"bad fans {check['bad_fans']}, "
+        f"closed umbrellas {check['closed']}, "
+        f"open fans {check['open_fans']}, "
+        f"points without faces {check['points_without_faces']}"
+    )
     save(output, mesh)
-    gl.Viewer().display(mesh, smooth=False, mode="g")
+    gl.Viewer().display(mesh, check["forest"], smooth=False, mode="n")
 
 
 if __name__ == "__main__":

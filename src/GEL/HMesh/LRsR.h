@@ -25,16 +25,23 @@ struct LRsROpts {
 };
 
 /** Reconstruct a triangle mesh from a point cloud.
- The Delaunay graph, the unoriented adaptive-covariance normals, and the
- tunnel-weighted minimum spanning forest are the same objects the 3DDelaunay
- demo draws. Normals are used only to weight that forest. Each tree is walked
- breadth-first from its lowest-index vertex. At a vertex the link is the
- combinatorial rotation of Delaunay neighbors around that vertex. A closed
- link is a full umbrella and an open link is the partial disk it covers.
- The winding matches triangles chosen at earlier vertices. Where the
- umbrellas put three triangles on one edge, or wind an edge twice the same
- way, the larger triangle is dropped. The triangles are added one face at a
- time, then stitched and cleaned up. */
+ The radius-limited Delaunay graph supplies the candidate triangles. Each
+ edge of the tunnel-weighted spanning forest contributes one triangle on
+ the left of its normal and one on the right. The candidate minimizes
+ perimeter times area divided by the area projected along the edge normal.
+ The edge normal is the average of the unoriented adaptive
+ normals at its two vertices. When those normals point opposite ways, one
+ is flipped before the average. A triangle already chosen for an earlier
+ forest edge fills the side it lies on when it contains this edge as well,
+ and that side is not searched again. A candidate that would lie on an
+ occupied side of any of its edges is skipped for the next score. A
+ candidate that would be the third triangle on any edge is skipped the
+ same way. So is a candidate whose edge at a vertex falls between the
+ edges of a triangle already incident there, measured in the plane of the
+ vertex normal, unless that edge is shared with the incident triangle.
+ A side with no positive-area Delaunay
+ triangle contributes nothing. The two new triangles of one edge run in
+ opposite directions along that edge. Neighboring edges are not made to agree. */
 void reconstruct(const std::vector<CGLA::Vec3d>& points,
                  const LRsROpts& opts,
                  Manifold& result);

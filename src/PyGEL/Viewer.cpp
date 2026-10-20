@@ -276,7 +276,7 @@ void GLManifoldViewer::display_init() {
     glClearColor(c[0],c[1],c[2],1.0);
     Vec3d ctr(0);
     double radius = 0;
-    if (display_parameters.m_ptr != 0) {
+    if (display_parameters.m_ptr != 0 && display_parameters.m_ptr->no_vertices() > 0) {
         float mesh_rad = 0;
         bsphere(*(display_parameters.m_ptr), ctr, mesh_rad);
         radius = mesh_rad;
@@ -375,8 +375,18 @@ void GLManifoldViewer::display() {
     if(display_parameters.m_ptr != 0)
         renderer->draw();
     
-    if(display_parameters.g_ptr !=0)
+    if(display_parameters.g_ptr !=0) {
+        // A graph that lies on the mesh loses the depth test. Squeeze its
+        // window depth toward the camera so those lines stay visible. The
+        // back of the model is still behind the front surface.
+        const bool over_mesh = display_parameters.m_ptr != 0
+            && display_parameters.m_ptr->no_vertices() > 0;
+        if (over_mesh)
+            glDepthRange(0.0, 0.995);
         glCallList(graph_display_list);
+        if (over_mesh)
+            glDepthRange(0.0, 1.0);
+    }
 
     double rad = 0.01*glv->get_eye_dist();
     if(do_pick) {

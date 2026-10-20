@@ -1092,13 +1092,22 @@ def lrsr_recon(vertices: ArrayLike, radius_factor: float = 4.0) -> Manifold:
     """ Local rotation system reconstruction.
 
         `vertices` is the point cloud. The Delaunay radius is `radius_factor`
-        times the median nearest-neighbor distance. Unoriented normals weight
-        the tunnel-length minimum spanning forest and are not used again.
-        Each tree is walked breadth-first. A closed Delaunay link is kept as
-        a full umbrella, and an open link is kept as a partial disk. The
-        winding matches triangles chosen earlier. A larger triangle is
-        dropped when it would be a third face on an edge or would repeat
-        an edge direction.
+        times the median nearest-neighbor distance. Each edge of the
+        tunnel-weighted spanning forest contributes, on the left of its normal
+        and on the right, the Delaunay triangle that minimizes perimeter times
+        area divided by the area projected along that normal. The
+        edge normal is the average of the unoriented adaptive normals at the
+        two endpoints, after flipping one when they point opposite ways. A
+        triangle already chosen for an earlier forest edge fills the side it
+        lies on when it also contains the current edge, and that side is not
+        searched again. A candidate on an occupied side of any of its edges
+        is skipped, and the next score is tried. So is a candidate that would
+        be the third triangle on any edge, and one whose edge at a vertex
+        falls between the edges of a triangle already incident there in the
+        plane of the vertex normal. An edge
+        shared with that triangle is not part of the vertex check. A side
+        with no triangle is skipped. The new triangles
+        of one edge run in opposite directions along that edge.
     """
     m = Manifold()
     vertices_data, n_vertices = _as_vec3_f(vertices)
