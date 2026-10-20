@@ -10,6 +10,7 @@
 #include <string>
 #include <GEL/HMesh/HMesh.h>
 #include <GEL/HMesh/face_loop.h>
+#include <GEL/HMesh/LRsR.h>
 #include <GEL/HMesh/RSRExperimental.h>
 #include <GEL/Geometry/Graph.h>
 #include <GEL/Geometry/graph_io.h>
@@ -304,6 +305,20 @@ void rsr_orientation_mst(double* vertices, int vertex_count, double* normals_out
         edges[2 * i + 1] = tree[i].child;
         cone[i] = tree[i].cone_invoked ? 1 : 0;
     }
+}
+
+void lrsr_recon(Manifold_ptr m_ptr, double* vertices, int vertex_count, double radius_factor)
+{
+    vector<Vec3d> point_cloud_vertices;
+    point_cloud_vertices.reserve(vertex_count);
+    for (int i = 0; i < vertex_count; i++)
+        point_cloud_vertices.emplace_back(vertices[i], vertices[i + vertex_count], vertices[i + 2 * vertex_count]);
+
+    LRsR::LRsROpts opts;
+    opts.radius_factor = radius_factor;
+    Manifold result;
+    LRsR::reconstruct(point_cloud_vertices, opts, result);
+    *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
 }
 
 void rsr_recon(Manifold_ptr m_ptr, double* vertices, double* normals, int vertex_count, int normal_count,

@@ -11,6 +11,7 @@
 #include <GEL/HMesh/Manifold.h>
 #include <GEL/Geometry/TriMesh.h>
 
+#include <cmath>
 #include <GEL/GLGraphics/draw.h>
 #include <GEL/GLGraphics/SinglePassWireframeRenderer.h>
 #include <GEL/GLGraphics/IDBufferWireFrameRenderer.h>
@@ -240,8 +241,11 @@ namespace GLGraphics
         glBegin(GL_POINTS);
         for(auto n: graph.node_ids())
         {
+            const Vec3d& p = graph.pos[n];
+            if(!std::isfinite(p[0]) || !std::isfinite(p[1]) || !std::isfinite(p[2]))
+                continue;
             glColor3fv(graph.node_color[n].get());
-            glVertex3dv(graph.pos[n].get());
+            glVertex3dv(p.get());
         }
         glEnd();
         glBegin(GL_LINES);
@@ -250,9 +254,15 @@ namespace GLGraphics
             {
                 AMGraph::NodeID n_idx = e.first;
                 AMGraph::EdgeID e_idx = e.second;
+                const Vec3d& p = graph.pos[n];
+                const Vec3d& q = graph.pos[n_idx];
+                if(!std::isfinite(p[0]) || !std::isfinite(p[1]) || !std::isfinite(p[2]))
+                    continue;
+                if(!std::isfinite(q[0]) || !std::isfinite(q[1]) || !std::isfinite(q[2]))
+                    continue;
                 glColor3fv(graph.edge_color[e_idx].get());
-                glVertex3dv(graph.pos[n].get());
-                glVertex3dv(graph.pos[n_idx].get());
+                glVertex3dv(p.get());
+                glVertex3dv(q.get());
             }
         glEnd();
         glEnable(GL_LIGHTING);

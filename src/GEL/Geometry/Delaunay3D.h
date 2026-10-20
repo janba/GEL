@@ -62,6 +62,40 @@ AMGraph3D delaunay_edges(const std::vector<CGLA::Vec3d>& points, double radius);
  */
 AMGraph3D gabriel_edges(const std::vector<CGLA::Vec3d>& points, double radius);
 
+/**
+ * One component of the combinatorial link of a site.
+ *
+ * `neighbors` is a rotation of Delaunay neighbors around that site, taken
+ * from the truncated Voronoi cell. Consecutive entries are the opposite
+ * corners of one Delaunay triangle incident on the site. When `closed` is
+ * set, the last entry forms such a triangle with the first. The order does
+ * not use an estimated normal.
+ */
+struct DelaunayLink {
+    std::vector<int> neighbors;
+    bool closed = false;
+};
+
+/**
+ * Radius-limited Delaunay neighborhood of one site.
+ *
+ * `neighbors` is the sorted set `delaunay_edges` keeps. `links` are the
+ * connected components of the Delaunay triangles incident on the site.
+ */
+struct DelaunayStar {
+    std::vector<int> neighbors;
+    std::vector<DelaunayLink> links;
+};
+
+/**
+ * Radius-limited Delaunay star of every input point.
+ *
+ * The search and the cell are the same ones `delaunay_edges` uses. Cells
+ * are clipped on C++ threads. The result has one entry per input point, in
+ * the same order. `radius <= 0` yields empty stars.
+ */
+std::vector<DelaunayStar> delaunay_stars(const std::vector<CGLA::Vec3d>& points, double radius);
+
 }
 
 #endif

@@ -7,13 +7,13 @@
 //
 
 #include <cmath>
+#include <limits>
 #include <memory>
 #include <map>
 #include <GEL/GL/glew.h>
 #include <GLFW/glfw3.h>
 #include <GEL/HMesh/HMesh.h>
 #include <GEL/Geometry/Graph.h>
-#include <GEL/Geometry/graph_util.h>
 #include <GEL/GLGraphics/ManifoldRenderer.h>
 #include <GEL/GLGraphics/draw.h>
 #include <GEL/GLGraphics/GLViewController.h>
@@ -274,17 +274,37 @@ void GLManifoldViewer::display_init() {
 
     const Vec3f& c = *(display_parameters.bg_color);
     glClearColor(c[0],c[1],c[2],1.0);
-    Vec3d ctr;
+    Vec3d ctr(0);
     double radius = 0;
     if (display_parameters.m_ptr != 0) {
         float mesh_rad = 0;
         bsphere(*(display_parameters.m_ptr), ctr, mesh_rad);
         radius = mesh_rad;
     }
-    else
-        tie(ctr, radius) = approximate_bounding_sphere(*display_parameters.g_ptr);
-    // gluPerspective rejects a non-positive near plane. A flat graph used to
-    // produce a non-finite sphere, and a single point produces radius 0.
+    else if (display_parameters.g_ptr != 0) {
+        // Box sphere, same framing a mesh uses. Welzl's sphere follows point
+        // order, so a flat cloud was framed differently from run to run.
+        const AMGraph3D& g = *display_parameters.g_ptr;
+        Vec3d lo(std::numeric_limits<double>::max());
+        Vec3d hi(std::numeric_limits<double>::lowest());
+        bool any = false;
+        for (auto n : g.node_ids()) {
+            const Vec3d& p = g.pos[n];
+            if (!std::isfinite(p[0]) || !std::isfinite(p[1]) || !std::isfinite(p[2]))
+                continue;
+            any = true;
+            for (int k = 0; k < 3; ++k) {
+                lo[k] = std::min(lo[k], p[k]);
+                hi[k] = std::max(hi[k], p[k]);
+            }
+        }
+        if (any) {
+            ctr = 0.5 * (lo + hi);
+            radius = 0.5 * length(hi - lo);
+        }
+    }
+    // gluPerspective rejects a non-positive near plane. A single point, or a
+    // graph with no finite positions, has radius 0.
     if (!std::isfinite(ctr[0]) || !std::isfinite(ctr[1]) || !std::isfinite(ctr[2]))
         ctr = Vec3d(0);
     if (!(std::isfinite(radius) && radius > 0))
@@ -296,8 +316,23 @@ void GLManifoldViewer::display_init() {
     glfwGetWindowSize(window, &W, &H);
     glfwGetWindowContentScale(window, &xscale, &yscale);
     glfwGetFramebufferSize(window, &WF, &HF);
+    // The framebuffer can still be 0x0 when the window has not been shown.
+    // A zero aspect makes gluPerspective reject the matrix and every point
+    // is clipped, which leaves the untouched (white) window buffer.
+    if (WF <= 0 || HF <= 0) {
+        WF = W > 0 ? W : 1024;
+        HF = H > 0 ? H : 800;
+    }
+    glViewport(0, 0, WF, HF);
+    // GLViewController's FOV is 53°. An eye distance of 2*radius fits
+    // tan(half angle) = 1/2, which is 53.13°. At 53° the sphere's equator is
+    // outside the clip volume. A flat point set lies on that equator, so the
+    // whole cloud disappears whenever the fit is exact. Step back so the
+    // sphere sits inside the frustum.
+    constexpr float half_fov_rad = 0.5f * 53.f * 3.14159265f / 180.f;
+    const float eye = rad / std::tan(half_fov_rad) * 1.1f;
     if(glv==nullptr || display_parameters.reset_view) {
-        glv = make_shared<GLViewController>(W*xscale,H*yscale,Vec3f(ctr),2.0*rad);
+        glv = make_shared<GLViewController>(WF, HF, Vec3f(ctr), eye);
     }
     else glv->reshape(WF, HF);
     if(renderer != 0) {
@@ -423,6 +458,22 @@ public:
 };
 
 void GLManifoldViewer_event_loop(bool once) {
+    auto redraw = []() {
+        for(auto WV : wv_map) {
+            auto viewer = WV.second;
+            if(viewer->was_initialized())
+                viewer->display();
+        }
+    };
+    // The OS window buffer stays white until the first swap. Waiting for an
+    // event first leaves that buffer up when the wake-up posted during init
+    // is missed.
+    redraw();
+    if(once) {
+        glfwPollEvents();
+        redraw();
+        return;
+    }
     do {
         glfwWaitEvents();
         for(auto WV : wv_map) {
@@ -433,7 +484,7 @@ void GLManifoldViewer_event_loop(bool once) {
                 return;
         }
     }
-    while(!once);
+    while(true);
 }
 
 

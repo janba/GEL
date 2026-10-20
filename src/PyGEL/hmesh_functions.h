@@ -135,6 +135,12 @@ extern "C" {
         bool use_Euclid_dist = false, int num_neighbors = 70, bool cone_check = false,
         int orientation = 1);
 
+    /// Local rotation system reconstruction. `vertices` is a Fortran (N, 3)
+    /// array. `radius_factor` multiplies the median nearest-neighbor distance
+    /// to set the Delaunay radius. The 3DDelaunay demo uses 4 for a point cloud.
+    DLLEXPORT void lrsr_recon(Manifold_ptr m_ptr, double* vertices, int vertex_count,
+        double radius_factor);
+
     DLLEXPORT void rsr_recon(Manifold_ptr m_ptr, double* vertices,
         double* normals, int vertex_count, int normal_count, bool use_Euclid_dist = false, int genus = -1,
         int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50,

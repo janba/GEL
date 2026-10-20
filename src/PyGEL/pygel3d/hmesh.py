@@ -16,7 +16,7 @@ __all__ = [
     'cc_subdivide', 'loop_subdivide', 'volume_preserving_cc_smooth', 'regularize_quads', 'loop_smooth',
     'taubin_smooth', 'laplacian_smooth', 'anisotropic_smooth', 'volumetric_isocontour', 'triangulate',
     'extrude_faces', 'kill_face_loop', 'kill_degenerate_face_loops', 'graph_to_feq', 'skeleton_to_feq',
-    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_normals', 'rsr_orientation_tree', 'rsr_orientation_mst', 'rsr_recon', 'hrsr_recon', 'hrsr_recon_graph', 'connected_components',
+    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_normals', 'rsr_orientation_tree', 'rsr_orientation_mst', 'lrsr_recon', 'rsr_recon', 'hrsr_recon', 'hrsr_recon_graph', 'connected_components',
     'count_boundary_curves', 'analyze_topology', 'sphere_delaunay'
 ]
 
@@ -1087,6 +1087,23 @@ def rsr_orientation_mst(vertices: ArrayLike,
         Returns the same triple as rsr_orientation_tree(..., orientation="mst").
     """
     return rsr_orientation_tree(vertices, use_Euclid_dist, num_neighbors, cone_check, "mst")
+
+def lrsr_recon(vertices: ArrayLike, radius_factor: float = 4.0) -> Manifold:
+    """ Local rotation system reconstruction.
+
+        `vertices` is the point cloud. The Delaunay radius is `radius_factor`
+        times the median nearest-neighbor distance. Unoriented normals weight
+        the tunnel-length minimum spanning forest and are not used again.
+        Each tree is walked breadth-first. A closed Delaunay link is kept as
+        a full umbrella, and an open link is kept as a partial disk. The
+        winding matches triangles chosen earlier. A larger triangle is
+        dropped when it would be a third face on an edge or would repeat
+        an edge direction.
+    """
+    m = Manifold()
+    vertices_data, n_vertices = _as_vec3_f(vertices)
+    lib_py_gel.lrsr_recon(m.obj, vertices_data, n_vertices, float(radius_factor))
+    return m
 
 def rsr_recon(vertices: ArrayLike, 
               normals: ArrayLike=None, 

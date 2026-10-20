@@ -12,7 +12,9 @@
 #include <atomic>
 #include <cmath>
 #include <limits>
+#include <set>
 #include <thread>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
@@ -399,13 +401,11 @@ bool positive_area(const Cell& cell, const std::vector<int>& ids)
     return polygon_cross2(cell.verts, ids) > (cell.tol * cell.half) * (cell.tol * cell.half);
 }
 
-std::vector<int> neighbors_of_site(const std::vector<Vec3d>& points, int site, double radius,
-                                   const std::vector<std::pair<double, int>>& order)
+void clip_neighborhood(Cell& cell, const std::vector<Vec3d>& points, int site, double radius,
+                       const std::vector<std::pair<double, int>>& order)
 {
-    Cell cell;
     // Half-extent is the certificate radius, not the farthest neighbor.
     init_cube(cell, 0.5 * radius * (1.0 + 1e-8));
-
     for (const auto& item : order) {
         const Vec3d delta = points[item.second] - points[site];
         const double dist = std::sqrt(item.first);
@@ -417,7 +417,10 @@ std::vector<int> neighbors_of_site(const std::vector<Vec3d>& points, int site, d
         pl.src = item.second;
         clip_by_plane(cell, pl);
     }
+}
 
+std::vector<int> neighbors_from_cell(const Cell& cell)
+{
     std::vector<int> nbrs;
     std::vector<int> on_plane;
     on_plane.reserve(8);
@@ -434,6 +437,415 @@ std::vector<int> neighbors_of_site(const std::vector<Vec3d>& points, int site, d
     std::sort(nbrs.begin(), nbrs.end());
     nbrs.erase(std::unique(nbrs.begin(), nbrs.end()), nbrs.end());
     return nbrs;
+}
+
+std::vector<int> neighbors_of_site(const std::vector<Vec3d>& points, int site, double radius,
+                                   const std::vector<std::pair<double, int>>& order)
+{
+    Cell cell;
+    clip_neighborhood(cell, points, site, radius, order);
+    return neighbors_from_cell(cell);
+}
+
+/// Cyclic order of real neighbors around plane `pi`, oriented so the face is
+/// counterclockwise against the plane's outward normal. Empty when the face
+/// walk does not close or does not meet every graph neighbor.
+std::vector<int> real_neighbor_rotation(const Cell& cell, int pi, const std::vector<int>& graph_nbrs)
+{
+    const int nplanes = static_cast<int>(cell.planes.size());
+    std::unordered_map<int, std::vector<std::pair<int, int>>> star;
+    for (const Edge& e : cell.edges) {
+        int other = -1;
+        if (e.p0 == pi)
+            other = e.p1;
+        else if (e.p1 == pi)
+            other = e.p0;
+        else
+            continue;
+        if (other < 0 || other >= nplanes)
+            continue;
+        const int src = cell.planes[other].src;
+        star[e.a].push_back({e.b, src});
+        star[e.b].push_back({e.a, src});
+    }
+    if (star.size() < 3)
+        return {};
+
+    int start = std::numeric_limits<int>::max();
+    for (const auto& entry : star)
+        start = std::min(start, entry.first);
+
+    std::vector<int> verts;
+    std::vector<int> srcs;
+    int prev = -1;
+    int cur = start;
+    bool returned = false;
+    const int guard_max = static_cast<int>(star.size()) + 2;
+    for (int step = 0; step < guard_max; ++step) {
+        const auto it = star.find(cur);
+        if (it == star.end())
+            break;
+        int next_v = -1;
+        int next_src = -1;
+        for (const auto& step_to : it->second) {
+            if (step_to.first == prev)
+                continue;
+            if (next_v < 0 || step_to.first < next_v) {
+                next_v = step_to.first;
+                next_src = step_to.second;
+            }
+        }
+        if (next_v < 0)
+            break;
+        verts.push_back(cur);
+        srcs.push_back(next_src);
+        prev = cur;
+        cur = next_v;
+        if (cur == start) {
+            returned = true;
+            break;
+        }
+    }
+    if (!returned || verts.size() < 3)
+        return {};
+
+    Vec3d area(0);
+    for (size_t i = 0; i < verts.size(); ++i) {
+        const Vec3d& p = cell.verts[verts[i]].p;
+        const Vec3d& q = cell.verts[verts[(i + 1) % verts.size()]].p;
+        area += cross(p, q);
+    }
+    const bool outward_ccw = dot(area, cell.planes[pi].n) >= 0;
+
+    std::vector<int> real;
+    real.reserve(srcs.size());
+    for (int src : srcs)
+        if (src >= 0)
+            real.push_back(src);
+    if (!outward_ccw)
+        std::reverse(real.begin(), real.end());
+
+    std::vector<int> compact;
+    compact.reserve(real.size());
+    for (int src : real) {
+        if (!std::binary_search(graph_nbrs.begin(), graph_nbrs.end(), src))
+            continue;
+        if (!compact.empty() && compact.back() == src)
+            continue;
+        compact.push_back(src);
+    }
+    if (compact.size() >= 2 && compact.front() == compact.back())
+        compact.pop_back();
+
+    std::vector<int> sorted_compact = compact;
+    std::sort(sorted_compact.begin(), sorted_compact.end());
+    sorted_compact.erase(std::unique(sorted_compact.begin(), sorted_compact.end()), sorted_compact.end());
+    if (sorted_compact != graph_nbrs)
+        return {};
+    return compact;
+}
+
+DelaunayLink walk_path_or_cycle(const std::vector<int>& comp,
+                                const std::unordered_map<int, std::vector<int>>& adj)
+{
+    int start = comp.front();
+    bool has_end = false;
+    for (int node : comp) {
+        if (adj.at(node).size() <= 1 && (!has_end || node < start)) {
+            start = node;
+            has_end = true;
+        }
+    }
+
+    DelaunayLink link;
+    link.closed = !has_end && comp.size() >= 3;
+    int prev = -1;
+    int cur = start;
+    link.neighbors.reserve(comp.size());
+    for (size_t step = 0; step < comp.size(); ++step) {
+        link.neighbors.push_back(cur);
+        int next = -1;
+        for (int nb : adj.at(cur)) {
+            if (nb == prev)
+                continue;
+            next = nb;
+            break;
+        }
+        if (next < 0) {
+            link.closed = false;
+            break;
+        }
+        if (next == start) {
+            link.closed = link.neighbors.size() == comp.size() && adj.at(start).size() == 2;
+            break;
+        }
+        prev = cur;
+        cur = next;
+    }
+    if (link.neighbors.size() != comp.size())
+        link.closed = false;
+    return link;
+}
+
+std::vector<int> canonical_cycle(std::vector<int> face)
+{
+    if (face.empty())
+        return face;
+    const auto at = std::min_element(face.begin(), face.end());
+    std::rotate(face.begin(), at, face.end());
+    std::vector<int> reversed(face.size());
+    reversed[0] = face[0];
+    for (size_t i = 1; i < face.size(); ++i)
+        reversed[i] = face[face.size() - i];
+    if (reversed < face)
+        return reversed;
+    return face;
+}
+
+DelaunayLink outer_face(const std::vector<int>& comp,
+                        const std::unordered_map<int, std::vector<int>>& adj,
+                        const std::unordered_map<int, std::vector<int>>& rotation)
+{
+    auto next_after = [&](int at, int from) -> int {
+        const std::vector<int>* rot = nullptr;
+        const auto it = rotation.find(at);
+        if (it != rotation.end() && !it->second.empty())
+            rot = &it->second;
+        else
+            rot = &adj.at(at);
+        for (size_t i = 0; i < rot->size(); ++i) {
+            if ((*rot)[i] == from)
+                return (*rot)[(i + 1) % rot->size()];
+        }
+        for (int nb : adj.at(at))
+            if (nb != from)
+                return nb;
+        return -1;
+    };
+
+    std::set<std::pair<int, int>> unused;
+    for (int u : comp) {
+        for (int v : adj.at(u)) {
+            if (u < v) {
+                unused.emplace(u, v);
+                unused.emplace(v, u);
+            }
+        }
+    }
+
+    DelaunayLink best;
+    bool found = false;
+    while (!unused.empty()) {
+        const auto start_edge = *unused.begin();
+        int from = start_edge.first;
+        int to = start_edge.second;
+        std::vector<int> face;
+        bool closed_face = false;
+        const int limit = static_cast<int>(unused.size()) + 2;
+        for (int guard = 0; guard < limit; ++guard) {
+            const std::pair<int, int> key{from, to};
+            if (!unused.erase(key))
+                break;
+            face.push_back(from);
+            const int next = next_after(to, from);
+            if (next < 0 || next == to)
+                break;
+            from = to;
+            to = next;
+            if (from == start_edge.first && to == start_edge.second) {
+                closed_face = true;
+                break;
+            }
+        }
+        if (!closed_face || face.size() < 2)
+            continue;
+        std::set<int> unique(face.begin(), face.end());
+        if (unique.size() != face.size())
+            continue;
+        std::vector<int> canon = canonical_cycle(std::move(face));
+        if (!found || canon.size() > best.neighbors.size()
+            || (canon.size() == best.neighbors.size() && canon < best.neighbors)) {
+            found = true;
+            best.neighbors = std::move(canon);
+            best.closed = best.neighbors.size() >= 3;
+        }
+    }
+    return best;
+}
+
+std::vector<DelaunayLink> links_from_cell(const Cell& cell, const std::vector<int>& allowed)
+{
+    const int nplanes = static_cast<int>(cell.planes.size());
+    std::unordered_map<int, std::vector<int>> adj;
+    auto add_link = [&](int a, int b) {
+        if (a < 0 || b < 0 || a == b)
+            return;
+        if (!std::binary_search(allowed.begin(), allowed.end(), a))
+            return;
+        if (!std::binary_search(allowed.begin(), allowed.end(), b))
+            return;
+        adj[a].push_back(b);
+        adj[b].push_back(a);
+    };
+    for (const Edge& e : cell.edges) {
+        if (e.p0 < 0 || e.p1 < 0 || e.p0 >= nplanes || e.p1 >= nplanes)
+            continue;
+        add_link(cell.planes[e.p0].src, cell.planes[e.p1].src);
+    }
+    for (auto& entry : adj) {
+        auto& nbrs = entry.second;
+        std::sort(nbrs.begin(), nbrs.end());
+        nbrs.erase(std::unique(nbrs.begin(), nbrs.end()), nbrs.end());
+    }
+    if (adj.empty())
+        return {};
+
+    bool need_rotation = false;
+    for (const auto& entry : adj) {
+        if (entry.second.size() > 2)
+            need_rotation = true;
+    }
+    std::unordered_map<int, int> src_plane;
+    std::unordered_map<int, std::vector<int>> rotation;
+    if (need_rotation) {
+        for (int pi = 0; pi < nplanes; ++pi) {
+            const int src = cell.planes[pi].src;
+            if (src >= 0)
+                src_plane.emplace(src, pi);
+        }
+        for (const auto& entry : adj) {
+            const auto plane = src_plane.find(entry.first);
+            if (plane == src_plane.end())
+                continue;
+            std::vector<int> rot = real_neighbor_rotation(cell, plane->second, entry.second);
+            if (!rot.empty())
+                rotation.emplace(entry.first, std::move(rot));
+        }
+    }
+
+    std::vector<int> sources;
+    sources.reserve(adj.size());
+    for (const auto& entry : adj)
+        sources.push_back(entry.first);
+    std::sort(sources.begin(), sources.end());
+
+    std::unordered_map<int, char> seen;
+    std::vector<DelaunayLink> links;
+    for (int src : sources) {
+        if (seen[src])
+            continue;
+        std::vector<int> comp;
+        std::vector<int> stack{src};
+        seen[src] = 1;
+        while (!stack.empty()) {
+            const int node = stack.back();
+            stack.pop_back();
+            comp.push_back(node);
+            for (int nb : adj[node]) {
+                if (!seen[nb]) {
+                    seen[nb] = 1;
+                    stack.push_back(nb);
+                }
+            }
+        }
+        std::sort(comp.begin(), comp.end());
+
+        int max_deg = 0;
+        for (int node : comp)
+            max_deg = std::max(max_deg, static_cast<int>(adj[node].size()));
+
+        if (max_deg <= 2) {
+            DelaunayLink link = walk_path_or_cycle(comp, adj);
+            if (link.neighbors.size() >= 2)
+                links.push_back(std::move(link));
+            continue;
+        }
+
+        DelaunayLink link = outer_face(comp, adj, rotation);
+        if (link.neighbors.size() >= 2) {
+            links.push_back(std::move(link));
+            continue;
+        }
+        for (int node : comp) {
+            for (int nb : adj[node]) {
+                if (node < nb)
+                    links.push_back(DelaunayLink{{node, nb}, false});
+            }
+        }
+    }
+    return links;
+}
+
+DelaunayStar star_of_site(const std::vector<Vec3d>& points, int site, double radius,
+                          const std::vector<std::pair<double, int>>& order)
+{
+    Cell cell;
+    clip_neighborhood(cell, points, site, radius, order);
+    DelaunayStar star;
+    star.neighbors = neighbors_from_cell(cell);
+    star.links = links_from_cell(cell, star.neighbors);
+    return star;
+}
+
+template <class Fn>
+void for_each_site_order(const std::vector<Vec3d>& points, double radius, Fn&& visit)
+{
+    const size_t n = points.size();
+    if (n == 0 || !(radius > 0.0) || !std::isfinite(radius))
+        return;
+    if (n > static_cast<size_t>(std::numeric_limits<int>::max()))
+        return;
+
+    KDTree<Vec3d, int> tree;
+    for (size_t i = 0; i < n; ++i)
+        if (finite_point(points[i]))
+            tree.insert(points[i], static_cast<int>(i));
+    tree.build();
+
+    const double query = std::nextafter(radius, std::numeric_limits<double>::infinity());
+    const double limit2 = radius * radius * (1.0 + 1e-12);
+    const double min2 = std::max(0.0, radius * radius * 1e-24);
+
+    unsigned threads = std::thread::hardware_concurrency();
+    if (threads == 0 || n < 64)
+        threads = 1;
+    threads = std::min(threads, static_cast<unsigned>(n));
+
+    std::atomic<size_t> cursor{0};
+    auto worker = [&]() {
+        std::vector<std::pair<Vec3d, int>> hits;
+        std::vector<std::pair<double, int>> order;
+        while (true) {
+            const size_t i = cursor.fetch_add(1, std::memory_order_relaxed);
+            if (i >= n)
+                break;
+            if (!finite_point(points[i]))
+                continue;
+            hits.clear();
+            tree.in_sphere(points[i], query, hits);
+            order.clear();
+            order.reserve(hits.size());
+            for (const auto& hit : hits) {
+                if (hit.second == static_cast<int>(i))
+                    continue;
+                const double d2 = sqr_length(points[i] - points[hit.second]);
+                if (!(d2 > min2) || d2 > limit2 || !std::isfinite(d2))
+                    continue;
+                order.emplace_back(d2, hit.second);
+            }
+            if (order.empty())
+                continue;
+            std::sort(order.begin(), order.end());
+            visit(static_cast<int>(i), order);
+        }
+    };
+
+    std::vector<std::thread> workers;
+    workers.reserve(threads);
+    for (unsigned t = 0; t < threads; ++t)
+        workers.emplace_back(worker);
+    for (std::thread& worker_thread : workers)
+        worker_thread.join();
 }
 
 /// Empty diametral ball: the midpoint is strictly inside every other bisector.
@@ -484,62 +896,13 @@ AMGraph3D radius_limited_edges(const std::vector<Vec3d>& points, double radius, 
     const size_t n = points.size();
     for (size_t i = 0; i < n; ++i)
         graph.add_node(points[i]);
-    if (n == 0 || !(radius > 0) || !std::isfinite(radius) || select == nullptr)
+    if (select == nullptr)
         return graph;
-    if (n > static_cast<size_t>(std::numeric_limits<int>::max()))
-        return graph;
-
-    KDTree<Vec3d, int> tree;
-    for (size_t i = 0; i < n; ++i)
-        if (finite_point(points[i]))
-            tree.insert(points[i], static_cast<int>(i));
-    tree.build();
-
-    const double query = std::nextafter(radius, std::numeric_limits<double>::infinity());
-    const double limit2 = radius * radius * (1.0 + 1e-12);
-    const double min2 = std::max(0.0, radius * radius * 1e-24);
 
     std::vector<std::vector<int>> adj(n);
-    unsigned threads = std::thread::hardware_concurrency();
-    if (threads == 0 || n < 64)
-        threads = 1;
-    threads = std::min(threads, static_cast<unsigned>(n));
-
-    std::atomic<size_t> cursor{0};
-    auto worker = [&]() {
-        std::vector<std::pair<Vec3d, int>> hits;
-        std::vector<std::pair<double, int>> order;
-        while (true) {
-            const size_t i = cursor.fetch_add(1, std::memory_order_relaxed);
-            if (i >= n)
-                break;
-            if (!finite_point(points[i]))
-                continue;
-            hits.clear();
-            tree.in_sphere(points[i], query, hits);
-            order.clear();
-            order.reserve(hits.size());
-            for (const auto& hit : hits) {
-                if (hit.second == static_cast<int>(i))
-                    continue;
-                const double d2 = sqr_length(points[i] - points[hit.second]);
-                if (!(d2 > min2) || d2 > limit2 || !std::isfinite(d2))
-                    continue;
-                order.emplace_back(d2, hit.second);
-            }
-            if (order.empty())
-                continue;
-            std::sort(order.begin(), order.end());
-            adj[i] = select(points, static_cast<int>(i), radius, order);
-        }
-    };
-
-    std::vector<std::thread> workers;
-    workers.reserve(threads);
-    for (unsigned t = 0; t < threads; ++t)
-        workers.emplace_back(worker);
-    for (std::thread& worker_thread : workers)
-        worker_thread.join();
+    for_each_site_order(points, radius, [&](int site, const std::vector<std::pair<double, int>>& order) {
+        adj[static_cast<size_t>(site)] = select(points, site, radius, order);
+    });
 
     for (size_t i = 0; i < n; ++i)
         for (int j : adj[i])
@@ -557,6 +920,15 @@ AMGraph3D delaunay_edges(const std::vector<CGLA::Vec3d>& points, double radius)
 AMGraph3D gabriel_edges(const std::vector<CGLA::Vec3d>& points, double radius)
 {
     return radius_limited_edges(points, radius, gabriel_neighbors_of_site);
+}
+
+std::vector<DelaunayStar> delaunay_stars(const std::vector<CGLA::Vec3d>& points, double radius)
+{
+    std::vector<DelaunayStar> stars(points.size());
+    for_each_site_order(points, radius, [&](int site, const std::vector<std::pair<double, int>>& order) {
+        stars[static_cast<size_t>(site)] = star_of_site(points, site, radius, order);
+    });
+    return stars;
 }
 
 } // namespace Geometry

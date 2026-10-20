@@ -78,7 +78,7 @@ if len(argv) > 1:
 else:
     # larger point cloud.
     vertices, normals = obj_load('../../../data/PointClouds/owl-lines.obj')
-    m = rsr_recon(vertices, normals, use_Euclid_dist=True)
+    m = rsr_recon(vertices, normals)
     # m = hrsr_recon_graph(vertices, normals, use_Euclid_dist=True, genus=0, collapse_iters=3, num_neighbors=40)
     flip_orientation(m)
     # viewer.display(m, smooth=False, mode='g')
