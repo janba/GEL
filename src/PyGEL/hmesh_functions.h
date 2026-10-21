@@ -137,13 +137,21 @@ extern "C" {
 
     /// Local rotation system reconstruction. `vertices` is a Fortran (N, 3)
     /// array. `radius_factor` multiplies the median nearest-neighbor distance
-    /// to set the Delaunay radius. Each tunnel-weighted forest edge contributes
-    /// on each open side the Delaunay triangle of least perimeter times area
-    /// over the area projected along the edge normal. A candidate on an
-    /// occupied side of any of its edges is skipped. So is a third triangle
-    /// on any edge, and a triangle whose edge at a vertex falls between the
-    /// edges of a triangle already incident there in the plane of the vertex
-    /// normal.
+    /// to set the Delaunay radius. Triangles are added smallest
+    /// projected-perimeter score first. The queue starts from both sides of
+    /// every tunnel-weighted forest edge. A new triangle queues the other
+    /// side of each edge that was not already under consideration. A rejected
+    /// triangle is replaced by the next score on the side that proposed it.
+    /// Each component is then oriented from its first triangle by reversing
+    /// a neighbor that traverses a shared edge in the same direction. Only
+    /// the cyclic order is used.
+    /// Prints `LRsR iterations: N`, how many accepted triangles were proposed
+    /// by an edge outside the forest.
+    /// A candidate on an occupied side of any of its edges is skipped. So is a
+    /// third triangle on any edge, and a triangle whose wedge at a vertex
+    /// overlaps a triangle already there. Projected onto the plane
+    /// perpendicular to the vertex normal, the wedges overlap when a
+    /// non-shared edge of either lies in the other's angle.
     DLLEXPORT void lrsr_recon(Manifold_ptr m_ptr, double* vertices, int vertex_count,
         double radius_factor);
 

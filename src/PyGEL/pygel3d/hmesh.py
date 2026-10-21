@@ -1092,22 +1092,35 @@ def lrsr_recon(vertices: ArrayLike, radius_factor: float = 4.0) -> Manifold:
     """ Local rotation system reconstruction.
 
         `vertices` is the point cloud. The Delaunay radius is `radius_factor`
-        times the median nearest-neighbor distance. Each edge of the
-        tunnel-weighted spanning forest contributes, on the left of its normal
-        and on the right, the Delaunay triangle that minimizes perimeter times
-        area divided by the area projected along that normal. The
-        edge normal is the average of the unoriented adaptive normals at the
-        two endpoints, after flipping one when they point opposite ways. A
-        triangle already chosen for an earlier forest edge fills the side it
-        lies on when it also contains the current edge, and that side is not
-        searched again. A candidate on an occupied side of any of its edges
-        is skipped, and the next score is tried. So is a candidate that would
-        be the third triangle on any edge, and one whose edge at a vertex
-        falls between the edges of a triangle already incident there in the
-        plane of the vertex normal. An edge
-        shared with that triangle is not part of the vertex check. A side
-        with no triangle is skipped. The new triangles
-        of one edge run in opposite directions along that edge.
+        times the median nearest-neighbor distance. Each open side of an edge
+        under consideration keeps the Delaunay triangle that minimizes
+        perimeter times area divided by the area projected along that edge's
+        normal. The edge normal is the average of the unoriented adaptive
+        normals at the two endpoints, after flipping one when they point
+        opposite ways. Triangles are added smallest score first. The queue
+        starts with both sides of every tunnel-weighted forest edge. Adding
+        a triangle brings each of its other edges into consideration when
+        that edge is not already there, and queues the other side. A rejected
+        triangle is replaced by the next score on the same side of the edge
+        that proposed it. A side that already holds a triangle is closed.
+        A candidate on an occupied side of any of its edges is skipped, and
+        the next score is tried. So is a candidate that would be the third
+        triangle on any edge, and one whose wedge at a vertex overlaps a
+        triangle already incident there. Edges are projected onto the plane
+        perpendicular to the vertex normal. The wedges overlap when a
+        non-shared edge of either triangle lies in the other's angle, so a
+        triangle that contains an existing one is skipped along with one that
+        falls inside it. An edge shared with that triangle is the boundary
+        and is not part of the vertex check. A side with no triangle is
+        skipped. The triangles of one edge run in opposite directions along
+        that edge. Both are kept only when their wedges do not overlap at
+        either endpoint. The edge normal can place them on opposite sides
+        while a vertex normal still makes those fans cross. Each connected
+        component is then oriented from its first triangle. A neighbor that
+        traverses a shared edge in the same direction is reversed. Only the
+        cyclic order of the three vertices is used.
+        `LRsR iterations: N` is how many accepted triangles were proposed
+        by an edge outside the forest.
     """
     m = Manifold()
     vertices_data, n_vertices = _as_vec3_f(vertices)
