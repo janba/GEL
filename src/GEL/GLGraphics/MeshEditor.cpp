@@ -549,6 +549,23 @@ namespace GLGraphics {
                 Serialization ser(file_name, std::ios_base::out);
                 me->active_mesh().serialize(ser);
                 return;
+            } else if (extension == ".stl") {
+                bool is_binary = false;
+                if (args.size() < 2) {
+                    me->printf("please specify binary or ascii format");
+                    return;
+                } else {
+                    if (args[1] == "binary") {
+                        is_binary = true;
+                    } else if (args[1] == "ascii") {
+                        is_binary = false;
+                    } else {
+                        me->printf("please specify binary or ascii format");
+                        return;
+                    }
+                    stl_save(file_name, me->active_mesh(), is_binary);
+                }
+                return;
             }
             me->printf("unknown format");
             return;
