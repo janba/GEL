@@ -10,6 +10,7 @@
 #include <string>
 #include <GEL/HMesh/HMesh.h>
 #include <GEL/HMesh/face_loop.h>
+#include <GEL/HMesh/GGSR.h>
 #include <GEL/HMesh/LRsR.h>
 #include <GEL/HMesh/RSRExperimental.h>
 #include <GEL/Geometry/Graph.h>
@@ -318,6 +319,22 @@ void lrsr_recon(Manifold_ptr m_ptr, double* vertices, int vertex_count, double r
     opts.radius_factor = radius_factor;
     Manifold result;
     LRsR::reconstruct(point_cloud_vertices, opts, result);
+    *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
+}
+
+void ggsr_recon(Manifold_ptr m_ptr, double* vertices, int vertex_count,
+    double radius_factor, int max_edges)
+{
+    vector<Vec3d> point_cloud_vertices;
+    point_cloud_vertices.reserve(vertex_count);
+    for (int i = 0; i < vertex_count; i++)
+        point_cloud_vertices.emplace_back(vertices[i], vertices[i + vertex_count], vertices[i + 2 * vertex_count]);
+
+    GGSR::GGSROpts opts;
+    opts.radius_factor = radius_factor;
+    opts.max_edges = max_edges;
+    Manifold result;
+    GGSR::reconstruct(point_cloud_vertices, opts, result);
     *reinterpret_cast<Manifold*>(m_ptr) = std::move(result);
 }
 

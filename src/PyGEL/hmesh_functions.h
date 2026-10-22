@@ -155,6 +155,13 @@ extern "C" {
     DLLEXPORT void lrsr_recon(Manifold_ptr m_ptr, double* vertices, int vertex_count,
         double radius_factor);
 
+    /// Gabriel graph surface reconstruction. `vertices` is a Fortran (N, 3)
+    /// array. The Gabriel radius is `radius_factor` times the median
+    /// nearest-neighbor distance. `max_edges` is the Dijkstra hop limit.
+    /// Prints `GGSR mst edges: M` and `GGSR faces: N`.
+    DLLEXPORT void ggsr_recon(Manifold_ptr m_ptr, double* vertices, int vertex_count,
+        double radius_factor, int max_edges);
+
     DLLEXPORT void rsr_recon(Manifold_ptr m_ptr, double* vertices,
         double* normals, int vertex_count, int normal_count, bool use_Euclid_dist = false, int genus = -1,
         int num_neighbors = 70, double max_neighbor_dist = 20, double max_normal_ang = 60, int max_handle_dist = 50,

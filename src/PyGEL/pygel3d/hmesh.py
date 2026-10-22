@@ -16,7 +16,7 @@ __all__ = [
     'cc_subdivide', 'loop_subdivide', 'volume_preserving_cc_smooth', 'regularize_quads', 'loop_smooth',
     'taubin_smooth', 'laplacian_smooth', 'anisotropic_smooth', 'volumetric_isocontour', 'triangulate',
     'extrude_faces', 'kill_face_loop', 'kill_degenerate_face_loops', 'graph_to_feq', 'skeleton_to_feq',
-    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_normals', 'rsr_orientation_tree', 'rsr_orientation_mst', 'lrsr_recon', 'rsr_recon', 'hrsr_recon', 'hrsr_recon_graph', 'connected_components',
+    'graph_to_cylinders', 'graph_to_isosurface', 'fit_mesh_to_ref', 'rsr_normals', 'rsr_orientation_tree', 'rsr_orientation_mst', 'lrsr_recon', 'ggsr_recon', 'rsr_recon', 'hrsr_recon', 'hrsr_recon_graph', 'connected_components',
     'count_boundary_curves', 'analyze_topology', 'sphere_delaunay'
 ]
 
@@ -1125,6 +1125,39 @@ def lrsr_recon(vertices: ArrayLike, radius_factor: float = 4.0) -> Manifold:
     m = Manifold()
     vertices_data, n_vertices = _as_vec3_f(vertices)
     lib_py_gel.lrsr_recon(m.obj, vertices_data, n_vertices, float(radius_factor))
+    return m
+
+def ggsr_recon(vertices: ArrayLike, radius_factor: float = 4.0, max_edges: int = 10) -> Manifold:
+    """ Gabriel graph surface reconstruction.
+
+        `vertices` is the point cloud. The Gabriel radius is `radius_factor`
+        times the median nearest-neighbor distance, so the graph is the
+        radius-limited Gabriel graph. Vertex normals are the unoriented
+        adaptive covariance estimate. The tunnel-weighted minimum spanning
+        forest of that graph is built next, one tree per component. An edge
+        of length `l` costs `l * (1 + |ê·n| + |ê·m|)`. `GGSR mst edges: M`
+        is the number of forest edges. Face finding still walks the full
+        Gabriel graph. From each vertex, Dijkstra with one unit per edge
+        grows a tree and stops at `max_edges` edges. A Gabriel edge that is
+        not in that tree, and whose ends were both reached, closes a face
+        with the tree path between those ends. The hash of a face is its
+        vertex indices in increasing order. A later discovery of the same
+        vertex set is ignored, and the stored boundary and starting vertex
+        are those of the first discovery. Two faces that share more than
+        three edges drop the larger one. Two that share exactly two edges
+        project the vector from each starting vertex to that face's
+        barycenter into the plane perpendicular to the normal at that
+        vertex. A positive dot product of the projected vectors drops the
+        larger face as well. The larger face has more edges, or the greater
+        Euclidean perimeter when the counts match. A pair of equal size is
+        kept, as is every pair that shares one or three edges. The kept
+        polygons are stitched into one mesh, and each connected set of faces
+        is oriented so a shared edge is traversed in opposite directions.
+        `GGSR faces: N` is the number of kept faces.
+    """
+    m = Manifold()
+    vertices_data, n_vertices = _as_vec3_f(vertices)
+    lib_py_gel.ggsr_recon(m.obj, vertices_data, n_vertices, float(radius_factor), int(max_edges))
     return m
 
 def rsr_recon(vertices: ArrayLike, 

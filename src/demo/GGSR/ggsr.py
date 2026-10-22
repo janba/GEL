@@ -1,0 +1,110 @@
+"""Gabriel graph surface reconstruction.
+
+    python ggsr.py [--radius FACTOR] [--edges N] [points.obj] [out.obj]
+
+With no file, 400 points on the unit sphere are reconstructed and shown.
+The window draws the mesh and the tunnel-weighted spanning forest of the
+radius-limited Gabriel graph. The radius is FACTOR times the median
+nearest-neighbor distance. The default factor is 4. `--edges` is the
+Dijkstra hop limit. The default is 10. An .obj point cloud uses each line
+whose first word is v. The mesh is written to out.obj when no output path
+is given. Reconstruction prints `GGSR mst edges: M` and `GGSR faces: N`.
+"""
+
+import sys
+from os.path import splitext
+
+import numpy as np
+from pygel3d import gl_display as gl
+from pygel3d.graph import gabriel_edges, minimum_spanning_forest
+from pygel3d.hmesh import count_boundary_curves, ggsr_recon, save, valid
+
+
+def sphere_points(n=400, seed=1):
+    rng = np.random.default_rng(seed)
+    points = rng.normal(size=(n, 3))
+    points /= np.linalg.norm(points, axis=1, keepdims=True)
+    return points
+
+
+def read_obj_vertices(path):
+    points = []
+    with open(path) as source:
+        for line in source:
+            parts = line.split()
+            if len(parts) < 4 or parts[0] != "v":
+                continue
+            points.append(tuple(float(value) for value in parts[1:4]))
+    if not points:
+        return np.zeros((0, 3))
+    return np.asarray(points, dtype=np.float64)
+
+
+def parse_args(argv):
+    radius_factor = 4.0
+    max_edges = 10
+    positional = []
+    index = 0
+    while index < len(argv):
+        arg = argv[index]
+        if arg == "--radius":
+            if index + 1 >= len(argv):
+                raise SystemExit("--radius needs a factor")
+            radius_factor = float(argv[index + 1])
+            index += 2
+            continue
+        if arg == "--edges":
+            if index + 1 >= len(argv):
+                raise SystemExit("--edges needs a hop limit")
+            max_edges = int(argv[index + 1])
+            index += 2
+            continue
+        positional.append(arg)
+        index += 1
+    return positional, radius_factor, max_edges
+
+
+def median_neighbor_spacing(points):
+    from scipy.spatial import KDTree
+
+    distances, _ = KDTree(points).query(points, k=2)
+    nearest = np.asarray(distances[:, 1], dtype=np.float64)
+    nearest = nearest[np.isfinite(nearest) & (nearest > 0)]
+    if nearest.size == 0:
+        return 1.0
+    return float(np.median(nearest))
+
+
+def main():
+    positional, radius_factor, max_edges = parse_args(sys.argv[1:])
+    if not positional:
+        points = sphere_points()
+        source = "unit sphere"
+    else:
+        path = positional[0]
+        if splitext(path)[1].lower() != ".obj":
+            raise SystemExit(f"expected an .obj point cloud, got {path}")
+        points = read_obj_vertices(path)
+        if len(points) == 0:
+            raise SystemExit(f"could not load {path}")
+        source = path
+    output = positional[1] if len(positional) > 1 else "out.obj"
+
+    mesh = ggsr_recon(points, radius_factor, max_edges)
+    radius = radius_factor * median_neighbor_spacing(points)
+    graph = gabriel_edges(points, radius)
+    forest, *_ = minimum_spanning_forest(graph, True)
+    print(
+        f"{source}: {len(points)} points, radius factor {radius_factor}, "
+        f"radius {radius:.6g}, hop limit {max_edges}, "
+        f"{graph.no_edges()} Gabriel edges, {forest.no_edges()} mst edges, "
+        f"{len(mesh.vertices())} vertices, {len(mesh.faces())} faces, "
+        f"{count_boundary_curves(mesh)} boundary curves, "
+        f"valid={valid(mesh)}"
+    )
+    save(output, mesh)
+    gl.Viewer().display(mesh, forest, smooth=False, mode="n")
+
+
+if __name__ == "__main__":
+    main()
