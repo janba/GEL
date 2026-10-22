@@ -1,5 +1,5 @@
 from sys import argv, exit
-from pygel3d.hmesh import rsr_recon, hrsr_recon, hrsr_recon_graph, save, flip_orientation, load, close_holes, triangulate
+from pygel3d.hmesh import rsr_recon, save, flip_orientation, load, close_holes, triangulate
 from pygel3d import gl_display as gl
 
 
@@ -66,13 +66,13 @@ if len(argv) > 1:
 
     m = None
     if hierarchical:
-        m = hrsr_recon_graph(vertices, normals, num_neighbors=50, max_neighbor_dist = 5, use_Euclid_dist=True) 
+        m = hrsr_recon(vertices, normals, num_neighbors=50, max_neighbor_dist = 5, use_Euclid_dist=True) 
     else:
-        m = rsr_recon(vertices, normals,  max_neighbor_dist=10, use_Euclid_dist=True, genus=1)
-    close_holes(m, max_size=10000)
+        m = rsr_recon(vertices, normals)
+    close_holes(m, max_size=10)
     triangulate(m, clip_ear=False)
     print("Reconstruction completed.")
-    viewer.display(m, smooth=False, mode='g')
+    viewer.display(m, smooth=False, mode='g', bg_col=(1,1,1), reset_view=True)
     save("out.obj", m)
 
 else:
