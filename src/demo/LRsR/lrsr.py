@@ -7,6 +7,11 @@ The window draws the mesh and the tunnel-weighted spanning forest.
 The radius is FACTOR times the median nearest-neighbor distance. The default
 factor is 4. An .obj point cloud uses each line whose first word is v.
 The mesh is written to out.obj when no output path is given.
+Reconstruction prints `LRsR iterations: N`. N is how many accepted
+triangles were proposed by an edge outside the tunnel-weighted spanning
+forest. Triangles are added smallest projected-perimeter score first,
+until that queue is empty. Each connected component is then oriented from
+its first triangle, using only the cyclic order of the vertices.
 """
 
 import sys
