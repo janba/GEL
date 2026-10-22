@@ -93,14 +93,6 @@ def _configure_and_build() -> Path:
     ]
     if sys.platform.startswith("linux"):
         configure.append("-DOpenGL_GL_PREFERENCE=LEGACY")
-    # Ninja on Windows often picks MinGW from PATH; CPython wheels must use
-    # MSVC, so leave the Visual Studio generator as CMake's default there.
-    if (
-        sys.platform != "win32"
-        and not (build_dir / "CMakeCache.txt").exists()
-        and shutil.which("ninja")
-    ):
-        configure.extend(["-G", "Ninja"])
     print("PyGEL3D: configuring native library:", " ".join(configure))
     subprocess.run(configure, check=True)
 

@@ -97,7 +97,7 @@ From a source checkout, build a **platform** wheel (it compiles `libPyGEL` with 
 python -m build --wheel
 pip install dist/pygel3d-*.whl
 ```
-You need CMake ≥ 3.25, a C++20 compiler, and the Python packages `build` and `setuptools`. Isolated builds also pull in the `cmake` and `ninja` packages automatically.
+You need CMake ≥ 3.25, a C++20 compiler, and the Python packages `build` and `setuptools`. Isolated builds also pull in the `cmake` package automatically.
 
 Alternatively,
 ```

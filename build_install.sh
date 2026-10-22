@@ -50,7 +50,7 @@ fi
 
 multi=0
 case "$generator" in
-    "Visual Studio"*|Xcode|"Ninja Multi-Config")
+    "Visual Studio"*|Xcode)
         multi=1
         ;;
 esac
@@ -71,7 +71,7 @@ if [ "$multi" -eq 0 ] && { [ ! -f "$cache" ] || [ "$cache_type" != "$requested" 
     generator=$(sed -n 's/^CMAKE_GENERATOR:INTERNAL=//p' "$cache")
     multi=0
     case "$generator" in
-        "Visual Studio"*|Xcode|"Ninja Multi-Config")
+        "Visual Studio"*|Xcode)
             multi=1
             ;;
     esac
@@ -90,7 +90,7 @@ fi
 rm -fr dist
 # Reuse the CMake tree just built; the Python build copies only this
 # platform's library into a py3-none-<platform> wheel.
-python -m pip install -q build setuptools cmake ninja
+python -m pip install -q build setuptools cmake
 PYGEL_SKIP_CMAKE=1 python -m build --wheel --no-isolation
 pip uninstall --yes PyGEL3D
 pip install dist/*whl

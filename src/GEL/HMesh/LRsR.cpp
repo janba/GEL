@@ -119,7 +119,7 @@ double projected_perimeter_score(const Vec3& a, const Vec3& b, const Vec3& c, co
     const double perimeter = CGLA::length(b - a) + CGLA::length(c - b) + CGLA::length(a - c);
     if (!std::isfinite(perimeter))
         return std::numeric_limits<double>::infinity();
-    return perimeter * perimeter;// * area / projected_area;
+    return perimeter * area / projected_area;
 }
 
 // Both endpoints fit in 32 bits. reconstruct rejects a larger cloud.
