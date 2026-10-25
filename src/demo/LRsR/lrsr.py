@@ -3,15 +3,24 @@
     python lrsr.py [--radius FACTOR] [points.obj] [out.obj]
 
 With no file, 400 points on the unit sphere are reconstructed and shown.
-The window draws the mesh and the tunnel-weighted spanning forest.
+The window draws the mesh and the tunnel-weighted spanning forest of the
+same Delaunay graph. Modes 1 and 3 build that forest and use its edges.
+Mode 2 does not. `kGrowthMode` in LRsR.cpp selects the mode and is 2.
 The radius is FACTOR times the median nearest-neighbor distance. The default
 factor is 4. An .obj point cloud uses each line whose first word is v.
 The mesh is written to out.obj when no output path is given.
-Reconstruction prints `LRsR iterations: N`. N is how many accepted
-triangles were proposed by an edge outside the tunnel-weighted spanning
-forest. Triangles are added smallest projected-perimeter score first,
-until that queue is empty. Each connected component is then oriented from
-its first triangle, using only the cyclic order of the vertices.
+Reconstruction prints `LRsR mode: M` and `LRsR iterations: N`. N is how
+many triangles the queue accepted. Mode 2 does not count its seed triangle.
+Mode 1 queues tree edges and edges of accepted triangles together. Mode 2
+starts from the lowest-score triangle and spreads along a front. Mode 3
+exhausts the tree edges first, then spreads from the triangles already
+added. A queued triangle is scored by its projected perimeter times
+`2 - cos(alpha)` for each face it already touches. A popped entry whose
+score has risen is put back at that score. Mode 2 also winds each queued
+triangle against the face across the edge that queued it, and drops a
+popped triangle that disagrees with a neighbor. Each connected component is
+then oriented from its first triangle, using only the cyclic order of
+the vertices.
 """
 
 import sys
@@ -77,9 +86,10 @@ def sanity(points, mesh, radius_factor):
 
     A fan is fine when the triangles at one input point are a single cycle
     or a set of paths. A branch, or a cycle plus anything else, is not.
-    The mesh is built from this same tunnel-weighted forest. The returned
-    forest is that graph. An empty mesh has no positions array. Every forest
-    edge is then missing, and every input point is without a face.
+    The returned forest is the tunnel-weighted spanning forest of the same
+    Delaunay graph. It is drawn beside the mesh and is not used to seed the
+    fill. An empty mesh has no positions array. Every forest edge is then
+    missing, and every input point is without a face.
     """
     if len(mesh.vertices()) == 0:
         radius = radius_factor * median_neighbor_spacing(points)

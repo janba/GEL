@@ -20,11 +20,28 @@
 #include <iostream>
 #include <queue>
 #include <unordered_map>
-#include <unordered_set>
 #include <utility>
 #include <vector>
 
 namespace HMesh::LRsR {
+
+// Fill selector. Change this value to compare the three queues.
+// 1. One queue. Both sides of every tunnel-weighted spanning-tree edge are
+//    queued, and accepting a triangle also queues the free side of each of
+//    its other edges. Tree triangles and later triangles compete by score.
+// 2. Expanding front. The mesh starts as the single lowest-score Delaunay
+//    triangle. Only the free sides of edges of accepted triangles are queued.
+// 3. Tree edges first. Round one queues only the two sides of each
+//    tunnel-weighted spanning-tree edge and does not open other edges.
+//    When that queue is empty, round two queues the free sides of edges of
+//    the triangles already added, then continues like mode 2.
+// Each queued score is the projected-perimeter score times 2 - cos(alpha)
+// for every face the triangle already touches. A popped entry whose score
+// has risen is pushed back at the new score and is not added yet.
+// Mode 2 also copies its winding from the face across the edge that queued
+// it, and drops a popped triangle that disagrees with any neighbor.
+constexpr int kGrowthMode = 2;
+
 namespace {
 
 using Vec3 = CGLA::Vec3d;
@@ -138,33 +155,43 @@ bool finite_vector(const Vec3& value)
     return std::isfinite(value[0]) && std::isfinite(value[1]) && std::isfinite(value[2]);
 }
 
-// Triangles are added smallest projected_perimeter_score first. The queue
-// starts with both sides of every tunnel-weighted forest edge. Left of
-// directed edge a→b, with a < b, is the side where (b-a) × (c-a) agrees
-// with the edge normal. Accepting a triangle queues the unfilled side of
-// each of its other edges that is not already under consideration. A
-// rejected triangle is replaced by the next score on the same side. A side
-// that already holds a triangle is closed. Every edge of a chosen triangle
-// records the side that triangle occupies. A new candidate on an occupied
-// side of any of its edges is skipped, and the next score is tried. A
-// candidate that would be the third triangle on any of its edges is skipped
-// the same way. So is one whose wedge at a vertex overlaps a triangle
-// already incident there. Edges are projected onto the plane perpendicular
-// to the vertex normal, and the wedges overlap when a non-shared edge of
-// either triangle lies in the other's angle. The stored winding puts the
-// edge normal on a newly chosen triangle, so the right triangle uses the
-// opposite direction along the edge. After the queue is empty, each
-// connected component is oriented from its first triangle. A neighbor whose
-// cyclic order uses a shared edge in the same direction is reversed. That
-// pass does not consult normals.
-// Returns how many accepted triangles were proposed by an edge outside the
-// forest.
+// Triangles are added smallest projected_perimeter_score first. Which edges
+// may propose them depends on kGrowthMode. Left of directed edge a→b, with
+// a < b, is the side where (b-a) × (c-a) agrees with the edge normal. The
+// queued score multiplies the projected-perimeter score by 2 - cos(alpha) for
+// each face already across one of the triangle's edges. Alpha is the angle
+// between the normals once the two faces traverse the shared edge in opposite
+// directions. Coplanar faces with the same normal keep factor 1. Coplanar
+// faces with opposite normals use factor 3. A popped entry whose score has
+// risen since it was pushed is discarded and pushed again at the current
+// score. A rejected triangle is
+// replaced by the next score on the same side. A side that already holds a
+// triangle is closed. Every edge of a chosen triangle records the side that
+// triangle occupies. A new candidate on an occupied side of any of its edges
+// is skipped, and the next score is tried. A candidate that would be the
+// third triangle on any of its edges is skipped the same way. So is one whose
+// wedge at a vertex overlaps a triangle already incident there. Edges are
+// projected onto the plane perpendicular to the vertex normal, and the wedges
+// overlap when a non-shared edge of either triangle lies in the other's
+// angle. Mode 2 stores a winding that traverses the proposing edge opposite
+// the face already there. The seed keeps the edge-normal winding: left is
+// (a, b, corner) and right is (a, corner, b). A popped mode 2 triangle whose
+// winding meets any existing neighbor in the same direction is rejected.
+// After the queue is empty, each connected component is oriented from its
+// first triangle. A neighbor whose cyclic order uses a shared edge in the
+// same direction is reversed. That pass does not consult normals.
+// Returns how many triangles the queue accepted. Mode 2's first triangle is
+// emitted directly and is not counted.
 struct Proposal {
     double score = 0.0;
     size_t corner = 0;
     size_t a = 0;
     size_t b = 0;
     int side = 0;
+    double base = 0.0;
+    unsigned stamp = 0;
+    // +1 emits (a, b, corner). -1 emits (a, corner, b).
+    int wind = 1;
 };
 
 struct LaterProposal {
@@ -184,9 +211,12 @@ struct LaterProposal {
 };
 
 // One live proposal per open side. Slot 0 is the left side and slot 1 the right.
+// `stamp` identifies that proposal. An older heap entry carries a smaller stamp.
+
 struct SideState {
     std::vector<std::pair<double, size_t>> ranked;
     size_t cursor = 0;
+    unsigned stamp = 0;
     bool closed = false;
     bool queued = false;
 };
@@ -206,7 +236,6 @@ struct TriangleFront {
     const std::vector<Vec3>& points;
     const std::vector<Vec3>& normals;
     const Geometry::AMGraph3D& graph;
-    std::unordered_set<uint64_t> forest;
 
     std::unordered_map<TriKey, char, TriKeyHash> emitted;
     std::vector<std::array<size_t, 3>> faces;
@@ -215,16 +244,14 @@ struct TriangleFront {
     std::vector<std::vector<std::pair<size_t, size_t>>> vertex_tris;
     std::unordered_map<uint64_t, EdgeState> edges;
     std::priority_queue<Proposal, std::vector<Proposal>, LaterProposal> pending;
-    int accepted_from_new_edges = 0;
+    int accepted_from_queue = 0;
 
     TriangleFront(const std::vector<Vec3>& points_in,
                   const std::vector<Vec3>& normals_in,
-                  const Geometry::AMGraph3D& graph_in,
-                  std::unordered_set<uint64_t> forest_in)
+                  const Geometry::AMGraph3D& graph_in)
         : points(points_in)
         , normals(normals_in)
         , graph(graph_in)
-        , forest(std::move(forest_in))
         , vertex_tris(points_in.size())
     {
     }
@@ -415,6 +442,96 @@ struct TriangleFront {
         std::sort(side.ranked.begin(), side.ranked.end());
     }
 
+    // Normals after the two faces are given opposite directions along `u`--`v`.
+    // Coplanar and agreeing is 1. Coplanar and opposite is 3.
+    double dihedral_factor(const std::array<size_t, 3>& face, size_t u, size_t v, size_t corner) const
+    {
+        const int direction = edge_direction(face, u, v);
+        if (direction == 0)
+            return 1.0;
+        const Vec3 face_normal = CGLA::cross(
+            points[face[1]] - points[face[0]], points[face[2]] - points[face[0]]);
+        const Vec3 candidate_normal = direction > 0
+            ? CGLA::cross(points[u] - points[v], points[corner] - points[v])
+            : CGLA::cross(points[v] - points[u], points[corner] - points[u]);
+        const double face_length = face_normal.length();
+        const double candidate_length = candidate_normal.length();
+        if (!(face_length > 0.0) || !(candidate_length > 0.0)
+            || !std::isfinite(face_length) || !std::isfinite(candidate_length))
+            return 1.0;
+        double cosine = CGLA::dot(face_normal, candidate_normal) / (face_length * candidate_length);
+        if (!std::isfinite(cosine))
+            return 1.0;
+        cosine = std::clamp(cosine, -1.0, 1.0);
+        return 2.0 - cosine;
+    }
+
+    // One factor for each face already across an edge of the candidate.
+    // No such face leaves the projected-perimeter score unchanged.
+    double queue_score(double base, size_t a, size_t b, size_t corner) const
+    {
+        double factor = 1.0;
+        const size_t verts[3] = {a, b, corner};
+        for (int edge = 0; edge < 3; ++edge) {
+            const size_t u = verts[edge];
+            const size_t v = verts[(edge + 1) % 3];
+            const size_t other = verts[(edge + 2) % 3];
+            const auto found = faces_on.find(undirected_id(u, v));
+            if (found == faces_on.end())
+                continue;
+            for (size_t index : found->second)
+                factor *= dihedral_factor(faces[index], u, v, other);
+        }
+        const double score = base * factor;
+        if (!std::isfinite(score))
+            return std::numeric_limits<double>::infinity();
+        return score;
+    }
+
+    static bool score_rose(double current, double queued)
+    {
+        return std::isfinite(current) && current > queued
+            && current - queued > 1e-9 * std::max(1.0, std::abs(queued));
+    }
+
+    // +1 if the new triangle should traverse a→b. Opposite the face already
+    // across that edge. Zero when no face is there yet.
+    int winding_from_parent(size_t a, size_t b) const
+    {
+        const auto found = faces_on.find(undirected_id(a, b));
+        if (found == faces_on.end())
+            return 0;
+        for (size_t index : found->second) {
+            const int direction = edge_direction(faces[index], a, b);
+            if (direction != 0)
+                return -direction;
+        }
+        return 0;
+    }
+
+    // True when the stored winding traverses a shared edge the same way as a
+    // triangle already in the mesh.
+    bool orientation_conflict(const Proposal& proposal) const
+    {
+        const std::array<size_t, 3> face = proposal.wind < 0
+            ? std::array<size_t, 3>{proposal.a, proposal.corner, proposal.b}
+            : std::array<size_t, 3>{proposal.a, proposal.b, proposal.corner};
+        for (int edge = 0; edge < 3; ++edge) {
+            const size_t u = face[static_cast<size_t>(edge)];
+            const size_t v = face[static_cast<size_t>((edge + 1) % 3)];
+            const auto found = faces_on.find(undirected_id(u, v));
+            if (found == faces_on.end())
+                continue;
+            const int mine = edge_direction(face, u, v);
+            for (size_t index : found->second) {
+                const int theirs = edge_direction(faces[index], u, v);
+                if (mine != 0 && theirs != 0 && mine == theirs)
+                    return true;
+            }
+        }
+        return false;
+    }
+
     // Push the best corner of this side that the mesh still allows. One entry
     // stays live until it is popped.
     void enqueue_next(uint64_t id, int side_sign)
@@ -438,8 +555,21 @@ struct TriangleFront {
                 return;
             }
             if (admissible(edge.a, edge.b, corner)) {
+                const double base = side.ranked[side.cursor].first;
+                const double score = queue_score(base, edge.a, edge.b, corner);
+                if (!std::isfinite(score)) {
+                    ++side.cursor;
+                    continue;
+                }
+                ++side.stamp;
+                int wind = side_sign > 0 ? 1 : -1;
+                if (kGrowthMode == 2) {
+                    const int inherited = winding_from_parent(edge.a, edge.b);
+                    if (inherited != 0)
+                        wind = inherited;
+                }
                 pending.push(Proposal{
-                    side.ranked[side.cursor].first, corner, edge.a, edge.b, side_sign});
+                    score, corner, edge.a, edge.b, side_sign, base, side.stamp, wind});
                 side.queued = true;
                 return;
             }
@@ -448,25 +578,93 @@ struct TriangleFront {
         side.closed = true;
     }
 
-    void seed()
+    // The Delaunay triangle with the lowest projected-perimeter score. The
+    // score is the one its proposing edge would have used. Ties follow the
+    // queue: smaller corner, then the edge, then the side.
+    bool seed_best()
     {
-        for (const uint64_t id : forest) {
-            EdgeState created;
-            created.a = static_cast<size_t>(id >> 32);
-            created.b = static_cast<size_t>(id & 0xffffffffu);
-            Vec3 edge_normal;
-            double normal_length = 0.0;
-            if (!edge_frame(created.a, created.b, edge_normal, normal_length)) {
-                created.side[0].closed = true;
-                created.side[1].closed = true;
-                edges.emplace(id, std::move(created));
-                continue;
+        Proposal best;
+        bool have = false;
+        const LaterProposal worse;
+        for (Geometry::AMGraph::NodeID node : graph.node_ids()) {
+            const size_t a = node;
+            for (const auto& entry : graph.edges(node)) {
+                const size_t b = entry.first;
+                if (a >= b)
+                    continue;
+                Vec3 edge_normal;
+                double normal_length = 0.0;
+                if (!edge_frame(a, b, edge_normal, normal_length))
+                    continue;
+                EdgeState ranked;
+                ranked.a = a;
+                ranked.b = b;
+                rank_side(ranked, 1, edge_normal, normal_length);
+                rank_side(ranked, -1, edge_normal, normal_length);
+                for (const int side_sign : {1, -1}) {
+                    const SideState& side = ranked.side[side_slot(side_sign)];
+                    if (side.ranked.empty())
+                        continue;
+                    const Proposal candidate{
+                        side.ranked.front().first, side.ranked.front().second, a, b, side_sign};
+                    if (!have || worse(best, candidate)) {
+                        best = candidate;
+                        have = true;
+                    }
+                }
             }
-            rank_side(created, 1, edge_normal, normal_length);
-            rank_side(created, -1, edge_normal, normal_length);
+        }
+        if (!have)
+            return false;
+        const bool added = best.side > 0
+            ? emit(best.a, best.b, best.corner)
+            : emit(best.a, best.corner, best.b);
+        if (!added)
+            return false;
+        open_created_edge(best.a, best.b, best.corner);
+        open_created_edge(best.a, best.corner, best.b);
+        open_created_edge(best.b, best.corner, best.a);
+        return true;
+    }
+
+    // Both sides of one spanning-tree edge. The edge is in the front, so a
+    // later triangle does not seed it again.
+    void open_tree_edge(size_t u, size_t v)
+    {
+        if (u == v)
+            return;
+        if (u > v)
+            std::swap(u, v);
+        const uint64_t id = undirected_id(u, v);
+        if (edges.find(id) != edges.end())
+            return;
+        EdgeState created;
+        created.a = u;
+        created.b = v;
+        Vec3 edge_normal;
+        double normal_length = 0.0;
+        if (!edge_frame(u, v, edge_normal, normal_length)) {
+            created.side[0].closed = true;
+            created.side[1].closed = true;
             edges.emplace(id, std::move(created));
-            enqueue_next(id, 1);
-            enqueue_next(id, -1);
+            return;
+        }
+        rank_side(created, 1, edge_normal, normal_length);
+        rank_side(created, -1, edge_normal, normal_length);
+        edges.emplace(id, std::move(created));
+        enqueue_next(id, 1);
+        enqueue_next(id, -1);
+    }
+
+    void seed_tree(const Geometry::AMGraph3D& tree)
+    {
+        for (Geometry::AMGraph::NodeID node : tree.node_ids()) {
+            const size_t a = node;
+            for (const auto& entry : tree.edges(node)) {
+                const size_t b = entry.first;
+                if (a < b)
+                    open_tree_edge(a, b);
+            }
         }
     }
 
@@ -552,9 +750,10 @@ struct TriangleFront {
         }
     }
 
-    int grow()
+    // `open_edges` queues the free side of each new edge of an accepted
+    // triangle. Round one of mode 3 leaves it false so only tree edges propose.
+    void drain(bool open_edges)
     {
-        seed();
         while (!pending.empty()) {
             const Proposal proposal = pending.top();
             pending.pop();
@@ -563,6 +762,8 @@ struct TriangleFront {
             if (found == edges.end())
                 continue;
             SideState& side = found->second.side[side_slot(proposal.side)];
+            if (proposal.stamp != side.stamp)
+                continue;
             side.queued = false;
             const bool have_triangle =
                 emitted.find(tri_key(proposal.a, proposal.b, proposal.corner)) != emitted.end();
@@ -572,28 +773,71 @@ struct TriangleFront {
                 side.closed = true;
                 continue;
             }
+            if (kGrowthMode == 2 && orientation_conflict(proposal)) {
+                ++side.cursor;
+                enqueue_next(id, proposal.side);
+                continue;
+            }
+            const double current = queue_score(proposal.base, proposal.a, proposal.b, proposal.corner);
+            if (score_rose(current, proposal.score)) {
+                ++side.stamp;
+                pending.push(Proposal{
+                    current, proposal.corner, proposal.a, proposal.b, proposal.side,
+                    proposal.base, side.stamp, proposal.wind});
+                side.queued = true;
+                continue;
+            }
             if (!admissible(proposal.a, proposal.b, proposal.corner)) {
                 ++side.cursor;
                 enqueue_next(id, proposal.side);
                 continue;
             }
-            const bool added = proposal.side > 0
-                ? emit(proposal.a, proposal.b, proposal.corner)
-                : emit(proposal.a, proposal.corner, proposal.b);
+            const bool added = proposal.wind < 0
+                ? emit(proposal.a, proposal.corner, proposal.b)
+                : emit(proposal.a, proposal.b, proposal.corner);
             mark_side(proposal.a, proposal.b, proposal.side);
             side.closed = true;
             if (!added)
                 continue;
-            if (forest.count(id) == 0)
-                ++accepted_from_new_edges;
+            ++accepted_from_queue;
+            if (!open_edges)
+                continue;
             open_created_edge(proposal.a, proposal.corner, proposal.b);
             open_created_edge(proposal.b, proposal.corner, proposal.a);
         }
-        return accepted_from_new_edges;
+    }
+
+    void open_edges_of_accepted()
+    {
+        const size_t count = faces.size();
+        for (size_t index = 0; index < count; ++index) {
+            const std::array<size_t, 3> face = faces[index];
+            open_created_edge(face[0], face[1], face[2]);
+            open_created_edge(face[1], face[2], face[0]);
+            open_created_edge(face[2], face[0], face[1]);
+        }
+    }
+
+    int grow(const Geometry::AMGraph3D* tree)
+    {
+        if (kGrowthMode == 2) {
+            seed_best();
+            drain(true);
+            return accepted_from_queue;
+        }
+        seed_tree(*tree);
+        if (kGrowthMode == 1) {
+            drain(true);
+            return accepted_from_queue;
+        }
+        drain(false);
+        open_edges_of_accepted();
+        drain(true);
+        return accepted_from_queue;
     }
 };
 
-int add_forest_triangles(const std::vector<Vec3>& points, const LRsROpts& opts, Manifold& result)
+int add_front_triangles(const std::vector<Vec3>& points, const LRsROpts& opts, Manifold& result)
 {
     const double spacing = median_neighbor_spacing(points);
     const double radius = (opts.radius_factor > 0.0) ? opts.radius_factor * spacing : 0.0;
@@ -606,19 +850,15 @@ int add_forest_triangles(const std::vector<Vec3>& points, const LRsROpts& opts, 
     if (normals.size() != points.size())
         normals.assign(points.size(), Vec3(0));
 
-    const Geometry::GraphEdgeWeights weights = Geometry::tunnel_weight_graph(graph, normals);
-    const Geometry::AMGraph3D forest = Geometry::minimum_spanning_forest(graph, weights.length);
-
-    std::unordered_set<uint64_t> forest_ids;
-    for (Geometry::AMGraph::NodeID node : forest.node_ids()) {
-        for (const auto& entry : forest.edges(node)) {
-            if (node < entry.first)
-                forest_ids.insert(undirected_id(node, entry.first));
-        }
+    TriangleFront front(points, normals, graph);
+    int accepted = 0;
+    if (kGrowthMode == 2) {
+        accepted = front.grow(nullptr);
+    } else {
+        const Geometry::GraphEdgeWeights weights = Geometry::tunnel_weight_graph(graph, normals);
+        const Geometry::AMGraph3D tree = Geometry::minimum_spanning_forest(graph, weights.length);
+        accepted = front.grow(&tree);
     }
-
-    TriangleFront front(points, normals, graph, std::move(forest_ids));
-    const int accepted = front.grow();
     front.orient();
     for (const auto& face : front.faces) {
         const std::array<Vec3, 3> corners{
@@ -636,11 +876,13 @@ int reconstruct(const std::vector<Vec3>& points, const LRsROpts& opts, Manifold&
 {
     result.clear();
     if (points.empty() || points.size() > static_cast<size_t>(std::numeric_limits<int>::max())) {
+        std::cout << "LRsR mode: " << kGrowthMode << std::endl;
         std::cout << "LRsR iterations: 0" << std::endl;
         return 0;
     }
 
-    const int iterations = add_forest_triangles(points, opts, result);
+    const int iterations = add_front_triangles(points, opts, result);
+    std::cout << "LRsR mode: " << kGrowthMode << std::endl;
     std::cout << "LRsR iterations: " << iterations << std::endl;
     return iterations;
 }

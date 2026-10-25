@@ -6,9 +6,10 @@ With no file, 400 points on the unit sphere are reconstructed and shown.
 The window draws the mesh and the tunnel-weighted spanning forest of the
 radius-limited Gabriel graph. The radius is FACTOR times the median
 nearest-neighbor distance. The default factor is 4. `--edges` is the
-Dijkstra hop limit. The default is 10. An .obj point cloud uses each line
-whose first word is v. The mesh is written to out.obj when no output path
-is given. Reconstruction prints `GGSR mst edges: M` and `GGSR faces: N`.
+maximum number of edges on a traced face. The default is 10. An .obj
+point cloud uses each line whose first word is v. The mesh is written to
+out.obj when no output path is given. Reconstruction prints
+`GGSR mst edges: M` and `GGSR faces: N`.
 """
 
 import sys
@@ -55,7 +56,7 @@ def parse_args(argv):
             continue
         if arg == "--edges":
             if index + 1 >= len(argv):
-                raise SystemExit("--edges needs a hop limit")
+                raise SystemExit("--edges needs a maximum length")
             max_edges = int(argv[index + 1])
             index += 2
             continue
@@ -96,7 +97,7 @@ def main():
     forest, *_ = minimum_spanning_forest(graph, True)
     print(
         f"{source}: {len(points)} points, radius factor {radius_factor}, "
-        f"radius {radius:.6g}, hop limit {max_edges}, "
+        f"radius {radius:.6g}, max edges {max_edges}, "
         f"{graph.no_edges()} Gabriel edges, {forest.no_edges()} mst edges, "
         f"{len(mesh.vertices())} vertices, {len(mesh.faces())} faces, "
         f"{count_boundary_curves(mesh)} boundary curves, "

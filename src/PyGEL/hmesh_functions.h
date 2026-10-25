@@ -137,16 +137,26 @@ extern "C" {
 
     /// Local rotation system reconstruction. `vertices` is a Fortran (N, 3)
     /// array. `radius_factor` multiplies the median nearest-neighbor distance
-    /// to set the Delaunay radius. Triangles are added smallest
-    /// projected-perimeter score first. The queue starts from both sides of
-    /// every tunnel-weighted forest edge. A new triangle queues the other
-    /// side of each edge that was not already under consideration. A rejected
-    /// triangle is replaced by the next score on the side that proposed it.
-    /// Each component is then oriented from its first triangle by reversing
-    /// a neighbor that traverses a shared edge in the same direction. Only
-    /// the cyclic order is used.
-    /// Prints `LRsR iterations: N`, how many accepted triangles were proposed
-    /// by an edge outside the forest.
+    /// to set the Delaunay radius. `kGrowthMode` in LRsR.cpp selects the queue
+    /// and is 2. Mode 1 queues both sides of every tunnel-weighted
+    /// spanning-tree edge and, in the same queue, the free side of each new
+    /// edge of an accepted triangle. Mode 2 starts from the single
+    /// lowest-score triangle and then queues only those free sides. Mode 3
+    /// exhausts the tree edges before opening any other edge, then continues
+    /// like mode 2. The queued score multiplies the projected-perimeter score
+    /// by `2 - cos(alpha)` for each face already across one of the triangle's
+    /// edges, with the two faces oriented consistently along that edge.
+    /// Coplanar agreeing normals use factor 1 and opposite normals use factor 3.
+    /// A popped entry whose score has risen is pushed back at the current
+    /// score. Mode 2 orients a queued triangle against the face across the
+    /// edge that queued it, and drops a popped triangle that disagrees with
+    /// any neighbor. A rejected triangle is replaced by the next score on the side
+    /// that proposed it. Each component is then
+    /// oriented from its first triangle by reversing a neighbor that
+    /// traverses a shared edge in the same direction. Only the cyclic order
+    /// is used.
+    /// Prints `LRsR mode: M` and `LRsR iterations: N`. N is how many triangles
+    /// the queue accepted. Mode 2 does not count its first triangle.
     /// A candidate on an occupied side of any of its edges is skipped. So is a
     /// third triangle on any edge, and a triangle whose wedge at a vertex
     /// overlaps a triangle already there. Projected onto the plane
@@ -157,7 +167,8 @@ extern "C" {
 
     /// Gabriel graph surface reconstruction. `vertices` is a Fortran (N, 3)
     /// array. The Gabriel radius is `radius_factor` times the median
-    /// nearest-neighbor distance. `max_edges` is the Dijkstra hop limit.
+    /// nearest-neighbor distance. `max_edges` is the maximum number of edges
+    /// on a traced face.
     /// Prints `GGSR mst edges: M` and `GGSR faces: N`.
     DLLEXPORT void ggsr_recon(Manifold_ptr m_ptr, double* vertices, int vertex_count,
         double radius_factor, int max_edges);

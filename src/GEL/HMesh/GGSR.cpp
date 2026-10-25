@@ -7,7 +7,6 @@
 #include <GEL/HMesh/GGSR.h>
 
 #include <GEL/Geometry/Delaunay3D.h>
-#include <GEL/Geometry/LocalDijkstraFaces.h>
 #include <GEL/Geometry/NeighborUtil.h>
 #include <GEL/Geometry/graph_util.h>
 #include <GEL/HMesh/RSRExperimental.h>
@@ -16,7 +15,6 @@
 #include <algorithm>
 #include <cmath>
 #include <cstddef>
-#include <cstdint>
 #include <iostream>
 #include <limits>
 #include <queue>
@@ -29,6 +27,13 @@ namespace {
 
 using Vec3 = CGLA::Vec3d;
 using NodeID = Geometry::AMGraph::NodeID;
+
+constexpr double kDirEps = 1e-24;
+/// A turn this close to straight does not count as progress toward closing.
+constexpr double kTurnEps = 1e-9;
+/// One corner belongs to one cycle when this is set. Temporarily off so a
+/// later walk can still cross a corner that an earlier face already used.
+constexpr bool kExclusiveCorners = false;
 
 struct EdgeKey {
     NodeID lo = 0;
@@ -104,143 +109,229 @@ EdgeKey edge_key(NodeID a, NodeID b)
     return {a, b};
 }
 
-struct FaceMeta {
-    NodeID start = 0;
-    Vec3 bary;
-    double perimeter = 0;
-    size_t edge_count = 0;
+/// The two neighbors that form a corner. Stored with `a < b`.
+struct Corner {
+    NodeID a = 0;
+    NodeID b = 0;
 };
 
-struct Projected {
-    Vec3 vector;
-    bool ok = false;
-};
-
-bool strictly_larger(const FaceMeta& lhs, const FaceMeta& rhs)
+/// Every unordered pair of incident edges with a defined direction. A pair
+/// is stored with `a < b`.
+std::vector<std::vector<Corner>> corners_at(const Geometry::AMGraph3D& graph)
 {
-    if (lhs.edge_count != rhs.edge_count)
-        return lhs.edge_count > rhs.edge_count;
-    return lhs.perimeter > rhs.perimeter;
-}
-
-Projected project_from_start(NodeID start, const Vec3& bary, const std::vector<Vec3>& points, const std::vector<Vec3>& normals)
-{
-    Projected projected;
-    if (start >= points.size() || start >= normals.size())
-        return projected;
-    const Vec3& normal = normals[start];
-    const double scale = CGLA::sqr_length(normal);
-    if (!(scale > 0.0))
-        return projected;
-    const Vec3 offset = bary - points[start];
-    projected.vector = offset - normal * (CGLA::dot(offset, normal) / scale);
-    projected.ok = true;
-    return projected;
-}
-
-/// Drop the strictly larger face when two faces share more than three edges.
-/// The same happens when they share exactly two and the projected vectors from
-/// their starting vertices to their barycenters have a positive dot product.
-/// A missing normal leaves that projection undefined, so the pair is kept.
-/// Shared edges are counted in arrays indexed by face. Pairs are not stored.
-std::vector<std::vector<NodeID>> discard_larger_faces(std::vector<Geometry::DijkstraFace>& found,
-                                                      const std::vector<Vec3>& points,
-                                                      const std::vector<Vec3>& normals)
-{
-    const size_t face_count = found.size();
-    std::vector<FaceMeta> meta(face_count);
-    std::unordered_map<EdgeKey, uint32_t, EdgeKeyHash> edge_of;
-    std::vector<std::vector<uint32_t>> users;
-    std::vector<std::vector<uint32_t>> face_edges(face_count);
-
-    for (size_t index = 0; index < face_count; ++index) {
-        const std::vector<NodeID>& vertices = found[index].vertices;
-        const size_t count = vertices.size();
-        FaceMeta& item = meta[index];
-        item.start = found[index].start;
-        item.edge_count = count;
-        Vec3 sum(0);
-        auto& edges = face_edges[index];
-        edges.reserve(count);
-        for (size_t i = 0; i < count; ++i) {
-            const NodeID from = vertices[i];
-            const NodeID to = vertices[(i + 1) % count];
-            sum += points[from];
-            item.perimeter += CGLA::length(points[to] - points[from]);
-            const EdgeKey key = edge_key(from, to);
-            const auto inserted = edge_of.emplace(key, static_cast<uint32_t>(edge_of.size()));
-            const uint32_t edge = inserted.first->second;
-            if (inserted.second)
-                users.emplace_back();
-            bool seen = false;
-            for (const uint32_t have : edges) {
-                if (have == edge) {
-                    seen = true;
-                    break;
-                }
-            }
-            if (seen)
+    const size_t n = graph.no_nodes();
+    std::vector<std::vector<Corner>> corners(n);
+    std::vector<NodeID> ids;
+    for (NodeID vertex = 0; vertex < n; ++vertex) {
+        ids.clear();
+        for (const NodeID neighbor : graph.neighbors_lazy(vertex)) {
+            const Vec3 dir = graph.pos[neighbor] - graph.pos[vertex];
+            const double len2 = CGLA::sqr_length(dir);
+            if (!(len2 > kDirEps) || !std::isfinite(len2))
                 continue;
-            edges.push_back(edge);
-            users[edge].push_back(static_cast<uint32_t>(index));
+            ids.push_back(neighbor);
         }
-        item.bary = count > 0 ? sum / static_cast<double>(count) : Vec3(0);
-    }
-
-    std::vector<char> drop(face_count, 0);
-    if (face_count <= std::numeric_limits<uint32_t>::max()) {
-        std::vector<unsigned> stamp(face_count, 0);
-        std::vector<int> share(face_count, 0);
-        std::vector<uint32_t> touched;
-        touched.reserve(256);
-        unsigned epoch = 0;
-        for (uint32_t index = 0; index < static_cast<uint32_t>(face_count); ++index) {
-            if (++epoch == 0) {
-                std::fill(stamp.begin(), stamp.end(), 0);
-                epoch = 1;
-            }
-            touched.clear();
-            for (const uint32_t edge : face_edges[index]) {
-                for (const uint32_t other : users[edge]) {
-                    if (other == index)
-                        continue;
-                    if (stamp[other] != epoch) {
-                        stamp[other] = epoch;
-                        share[other] = 1;
-                        touched.push_back(other);
-                    } else
-                        ++share[other];
-                }
-            }
-            const FaceMeta& lhs = meta[index];
-            for (const uint32_t other : touched) {
-                if (other < index)
-                    continue;
-                const int count = share[other];
-                bool reject = count > 3;
-                if (count == 2) {
-                    const Projected left = project_from_start(lhs.start, lhs.bary, points, normals);
-                    const Projected right = project_from_start(meta[other].start, meta[other].bary, points, normals);
-                    reject = left.ok && right.ok && CGLA::dot(left.vector, right.vector) > 0.0;
-                }
-                if (!reject)
-                    continue;
-                if (strictly_larger(lhs, meta[other]))
-                    drop[index] = 1;
-                else if (strictly_larger(meta[other], lhs))
-                    drop[other] = 1;
-            }
-        }
-    }
-
-    std::vector<std::vector<NodeID>> kept;
-    kept.reserve(face_count);
-    for (size_t index = 0; index < face_count; ++index) {
-        if (drop[index])
+        if (ids.size() < 2)
             continue;
-        kept.push_back(std::move(found[index].vertices));
+        auto& local = corners[vertex];
+        local.reserve(ids.size() * (ids.size() - 1) / 2);
+        for (size_t i = 0; i < ids.size(); ++i) {
+            for (size_t j = i + 1; j < ids.size(); ++j)
+                local.push_back(Corner{ids[i], ids[j]});
+        }
     }
-    return kept;
+    return corners;
+}
+
+bool on_path(const std::vector<NodeID>& path, NodeID id)
+{
+    for (const NodeID have : path)
+        if (have == id)
+            return true;
+    return false;
+}
+
+bool corner_taken(const std::vector<std::vector<Corner>>& used, NodeID vertex, NodeID a, NodeID b)
+{
+    if (!kExclusiveCorners)
+        return false;
+    if (a > b)
+        std::swap(a, b);
+    for (const Corner& corner : used[vertex])
+        if (corner.a == a && corner.b == b)
+            return true;
+    return false;
+}
+
+void claim_corner(std::vector<std::vector<Corner>>& used, NodeID vertex, NodeID a, NodeID b)
+{
+    if (!kExclusiveCorners)
+        return;
+    if (corner_taken(used, vertex, a, b))
+        return;
+    if (a > b)
+        std::swap(a, b);
+    used[vertex].push_back(Corner{a, b});
+}
+
+void claim_cycle(std::vector<std::vector<Corner>>& used, const std::vector<NodeID>& cycle)
+{
+    const size_t n = cycle.size();
+    for (size_t i = 0; i < n; ++i)
+        claim_corner(used, cycle[i], cycle[(i + n - 1) % n], cycle[(i + 1) % n]);
+}
+
+/// Walk from `start` along `depart`. The other corner edge fixes the normal
+/// so the corner lies to the left of travel. Each later step looks at every
+/// other incident edge. A positive turn back to an earlier vertex of this
+/// walk closes that shorter cycle.
+/// Otherwise a positive turn whose far vertex neighbors `start` is taken,
+/// because the cycle then closes on the next step. The shortest such cycle
+/// wins. Otherwise the greatest signed turn wins, and an equal turn keeps
+/// the smaller neighbor id. When `kExclusiveCorners` is set, a chosen corner
+/// that is already claimed ends the walk. The accepted corner then supplies
+/// the normal, flipped into the same hemisphere.
+std::vector<NodeID> trace_corner(const Geometry::AMGraph3D& graph,
+                                 const std::vector<std::vector<Corner>>& used,
+                                 NodeID start,
+                                 NodeID depart,
+                                 NodeID other,
+                                 int max_edges)
+{
+    const Vec3 from_depart = graph.pos[depart] - graph.pos[start];
+    const Vec3 from_other = graph.pos[other] - graph.pos[start];
+    Vec3 normal = CGLA::cross(from_depart, from_other);
+    const double normal_len2 = CGLA::sqr_length(normal);
+    if (!(normal_len2 > kDirEps) || !std::isfinite(normal_len2))
+        return {};
+    normal /= std::sqrt(normal_len2);
+
+    std::vector<NodeID> path;
+    path.reserve(static_cast<size_t>(max_edges));
+    path.push_back(start);
+    NodeID prev = start;
+    NodeID cur = depart;
+    int edges = 0;
+    const int no_close = max_edges + 1;
+    while (edges < max_edges) {
+        ++edges;
+        if (cur == start) {
+            if (edges < 3 || path.size() < 2)
+                return {};
+            if (corner_taken(used, start, path[1], prev))
+                return {};
+            return std::move(path);
+        }
+        if (on_path(path, cur))
+            return {};
+        path.push_back(cur);
+
+        const Vec3 inbound = graph.pos[cur] - graph.pos[prev];
+        const Vec3 in_plane = inbound - normal * CGLA::dot(inbound, normal);
+        const double in_len2 = CGLA::sqr_length(in_plane);
+        if (!(in_len2 > kDirEps) || !std::isfinite(in_len2))
+            return {};
+
+        bool found = false;
+        int best_close = no_close;
+        double best_score = 0.0;
+        NodeID best_next = 0;
+        Vec3 best_cross(0);
+        for (const NodeID next : graph.neighbors_lazy(cur)) {
+            if (next == prev)
+                continue;
+            const Vec3 outbound = graph.pos[next] - graph.pos[cur];
+            const Vec3 out_plane = outbound - normal * CGLA::dot(outbound, normal);
+            const double out_len2 = CGLA::sqr_length(out_plane);
+            if (!(out_len2 > kDirEps) || !std::isfinite(out_len2))
+                continue;
+            const double score = std::atan2(CGLA::dot(normal, CGLA::cross(in_plane, out_plane)),
+                                            CGLA::dot(in_plane, out_plane));
+            if (!std::isfinite(score))
+                continue;
+            int close = no_close;
+            const auto earlier = std::find(path.begin(), path.end(), next);
+            if (earlier != path.end()) {
+                const int back = static_cast<int>(path.end() - earlier);
+                // Repeating a vertex cannot extend the walk. It is useful only
+                // when the turn closes the part of the walk from that vertex.
+                if (!(score > kTurnEps) || back < 3 || back > max_edges ||
+                    corner_taken(used, *earlier, *(earlier + 1), cur))
+                    continue;
+                close = back;
+            } else if (score > kTurnEps) {
+                const int close_next = edges + 2;
+                if (close_next >= 3 && close_next <= max_edges && graph.edges(next).contains(start))
+                    close = close_next;
+            }
+            if (!found || close < best_close ||
+                (close == best_close &&
+                 (score > best_score || (score == best_score && next < best_next)))) {
+                found = true;
+                best_close = close;
+                best_score = score;
+                best_next = next;
+                best_cross = CGLA::cross(graph.pos[prev] - graph.pos[cur], outbound);
+            }
+        }
+        if (!found || corner_taken(used, cur, prev, best_next))
+            return {};
+        const auto closing = std::find(path.begin(), path.end(), best_next);
+        if (closing != path.end())
+            return {closing, path.end()};
+
+        const double cross_len2 = CGLA::sqr_length(best_cross);
+        if (cross_len2 > kDirEps && std::isfinite(cross_len2)) {
+            if (CGLA::dot(best_cross, normal) < 0.0)
+                best_cross = -best_cross;
+            normal = best_cross / std::sqrt(cross_len2);
+        }
+        prev = cur;
+        cur = best_next;
+    }
+    return {};
+}
+
+void canonicalize(std::vector<NodeID>& cycle)
+{
+    const auto least = std::min_element(cycle.begin(), cycle.end());
+    std::rotate(cycle.begin(), least, cycle.end());
+    if (cycle.size() >= 2 && cycle[1] > cycle.back())
+        std::reverse(cycle.begin() + 1, cycle.end());
+}
+
+std::vector<std::vector<NodeID>> trace_faces(const Geometry::AMGraph3D& graph, int max_edges)
+{
+    std::vector<std::vector<NodeID>> faces;
+    if (max_edges < 3 || graph.no_nodes() == 0)
+        return faces;
+    int limit = max_edges;
+    if (graph.no_nodes() < static_cast<size_t>(std::numeric_limits<int>::max()))
+        limit = std::min(limit, static_cast<int>(graph.no_nodes()));
+    const std::vector<std::vector<Corner>> corners = corners_at(graph);
+    const size_t n = graph.no_nodes();
+    std::vector<std::vector<Corner>> used(n);
+    for (NodeID vertex = 0; vertex < n; ++vertex) {
+        for (const Corner& corner : corners[vertex]) {
+            if (corner_taken(used, vertex, corner.a, corner.b))
+                continue;
+            for (int side = 0; side < 2; ++side) {
+                if (corner_taken(used, vertex, corner.a, corner.b))
+                    break;
+                const NodeID depart = side == 0 ? corner.a : corner.b;
+                const NodeID other = side == 0 ? corner.b : corner.a;
+                std::vector<NodeID> cycle = trace_corner(graph, used, vertex, depart, other, limit);
+                if (cycle.size() < 3)
+                    continue;
+                claim_cycle(used, cycle);
+                canonicalize(cycle);
+                faces.push_back(std::move(cycle));
+            }
+        }
+    }
+    std::sort(faces.begin(), faces.end());
+    faces.erase(std::unique(faces.begin(), faces.end()), faces.end());
+    return faces;
 }
 
 void orient_shared_edges(std::vector<std::vector<NodeID>>& faces)
@@ -309,8 +400,7 @@ int reconstruct(const std::vector<Vec3>& points, const GGSROpts& opts, Manifold&
     const Geometry::GraphEdgeWeights weights = Geometry::tunnel_weight_graph(graph, normals);
     const Geometry::AMGraph3D forest = Geometry::minimum_spanning_forest(graph, weights.length);
 
-    std::vector<Geometry::DijkstraFace> found = Geometry::local_dijkstra_faces(graph, opts.max_edges);
-    std::vector<std::vector<NodeID>> faces = discard_larger_faces(found, points, normals);
+    std::vector<std::vector<NodeID>> faces = trace_faces(graph, opts.max_edges);
     orient_shared_edges(faces);
 
     for (const std::vector<NodeID>& face : faces) {

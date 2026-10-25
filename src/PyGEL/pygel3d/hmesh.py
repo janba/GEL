@@ -1097,12 +1097,22 @@ def lrsr_recon(vertices: ArrayLike, radius_factor: float = 4.0) -> Manifold:
         perimeter times area divided by the area projected along that edge's
         normal. The edge normal is the average of the unoriented adaptive
         normals at the two endpoints, after flipping one when they point
-        opposite ways. Triangles are added smallest score first. The queue
-        starts with both sides of every tunnel-weighted forest edge. Adding
-        a triangle brings each of its other edges into consideration when
-        that edge is not already there, and queues the other side. A rejected
-        triangle is replaced by the next score on the same side of the edge
-        that proposed it. A side that already holds a triangle is closed.
+        opposite ways. `kGrowthMode` in LRsR.cpp selects the queue and is 2.
+        Mode 1 queues both sides of every tunnel-weighted spanning-tree edge
+        and, in the same queue, the free side of each new edge of an accepted
+        triangle. Mode 2 starts from the single lowest-score triangle and then
+        queues only those free sides. Mode 3 exhausts the tree edges before
+        opening any other edge, then continues like mode 2. The queued score
+        multiplies the projected-perimeter score by `2 - cos(alpha)` for each
+        face already across one of the triangle's edges. The two faces are
+        given opposite directions along the shared edge before the angle is
+        measured. Coplanar agreeing normals use factor 1 and opposite normals
+        use factor 3. A popped entry whose score has risen is pushed back at
+        the current score and is not added yet. Mode 2 sets that winding from
+        the face across the edge that queued the triangle, and drops a popped
+        triangle whose winding disagrees with any neighbor. A rejected triangle is
+        replaced by the next score on the same side of the edge that proposed
+        it. A side that already holds a triangle is closed.
         A candidate on an occupied side of any of its edges is skipped, and
         the next score is tried. So is a candidate that would be the third
         triangle on any edge, and one whose wedge at a vertex overlaps a
@@ -1119,8 +1129,8 @@ def lrsr_recon(vertices: ArrayLike, radius_factor: float = 4.0) -> Manifold:
         component is then oriented from its first triangle. A neighbor that
         traverses a shared edge in the same direction is reversed. Only the
         cyclic order of the three vertices is used.
-        `LRsR iterations: N` is how many accepted triangles were proposed
-        by an edge outside the forest.
+        `LRsR mode: M` is the selected queue. `LRsR iterations: N` is how many
+        triangles the queue accepted. Mode 2 does not count its first triangle.
     """
     m = Manifold()
     vertices_data, n_vertices = _as_vec3_f(vertices)
@@ -1136,24 +1146,29 @@ def ggsr_recon(vertices: ArrayLike, radius_factor: float = 4.0, max_edges: int =
         adaptive covariance estimate. The tunnel-weighted minimum spanning
         forest of that graph is built next, one tree per component. An edge
         of length `l` costs `l * (1 + |ê·n| + |ê·m|)`. `GGSR mst edges: M`
-        is the number of forest edges. Face finding still walks the full
-        Gabriel graph. From each vertex, Dijkstra with one unit per edge
-        grows a tree and stops at `max_edges` edges. A Gabriel edge that is
-        not in that tree, and whose ends were both reached, closes a face
-        with the tree path between those ends. The hash of a face is its
-        vertex indices in increasing order. A later discovery of the same
-        vertex set is ignored, and the stored boundary and starting vertex
-        are those of the first discovery. Two faces that share more than
-        three edges drop the larger one. Two that share exactly two edges
-        project the vector from each starting vertex to that face's
-        barycenter into the plane perpendicular to the normal at that
-        vertex. A positive dot product of the projected vectors drops the
-        larger face as well. The larger face has more edges, or the greater
-        Euclidean perimeter when the counts match. A pair of equal size is
-        kept, as is every pair that shares one or three edges. The kept
-        polygons are stitched into one mesh, and each connected set of faces
-        is oriented so a shared edge is traversed in opposite directions.
-        `GGSR faces: N` is the number of kept faces.
+        is the number of forest edges. Face finding walks the full Gabriel
+        graph. At each vertex, every pair of incident edges is a corner.
+        Walks are seeded from those corners and traced from both edges.
+        The cross product of the two edges sets the normal, with the corner
+        to the left of travel. At each later vertex every other incident
+        edge is a candidate. A positive turn back to an earlier vertex of
+        the same walk closes that shorter cycle. Otherwise a positive turn
+        whose far vertex is adjacent to the start
+        is taken, since the cycle then closes on the next step. The shortest
+        of those cycles wins. Otherwise the greatest signed turn in the
+        plane perpendicular to the running normal is taken. Equal turns
+        keep the smaller neighbor id. The normal then follows that corner,
+        staying in the same hemisphere. Tracing stops when the walk returns
+        to its start or the next edge would pass `max_edges`. A finished
+        cycle is simple and has at least three edges. The tracer can claim
+        each corner of that cycle and refuse to start from or step onto a
+        claimed corner. That single-use check is currently switched off, so
+        one corner may belong to several cycles. Each undirected
+        cycle is kept once, starting at its least vertex id and leaving
+        toward the smaller cycle neighbor. Not every cycle is found. The
+        polygons are stitched into one mesh, and each connected set of
+        faces is oriented so a shared edge is traversed in opposite
+        directions. `GGSR faces: N` is the number of cycles.
     """
     m = Manifold()
     vertices_data, n_vertices = _as_vec3_f(vertices)

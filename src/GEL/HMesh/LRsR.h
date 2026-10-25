@@ -31,11 +31,24 @@ struct LRsROpts {
  divided by the area projected along the edge normal. The edge normal is
  the average of the unoriented adaptive normals at its two vertices. When
  those normals point opposite ways, one is flipped before the average.
- Triangles are added smallest score first. The queue starts with both
- sides of every tunnel-weighted forest edge. Adding a triangle brings each
- of its other edges into consideration when that edge is not already
- there, and queues the other side of the new edge. A rejected triangle is
- replaced by the next score on the same side of the edge that proposed it.
+ `kGrowthMode` in LRsR.cpp selects the queue. It is 2.
+ Mode 1 queues both sides of every tunnel-weighted spanning-tree edge and,
+ in the same queue, the free side of each new edge of an accepted triangle.
+ Mode 2 starts from the single lowest-score triangle and then queues only
+ free sides of edges of accepted triangles. Mode 3 exhausts the tree edges
+ first and does not open other edges until that queue is empty. It then
+ continues like mode 2 from the triangles already added. Ties break by the
+ smaller corner index, then the edge, then the side. The queued score
+ multiplies that value by `2 - cos(alpha)` for each face already across one
+ of the triangle's edges. Alpha is the angle between the normals once the
+ two faces traverse the shared edge in opposite directions. Coplanar faces
+ with the same normal keep factor 1. Coplanar faces with opposite normals
+ use factor 3. A popped entry whose score has risen is pushed back at the
+ current score and is not added yet. Mode 2 sets the queued winding so the
+ triangle traverses the proposing edge opposite the face already there, and
+ drops a popped triangle that meets any existing neighbor in the same
+ direction. A rejected triangle is replaced by
+ the next score on the same side of the edge that proposed it.
  A side that already holds a triangle is closed.
  A candidate that would lie on an occupied side of any of its edges is
  skipped for the next score. A candidate that would be the third triangle
@@ -52,8 +65,9 @@ struct LRsROpts {
  is oriented from its first triangle. A neighbor that traverses a shared
  edge in the same direction is reversed, and the walk continues. Only the
  cyclic order of the three vertices is used.
- The return value is how many accepted triangles were proposed by an edge
- outside the forest. The count is also printed as `LRsR iterations: N`. */
+ The return value is how many triangles the queue accepted. Mode 2 does not
+ count its first triangle. The run prints `LRsR mode: M` and
+ `LRsR iterations: N`. */
 int reconstruct(const std::vector<CGLA::Vec3d>& points,
                 const LRsROpts& opts,
                 Manifold& result);
