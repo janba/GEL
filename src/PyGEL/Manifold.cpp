@@ -361,7 +361,7 @@ double mean_curvature(const Manifold_ptr m_ptr, size_t _v){
 
 void principal_curvatures(const Manifold_ptr m_ptr, size_t _v, double* curv_info){
     Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
-    PrincipalCurvatures pc = principal_curvatures(*m, VertexID(_v));
+    PrincipalCurvatures pc = principal_curvatures(*m, VertexID(_v), true);
     curv_info[0] = pc.min_curvature;
     curv_info[1] = pc.max_curvature;
     curv_info[2] = pc.min_curv_direction[0];

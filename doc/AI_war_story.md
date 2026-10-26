@@ -1,8 +1,4 @@
-# Developing a reconstruction method
-
-Some years ago we developed the RsR method for combinatorial triangle mesh reconstruction from point clouds. While it works really well, it has a couple of drawbacks. First of all, it is not very fast. Second, it is reliant on consistently oriented normals. We tried to address the first drawback with a hierarchical method. As of writing this method is unpublished, and while it is somewhat faster it is not dramatically faster and there is some cost to quality. Regarding the second issue, I first tried to fix the normals as discussed below.
-
-The following is a brief account of how I used generative AI to improve the method and was gently led towards implementing a slightly different method. I will try to describe how AI was used and how it influenced the work process. 
+# Some anecdotes about the use of generative AI in Programming
 
 ## What AI?
 
@@ -10,13 +6,40 @@ The AI used was Grok 4.7 (and earlier 4.5 and 4.6) used via the command line int
 
 ## How it works:
 
-From Grok: The split is:
+I use Grok CLI which runs in the terminal. Being curious about exactly where things happen, I asked Grok. The split is:
 
 • The model runs on xAI's servers. Your message is sent there, and the reply, including any request to run a command or edit a file, comes back from there.
 • The Grok app on this computer carries out those requests. Shell commands, file reads, and file edits happen locally in /Users/janba/GEL and under your home directory. The results are sent back so the model can continue.
 • A few tools are remote even when the decision to call them is made from here: web search, fetching a URL, X search, and image generation. The LRsR runs did not use those.
 
-## Before the feature
+## Grok vs Github Copilot. Round 1, proofreading.
+
+I have updated the book with the changes from Springer's proofreading process. I had Github Copilot go over the word files and the tex files and find the proofreading changes and then prepare a script to apply the corrections. I also asked it to find additional issues and correct those. It found relatively few things.
+
+This was surprising since Jens and I had done a test ono Chapter 1 this Friday using Grok which seemed to find quite a lot of changes just in Chapter 1.
+
+So I had Grok redo the comparison between word and tex, and it found many more things to change. It also found more changes that were not in the word files.
+
+I then asked both AIs why they had a different result. They don't quite agree.
+
+Copilot: The practical difference is: my work was “evidence-based, minimal-risk corrections,” while the Grok run looks more like “comprehensive editorial proofreading.”
+
+Grok: Yes. Copilot did not really do the three tasks. It did a shallow typo grep on a few files and stopped.
+
+I think this is so funny. Copilot is so smooth and a master of spin. Grok is more passive aggressive but also more diligent. 
+
+## Grok vs Github Copilot. Round 2, Curvature estimation
+
+I was changing the curvature tensor estimation from only finding a paraboloid with no linear terms to first fitting a plane to the local neighborhood and then a paraboloid. This is a bit of a hack, but it should work about as well as fitting a paraboloid with linear terms. In practice it did not, so I asked both Grok and Copilot about that.
+
+Copilot: The fix is to estimate the linear and quadratic terms together, with 5 unknowns (x, y, ½x², xy, ½y²) in a single least-squares fit.
+... Copilot said much more but that was the recommendation. It all take 19 seconds. The model was Claude Sonnet 5.5 and no files other than the one with the problematic functions were consulted.
+
+Grok thought for 16 minutes and 27 seconds and came back with largely the same recommendation. However, it also found a bug in an unrelated downstream piece of code. The way I compute eigenvalues (using power iterations) does not work reliably when two eigenvalues are numerically the same but of opposite sign. It came up with a solution for that problem as well (shifting such that the eigenvalues are different) but also told me that the eigenvalues should be computed directly since it is a 2x2 matrix. 
+
+So, Grok did much more work again. Arguably, though, Copilot was more efficient.
+
+## Build System
 
 AI has been used to make several changes to the way GEL is built:
 - Make a wheel per platform rather than a single wheel which loads the right binary.
@@ -25,6 +48,12 @@ AI has been used to make several changes to the way GEL is built:
 - Produce a yaml file which tests installation on a range of platforms and runs a simple test of GEL features.
 
 Interestingly the install test passed despite the AI having initially produced a wheel that would only really install on computers with almost identical setup to mine. That was because the installation just installed a previous version.
+
+#  Developing a reconstruction method
+
+Some years ago we developed the RsR method for combinatorial triangle mesh reconstruction from point clouds. While it works really well, it has a couple of drawbacks. First of all, it is not very fast. Second, it is reliant on consistently oriented normals. We tried to address the first drawback with a hierarchical method. As of writing this method is unpublished, and while it is somewhat faster it is not dramatically faster and there is some cost to quality. Regarding the second issue, I first tried to fix the normals as discussed below.
+
+The following is a brief account of how I used generative AI to improve the method and was gently led towards implementing a slightly different method. I will try to describe how AI was used and how it influenced the work process. 
 
 ## First Analysis
 
@@ -99,8 +128,9 @@ I described another approach to Grok which was based on first finding corners (a
 This was much more efficient, but ultimately some of the desired faces from the Gabriel Graph remain very hard to find.
 
 ## Main takeaways:
-- AI is a godsend when it comes to build files. Don't touch them, just let AI deal with that.
-- I don't really look at the code except maybe to make one-line changes.
+- AI is a godsend when it comes to build files. Don't touch them, just let AI deal with that. However, be aware that what you ask for might not be exactly what you want.
+- Generative AI makes the entire slice - right from the kernel changes to the UI. That is super helpful.
+- I don't really look at the code except maybe to make one-line changes. I think we have to trust the AI but validate the outcome. 
 - The AI does not come up with the strategy for solving the problem. It is useful for researching various methods to achieve some goal, but I find it less useful for ultimately choosing the right strategy. This could be very problem-dependent and it could depend on the human and on the AI, but I think that as long as humans formulate the problem, we might have the sharpest intuition ultimately for the solution.
 - If I don't understand what I am asking, the AI can't code it. My first solution did not work and Grok could not fix my idea. I have seen this before when I tried to use AI to generate ML-based texture synthesis (mostly Copilot though). The programs would work, but they would not synthesize textures.
 - Since you do not author the code, throwing it away becomes much less painful. This is perhaps the benefit as it leaves you free to explore. Ultimately, the Delaunay Graph is a better starting point for mesh generation it seems now and the ability to play with the algorithms really helped bring clarity.

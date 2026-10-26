@@ -369,11 +369,14 @@ class Manifold:
         return lib_py_gel.mean_curvature(self.obj, vid)
     def principal_curvatures(self, vid: int) -> tuple[float, float, ndarray, ndarray]:
         """ Returns the principal curvatures of vertex vid. The principal curvatures
-        are computed by fitting a quadratic polynomial surface to the vertex and its
-        one-ring neighbours. From the coefficients, we obtain the shape operator and 
+        are computed by fitting a quadratic polynomial surface to the vertex, its
+        one-ring, and the vertex across each link edge when that vertex exists.
+        Each sample has Gaussian weight exp(-d^2 / d2), where d is its distance
+        from the vertex and d2 is the mean squared distance of the one-ring.
+        From the coefficients, we obtain the shape operator and
         the principal curvatures are the eigenvalues of the shape operator. The directions
-        are the eigenvectors. The function returns a tuple consiting of four values: 
-        min and max principal curvature followed by the corresponding principal directions 
+        are the eigenvectors. The function returns a tuple consiting of four values:
+        min and max principal curvature followed by the corresponding principal directions
         as 3D vectors"""
         pc_data = ndarray(8, dtype=np.float64)
         lib_py_gel.principal_curvatures(self.obj, vid, pc_data)

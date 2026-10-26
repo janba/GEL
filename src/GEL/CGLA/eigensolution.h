@@ -30,8 +30,23 @@ namespace CGLA
         The final argument is the number of solutions to find. If only
         a number of solutions are interesting, use this argument to save
         cycles.
+
+        A pair of eigenvalues with equal magnitude and opposite sign does not
+        converge under plain power iteration. The iteration then continues on
+        a shifted matrix and subtracts the shift from the reported value.
+        Eigenvalues whose magnitude is below the internal threshold are not
+        reported, so a numerically rank-deficient matrix still returns the
+        number of nonzero eigenvalues.
 */
 template <class MT>
 int power_eigensolution(const MT& A, MT& Q, MT& L, unsigned int max_sol = 1000);
+
+/** Eigenpairs of a symmetric 2x2 matrix.
+        Eigenvectors are stored as rows of Q and eigenvalues on the diagonal
+        of L, with the algebraically larger value first. The two directions
+        are orthonormal. Returns 2.
+*/
+template <class MT>
+int eigensolution_2x2(const MT& A, MT& Q, MT& L);
 }
 #endif

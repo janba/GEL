@@ -5,8 +5,10 @@
  * ----------------------------------------------------------------------- */
 
 #include <GEL/HMesh/curvature.h>
+#include <algorithm>
 #include <random>
 #include <iostream>
+#include <cmath>
 #include <GEL/CGLA/CGLA.h>
 
 #include <GEL/HMesh/Manifold.h>
@@ -227,44 +229,140 @@ namespace HMesh
     }
     
     
-    void curvature_tensor_paraboloid(const Manifold& m, VertexID v, Mat2x2d& curv_tensor, Mat3x3d& frame)
+    void curvature_tensor_paraboloid(const Manifold& m, VertexID v, Mat2x2d& curv_tensor, Mat3x3d& frame,
+                                      bool use_opposite_vertices)
     {
-        // First estimate the normal and compute a transformation matrix
-        // which takes us into tangent plane coordinates.
-        Vec3d Norm = Vec3d(normal(m, v));
-        Vec3d X(Norm[2]+0.721, Norm[1]+0.163, Norm[0]+0.542);
-        Vec3d Y=normalize(cross(Norm, X));
-        X = normalize(cross(Y, Norm));
+        // Tangent frame of the mesh normal. Rows map world coordinates into this frame.
+        Vec3d norm = Vec3d(normal(m, v));
+        Vec3d X(norm[2]+0.721, norm[1]+0.163, norm[0]+0.542);
+        Vec3d Y=normalize(cross(norm, X));
+        X = normalize(cross(Y, norm));
         Vec3d centre(m.pos(v));
-        frame = Mat3x3d(X,Y,Norm);
-        vector<Vec3d> points;
-        for (auto vn: m.incident_vertices(v)) 
-            points.push_back(m.pos(vn));
+        frame = Mat3x3d(X,Y,norm);
 
-        int N = int(points.size());
-        vector<Vec3d> A(N);
-        vector<double> b(N);
-        for(int n = 0; n < N; ++n){
-            Vec3d p = frame*(points[n]-centre);
-            double x = p[0];
-            double y = p[1];
-            A[n] = Vec3d(0.5*x*x, x*y, 0.5*y*y);
-            b[n] = p[2];
+        // The 1-ring, plus the vertex across each link edge when it exists.
+        // Boundary edges, unused ids, and repeated vertices contribute nothing.
+        vector<Vec3d> points;
+        vector<VertexID> used;
+        auto consider = [&](VertexID id) {
+            if (id == v || !m.in_use(id))
+                return;
+            if (std::find(used.begin(), used.end(), id) != used.end())
+                return;
+            used.push_back(id);
+            points.push_back(m.pos(id));
+        };
+        for (auto vn: m.incident_vertices(v))
+            consider(vn);
+        // Width of the Gaussian: mean squared distance of the direct 1-ring.
+        // Opposite vertices are measured against this same width.
+        double ring_sq = 0;
+        const int ring_n = int(points.size());
+        for (int n = 0; n < ring_n; ++n) {
+            const Vec3d d = points[n] - centre;
+            ring_sq += dot(d, d);
         }
-        Vec3d x = ls_solve(A,b);
-        // Finally compute the shape tensor from the coefficients
-        // using the first and second fundamental forms.
-        curv_tensor = - Mat2x2d(x[0],x[1],x[1],x[2]);
+        const double mean_sq = ring_n > 0 ? ring_sq / double(ring_n) : 0.0;
+        if (use_opposite_vertices && !used.empty()) {
+            for (Walker w = m.walker(v); !w.full_circle(); w = w.circulate_vertex_cw()) {
+                if (!m.in_use(w.halfedge()) || w.face() == InvalidFaceID)
+                    continue;
+                const Walker link = w.next();
+                if (!m.in_use(link.halfedge()))
+                    continue;
+                // opp() keeps the parent's circulation counter, so start a new
+                // walk on the opposite face. A boundary edge has no face there.
+                const HalfEdgeID across_id = link.opp().halfedge();
+                if (!m.in_use(across_id))
+                    continue;
+                const Walker across = m.walker(across_id);
+                if (across.face() == InvalidFaceID)
+                    continue;
+                const VertexID end_a = link.vertex();
+                const VertexID end_b = across.vertex();
+                for (Walker face = across; !face.full_circle(); face = face.circulate_face_ccw()) {
+                    const VertexID opposite = face.vertex();
+                    if (opposite == end_a || opposite == end_b)
+                        continue;
+                    consider(opposite);
+                }
+            }
+        }
+        const int N = int(points.size());
+
+        // z = su x + sv y + (1/2) cu x^2 + cuv x y + (1/2) cv y^2.
+        // The linear terms travel with the quadratic ones. A separate plane fit
+        // absorbs curvature wherever the 1-ring is not centrosymmetric.
+        vector<VecN<5>> rows(N);
+        vector<double> rhs(N);
+        for (int n = 0; n < N; ++n) {
+            const Vec3d p = frame * (points[n] - centre);
+            const double x = p[0];
+            const double y = p[1];
+            // Weighted least squares: row scale sqrt(w) makes the solver
+            // minimize sum w r^2 with w = exp(-dist^2 / mean 1-ring dist^2).
+            const double dist2 = dot(p, p);
+            const double weight = mean_sq > 0.0 ? std::exp(-dist2 / mean_sq) : 1.0;
+            const double scale = std::sqrt(weight);
+            rows[n] = VecN<5>(0);
+            rows[n][0] = scale * x;
+            rows[n][1] = scale * y;
+            rows[n][2] = scale * 0.5 * x * x;
+            rows[n][3] = scale * x * y;
+            rows[n][4] = scale * 0.5 * y * y;
+            rhs[n] = scale * p[2];
+        }
+        const VecN<5> coef = ls_solve(rows, rhs);
+        const double su = coef[0];
+        const double sv = coef[1];
+        const double cu = coef[2];
+        const double cuv = coef[3];
+        const double cv = coef[4];
+
+        // First and second fundamental forms of the graph at the vertex.
+        // The shape operator below uses the outward-sphere sign of the old
+        // pure-quadratic fit (a convex cap with the normal pointing out is positive).
+        const double E = 1.0 + su * su;
+        const double F = su * sv;
+        const double G = 1.0 + sv * sv;
+        const double metric = std::sqrt(E * G - F * F);
+        const double e = -cu / metric;
+        const double f = -cuv / metric;
+        const double g = -cv / metric;
+
+        // Cholesky factor of the first fundamental form, I = R^T R, and the
+        // symmetric shape operator in the orthonormal tangent coordinates w = R v.
+        const double R00 = std::sqrt(E);
+        const double R01 = F / R00;
+        const double R11 = metric / R00;
+        const Mat2x2d Rinv(1.0 / R00, -R01 / (R00 * R11),
+                           0.0, 1.0 / R11);
+        const Mat2x2d second(e, f, f, g);
+        curv_tensor = transpose(Rinv) * second * Rinv;
+
+        const Vec3d r_x(1.0, 0.0, su);
+        const Vec3d r_y(0.0, 1.0, sv);
+        const Vec3d n_local = cond_normalize(Vec3d(-su, -sv, 1.0));
+        const Vec2d v0(Rinv[0][0], Rinv[1][0]);
+        const Vec2d v1(Rinv[0][1], Rinv[1][1]);
+        const Vec3d t0_local = v0[0] * r_x + v0[1] * r_y;
+        const Vec3d t1_local = v1[0] * r_x + v1[1] * r_y;
+
+        const Mat3x3d to_world = transpose(frame);
+        const Vec3d n = cond_normalize(to_world * n_local);
+        const Vec3d t0 = cond_normalize(to_world * t0_local);
+        const Vec3d t1 = cond_normalize(cross(n, t0));
+        frame = Mat3x3d(t0, t1, n);
     }
 
-    PrincipalCurvatures principal_curvatures( const Manifold& m, VertexID v) {
+    PrincipalCurvatures principal_curvatures(const Manifold& m, VertexID v, bool use_opposite_vertices) {
 
         Mat2x2d tensor;
         Mat3x3d frame;
-        curvature_tensor_paraboloid(m, v, tensor, frame);
+        curvature_tensor_paraboloid(m, v, tensor, frame, use_opposite_vertices);
         
         Mat2x2d Q, L;
-        int s = power_eigensolution(tensor, Q, L);
+        eigensolution_2x2(tensor, Q, L);
         
         int max_idx = 0;
         int min_idx = 1;

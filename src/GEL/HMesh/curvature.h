@@ -115,11 +115,17 @@ namespace HMesh
      * @param v The vertex ID.
      * @return PrincipalCurvatures struct with directions and values.
      * 
-     * Note that this function computes the principal curvatures by locally fitting
-     * a paraboloid to the 1-ring vertices of the mesh. Based on this a 2x2 matrix
-     * known as the shape operator is computed.
+     * The principal curvatures come from a paraboloid fitted to the vertex.
+     * The samples are the 1-ring. By default each link edge also contributes the
+     * vertex opposite the center, when that face and vertex exist. A boundary
+     * edge has none, and that sample is left out. Sample i has Gaussian weight
+     * exp(-d_i^2 / d2), where d_i is its distance from the vertex and d2 is the
+     * mean squared distance of the 1-ring. From the fit a 2x2 shape operator
+     * is formed.
+     * @param use_opposite_vertices Include the vertex across each link edge.
      */
-    PrincipalCurvatures principal_curvatures( const Manifold& m, VertexID v);
+    PrincipalCurvatures principal_curvatures(const Manifold& m, VertexID v,
+                                              bool use_opposite_vertices = true);
 
 
     /**
