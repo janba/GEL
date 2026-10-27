@@ -168,7 +168,7 @@ ManifoldRenderer* render_factory(char mode, Manifold& m, bool smooth_shading, do
                 max_val = max(max_val,val);
             }
             auto srenderer = new ScalarFieldRenderer();
-            srenderer->compile_display_list(m, smooth_shading, attrib_vec, min_val, max_val, 2.2,1,1,1);
+            srenderer->compile_display_list(m, smooth_shading, attrib_vec, min_val, max_val, 2.0,1,1,1);
             renderer = srenderer;
         }
             return renderer;

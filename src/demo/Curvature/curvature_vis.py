@@ -35,37 +35,37 @@ print("min curvature range: ", kmin.min(), kmin.max())
 print("max curvature range: ", kmax.min(), kmax.max())
 
 print("Displaying minimum principal curvature")
-v.display(m, mode='s', data=kmin)
+v.display(m, mode='s', data=kmin, bg_col=(1,1,1))
 
 print("Displaying maximum principal curvature")
-v.display(m, mode='s', data=kmax)
+v.display(m, mode='s', data=kmax, bg_col=(1,1,1))
 
 dirmin = smooth_vector_field(m, array([ pc[v][2] for v in m.vertices()]))
 print("Displaying minimum principal curvature direction")
-v.display(m, mode='l', data=dirmin)
+v.display(m, mode='l', data=dirmin, bg_col=(1,1,1))
 
 print("Displaying maximum principal curvature direction")
 dirmax = smooth_vector_field(m, array([ pc[v][3] for v in m.vertices()]))
-v.display(m, mode='l', data=dirmax)
+v.display(m, mode='l', data=dirmax, bg_col=(1,1,1))
 
 K2 = kmin * kmax
 H2 = (kmin + kmax) / 2
 K = array([ m.gaussian_curvature(v) for v in m.vertices()])
 
 print("Displaying Gaussian curvature")
-v.display(m, mode='s', data=K)
+v.display(m, mode='s', data=K, bg_col=(1,1,1))
 
 print("Displaying Gaussian curvature (product of principal curvatures)")
-v.display(m, mode='s', data=K2)
+v.display(m, mode='s', data=K2, bg_col=(1,1,1))
 print("Gaussian curvature range: ", K.min(), K.max())
 print("Gaussian curvature range (product of principal curvatures): ", K2.min(), K2.max())
 
 H = array([ m.mean_curvature(v) for v in m.vertices() ])
 
 print("Displaying Mean curvature")
-v.display(m, mode='s', data=H)
+v.display(m, mode='s', data=H, bg_col=(1,1,1))
 
 print("Displaying Mean curvature (average of principal curvatures)")
-v.display(m, mode='s', data=H2)
+v.display(m, mode='s', data=H2, bg_col=(1,1,1))
 print("Mean curvature range: ", H.min(), H.max())
 print("Mean curvature range (average of principal curvatures): ", H2.min(), H2.max())
