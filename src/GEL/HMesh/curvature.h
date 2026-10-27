@@ -50,18 +50,21 @@ namespace HMesh
      * @brief Compute the mean curvature normal at a vertex using the cotan formula.
      * @param m The input mesh.
      * @param v The vertex ID.
+     * @param use_mixed_area Divide by the mixed area. Otherwise divide by the barycentric area.
      * @return The mean curvature normal vector.
      */
     CGLA::Vec3d mean_curvature_normal(  const Manifold& m, 
-                                        VertexID v);
+                                        VertexID v,
+                                        bool use_mixed_area = true);
 
     /**
      * @brief Compute the mean curvature at a vertex.
      * @param m The input mesh.
      * @param v The vertex ID.
-     * @return The mean curvature value computed as the ratio of the length of the mean curvature normal to the mixed area.
+     * @param use_mixed_area Divide by the mixed area. Otherwise divide by the barycentric area.
+     * @return The signed mean curvature. The cotan vector is divided by four times the chosen area.
      */
-    double mean_curvature(const Manifold& m, VertexID v);
+    double mean_curvature(const Manifold& m, VertexID v, bool use_mixed_area = true);
 
     /**
      * @brief Compute the angle defect at a vertex.
@@ -75,29 +78,34 @@ namespace HMesh
      * @brief Compute the Gaussian curvature at a vertex.
      * @param m The input mesh.
      * @param v The vertex ID.
-     * @return The Gaussian curvature value computed as the ratio of the angle defect to the mixed area.
+     * @param use_mixed_area Divide by the mixed area. Otherwise divide by the barycentric area.
+     * @return The Gaussian curvature value computed as the ratio of the angle defect to the chosen area.
      */
-    double gaussian_curvature(const Manifold& m, VertexID v);
+    double gaussian_curvature(const Manifold& m, VertexID v, bool use_mixed_area = true);
 
         /**
      * @brief Compute Gaussian curvature for all vertices.
      * @param m The input mesh.
      * @param curvature Output: Gaussian curvature per vertex.
      * @param smooth_steps Number of smoothing iterations (default 0).
+     * @param use_mixed_area Divide by the mixed area. Otherwise divide by the barycentric area.
      */
     void gaussian_curvature(const Manifold& m, 
         VertexAttributeVector<double>& curvature, 
-        int smooth_steps=0);
+        int smooth_steps=0,
+        bool use_mixed_area=true);
 
     /**
      * @brief Compute mean curvature for all vertices.
      * @param m The input mesh.
      * @param curvature Output: mean curvature per vertex.
      * @param smooth_steps Number of smoothing iterations (default 0).
+     * @param use_mixed_area Divide by the mixed area. Otherwise divide by the barycentric area.
      */
     void mean_curvature(const Manifold& m, 
         VertexAttributeVector<double>& curvature,
-        int smooth_steps=0);
+        int smooth_steps=0,
+        bool use_mixed_area=true);
 
     /**
      * @brief Struct holding principal curvature values and directions at a vertex.
@@ -116,16 +124,18 @@ namespace HMesh
      * @return PrincipalCurvatures struct with directions and values.
      * 
      * The principal curvatures come from a paraboloid fitted to the vertex.
-     * The samples are the 1-ring. By default each link edge also contributes the
-     * vertex opposite the center, when that face and vertex exist. A boundary
-     * edge has none, and that sample is left out. Sample i has Gaussian weight
-     * exp(-d_i^2 / d2), where d_i is its distance from the vertex and d2 is the
-     * mean squared distance of the 1-ring. From the fit a 2x2 shape operator
-     * is formed.
+     * The samples are the 1-ring. Each link edge can also contribute the vertex
+     * opposite the center, when that face and vertex exist. A boundary edge has
+     * none, and that sample is left out. When weights are on, sample i has
+     * Gaussian weight exp(-d_i^2 / d2), where d_i is its distance from the
+     * vertex and d2 is the mean squared distance of the 1-ring. Otherwise every
+     * sample has weight one. From the fit a 2x2 shape operator is formed.
      * @param use_opposite_vertices Include the vertex across each link edge.
+     * @param use_weights Weight each sample by the Gaussian of its distance.
      */
     PrincipalCurvatures principal_curvatures(const Manifold& m, VertexID v,
-                                              bool use_opposite_vertices = true);
+                                              bool use_opposite_vertices = true,
+                                              bool use_weights = true);
 
 
     /**

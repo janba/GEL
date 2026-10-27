@@ -474,6 +474,14 @@ TEST_CASE("opposite link vertices extend the paraboloid fit")
     mesh.positions[outers.front()] = Vec3d(x, y, -0.25 * x * x - y * y + 0.05);
     const auto distant = HMesh::principal_curvatures(mesh, center, true);
     CHECK(std::abs(distant.max_curvature - 2.0) < near_outer);
+
+    // The same far sample, without the Gaussian weight, pulls the fit harder.
+    const auto unweighted = HMesh::principal_curvatures(mesh, center, true, false);
+    const double distant_err = std::max(std::abs(distant.min_curvature - 0.5),
+                                         std::abs(distant.max_curvature - 2.0));
+    const double unweighted_err = std::max(std::abs(unweighted.min_curvature - 0.5),
+                                            std::abs(unweighted.max_curvature - 2.0));
+    CHECK(unweighted_err > distant_err);
 }
 
 TEST_CASE("a missing opposite vertex is skipped")

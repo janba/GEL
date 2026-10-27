@@ -349,19 +349,20 @@ double mixed_area(const Manifold_ptr m_ptr, size_t _v){
     return mixed_area(*m, VertexID(_v));
 }
 
-double gaussian_curvature(const Manifold_ptr m_ptr, size_t _v){
+double gaussian_curvature(const Manifold_ptr m_ptr, size_t _v, bool use_mixed_area){
     Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
-    return gaussian_curvature(*m, VertexID(_v));
+    return gaussian_curvature(*m, VertexID(_v), use_mixed_area);
 }
 
-double mean_curvature(const Manifold_ptr m_ptr, size_t _v){
+double mean_curvature(const Manifold_ptr m_ptr, size_t _v, bool use_mixed_area){
     Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
-    return mean_curvature(*m, VertexID(_v));
+    return mean_curvature(*m, VertexID(_v), use_mixed_area);
 }
 
-void principal_curvatures(const Manifold_ptr m_ptr, size_t _v, double* curv_info){
+void principal_curvatures(const Manifold_ptr m_ptr, size_t _v, double* curv_info,
+                          bool use_opposite_vertices, bool use_weights){
     Manifold* m = reinterpret_cast<Manifold*>(m_ptr);
-    PrincipalCurvatures pc = principal_curvatures(*m, VertexID(_v), true);
+    PrincipalCurvatures pc = principal_curvatures(*m, VertexID(_v), use_opposite_vertices, use_weights);
     curv_info[0] = pc.min_curvature;
     curv_info[1] = pc.max_curvature;
     curv_info[2] = pc.min_curv_direction[0];

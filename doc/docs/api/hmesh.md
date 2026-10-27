@@ -112,9 +112,9 @@ m = hmesh.x3d_load("model.x3d")
 - `mixed_area(mesh, vertex_id)` - Mixed Voronoi/barycentric area
 
 ### Curvature
-- `gaussian_curvature(mesh, vertex_id)` - Gaussian curvature at vertex
-- `mean_curvature(mesh, vertex_id)` - Mean curvature at vertex
-- `principal_curvatures(mesh, vertex_id)` - Principal curvatures
+- `gaussian_curvature(mesh, vertex_id, use_mixed_area=True)` - Gaussian curvature at a vertex. The denominator is the mixed area, or the barycentric area when `use_mixed_area` is false.
+- `mean_curvature(mesh, vertex_id, use_mixed_area=True)` - Mean curvature at a vertex, with the same area choice.
+- `principal_curvatures(mesh, vertex_id, use_opposite_vertices=True, use_weights=True)` - Principal curvatures from a paraboloid fit. `use_opposite_vertices` adds the vertex across each link edge. `use_weights` applies the Gaussian distance weight.
 
 ### Normals
 - `vertex_normal(mesh, vertex_id)` - Vertex normal

@@ -104,7 +104,7 @@ namespace HMesh
     }
 
 
-    Vec3d mean_curvature_normal(const Manifold& m, VertexID v)
+    Vec3d mean_curvature_normal(const Manifold& m, VertexID v, bool use_mixed_area)
     {
         Vec3d curv_normal(0);
         if(!boundary(m, v)) {
@@ -122,12 +122,13 @@ namespace HMesh
                 curv_normal += w * (nbr-vertex);
             }
         }
-        return -curv_normal / (4.0*mixed_area(m, v));
+        const double vertex_area = use_mixed_area ? mixed_area(m, v) : barycentric_area(m, v);
+        return -curv_normal / (4.0*vertex_area);
     }
 
-    double mean_curvature(const Manifold& m, VertexID v)
+    double mean_curvature(const Manifold& m, VertexID v, bool use_mixed_area)
     {
-        Vec3d N = mean_curvature_normal(m, v);
+        Vec3d N = mean_curvature_normal(m, v, use_mixed_area);
         return length(N) * sign(dot(N,Vec3d(normal(m, v))));
     }
 
@@ -154,7 +155,7 @@ namespace HMesh
     }
 
 
-    double gaussian_curvature(const Manifold& m, VertexID v)
+    double gaussian_curvature(const Manifold& m, VertexID v, bool use_mixed_area)
     {
         if(boundary(m, v))
             return 0;
@@ -173,20 +174,23 @@ namespace HMesh
                 std::max(-1.0, std::min(1.0, dot(edges[i],edges[(i+1)%N])));
             angle_sum += acos(dot_prod);
         }
-        return (2*M_PI - angle_sum)/mixed_area(m, v);
+        const double vertex_area = use_mixed_area ? mixed_area(m, v) : barycentric_area(m, v);
+        return (2*M_PI - angle_sum)/vertex_area;
     }
 
-    void gaussian_curvature(const Manifold& m, VertexAttributeVector<double>& curvature, int smooth_steps)
+    void gaussian_curvature(const Manifold& m, VertexAttributeVector<double>& curvature, int smooth_steps,
+                            bool use_mixed_area)
     {
         for(auto v: m.vertices())
-            curvature[v] = gaussian_curvature(m, v);
+            curvature[v] = gaussian_curvature(m, v, use_mixed_area);
         smooth_something_on_mesh(m, curvature, smooth_steps);
     }
 
-    void mean_curvature(const Manifold& m, VertexAttributeVector<double>& curvature, int smooth_steps)
+    void mean_curvature(const Manifold& m, VertexAttributeVector<double>& curvature, int smooth_steps,
+                        bool use_mixed_area)
     {
         for(auto v: m.vertices())
-            curvature[v] = mean_curvature(m, v);
+            curvature[v] = mean_curvature(m, v, use_mixed_area);
         smooth_something_on_mesh(m, curvature, smooth_steps);	
     }
 
@@ -230,7 +234,7 @@ namespace HMesh
     
     
     void curvature_tensor_paraboloid(const Manifold& m, VertexID v, Mat2x2d& curv_tensor, Mat3x3d& frame,
-                                      bool use_opposite_vertices)
+                                      bool use_opposite_vertices, bool use_weights)
     {
         // Tangent frame of the mesh normal. Rows map world coordinates into this frame.
         Vec3d norm = Vec3d(normal(m, v));
@@ -299,10 +303,11 @@ namespace HMesh
             const Vec3d p = frame * (points[n] - centre);
             const double x = p[0];
             const double y = p[1];
-            // Weighted least squares: row scale sqrt(w) makes the solver
-            // minimize sum w r^2 with w = exp(-dist^2 / mean 1-ring dist^2).
+            // Optional Gaussian weights. The row scale sqrt(w) makes the solver
+            // minimize sum w r^2. With weights off, every sample has weight 1.
+            // w = exp(-dist^2 / mean 1-ring dist^2).
             const double dist2 = dot(p, p);
-            const double weight = mean_sq > 0.0 ? std::exp(-dist2 / mean_sq) : 1.0;
+            const double weight = (use_weights && mean_sq > 0.0) ? std::exp(-dist2 / mean_sq) : 1.0;
             const double scale = std::sqrt(weight);
             rows[n] = VecN<5>(0);
             rows[n][0] = scale * x;
@@ -355,11 +360,12 @@ namespace HMesh
         frame = Mat3x3d(t0, t1, n);
     }
 
-    PrincipalCurvatures principal_curvatures(const Manifold& m, VertexID v, bool use_opposite_vertices) {
+    PrincipalCurvatures principal_curvatures(const Manifold& m, VertexID v, bool use_opposite_vertices,
+                                             bool use_weights) {
 
         Mat2x2d tensor;
         Mat3x3d frame;
-        curvature_tensor_paraboloid(m, v, tensor, frame, use_opposite_vertices);
+        curvature_tensor_paraboloid(m, v, tensor, frame, use_opposite_vertices, use_weights);
         
         Mat2x2d Q, L;
         eigensolution_2x2(tensor, Q, L);
