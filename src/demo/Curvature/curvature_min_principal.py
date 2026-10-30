@@ -41,7 +41,7 @@ def show_scalar(viewer, mesh, title, values, reference=None):
     if reference is not None:
         error = abs(values - reference)
         print("  mean abs error:", error.mean(), " max abs error:", error.max())
-    viewer.display(mesh, mode='s', data=values)
+    viewer.display(mesh, mode='s', data=values, bg_col=(1,1,1))
 
 
 fn = "../../../data/Solids/torus.obj" if len(argv) < 2 else argv[1]
